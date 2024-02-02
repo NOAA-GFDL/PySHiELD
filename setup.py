@@ -11,11 +11,19 @@ setup_requirements: List[str] = []
 requirements = [
     "f90nml>=1.1.0",
     "numpy",
-    "ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@main",
     "xarray",
 ]
 
 test_requirements = ["pytest"]
+ndsl_requirements = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@main"]
+develop_requirements = test_requirements + ndsl_requirements + ["pre-commit"]
+
+extras_requires = {
+    "test": test_requirements,
+    "ndsl": ndsl_requirements,
+    "develop": develop_requirements,
+}
+
 
 setup(
     author="Vulcan Technologies LLC",
@@ -33,11 +41,11 @@ setup(
     description="pySHiELD is a collection of NDSL-based physical parameterizations"
     "for atmospheric models",
     install_requires=requirements,
-    extras_require={},
+    extras_require=extras_requires,
     license="BSD license",
     long_description=readme,
     include_package_data=True,
-    name="pace-physics",
+    name="pySHiELD",
     packages=find_namespace_packages(include=["pySHiELD", "pySHiELD.*"]),
     setup_requires=[],
     test_suite="tests",
