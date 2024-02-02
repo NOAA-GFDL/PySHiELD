@@ -45,7 +45,7 @@ setup(
     license="BSD license",
     long_description=readme,
     include_package_data=True,
-    name="pace-physics",
+    name="pySHiELD",
     packages=find_namespace_packages(include=["pySHiELD", "pySHiELD.*"]),
     setup_requires=[],
     test_suite="tests",
