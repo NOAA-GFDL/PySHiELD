@@ -12,7 +12,7 @@ from gt4py.cartesian.gtscript import (
     sqrt,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.orchestration import orchestrate
+from ndsl.dsl.dace.orchestration import orchestrate, dace_inhibitor
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.grid import GridData
@@ -1953,6 +1953,10 @@ class Microphysics:
         self._ces0 = constants.EPS * es0
         self._set_timestep(dt_atmos)
 
+    # due to DaCe failure to parse
+    #TODO: this should be revisited for any new version of DaCe
+
+    @dace_inhibitor
     def _update_timestep_if_needed(self, timestep: float):
         if timestep != self._timestep:
             self._set_timestep(timestep=timestep)
