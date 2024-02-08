@@ -10,4 +10,4 @@ from .translate_update_pressure_sfc_winds_phys import (
     TranslatePhysUpdatePressureSurfaceWinds,
 )
 from .translate_update_tracers_phys import TranslatePhysUpdateTracers
-from .translate_physics import TranslatePhysicsFortranData2Py
+
