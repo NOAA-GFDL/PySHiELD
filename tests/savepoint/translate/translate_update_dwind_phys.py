@@ -1,7 +1,7 @@
 import numpy as np
 from ndsl.comm.partitioner import TilePartitioner
 from ndsl.utils import safe_assign_array
-from translate_physics import TranslatePhysicsFortranData2Py
+from .translate_physics import TranslatePhysicsFortranData2Py
 
 from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
 

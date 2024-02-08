@@ -8,7 +8,7 @@ from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
 from ndsl.quantity import Quantity
 from ndsl.utils import safe_assign_array
-from translate_physics import (
+from .translate_physics import (
     ParallelPhysicsTranslate2Py,
     transform_dwind_serialized_data,
 )

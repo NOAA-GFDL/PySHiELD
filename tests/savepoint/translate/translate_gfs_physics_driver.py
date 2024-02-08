@@ -2,7 +2,7 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 import ndsl.util as util
-from translate_physics import TranslatePhysicsFortranData2Py
+from .translate_physics import TranslatePhysicsFortranData2Py
 
 from pySHiELD import PHYSICS_PACKAGES
 from pySHiELD.stencils.physics import Physics, PhysicsState
