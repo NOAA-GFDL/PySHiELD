@@ -18,13 +18,12 @@ repos:
     rev: v0.812
     hooks:
     - id: mypy
-      name: mypy-pySHiELD
+      name: mypy-physics
       args: [--config-file, setup.cfg]
-      files: physics
+      files: pySHiELD
       exclude: |
         (?x)^(
-        fv3core/pace/fv3core/stencils/fv_subgridz.py |
-        fv3core/tests/conftest.py
+        pySHiELD/tests/conftest.py
         )$
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0

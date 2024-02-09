@@ -2,11 +2,10 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 import ndsl.util as util
-from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
-
 from pySHiELD import PHYSICS_PACKAGES
 from pySHiELD.stencils.physics import Physics, PhysicsState
 from pySHiELD.update import update_atmos_state
+from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):

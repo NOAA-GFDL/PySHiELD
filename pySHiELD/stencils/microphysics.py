@@ -1,7 +1,6 @@
 import copy
 import typing
 
-import ndsl.constants as constants
 import numpy as np
 from gt4py.cartesian.gtscript import (
     BACKWARD,
@@ -11,15 +10,16 @@ from gt4py.cartesian.gtscript import (
     interval,
     sqrt,
 )
+
+import ndsl.constants as constants
+import pySHiELD.functions.microphysics_funcs as functions
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.orchestration import orchestrate, dace_inhibitor
+from ndsl.dsl.dace.orchestration import dace_inhibitor, orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.grid import GridData
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
-
-import pySHiELD.functions.microphysics_funcs as functions
 
 from .._config import PhysicsConfig
 
@@ -1829,7 +1829,7 @@ class Microphysics:
         pie = 4.0 * np.arctan(1.0)
 
         # S. Klein's formular (eq 16) from am2
-        fac_rc = (4.0 / 3.0) * pie * functions.RHOR * self.namelist.rthresh**3
+        fac_rc = (4.0 / 3.0) * pie * functions.RHOR * self.namelist.rthresh ** 3
 
         vdifu = 2.11e-5
         tcond = 2.36e-2
@@ -1893,7 +1893,7 @@ class Microphysics:
             / act[0] ** 0.65625
         )
         self._cssub_3 = tcond * constants.RVGAS
-        self._cssub_4 = (hlts**2) * vdifu
+        self._cssub_4 = (hlts ** 2) * vdifu
 
         self._cgsub_0 = 2.0 * pie * vdifu * tcond * constants.RVGAS * rnzg
         self._cgsub_1 = 0.78 / np.sqrt(act[5])
@@ -1907,7 +1907,7 @@ class Microphysics:
             0.31 * scm3 * gam290 * np.sqrt(self.namelist.alin / visk) / act[1] ** 0.725
         )
         self._crevp_3 = self._cssub_3
-        self._crevp_4 = hltc**2 * vdifu
+        self._crevp_4 = hltc ** 2 * vdifu
 
         self._cgfr_0 = 20.0e2 * pisq * rnzr * functions.RHOR / act[1] ** 1.75
         self._cgfr_1 = 0.66
@@ -1954,7 +1954,7 @@ class Microphysics:
         self._set_timestep(dt_atmos)
 
     # due to DaCe failure to parse
-    #TODO: this should be revisited for any new version of DaCe
+    # TODO: this should be revisited for any new version of DaCe
 
     @dace_inhibitor
     def _update_timestep_if_needed(self, timestep: float):
