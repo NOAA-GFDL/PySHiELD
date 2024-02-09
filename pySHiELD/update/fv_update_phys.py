@@ -1,6 +1,8 @@
 import gt4py.cartesian.gtscript as gtscript
-import ndsl.constants as constants
 from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, exp, interval, log
+
+import ndsl.constants as constants
+import pyFV3
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.dace.orchestration import orchestrate
@@ -11,8 +13,6 @@ from ndsl.grid import DriverGridData, GridData
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
 from ndsl.stencils.c2l_ord import CubedToLatLon
-
-import pyFV3
 from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
 
 
