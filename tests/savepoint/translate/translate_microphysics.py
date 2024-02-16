@@ -9,6 +9,7 @@ from ndsl.initialization.sizer import SubtileGridSizer
 from pySHiELD import PHYSICS_PACKAGES
 from pySHiELD.stencils.microphysics import Microphysics
 from pySHiELD.stencils.physics import PhysicsState
+from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 from .translate_physics import TranslatePhysicsFortranData2Py
 

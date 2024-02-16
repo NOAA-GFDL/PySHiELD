@@ -1,4 +1,5 @@
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
+from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 from .translate_physics import TranslatePhysicsFortranData2Py
 

@@ -1,6 +1,9 @@
 from typing import Optional
 
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
+
+import pyFV3
+import pyFV3.stencils.fv_subgridz as fv_subgridz
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.dace.orchestration import orchestrate
@@ -8,9 +11,6 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField
 from ndsl.grid import DriverGridData, GridData
 from ndsl.initialization.allocator import QuantityFactory
-
-import pyFV3
-import pyFV3.stencils.fv_subgridz as fv_subgridz
 from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
 
 

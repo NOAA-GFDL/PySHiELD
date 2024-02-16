@@ -3,6 +3,7 @@ import numpy as np
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.constants import KAPPA
 from pySHiELD.stencils.physics import atmos_phys_driver_statein
+from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 from .translate_physics import TranslatePhysicsFortranData2Py
 
