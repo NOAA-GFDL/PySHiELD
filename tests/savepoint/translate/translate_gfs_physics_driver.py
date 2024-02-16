@@ -2,9 +2,8 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 import ndsl.initialization as util
-from pySHiELD import PHYSICS_PACKAGES
-from pySHiELD.stencils.physics import Physics, PhysicsState
-from pySHiELD.update import update_atmos_state
+from pySHiELD import PHYSICS_PACKAGES, Physics, PhysicsState
+from pySHiELD.update import DycoreToPhysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -14,6 +13,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         # using top level namelist rather than PhysicsConfig
         # because DycoreToPhysics needs some dycore info
         self.namelist = namelist
+        self.namelist["schemes"] = "GFS_microphysics"
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},
@@ -146,7 +146,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         # either move where GFSPhysicsDriver starts, or pass the full namelist or
         # get around this issue another way. Setting do_dry_convective_adjustment
         # to False for now (we don't run this on a case where it is True yet)
-        dycore_to_physics = update_atmos_state.DycoreToPhysics(
+        dycore_to_physics = DycoreToPhysics(
             self.stencil_factory,
             self.grid.quantity_factory,
             self.namelist,

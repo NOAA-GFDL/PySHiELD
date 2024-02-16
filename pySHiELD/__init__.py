@@ -1,6 +1,5 @@
 from ._config import PHYSICS_PACKAGES, PhysicsConfig
 from .physics_state import PhysicsState
-from .stencils.microphysics import Microphysics
 from .stencils.physics import Physics
 
 

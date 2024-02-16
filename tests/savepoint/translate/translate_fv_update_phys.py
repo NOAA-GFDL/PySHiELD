@@ -9,7 +9,7 @@ from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
 from ndsl.quantity import Quantity
 from ndsl.utils import safe_assign_array
-from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
+from pySHiELD.update import ApplyPhysicsToDycore
 from tests.savepoint.translate.translate_physics import (
     ParallelPhysicsTranslate2Py,
     transform_dwind_serialized_data,

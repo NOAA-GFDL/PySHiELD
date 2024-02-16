@@ -9,9 +9,8 @@ from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import GridSizer
 from ndsl.quantity import Quantity
+from pySHiELD._config import PHYSICS_PACKAGES
 from pySHiELD.stencils.microphysics import MicrophysicsState
-
-from ._config import PHYSICS_PACKAGES
 
 
 @dataclass()
