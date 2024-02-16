@@ -1,6 +1,6 @@
-from translate_physics import TranslatePhysicsFortranData2Py
-
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
+
+from .translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslatePrsFV3(TranslatePhysicsFortranData2Py):

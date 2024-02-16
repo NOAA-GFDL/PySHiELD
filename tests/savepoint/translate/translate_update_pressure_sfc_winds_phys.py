@@ -1,7 +1,7 @@
 from ndsl.constants import KAPPA
-from translate_physics import TranslatePhysicsFortranData2Py
-
 from pySHiELD.update.fv_update_phys import update_pressure_and_surface_winds
+
+from .translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslatePhysUpdatePressureSurfaceWinds(TranslatePhysicsFortranData2Py):
