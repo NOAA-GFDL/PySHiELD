@@ -12,7 +12,7 @@ requirements = [
     "f90nml>=1.1.0",
     "numpy",
     "xarray",
-    "pyFV3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@main"
+    "pyFV3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@main",
 ]
 
 test_requirements = ["pytest"]
