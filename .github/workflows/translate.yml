@@ -29,8 +29,8 @@ jobs:
           run: |
             mkdir -p test_data
             cd test_data
-            wget https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6_ranks_baroclinic.physics.tar.gz
-            tar -xzvf 8.1.3_c12_6_ranks_baroclinic.physics.tar.gz
+            wget https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz
+            tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
             cd -
         - name: Translate Tests
           run: |
