@@ -1,60 +1,107 @@
-include ../docker/Makefile.image_names
-
-DOCKER_BUILDKIT=1
 SHELL=/bin/bash
 CWD=$(shell pwd)
-PULL ?=True
+CMD ?= bash
 DEV ?=y
-VOLUMES ?=
+ROOT_DIR ?= /pyFV3
+IMAGE_NAME ?= noaa-gfdl/pyfv3
+
 NUM_RANKS ?=6
-CONTAINER_ENGINE ?=docker
-RUN_FLAGS ?=--rm
-TEST_ARGS ?=
-MPIRUN_ARGS ?=--oversubscribe
+MPIRUN_ARGS ?=--oversubscribe --mca btl_vader_single_copy_mechanism none
 MPIRUN_CALL ?=mpirun -np $(NUM_RANKS) $(MPIRUN_ARGS)
 
-EXPERIMENT ?=c12_6ranks_baroclinic_dycore_microphysics
-TARGET ?= physics
-TEST_DATA_FTP ?=in/put/abc/cosmo/fuo/pace/pace-physics
-FV3UTIL_DIR=$(CWD)/../util
-ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-TEST_DATA_ROOT ?=$(ROOT_DIR)/test_data/
+TEST_DATA_LOC ?=test_data/
+TEST_DATA_VERSION ?=8.1.3
+TEST_DATA_HOST ?= https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/
+TEST_TYPE ?= standard
+TEST_RESOLUTION ?= c12
+TEST_CONFIG ?= $(TEST_RESOLUTION)_$(NUM_RANKS)ranks
+TEST_CASE ?=$(TEST_CONFIG)_$(TEST_TYPE)
+TEST_ARGS ?=-vs
 
-ifeq ($(DEV),y)
-	VOLUMES += -v $(CWD)/..:/pace
-endif
-CONTAINER_CMD?=$(CONTAINER_ENGINE) run $(RUN_FLAGS) $(VOLUMES) $(CUDA_FLAGS) $(PACE_IMAGE)
+PORT ?=8888
+RUN_FLAGS ?=--rm
+RUN_FLAGS += -e FV3_DACEMODE=$(FV3_DACEMODE)
+APP_NAME ?=pyFV3_dev
+SAVEPOINT_SETUP=pip list
+THRESH_ARGS=--threshold_overrides_file=$(ROOT_DIR)/tests/savepoint/translate/overrides/$(TEST_TYPE).yaml
 
-ifneq (,$(findstring $(PACE_IMAGE),$(CONTAINER_CMD)))
-	TEST_DATA_RUN_LOC =/test_data
-else
-	TEST_DATA_RUN_LOC=$(TEST_DATA_HOST)
+BUILD_FLAGS ?=
+VOLUMES ?=
+
+ifeq ($(DEV), y)
+	VOLUMES += -v $(CWD):/pyFV3
 endif
-pace=pace
-PACE_PATH ?=/$(pace)
-TEST_HOST_LOC=$(CWD)/tests
-TEST_RUN_LOC ?=$(PACE_PATH)/physics/tests
-THRESH_ARGS=--threshold_overrides_file=$(PACE_PATH)/physics/tests/savepoint/translate/overrides/baroclinic.yaml
-PYTEST_SEQUENTIAL=pytest --data_path=$(TEST_DATA_RUN_LOC) $(TEST_ARGS) $(THRESH_ARGS) $(PACE_PATH)/physics/tests/savepoint
-PYTEST_PARALLEL=$(MPIRUN_CALL) python -m mpi4py -m pytest --maxfail=1 --data_path=$(TEST_DATA_RUN_LOC) $(TEST_ARGS) $(THRESH_ARGS) -m parallel $(PACE_PATH)/physics/tests/savepoint
+
+TEST_DATA_TARFILE = $(TEST_DATA_VERSION)_$(TEST_CONFIG)_$(TEST_TYPE).tar.gz
+
+CONTAINER_CMD?=docker run $(RUN_FLAGS) $(VOLUMES) $(IMAGE_NAME)
+
+.PHONY: lint build build_explicit clean enter dev notebook get_test_data savepoint_tests savepoint_tests_mpi test_dperiodic test_all
+
+lint:
+	pre-commit run --all-files
 
 build:
-	$(MAKE) -C .. $@
+	DOCKER_BUILDKIT=1 docker build \
+		$(BUILD_FLAGS) \
+		-f $(CWD)/Dockerfile \
+		-t $(IMAGE_NAME) \
+		.
 
-sync_test_data:
-	TEST_DATA_ROOT=$(TEST_DATA_ROOT) TARGET=$(TARGET) EXPERIMENT=$(EXPERIMENT) $(MAKE) -C .. $@
+build_explicit:
+	PROGRESS_NO_TRUNC=1 docker build \
+		--progress plain \
+		--no-cache \
+		$(BUILD_FLAGS) \
+		-f $(CWD)/Dockerfile \
+		-t $(IMAGE_NAME) \
+		.
 
-sync_test_data_from_ftp:
-	TEST_DATA_ROOT=$(TEST_DATA_ROOT) TARGET=$(TARGET) EXPERIMENT=$(EXPERIMENT) $(MAKE) -C .. $@
+clean:
+	if [ -n "$(docker images -q $(IMAGE_NAME))" ]; then \
+		docker image rm $(IMAGE_NAME); \
+	fi
+
+	if [ ! -d .gt_cache* ]; then \
+		rm -r .gt_cache*; \
+	fi
+
+
+enter:
+	docker run --rm -it \
+		$(VOLUMES) \
+		-p=$(PORT):$(PORT) \
+		--name="$(APP_NAME)" \
+		$(IMAGE_NAME) $(CMD)
+
+dev:
+	DEV=y $(MAKE) enter
+
+notebook:
+	CMD="jupyter notebook --ip 0.0.0.0 --no-browser --allow-root --notebook-dir=$(ROOT_DIR)/examples/notebook" \
+	DEV=y \
+	$(MAKE) enter
 
 get_test_data:
-	TEST_DATA_ROOT=$(TEST_DATA_ROOT) TARGET=$(TARGET) EXPERIMENT=$(EXPERIMENT) $(MAKE) -C .. $@
+	if [ ! -d $(TEST_DATA_LOC) ]; then \
+		mkdir $(TEST_DATA_LOC); \
+	fi
 
-physics_savepoint_tests:
-	TEST_DATA_ROOT=$(TEST_DATA_ROOT) TARGET=$(TARGET) EXPERIMENT=$(EXPERIMENT) $(MAKE) -C .. $@
+	if [ ! -f "$(TEST_DATA_LOC)$(TEST_DATA_VERSION)/$(TEST_CASE)/dycore/input.nml" ] ; then \
+		wget $(TEST_DATA_HOST)$(TEST_DATA_TARFILE) ; \
+		tar -xzvf $(TEST_DATA_TARFILE) ; \
+		mv $(TEST_DATA_VERSION) $(TEST_DATA_LOC) ; \
+		rm $(TEST_DATA_TARFILE); \
+	fi
 
-physics_savepoint_tests_mpi:
-	TEST_DATA_ROOT=$(TEST_DATA_ROOT) TARGET=$(TARGET) EXPERIMENT=$(EXPERIMENT) $(MAKE) -C .. $@
+savepoint_tests:
+	$(MAKE) get_test_data
+	$(CONTAINER_CMD) bash -c "$(SAVEPOINT_SETUP) && cd $(ROOT_DIR) && pytest --data_path=$(TEST_DATA_LOC)$(TEST_DATA_VERSION)/$(TEST_CASE)/dycore $(TEST_ARGS) $(THRESH_ARGS) $(ROOT_DIR)/tests/savepoint"
 
-driver_savepoint_tests_mpi:
-	TEST_DATA_ROOT=$(TEST_DATA_ROOT) TARGET=$(TARGET) EXPERIMENT=$(EXPERIMENT) $(MAKE) -C .. $@
+savepoint_tests_mpi:
+	$(MAKE) get_test_data
+	$(CONTAINER_CMD) bash -c "$(SAVEPOINT_SETUP) && cd $(ROOT_DIR) && $(MPIRUN_CALL) python3 -m mpi4py -m pytest --maxfail=1 --data_path=$(TEST_DATA_LOC)$(TEST_DATA_VERSION)/$(TEST_CASE)/dycore $(TEST_ARGS) $(THRESH_ARGS) -m parallel $(ROOT_DIR)/tests/savepoint"
+
+test_all:
+	$(MAKE) savepoint_tests
+	$(MAKE) savepoint_tests_mpi
