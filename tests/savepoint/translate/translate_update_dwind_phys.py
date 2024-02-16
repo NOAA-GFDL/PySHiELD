@@ -5,8 +5,6 @@ from ndsl.utils import safe_assign_array
 from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
-from .translate_physics import TranslatePhysicsFortranData2Py
-
 
 class TranslateUpdateDWindsPhys(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):

@@ -5,8 +5,6 @@ from ndsl.constants import KAPPA
 from pySHiELD.stencils.physics import atmos_phys_driver_statein
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
-from .translate_physics import TranslatePhysicsFortranData2Py
-
 
 class TranslateAtmosPhysDriverStatein(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):

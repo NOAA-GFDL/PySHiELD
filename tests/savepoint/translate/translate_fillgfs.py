@@ -5,8 +5,6 @@ from ndsl.utils import safe_assign_array
 from pySHiELD.update.update_atmos_state import fill_gfs_delp
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
-from .translate_physics import TranslatePhysicsFortranData2Py
-
 
 class TranslateFillGFS(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):

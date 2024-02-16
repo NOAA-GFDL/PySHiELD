@@ -2,8 +2,6 @@ from ndsl.constants import KAPPA
 from pySHiELD.update.fv_update_phys import update_pressure_and_surface_winds
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
-from .translate_physics import TranslatePhysicsFortranData2Py
-
 
 class TranslatePhysUpdatePressureSurfaceWinds(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
