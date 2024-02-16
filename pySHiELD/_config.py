@@ -22,6 +22,7 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 class PhysicsConfig:
     dt_atmos: int = DEFAULT_INT
     hydrostatic: bool = DEFAULT_BOOL
+    dycore_only: bool = DEFAULT_BOOL
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
     npz: int = DEFAULT_INT
@@ -136,6 +137,7 @@ class PhysicsConfig:
         return cls(
             dt_atmos=namelist.dt_atmos,
             hydrostatic=namelist.hydrostatic,
+            dycore_only=namelist.dycore_only,
             npx=namelist.npx,
             npy=namelist.npy,
             npz=namelist.npz,
