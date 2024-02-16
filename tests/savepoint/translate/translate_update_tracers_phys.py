@@ -1,8 +1,5 @@
-from translate_physics import TranslatePhysicsFortranData2Py
-
-from pySHiELD.update.update_atmos_state import (
-    prepare_tendencies_and_update_tracers,
-)
+from pySHiELD.update.update_atmos_state import prepare_tendencies_and_update_tracers
+from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslatePhysUpdateTracers(TranslatePhysicsFortranData2Py):
