@@ -2,6 +2,6 @@ from .microphysics import Microphysics, MicrophysicsState
 
 
 """
-Microphysics: Class containing methods for updating microphysics and interactions
-MicrophysicsState: Class which initializes defines physics variable types
+Microphysics: GFS Cloud Microphysics class
+MicrophysicsState: Class containing the state for the GFS Cloud Microphysics
 """
