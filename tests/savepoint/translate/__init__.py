@@ -2,8 +2,6 @@
 from .translate_atmos_phy_statein import TranslateAtmosPhysDriverStatein
 from .translate_fillgfs import TranslateFillGFS
 from .translate_fv_update_phys import DycoreState, TranslateFVUpdatePhys
-
-# from .translate_gfs_physics_driver import TranslateGFSPhysicsDriver
 from .translate_microphysics import TranslateMicroph
 from .translate_phifv3 import TranslatePhiFV3
 from .translate_physics import ParallelPhysicsTranslate2Py, TranslateFortranData2Py
