@@ -8,7 +8,7 @@ __version__ = "0.2.0"
 
 """
 PHYSICS_PACKAGES: Enum of available physics packages
-PhysicsConfig: Dataclass containing physics variables as defined by configuration yaml
-PhysicsState: Dataclass which initializes defines physics variable types
-Physics: Class containing methods for updating physics and interactions
+PhysicsConfig: Class containing physics variables and model configurations
+PhysicsState: Class containing the state for the physics schemes
+Physics: Class that specifies and executes the subgrid physics schemes
 """
