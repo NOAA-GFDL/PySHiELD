@@ -1,9 +1,9 @@
 import copy
 
 import ndsl.dsl.gt4py_utils as utils
-import ndsl.util as util
+import ndsl.initialization as util
 from pySHiELD import PHYSICS_PACKAGES
-from pySHiELD.stencils.physics import Physics, PhysicsState
+from pySHiELD.stencils.physics import Physics, PhysicsConfig, PhysicsState
 from pySHiELD.update import update_atmos_state
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -13,7 +13,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         super().__init__(grid, namelist, stencil_factory)
         # using top level namelist rather than PhysicsConfig
         # because DycoreToPhysics needs some dycore info
-        self.namelist = namelist
+        self.namelist = PhysicsConfig.from_namelist(namelist)
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},
