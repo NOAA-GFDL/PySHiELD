@@ -10,12 +10,10 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
+from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.orchestration import orchestrate
-from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField
 from ndsl.grid import GridData
-from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
 from pySHiELD.physics_state import PhysicsState
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
