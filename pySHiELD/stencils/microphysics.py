@@ -13,13 +13,11 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.constants as constants
 import pySHiELD.functions.microphysics_funcs as functions
+from ndsl import Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.orchestration import dace_inhibitor, orchestrate
-from ndsl.dsl.stencil import StencilFactory
+from ndsl.dsl.dace.orchestration import dace_inhibitor
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.grid import GridData
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.quantity import Quantity
 
 from .._config import PhysicsConfig
 

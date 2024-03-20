@@ -2,8 +2,7 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 import ndsl.initialization as util
-from pySHiELD import PHYSICS_PACKAGES
-from pySHiELD.stencils.physics import Physics, PhysicsConfig, PhysicsState
+from pySHiELD import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pySHiELD.update import update_atmos_state
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 

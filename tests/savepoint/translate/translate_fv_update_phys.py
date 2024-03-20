@@ -3,11 +3,9 @@ import dataclasses
 import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
+from ndsl import Namelist, Quantity, StencilFactory
 from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM
-from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.namelist import Namelist
-from ndsl.quantity import Quantity
 from ndsl.utils import safe_assign_array
 from pySHiELD.update import ApplyPhysicsToDycore
 from tests.savepoint.translate.translate_physics import (
