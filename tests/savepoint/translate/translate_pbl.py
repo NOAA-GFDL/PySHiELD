@@ -33,7 +33,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             "evap": {"serialname": "pbl_evap", "shield": True},
             "stress": {"serialname": "pbl_stress", "shield": True},
             "spd1": {"serialname": "pbl_wind", "shield": True},
-            "kpbl": {"serialname": "pbl_kpbl", "shield": True},
+            "kpbl": {"serialname": "pbl_kpbl", "shield": True, "index_variable": True},
             "prsi": {"serialname": "pbl_prsi", "shield": True},
             "delta": {"serialname": "pbl_delta", "shield": True},
             "prsl": {"serialname": "pbl_prsl", "shield": True},
@@ -45,7 +45,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             "dtsfc": {"serialname": "pbl_dtsfc", "shield": True},
             "dqsfc": {"serialname": "pbl_dqsfc", "shield": True},
             "hpbl": {"serialname": "pbl_hpbl", "shield": True},
-            "kinver": {"serialname": "pbl_kinver", "shield": True},
+            "kinver": {"serialname": "pbl_kinver", "shield": True, "index_variable": True},
             "dkt": {"serialname": "pbl_dkt", "shield": True},
         }
         self.in_vars["parameters"] = [
@@ -76,7 +76,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             "dv": {"serialname": "pbl_dv", "shield": True},
             "tdt": {"serialname": "pbl_tdt", "shield": True},
             "rtg": {"serialname": "pbl_rtg", "shield": True},
-            "kpbl": {"serialname": "pbl_kpbl", "shield": True},
+            "kpbl": {"serialname": "pbl_kpbl", "shield": True, "index_variable": True},
             "dusfc": {"serialname": "pbl_dusfc", "shield": True},
             "dvsfc": {"serialname": "pbl_dvsfc", "shield": True},
             "dtsfc": {"serialname": "pbl_dtsfc", "shield": True},
