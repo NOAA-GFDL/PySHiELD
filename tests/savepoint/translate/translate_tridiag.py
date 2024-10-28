@@ -1,5 +1,5 @@
 from ndsl.dsl.stencil import StencilFactory
-from ndsl import copy_defn
+from ndsl.stencils.basic_operations import copy_defn
 from pySHiELD.stencils.pbl.tridiag import tridit, tridi2, tridin
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
