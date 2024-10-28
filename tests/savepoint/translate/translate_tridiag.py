@@ -1,4 +1,5 @@
 from ndsl.dsl.stencil import StencilFactory
+from ndsl import copy_defn
 from pySHiELD.stencils.pbl.tridiag import tridit, tridi2, tridin
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -13,19 +14,34 @@ class TridiT:
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
+        self._copy = stencil_factory.from_origin_domain(
+            func=copy_defn,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
     def __call__(
         self,
         au,
         ad,
         al,
-        f1
+        f1,
+        cu,
+        at,
     ):
         self._tridit(
             au,
             ad,
             al,
             f1,
+        )
+        self._copy(
+            au,
+            cu,
+        )
+        self._copy(
+            f1,
+            at,
         )
 
 class Tridi2:
@@ -39,6 +55,11 @@ class Tridi2:
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
+        self._copy = stencil_factory.from_origin_domain(
+            func=copy_defn,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
     def __call__(
         self,
@@ -47,6 +68,9 @@ class Tridi2:
         al,
         f1,
         f2,
+        cu,
+        a1,
+        a2,
     ):
         self._tridi2(
             f1,
@@ -58,6 +82,9 @@ class Tridi2:
             f1,
             f2,
         )
+        self._copy(au, cu)
+        self._copy(f1, a1)
+        self._copy(f2, a2)
 
 class TridiN:
     def __init__(
@@ -70,6 +97,11 @@ class TridiN:
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
+        self._copy = stencil_factory.from_origin_domain(
+            func=copy_defn,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
     def __call__(
         self,
@@ -78,7 +110,10 @@ class TridiN:
         al,
         f1,
         f2,
-        dim_n,
+        cu,
+        a1,
+        a2,
+        nt,
     ):
         self._tridin(
             al,
@@ -89,11 +124,14 @@ class TridiN:
             au,
             f1,
             f2,
-            dim_n,
+            nt,
         )
+        self._copy(au, cu)
+        self._copy(f1, a1)
+        self._copy(f2, a2)
 
 
-class TranslatTridit(TranslatePhysicsFortranData2Py):
+class TranslateTridit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
@@ -119,18 +157,11 @@ class TranslatTridit(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
         compute_func = TridiT(self.stencil_factory,)
 
-        compute_func(
-            inputs["au"],
-            inputs["ad"],
-            inputs["al"],
-            inputs["f1"],
-        )
-        inputs["cu"].data[:] = inputs["au"].data[:]
-        inputs["at"].data[:] = inputs["f1"].data[:]
+        compute_func(**inputs)
 
         return self.slice_output(inputs)
 
-class TranslatTridi2(TranslatePhysicsFortranData2Py):
+class TranslateTridi2(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
@@ -160,20 +191,11 @@ class TranslatTridi2(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
         compute_func = Tridi2(self.stencil_factory,)
 
-        compute_func(
-            inputs["au"],
-            inputs["ad"],
-            inputs["al"],
-            inputs["f1"],
-            inputs["f2"],
-        )
-        inputs["cu"].data[:] = inputs["au"].data[:]
-        inputs["a1"].data[:] = inputs["f1"].data[:]
-        inputs["a2"].data[:] = inputs["f2"].data[:]
+        compute_func(**inputs)
 
         return self.slice_output(inputs)
 
-class TranslatTridin(TranslatePhysicsFortranData2Py):
+class TranslateTridin(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
@@ -206,16 +228,6 @@ class TranslatTridin(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
         compute_func = Tridi2(self.stencil_factory,)
 
-        compute_func(
-            inputs["au"],
-            inputs["ad"],
-            inputs["al"],
-            inputs["f1"],
-            inputs["f2"],
-            inputs["dim_n"]
-        )
-        inputs["cu"].data[:] = inputs["au"].data[:]
-        inputs["a1"].data[:] = inputs["f1"].data[:]
-        inputs["a2"].data[:] = inputs["f2"].data[:]
+        compute_func(**inputs)
 
         return self.slice_output(inputs)
