@@ -137,7 +137,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
         self.in_vars["data_vars"] = {
             "al": {"shield": True, "serialname": "cl"},
             "au": {"shield": True, "kend": namelist.npz - 1},
-            "ad": {"shield": True, "serialname": "cd"},
+            "ad": {"shield": True, "serialname": "cm"},
             "f1": {"shield": True, "serialname": "rt"},
             "cu": {"shield": True, "kend": namelist.npz - 1},
             "at": {"shield": True},
@@ -145,7 +145,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
         self.out_vars = {
             "al": {"shield": True, "serialname": "cl"},
             "au": {"shield": True, "kend": namelist.npz - 1},
-            "ad": {"shield": True, "serialname": "cd"},
+            "ad": {"shield": True, "serialname": "cm"},
             "f1": {"shield": True, "serialname": "rt"},
             "cu": {"shield": True, "kend": namelist.npz - 1},
             "at": {"shield": True},
