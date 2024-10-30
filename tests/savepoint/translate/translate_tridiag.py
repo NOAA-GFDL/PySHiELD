@@ -97,13 +97,13 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True},
+            "al": {"shield": True, "kstart": 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
         }
         self.out_vars = {
-            "al": {"shield": True},
+            "al": {"shield": True, "kstart": 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
@@ -123,14 +123,14 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True},
+            "al": {"shield": True, "kstart": 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
             "f2": {"shield": True},
         }
         self.out_vars = {
-            "al": {"shield": True},
+            "al": {"shield": True, "kstart": 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
@@ -151,7 +151,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True},
+            "al": {"shield": True, "kstart": 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
@@ -161,7 +161,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             "nt"
         ]
         self.out_vars = {
-            "al": {"shield": True},
+            "al": {"shield": True, "kstart": 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
