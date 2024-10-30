@@ -21,7 +21,7 @@ from pySHiELD._config import FloatFieldTracer
 from pySHiELD.functions.physics_functions import fpvs
 
 
-def init_pbl(
+def init_mfpbl(
     buo: FloatField,
     cnvflg: BoolFieldIJ,
     q1: FloatFieldTracer,
@@ -77,28 +77,27 @@ def mfpblt_s1(
     xlamuem: FloatField,
     zl: FloatField,
     zm: FloatField,
+    bb1: Float,
+    bb2: Float,
 ):
     with computation(FORWARD), interval(0, 1):
         # Compute thermal excess
         if cnvflg[0, 0]:
-            ptem = min(physcons.ALP * vpert[0, 0], 3.0)
+            ptem = physcons.ALP * vpert[0, 0]
+            ptem = min(ptem, 3.0)
             thlu = thlx[0, 0, 0] + ptem
             qtu = qtx[0, 0, 0]
             buo = constants.GRAV * ptem / thvx[0, 0, 0]
 
     with computation(PARALLEL), interval(...):
-        # From our tuning:
-        bb1 = 2.0
-        bb2 = 4.0
-
         # Compute entrainment rate
         if cnvflg[0, 0]:
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             if k_mask[0] < kpbl[0, 0]:
-                xlamue = physcons.CE0 * (
-                    1.0 / (zm[0, 0, 0] + dz)
-                    + 1.0 / max(hpbl[0, 0] - zm[0, 0, 0] + dz, dz)
-                )
+                ptem = 1. / (zm[0, 0, 0] + dz)
+                tem = max((hpbl[0, 0] - zm[0, 0, 0] + dz), dz)
+                ptem1 = 1. / tem
+                xlamue = physcons.CE0 * (ptem + ptem1)
             else:
                 xlamue = physcons.CE0 / dz
             xlamuem = physcons.CM * xlamue[0, 0, 0]
@@ -107,11 +106,13 @@ def mfpblt_s1(
         with interval(1, None):
             # Compute buoyancy for updraft air parcel
             if cnvflg[0, 0]:
-                tem = 0.5 * xlamue[0, 0, -1] * (zl[0, 0, 0] - zl[0, 0, -1])
+                dz = zl[0, 0, 0] - zl[0, 0, -1]
+                tem = 0.5 * xlamue[0, 0, -1] * dz
                 factor = 1.0 + tem
                 thlu = (
-                    (1.0 - tem) * thlu[0, 0, -1]
-                    + tem * (thlx[0, 0, -1] + thlx[0, 0, 0])
+                    (1.0 - tem) * thlu[0, 0, -1] + tem * (
+                        thlx[0, 0, -1] + thlx[0, 0, 0]
+                    )
                 ) / factor
                 qtu = (
                     (1.0 - tem) * qtu[0, 0, -1] + tem * (qtx[0, 0, -1] + qtx[0, 0, 0])
@@ -408,9 +409,13 @@ class PBLMassFlux:
         self._scaldfunc = make_quantity_2D(Float)
         self._sumx = make_quantity_2D(Float)
         self._flg = make_quantity_2D(Bool)
+        
+        # From our tuning:
+        self._bb1 = 2.0
+        self._bb2 = 4.0
 
-        self._init_pbl = stencil_factory.from_origin_domain(
-            func=init_pbl,
+        self._init_mfpbl = stencil_factory.from_origin_domain(
+            func=init_mfpbl,
             externals={"ntcw": ntcw},
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
@@ -479,7 +484,7 @@ class PBLMassFlux:
         if totflag:
             return
 
-        self._init_pbl(
+        self._init_mfpbl(
             buo,
             cnvflg,
             q1,
@@ -518,6 +523,8 @@ class PBLMassFlux:
             self._xlamuem,
             zl,
             zm,
+            self._bb1,
+            self._bb2,
         )
 
         self._finish_pbl_height(
@@ -577,7 +584,6 @@ class PBLMassFlux:
                 )
         if self._ntrac1 > self._ntcw:
             for n in range(self._ntcw, self._ntrac1):
-                dim_n = n if n < self._ntcw else n + 1
                 self._tracer_updraft(
                     cnvflg,
                     kpbl,
@@ -586,5 +592,5 @@ class PBLMassFlux:
                     qcko,
                     q1,
                     zl,
-                    dim_n,
+                    n,
                 )
