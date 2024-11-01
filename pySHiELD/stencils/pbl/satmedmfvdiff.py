@@ -2462,6 +2462,8 @@ class ScaleAwareTKEMoistEDMF:
             self._tke,
             self._xmf,
             self._xmfd,
+            self._cu,
+            self._rt,
         )
 
         self._tridit(
