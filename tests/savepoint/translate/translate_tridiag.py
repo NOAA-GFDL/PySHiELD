@@ -1,15 +1,35 @@
 from ndsl.dsl.stencil import StencilFactory
+from ndsl.initialization.allocator import QuantityFactory
+from ndsl.dsl.typing import Float
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from pySHiELD.stencils.pbl.tridiag import tridit, tridi2, tridin
+from ndsl.stencils.basic_operations import copy_defn
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 class TridiT:
     def __init__(
         self,
         stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
     ):
         idx = stencil_factory.grid_indexing
+        self._cu = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._rt = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
         self._tridit = stencil_factory.from_origin_domain(
             func=tridit,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+        self._copy_stencil = stencil_factory.from_origin_domain(
+            func=copy_defn,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
@@ -21,10 +41,14 @@ class TridiT:
         al,
         f1,
     ):
+        self._copy_stencil(au, self._cu)
+        self._copy_stencil(f1, self._rt)
         self._tridit(
             au,
             ad,
             al,
+            f1,
+            au,
             f1,
         )
 
@@ -112,8 +136,21 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+        
         self.make_storage_data_input_vars(inputs)
-        compute_func = TridiT(self.stencil_factory,)
+        compute_func = TridiT(self.stencil_factory, quantity_factory)
 
         compute_func(**inputs)
 

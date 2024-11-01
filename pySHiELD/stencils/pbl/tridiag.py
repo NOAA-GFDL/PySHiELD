@@ -5,27 +5,29 @@ from pySHiELD._config import FloatFieldTracer
 
 
 def tridit(
-    au: FloatField,
+    cu: FloatField,
     cm: FloatField,
     cl: FloatField,
-    f1: FloatField,
+    rt: FloatField,
+    au: FloatField,
+    at: FloatField,
 ):
     with computation(FORWARD):
         with interval(0, 1):
             fk = 1.0 / cm[0, 0, 0]
-            au = fk * au[0, 0, 0]
-            f1 = fk * f1[0, 0, 0]
+            au = fk * cu[0, 0, 0]
+            at = fk * rt[0, 0, 0]
         with interval(1, -1):
             fkk = 1.0 / (cm[0, 0, 0] - cl[0, 0, -1] * au[0, 0, -1])
-            au = fkk * au[0, 0, 0]
-            f1 = fkk * (f1[0, 0, 0] - cl[0, 0, -1] * f1[0, 0, -1])
+            au = fkk * cu[0, 0, 0]
+            at = fkk * (rt[0, 0, 0] - cl[0, 0, -1] * at[0, 0, -1])
 
     with computation(BACKWARD):
         with interval(-1, None):
             fk = 1.0 / (cm[0, 0, 0] - cl[0, 0, 0] * au[0, 0, -1])
-            f1 = fk * (f1[0, 0, 0] - cl[0, 0, 0] * f1[0, 0, -1])
+            at = fk * (rt[0, 0, 0] - cl[0, 0, 0] * at[0, 0, -1])
         with interval(0, -1):
-            f1 = f1[0, 0, 0] - au[0, 0, 0] * f1[0, 0, 1]
+            at = at[0, 0, 0] - au[0, 0, 0] * at[0, 0, 1]
 
 
 def tridi2(
