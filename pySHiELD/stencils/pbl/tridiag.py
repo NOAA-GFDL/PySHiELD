@@ -1,4 +1,4 @@
-from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
+from gt4py.cartesian.gtscript import BACKWARD, FORWARD, computation, interval
 
 from ndsl.dsl.typing import FloatField, Int
 from pySHiELD._config import FloatFieldTracer

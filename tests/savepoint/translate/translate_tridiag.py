@@ -45,10 +45,10 @@ class TridiT:
         self._copy_stencil(au, self._cu)
         self._copy_stencil(f1, self._rt)
         self._tridit(
-            au,
+            self._cu,
             ad,
             al,
-            f1,
+            self._rt,
             au,
             f1,
         )
