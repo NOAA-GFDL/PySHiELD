@@ -1068,6 +1068,8 @@ def tke_tridiag_matrix_ele_comp(
     tke: FloatField,
     xmf: FloatField,
     xmfd: FloatField,
+    cu: FloatField,
+    rt: FloatField,
 ):
     from __externals__ import dt2
 
@@ -1132,6 +1134,9 @@ def tke_tridiag_matrix_ele_comp(
         with interval(-1, None):
             ad = ad_p1[0, 0]
             f1 = f1_p1[0, 0]
+    with computation(PARALLEL), interval(...):
+        cu = au
+        rt = f1
 
 
 def recover_tke_tendency_start_tridiag(
@@ -1194,6 +1199,8 @@ def heat_moist_tridiag_mat_ele_comp(
     t1: FloatField,
     xmf: FloatField,
     xmfd: FloatField,
+    cu: FloatField,
+    rt: FloatField,
 ):
     from __externals__ import dt2
 
@@ -1299,6 +1306,10 @@ def heat_moist_tridiag_mat_ele_comp(
             f2[0, 0, 0][0] = f2_p1[0, 0]
             ad = ad_p1[0, 0]
 
+    with computation(PARALLEL), interval(...):
+        cu = au,
+        rt = f1,
+
 
 def setup_multi_tracer_tridiag(
     pcnvflg: BoolFieldIJ,
@@ -1316,6 +1327,7 @@ def setup_multi_tracer_tridiag(
     krad: IntFieldIJ,
     xmfd: FloatField,
     qcdo: FloatFieldTracer,
+    a2: FloatFieldTracer,
     n_index: int,
 ):
     from __externals__ import dt2
@@ -1404,6 +1416,8 @@ def setup_multi_tracer_tridiag(
             f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index] + (tem1 - tem2) * ptem2
         else:
             f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
+    with computation(PARALLEL), interval(...):
+        a2[0, 0, 0][n_index] = f2[0, 0, 0][n_index]
 
 
 def recover_moisture_tendency(
@@ -1474,6 +1488,9 @@ def moment_tridiag_mat_ele_comp(
     vcko: FloatField,
     xmf: FloatField,
     xmfd: FloatField,
+    cu: FloatField,
+    rt: FloatField,
+    a2: FloatFieldTracer,
 ):
     from __externals__ import dspheat, dt2
 
@@ -1566,6 +1583,10 @@ def moment_tridiag_mat_ele_comp(
             f1 = f1_p1[0, 0]
             f2[0, 0, 0][0] = f2_p1[0, 0]
             ad = ad_p1[0, 0]
+    with computation(PARALLEL), interval(...):
+        cu = au
+        rt = f1
+        a2 = f2
 
 
 def recover_momentum_tendency_and_finish(
@@ -1792,8 +1813,17 @@ class ScaleAwareTKEMoistEDMF:
         # Workaround for q1 access in compute_asymptotic_mixing_length
         self._temp_q10 = make_quantity()
 
+        # Arrays for tridiag calculations
+        self._cu = make_quantity()
+        self._rt = make_quantity()
+
         # Allocate higher order fields
         self._f2 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._a2 = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
@@ -2435,9 +2465,11 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         self._tridit(
-            self._au,
+            self._cu,
             self._ad,
             self._al,
+            self._rt,
+            self._au,
             self._f1,
         )
 
@@ -2489,6 +2521,8 @@ class ScaleAwareTKEMoistEDMF:
             t1,
             self._xmf,
             self._xmfd,
+            self._cu,
+            self._rt,
         )
 
         for n in range(self._ntrac1):
@@ -2510,15 +2544,16 @@ class ScaleAwareTKEMoistEDMF:
                     self._krad,
                     self._xmfd,
                     self._qcdo,
+                    self._a2,
                     dim_n,
                 )
 
             self._tridin(
                 self._al,
                 self._ad,
-                self._au,
-                self._f1,
-                self._f2,
+                self._cu,
+                self._rt,
+                self._a2,
                 self._au,
                 self._f1,
                 self._f2,
@@ -2575,6 +2610,9 @@ class ScaleAwareTKEMoistEDMF:
             self._vcko,
             self._xmf,
             self._xmfd,
+            self._cu,
+            self._rt,
+            self._a2,
         )
 
         self._tridi2(
@@ -2583,9 +2621,9 @@ class ScaleAwareTKEMoistEDMF:
             self._au,
             self._al,
             self._ad,
-            self._au,
-            self._f1,
-            self._f2,
+            self._cu,
+            self._rt,
+            self._a2,
         )
 
         self._recover_momentum_tendency_and_finish(
