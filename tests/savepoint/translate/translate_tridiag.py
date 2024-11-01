@@ -122,13 +122,13 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
         }
         self.out_vars = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
