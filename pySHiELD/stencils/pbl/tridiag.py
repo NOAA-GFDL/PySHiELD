@@ -18,9 +18,9 @@ def tridit(
             au = fk * cu[0, 0, 0]
             at = fk * rt[0, 0, 0]
         with interval(1, -1):
-            fkk = 1.0 / (cm[0, 0, 0] - cl[0, 0, -1] * au[0, 0, -1])
+            fkk = 1.0 / (cm[0, 0, 0] - cl[0, 0, 0] * au[0, 0, -1])
             au = fkk * cu[0, 0, 0]
-            at = fkk * (rt[0, 0, 0] - cl[0, 0, -1] * at[0, 0, -1])
+            at = fkk * (rt[0, 0, 0] - cl[0, 0, 0] * at[0, 0, -1])
 
     with computation(BACKWARD):
         with interval(-1, None):
