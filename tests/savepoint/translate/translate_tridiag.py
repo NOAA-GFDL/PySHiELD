@@ -2,6 +2,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.dsl.typing import Float
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.initialization.sizer import SubtileGridSizer
 from pySHiELD.stencils.pbl.tridiag import tridit, tridi2, tridin
 from ndsl.stencils.basic_operations import copy_defn
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
