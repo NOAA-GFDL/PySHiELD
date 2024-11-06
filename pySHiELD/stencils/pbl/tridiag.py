@@ -43,7 +43,7 @@ def tridi2(
 
     with computation(FORWARD):
         with interval(0, 1):
-            fk = 1 / cm[0, 0, 0]
+            fk = 1.0 / cm[0, 0, 0]
             au = fk * cu[0, 0, 0]
             a1 = fk * r1[0, 0, 0]
             a2[0, 0, 0][0] = fk * r2[0, 0, 0][0]
