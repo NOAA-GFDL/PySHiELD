@@ -107,7 +107,7 @@ class TridiN:
         f2,
         nt,
     ):
-        for n in range(1, nt):
+        for n in range(1, int(nt)):
             dim_n = n if n < self._ntke else n + 1
             self._tridin(
                 al,
