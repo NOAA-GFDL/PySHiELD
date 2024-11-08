@@ -11,7 +11,7 @@ from ndsl.namelist import Namelist, NamelistDefaults
 
 
 # TODO: This is a hack
-FloatFieldTracer = set_4d_field_size(9, Float)
+FloatFieldTracer = set_4d_field_size(8, Float)
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
