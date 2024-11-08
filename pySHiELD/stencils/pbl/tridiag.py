@@ -52,14 +52,15 @@ def tridi2(
             au = fk * cu[0, 0, 0]
             a1 = fk * (r1[0, 0, 0] - cl[0, 0, -1] * a1[0, 0, -1])
             a2[0, 0, 0][0] = fk * (r2[0, 0, 0][0] - cl[0, 0, -1] * a2[0, 0, -1][0])
+
+    with computation(BACKWARD):
         with interval(-1, None):
             fk = 1.0 / (cm[0, 0, 0] - cl[0, 0, -1] * au[0, 0, -1])
             a1 = fk * (r1[0, 0, 0] - cl[0, 0, -1] * a1[0, 0, -1])
             a2[0, 0, 0][0] = fk * (r2[0, 0, 0][0] - cl[0, 0, -1] * a2[0, 0, -1][0])
-
-    with computation(BACKWARD), interval(0, -1):
-        a1 = a1[0, 0, 0] - au[0, 0, 0] * a1[0, 0, 1]
-        a2[0, 0, 0][0] = a2[0, 0, 0][0] - au[0, 0, 0] * a2[0, 0, 1][0]
+        with interval(0, -1):
+            a1 = a1[0, 0, 0] - au[0, 0, 0] * a1[0, 0, 1]
+            a2[0, 0, 0][0] = a2[0, 0, 0][0] - au[0, 0, 0] * a2[0, 0, 1][0]
 
 
 def tridin(
@@ -89,6 +90,7 @@ def tridin(
                 r2[0, 0, 0][n_tracer] - cl[0, 0, -1] * a2[0, 0, -1][n_tracer]
             )
 
+    with computation(BACKWARD):
         with interval(-1, None):
             fk = 1.0 / (cm[0, 0, 0] - cl[0, 0, -1] * au[0, 0, -1])
             a1 = fk * (r1[0, 0, 0] - cl[0, 0, -1] * a1[0, 0, -1])
@@ -96,8 +98,6 @@ def tridin(
             a2[0, 0, 0][n_tracer] = fk * (
                 r2[0, 0, 0][n_tracer] - cl[0, 0, -1] * a2[0, 0, -1][n_tracer]
             )
-
-    with computation(BACKWARD):
         with interval(0, -1):
             a1 = a1[0, 0, 0] - au[0, 0, 0] * a1[0, 0, 1]
             a2[0, 0, 0][n_tracer] = (
