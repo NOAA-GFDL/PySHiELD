@@ -195,7 +195,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             "f1": {"shield": True},
             "f2": {"shield": True},
         }
-        self.in_vars.parameters = [
+        self.in_vars["parameters"] = [
             "nt"
         ]
         self.out_vars = {
