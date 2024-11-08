@@ -210,7 +210,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
-        compute_func = Tridi2(self.stencil_factory,)
+        compute_func = TridiN(self.stencil_factory,)
 
         compute_func(**inputs)
 
