@@ -88,8 +88,10 @@ class TridiN:
     def __init__(
         self,
         stencil_factory: StencilFactory,
+        ntke,
     ):
         idx = stencil_factory.grid_indexing
+        self._ntke = ntke
         self._tridin = stencil_factory.from_origin_domain(
             func=tridin,
             origin=idx.origin_compute(),
@@ -105,17 +107,19 @@ class TridiN:
         f2,
         nt,
     ):
-        self._tridin(
-            al,
-            ad,
-            au,
-            f1,
-            f2,
-            au,
-            f1,
-            f2,
-            nt,
-        )
+        for n in range(1, nt):
+            dim_n = n if n < self._ntke else n + 1
+            self._tridin(
+                al,
+                ad,
+                au,
+                f1,
+                f2,
+                au,
+                f1,
+                f2,
+                int(dim_n)
+            )
 
 
 class TranslateTridit(TranslatePhysicsFortranData2Py):
@@ -149,7 +153,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
-        
+
         self.make_storage_data_input_vars(inputs)
         compute_func = TridiT(self.stencil_factory, quantity_factory)
 
@@ -210,7 +214,8 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
-        compute_func = TridiN(self.stencil_factory,)
+        config = self.namelist.pbl
+        compute_func = TridiN(self.stencil_factory, config.ntke)
 
         compute_func(**inputs)
 
