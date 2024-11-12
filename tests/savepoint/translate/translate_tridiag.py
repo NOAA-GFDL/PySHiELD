@@ -5,7 +5,15 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.initialization.sizer import SubtileGridSizer
 from pySHiELD.stencils.pbl.tridiag import tridit, tridi2, tridin
 from ndsl.stencils.basic_operations import copy_defn
+from pySHiELD._config import TRACER_DIM, FloatFieldTracer
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
+
+
+def copy_4d(
+    q_in: FloatFieldTracer,
+    q_out: FloatFieldTracer,
+):
+    q_out = q_in
 
 class TridiT:
     def __init__(
@@ -57,12 +65,46 @@ class Tridi2:
     def __init__(
         self,
         stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
     ):
         idx = stencil_factory.grid_indexing
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: TRACER_DIM - 1,
+            }
+        )
         self._tridi2 = stencil_factory.from_origin_domain(
             func=tridi2,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
+        )
+
+        self._copy_stencil = stencil_factory.from_origin_domain(
+            func=copy_defn,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+        self._copy_4d = stencil_factory.from_origin_domain(
+            func=copy_4d,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+        self._cu = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._r1 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._r2 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
         )
 
     def __call__(
@@ -73,6 +115,11 @@ class Tridi2:
         f1,
         f2,
     ):
+
+        self._copy_stencil(au, self._cu)
+        self._copy_stencil(f1, self._r1)
+        self._copy_4d(f2, self._r2)
+
         self._tridi2(
             f1,
             f2,
@@ -88,14 +135,48 @@ class TridiN:
     def __init__(
         self,
         stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
         ntke,
     ):
         idx = stencil_factory.grid_indexing
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: TRACER_DIM - 1,
+            }
+        )
         self._ntke = ntke
         self._tridin = stencil_factory.from_origin_domain(
             func=tridin,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
+        )
+
+        self._copy_stencil = stencil_factory.from_origin_domain(
+            func=copy_defn,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+        self._copy_4d = stencil_factory.from_origin_domain(
+            func=copy_4d,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+        self._cu = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._r1 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._r2 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
         )
 
     def __call__(
@@ -107,6 +188,10 @@ class TridiN:
         f2,
         nt,
     ):
+        self._copy_stencil(au, self._cu)
+        self._copy_stencil(f1, self._r1)
+        self._copy_4d(f2, self._r2)
+
         for n in range(1, int(nt - 1)):
             dim_n = n if n < self._ntke else n + 1
             self._tridin(
@@ -183,7 +268,18 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
-        compute_func = Tridi2(self.stencil_factory,)
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+        compute_func = Tridi2(self.stencil_factory, quantity_factory)
 
         compute_func(**inputs)
 
@@ -214,8 +310,19 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
         config = self.namelist.pbl
-        compute_func = TridiN(self.stencil_factory, config.ntke)
+        compute_func = TridiN(self.stencil_factory, quantity_factory, config.ntke)
 
         compute_func(**inputs)
 
