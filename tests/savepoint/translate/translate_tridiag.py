@@ -68,7 +68,7 @@ class Tridi2:
         quantity_factory: QuantityFactory,
     ):
         idx = stencil_factory.grid_indexing
-        self.quantity_factory.set_extra_dim_lengths(
+        quantity_factory.set_extra_dim_lengths(
             **{
                 self.TRACER_DIM: TRACER_DIM - 1,
             }
@@ -139,7 +139,7 @@ class TridiN:
         ntke,
     ):
         idx = stencil_factory.grid_indexing
-        self.quantity_factory.set_extra_dim_lengths(
+        quantity_factory.set_extra_dim_lengths(
             **{
                 self.TRACER_DIM: TRACER_DIM - 1,
             }
