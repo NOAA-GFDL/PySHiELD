@@ -1,3 +1,8 @@
+from gt4py.cartesian.gtscript import (
+    PARALLEL,
+    computation,
+    interval,
+)
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.dsl.typing import Float
@@ -13,6 +18,7 @@ def copy_4d(
     q_in: FloatFieldTracer,
     q_out: FloatFieldTracer,
 ):
+    with computation(PARALLEL), interval(...)
     q_out = q_in
 
 class TridiT:
