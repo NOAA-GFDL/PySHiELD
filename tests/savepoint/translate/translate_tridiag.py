@@ -70,7 +70,7 @@ class Tridi2:
         idx = stencil_factory.grid_indexing
         quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: TRACER_DIM - 1,
+                TRACER_DIM: 8,
             }
         )
         self._tridi2 = stencil_factory.from_origin_domain(
@@ -102,7 +102,7 @@ class Tridi2:
             dtype=Float,
         )
         self._r2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -141,7 +141,7 @@ class TridiN:
         idx = stencil_factory.grid_indexing
         quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: TRACER_DIM - 1,
+                TRACER_DIM: 8,
             }
         )
         self._ntke = ntke
@@ -174,7 +174,7 @@ class TridiN:
             dtype=Float,
         )
         self._r2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
