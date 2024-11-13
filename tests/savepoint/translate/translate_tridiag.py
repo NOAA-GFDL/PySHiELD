@@ -18,8 +18,8 @@ def copy_4d(
     q_in: FloatFieldTracer,
     q_out: FloatFieldTracer,
 ):
-    with computation(PARALLEL), interval(...)
-    q_out = q_in
+    with computation(PARALLEL), interval(...):
+        q_out = q_in
 
 class TridiT:
     def __init__(
