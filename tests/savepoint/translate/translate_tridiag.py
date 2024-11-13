@@ -198,14 +198,15 @@ class TridiN:
         self._copy_stencil(f1, self._r1)
         self._copy_4d(f2, self._r2)
 
-        for n in range(1, int(nt - 1)):
+        for n in range(0, int(nt)):
             dim_n = n if n < self._ntke else n + 1
+            breakpoint()
             self._tridin(
                 al,
                 ad,
-                au,
-                f1,
-                f2,
+                self._cu,
+                self._r1,
+                self._r2,
                 au,
                 f1,
                 f2,
@@ -328,7 +329,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             sizer, self.stencil_factory.backend
         )
         config = self.namelist.pbl
-        compute_func = TridiN(self.stencil_factory, quantity_factory, config.ntke)
+        compute_func = TridiN(self.stencil_factory, quantity_factory, 8)
 
         compute_func(**inputs)
 
