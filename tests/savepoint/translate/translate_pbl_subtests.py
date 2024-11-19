@@ -55,6 +55,11 @@ class InitTurb:
     ):
         idx = stencil_factory.grid_indexing
         km1 = idx.domain[2] - 1
+        self._dt_atmos = config.dt_atmos
+        self._ntiw = config.ntiw
+        self._ntcw = config.ntcw
+        self._ntke = config.ntke
+
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._ptop = quantity_factory.zeros(
