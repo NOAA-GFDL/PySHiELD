@@ -183,8 +183,8 @@ def init_turbulence(
                 gdx[0, 0] - 5.0
             )
     with computation(FORWARD), interval(0, -2):
-        xkzo(i,k)  = 0.0
-        xkzmo(i,k) = 0.0
+        xkzo  = 0.0
+        xkzmo = 0.0
         if k_mask[0] < kinver[0, 0]:
             ptem = prsi[0, 0, 1] * tx1[0, 0]
             xkzo = xkzm_hx * min(1.0, exp(-((1.0 - ptem) * (1.0 - ptem) * 10.0)))
