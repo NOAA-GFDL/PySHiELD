@@ -15,3 +15,11 @@ from .translate_update_pressure_sfc_winds_phys import (
 )
 from .translate_update_tracers_phys import TranslatePhysUpdateTracers
 from .translate_tridiag import TranslateTridit, TranslateTridi2, TranslateTridin
+from .translate_pbl_subtests import (
+    TranslateMRF,
+    TranslatePBLAML,
+    TranslatePBLInit,
+    TranslateStratocumulus,
+    TranslateThermalPBL,
+    TranslateTKETridiagEle
+)
