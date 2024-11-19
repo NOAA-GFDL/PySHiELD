@@ -93,6 +93,7 @@ class InitTurb:
                 "ntiw": self._ntiw,
                 "ntcw": self._ntcw,
                 "cap_k0_land": config.cap_k0_land,
+                "do_dk_hb19": config.do_dk_hb19,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, 1)),
