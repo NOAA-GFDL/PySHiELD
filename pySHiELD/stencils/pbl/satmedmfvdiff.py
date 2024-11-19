@@ -124,6 +124,7 @@ def init_turbulence(
         xkzm_h,
         xkzm_m,
         xkzm_s,
+        do_dk_hb19,
     )
 
     with computation(FORWARD), interval(0, 1):
@@ -172,22 +173,28 @@ def init_turbulence(
         kx1 = 0.0
         tx1 = 1.0 / prsi
         tx2 = tx1
-        if gdx[0, 0] >= physcons.XKGDX:
+        if do_dk_hb19:
+            if gdx[0, 0] >= physcons.XKGDX:
+                xkzm_hx = xkzm_h
+                xkzm_mx = xkzm_m
+            else:
+                xkzm_hx = 0.01 + ((xkzm_h - 0.01) * (1.0 / (physcons.XKGDX - 5.0))) * (
+                    gdx[0, 0] - 5.0
+                )
+                xkzm_mx = 0.01 + ((xkzm_m - 0.01) * (1.0 / (physcons.XKGDX - 5.0))) * (
+                    gdx[0, 0] - 5.0
+                )
+        else:
             xkzm_hx = xkzm_h
             xkzm_mx = xkzm_m
-        else:
-            xkzm_hx = 0.01 + ((xkzm_h - 0.01) * (1.0 / (physcons.XKGDX - 5.0))) * (
-                gdx[0, 0] - 5.0
-            )
-            xkzm_mx = 0.01 + ((xkzm_m - 0.01) * (1.0 / (physcons.XKGDX - 5.0))) * (
-                gdx[0, 0] - 5.0
-            )
     with computation(FORWARD), interval(0, -2):
         xkzo  = 0.0
         xkzmo = 0.0
         if k_mask[0] < kinver[0, 0]:
             ptem = prsi[0, 0, 1] * tx1[0, 0]
-            xkzo = xkzm_hx * min(1.0, exp(-((1.0 - ptem) * (1.0 - ptem) * 10.0)))
+            tem1 = 1.0 - ptem
+            tem1 = tem1 * tem1 * 10.0
+            xkzo = xkzm_hx * min(1.0, exp(-tem1))
 
             if ptem >= xkzm_s:
                 xkzmo = xkzm_mx
@@ -1847,6 +1854,7 @@ class ScaleAwareTKEMoistEDMF:
                 "ntiw": self._ntiw,
                 "ntcw": self._ntcw,
                 "cap_k0_land": config.cap_k0_land,
+                "do_dk_hb19": config.do_dk_hb19,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, 1)),
