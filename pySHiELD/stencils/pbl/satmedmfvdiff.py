@@ -154,18 +154,18 @@ def init_turbulence(
             zi = phii[0, 0, 0] * constants.RGRAV
             zl = phil[0, 0, 0] * constants.RGRAV
             tke = max(q1[0, 0, 0][ntke], physcons.TKMIN)
+            ckz = physcons.CK1
+            chz = physcons.CH1
         with interval(-1, None):
             zi = phii[0, 0, 0] * constants.RGRAV
     with computation(FORWARD):
         with interval(0, -2):
-            ckz = physcons.CK1
-            chz = physcons.CH1
             prn = 1.0
-            kx1 = 0.0
             zm = zi[0, 0, 1]
             rdzt = 1.0 / (zl[0, 0, 1] - zl[0, 0, 0])
         with interval(-2, -1):
             zm = zi[0, 0, 1]
+            kx1 = 0.0
     with computation(FORWARD), interval(0, 1):
         #  set background diffusivities as a function of
         #  horizontal grid size with xkzm_h & xkzm_m for gdx >= 25km
