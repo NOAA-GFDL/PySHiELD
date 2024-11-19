@@ -703,7 +703,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "zi": {"shield": True, },
+            "zi": {"shield": True, "kend": namelist.npz + 1},
             "zl": {"shield": True, },
             "zm": {"shield": True, },
             "phii": {"shield": True, "kend": namelist.npz + 1},
@@ -783,7 +783,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "zi": {"shield": True, },
+            "zi": {"shield": True, "kend": namelist.npz + 1},
             "zl": {"shield": True, },
             "zm": {"shield": True, },
             "phii": {"shield": True, "kend": namelist.npz + 1},
@@ -927,7 +927,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             "theta": {"serialname": "theta", "shield": True},
             "ustar": {"serialname": "ustar", "shield": True},
             "vpert": {"serialname": "vpert", "shield": True},
-            "zi": {"serialname": "zi", "shield": True},
+            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
         }
 
         self.out_vars = {
@@ -960,7 +960,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             "theta": {"serialname": "theta", "shield": True},
             "ustar": {"serialname": "ustar", "shield": True},
             "vpert": {"serialname": "vpert", "shield": True},
-            "zi": {"serialname": "zi", "shield": True},
+            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
@@ -1012,7 +1012,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             "hpbl": {"serialname": "hpbl", "shield": True},
             "pblflg": {"serialname": "pblflg", "shield": True},
             "pcnvflg": {"serialname": "pcnvflg", "shield": True},
-            "zi": {"serialname": "zi", "shield": True},
+            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
         }
 
         self.out_vars = {
@@ -1029,7 +1029,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             "hpbl": {"serialname": "hpbl", "shield": True},
             "pblflg": {"serialname": "pblflg", "shield": True},
             "pcnvflg": {"serialname": "pcnvflg", "shield": True},
-            "zi": {"serialname": "zi", "shield": True},
+            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
@@ -1134,7 +1134,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "zi": {"shield": True},
+            "zi": {"shield": True, "kend": namelist.npz + 1},
             "rlam": {"shield": True, "kend": namelist.npz - 1},
             "ele": {"shield": True},
             "zol": {"shield": True},
@@ -1150,7 +1150,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "zi": {"shield": True},
+            "zi": {"shield": True, "kend": namelist.npz + 1},
             "rlam": {"shield": True, "kend": namelist.npz - 1},
             "ele": {"shield": True},
             "zol": {"shield": True},
