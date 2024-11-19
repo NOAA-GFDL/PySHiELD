@@ -116,6 +116,7 @@ def init_turbulence(
 ):
     from __externals__ import (
         cap_k0_land,
+        do_dk_hb19,
         dt2,
         km1,
         ntcw,
@@ -124,7 +125,6 @@ def init_turbulence(
         xkzm_h,
         xkzm_m,
         xkzm_s,
-        do_dk_hb19,
     )
 
     with computation(FORWARD), interval(0, 1):
