@@ -149,11 +149,14 @@ def init_turbulence(
             sfcflg = False
         gdx = sqrt(area[0, 0])
 
-    with computation(PARALLEL), interval(...):
-        zi = phii[0, 0, 0] * constants.RGRAV
-        zl = phil[0, 0, 0] * constants.RGRAV
-        tke = max(q1[0, 0, 0][ntke], physcons.TKMIN)
-    with computation(FORWARD), interval(0, -1):
+    with computation(PARALLEL):
+        with interval(0, -1):
+            zi = phii[0, 0, 0] * constants.RGRAV
+            zl = phil[0, 0, 0] * constants.RGRAV
+            tke = max(q1[0, 0, 0][ntke], physcons.TKMIN)
+        with interval(-1, None):
+            zi = phii[0, 0, 0] * constants.RGRAV
+    with computation(FORWARD), interval(0, -2):
         ckz = physcons.CK1
         chz = physcons.CH1
         prn = 1.0
@@ -238,7 +241,7 @@ def init_turbulence(
         rhly = max(0.0, min(1.0, max(physcons.QMIN, q1[0, 0, 0][0]) / qs))
         qstl = qs
 
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, -1):
         cfly = 0.0
         clwt = 1.0e-6 * (plyr[0, 0, 0] * 0.001)
         if qlx[0, 0, 0] > clwt:
@@ -1839,7 +1842,7 @@ class ScaleAwareTKEMoistEDMF:
                 "cap_k0_land": config.cap_k0_land,
             },
             origin=idx.origin_compute(),
-            domain=idx.domain_compute(),
+            domain=idx.domain_compute(add=(0, 0, 1)),
         )
 
         self._mrf_pbl_scheme_part1 = stencil_factory.from_origin_domain(

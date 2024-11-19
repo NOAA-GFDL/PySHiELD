@@ -95,7 +95,7 @@ class InitTurb:
                 "cap_k0_land": config.cap_k0_land,
             },
             origin=idx.origin_compute(),
-            domain=idx.domain_compute(),
+            domain=idx.domain_compute(add=(0, 0, 1)),
         )
 
     def __call__(
