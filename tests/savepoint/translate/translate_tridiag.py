@@ -192,13 +192,13 @@ class TridiN:
         al,
         f1,
         f2,
-        nt,
+        nt1,
     ):
         self._copy_stencil(au, self._cu)
         self._copy_stencil(f1, self._r1)
         self._copy_4d(f2, self._r2)
 
-        for n in range(0, int(nt)):
+        for n in range(0, int(nt1)):
             dim_n = n if n < self._ntke else n + 1
             breakpoint()
             self._tridin(
@@ -303,7 +303,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             "f2": {"shield": True},
         }
         self.in_vars["parameters"] = [
-            "nt"
+            "nt1"
         ]
         self.out_vars = {
             "al": {"shield": True, "kend": namelist.npz - 1},

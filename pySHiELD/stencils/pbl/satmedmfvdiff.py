@@ -105,15 +105,14 @@ def init_turbulence(
     hsw: FloatField,
     thermal: FloatFieldIJ,
     tsea: FloatFieldIJ,
-    u10m: FloatFieldIJ,
     ustar: FloatFieldIJ,
     u1: FloatField,
     v1: FloatField,
+    u10m: FloatFieldIJ,
     v10m: FloatFieldIJ,
     xmu: FloatFieldIJ,
     ptop: FloatFieldIJ,
     pbot: FloatFieldIJ,
-    temp_q10: FloatField,
 ):
     from __externals__ import (
         cap_k0_land,
@@ -154,7 +153,6 @@ def init_turbulence(
         zi = phii[0, 0, 0] * constants.RGRAV
         zl = phil[0, 0, 0] * constants.RGRAV
         tke = max(q1[0, 0, 0][ntke], physcons.TKMIN)
-        temp_q10 = q1[0, 0, 0][0]
     with computation(FORWARD), interval(0, -1):
         ckz = physcons.CK1
         chz = physcons.CH1
@@ -319,20 +317,12 @@ def mrf_pbl_scheme_part1(
 
     with computation(FORWARD):
         with interval(0, 1):
+            flg = False
             rbup = rbsoil[0, 0]
             thlvx_0 = thlvx[0, 0, 0]
 
-            if not flg[0, 0]:
-                rbdn = rbup[0, 0]
-                rbup = (
-                    (thlvx[0, 0, 0] - thermal[0, 0])
-                    * (constants.GRAV * zl[0, 0, 0] / thlvx_0[0, 0])
-                    / max(u1[0, 0, 0] ** 2 + v1[0, 0, 0] ** 2, 1.0)
-                )
-                kpblx = k_mask[0]
-                flg = rbup[0, 0] > crb[0, 0]
-
-        with interval(1, None):
+    with computation(FORWARD):
+        with interval(...):
             if not flg[0, 0]:
                 rbdn = rbup[0, 0]
                 rbup = (
@@ -398,6 +388,7 @@ def mrf_pbl_2_thermal_excess(
             if kpbl[0, 0] <= 0:
                 pblflg = False
 
+    # Compute similarity parameters
     with computation(FORWARD), interval(0, 1):
         zol = max(rbsoil[0, 0] * fm[0, 0] * fm[0, 0] / fh[0, 0], physcons.RIMIN)
         if sfcflg[0, 0]:
@@ -428,6 +419,7 @@ def mrf_pbl_2_thermal_excess(
 
         flg = 1
 
+        # Compute a thermal excess
         if pcnvflg[0, 0]:
             hgamt = heat[0, 0] / wscale
             hgamq = evap[0, 0] / wscale
@@ -437,7 +429,7 @@ def mrf_pbl_2_thermal_excess(
             rbup = rbsoil[0, 0]
 
 
-def thermal_excess_2(
+def thermal_pbl_calc(
     crb: FloatFieldIJ,
     flg: BoolFieldIJ,
     kpbl: IntFieldIJ,
@@ -451,7 +443,8 @@ def thermal_excess_2(
     v1: FloatField,
     zl: FloatField,
 ):
-
+    # enhance the pbl height by considering the thermal excess
+    # (overshoot pbl top)
     with computation(FORWARD):
         with interval(1, 2):
             thlvx_0 = thlvx[0, 0, -1]
@@ -479,16 +472,13 @@ def thermal_excess_2(
 
 def enhance_pbl_height_thermal(
     crb: FloatFieldIJ,
-    flg: BoolFieldIJ,
     hpbl: FloatFieldIJ,
     kpbl: IntFieldIJ,
-    lcld: IntFieldIJ,
     k_mask: IntFieldK,
     pblflg: BoolFieldIJ,
     pcnvflg: BoolFieldIJ,
     rbdn: FloatFieldIJ,
     rbup: FloatFieldIJ,
-    scuflg: BoolFieldIJ,
     zi: FloatField,
     zl: FloatField,
 ):
@@ -511,17 +501,6 @@ def enhance_pbl_height_thermal(
                 pblflg[0, 0] = False
                 pcnvflg[0, 0] = False
 
-    with computation(FORWARD):
-        with interval(0, 1):
-            flg = scuflg[0, 0]
-            if flg[0, 0] and (zl[0, 0, 0] >= physcons.ZSTBLMAX):
-                lcld = k_mask[0]
-                flg = 0
-        with interval(1, -1):
-            if flg[0, 0] and (zl[0, 0, 0] >= physcons.ZSTBLMAX):
-                lcld = k_mask[0]
-                flg = 0
-
 
 def stratocumulus(
     flg: BoolFieldIJ,
@@ -533,8 +512,21 @@ def stratocumulus(
     radx: FloatField,
     qlx: FloatField,
     scuflg: BoolFieldIJ,
+    zl: FloatField,
 ):
     from __externals__ import km1
+
+    # look for stratocumulus
+    with computation(FORWARD):
+        with interval(0, 1):
+            flg = scuflg[0, 0]
+            if flg[0, 0] and (zl[0, 0, 0] >= physcons.ZSTBLMAX):
+                lcld = k_mask[0]
+                flg = 0
+        with interval(1, -1):
+            if flg[0, 0] and (zl[0, 0, 0] >= physcons.ZSTBLMAX):
+                lcld = k_mask[0]
+                flg = 0
 
     with computation(FORWARD):
         with interval(0, 1):
@@ -644,30 +636,26 @@ def compute_prandtl_num_exchange_coeff(
 ):
 
     with computation(PARALLEL), interval(...):
-        tem1 = max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0)
-        ptem = -3.0 * (tem1 ** 2.0) / (hpbl[0, 0] ** 2.0)
+        tem1 = 0.
         if k_mask[0] < kpbl[0, 0]:
+            tem1 = max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0)
+            ptem = -3.0 * (tem1 ** 2.0) / (hpbl[0, 0] ** 2.0)
             if pcnvflg[0, 0]:
                 prn = 1.0 + ((phih[0, 0] / phim[0, 0]) - 1.0) * exp(ptem)
             else:
                 prn = phih[0, 0] / phim[0, 0]
 
-        if k_mask[0] < kpbl[0, 0]:
             prn = max(min(prn[0, 0, 0], physcons.PRMAX), physcons.PRMIN)
             ckz = max(
                 min(
                     physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem),
                     physcons.CK0,
-                ),
-                physcons.CK1,
-            )
+                ), physcons.CK1)
             chz = max(
                 min(
                     physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem),
                     physcons.CH0,
-                ),
-                physcons.CH1,
-            )
+                ), physcons.CH1)
 
 
 def compute_asymptotic_mixing_length(
@@ -677,7 +665,7 @@ def compute_asymptotic_mixing_length(
     gotvx: FloatField,
     zl: FloatField,
     tsea: FloatFieldIJ,
-    q1_0: FloatField,
+    q1: FloatFieldTracer,
     zi: FloatField,
     rlam: FloatField,
     ele: FloatField,
@@ -733,7 +721,7 @@ def compute_asymptotic_mixing_length(
             lev -= 1
         # Do last iteration of while-loop outside the loop for indexing safety
         dz = zl[0, 0, lev]
-        tem1 = tsea * (1.0 + constants.ZVIR * max(q1_0[0, 0, lev], physcons.QMIN))
+        tem1 = tsea * (1.0 + constants.ZVIR * max(q1[0, 0, lev][0], physcons.QMIN))
         ptem = gotvx[0, 0, lev] * (thvx - tem1) * dz
         bsum = bsum + ptem
         zldn = zldn + dz
@@ -1010,8 +998,6 @@ def tke_up_down_prop(
     k_mask: IntFieldK,
     xlamue: FloatField,
     zl: FloatField,
-    ad: FloatField,
-    f1: FloatField,
     krad: IntFieldIJ,
     mrad: IntFieldIJ,
     xlamde: FloatField,
@@ -1040,11 +1026,6 @@ def tke_up_down_prop(
                     (1.0 - tem) * qcdo[0, 0, 1][7] + tem * (tke[0, 0, 0] + tke[0, 0, 1])
                 ) / (1.0 + tem)
 
-    with computation(PARALLEL), interval(0, 1):
-        if k_mask[0] < krad:
-            ad = 1.0
-            f1 = tke[0, 0, 0]
-
 
 def tke_tridiag_matrix_ele_comp(
     ad: FloatField,
@@ -1072,6 +1053,10 @@ def tke_tridiag_matrix_ele_comp(
     rt: FloatField,
 ):
     from __externals__ import dt2
+
+    with computation(FORWARD), interval(0, 1):
+        ad = 1.0
+        f1 = tke[0, 0, 0]
 
     with computation(FORWARD):
         with interval(0, 1):
@@ -1695,6 +1680,7 @@ class ScaleAwareTKEMoistEDMF:
             units="unknown",
             dtype=Int,
         )
+
         for k in range(idx.domain[2]):
             self._k_mask.data[k] = k
 
@@ -1810,9 +1796,6 @@ class ScaleAwareTKEMoistEDMF:
         self._ptop = make_quantity_2D(Float)
         self._pbot = make_quantity_2D(Float)
 
-        # Workaround for q1 access in compute_asymptotic_mixing_length
-        self._temp_q10 = make_quantity()
-
         # Arrays for tridiag calculations
         self._cu = make_quantity()
         self._rt = make_quantity()
@@ -1871,8 +1854,8 @@ class ScaleAwareTKEMoistEDMF:
             domain=idx.domain_compute(),
         )
 
-        self._thermal_excess_2 = stencil_factory.from_origin_domain(
-            func=thermal_excess_2,
+        self._thermal_pbl_calc = stencil_factory.from_origin_domain(
+            func=thermal_pbl_calc,
             origin=idx.origin_compute(),
             domain=(idx.iec, idx.jec, self._kmpbl),
         )
@@ -2162,15 +2145,14 @@ class ScaleAwareTKEMoistEDMF:
             hsw,
             self._thermal,
             tsea,
-            u10m,
             self._ustar,
             u1,
             v1,
+            u10m,
             v10m,
             xmu,
             self._ptop,
             self._pbot,
-            self._temp_q10,
         )
 
         self._mrf_pbl_scheme_part1(
@@ -2220,7 +2202,7 @@ class ScaleAwareTKEMoistEDMF:
             self._zol,
         )
 
-        self._thermal_excess_2(
+        self._thermal_pbl_calc(
             self._crb,
             self._flg,
             kpbl,
@@ -2237,16 +2219,13 @@ class ScaleAwareTKEMoistEDMF:
 
         self._enhance_pbl_height_thermal(
             self._crb,
-            self._flg,
             hpbl,
             kpbl,
-            self._lcld,
             self._k_mask,
             self._pblflg,
             self._pcnvflg,
             self._rbdn,
             self._rbup,
-            self._scuflg,
             self._zi,
             self._zl,
         )
@@ -2261,6 +2240,7 @@ class ScaleAwareTKEMoistEDMF:
             self._radx,
             self._qlx,
             self._scuflg,
+            self._zl,
         )
 
         self._compute_mass_flux_prelim(
@@ -2277,14 +2257,15 @@ class ScaleAwareTKEMoistEDMF:
             self._vcko,
         )
 
-        for n in range(8):
+        for n in range(self._ntrac1):
+            dim_n = n if n < self._ntke else n + 1
             self._compute_mass_flux_tracer_prelim(
                 self._qcdo,
                 self._qcko,
                 q1,
                 self._pcnvflg,
                 self._scuflg,
-                n,
+                dim_n,
             )
 
         self._mfpblt(
@@ -2360,7 +2341,7 @@ class ScaleAwareTKEMoistEDMF:
             self._gotvx,
             self._zl,
             tsea,
-            self._temp_q10,
+            q1,
             self._zi,
             self._rlam,
             self._ele,
@@ -2433,8 +2414,6 @@ class ScaleAwareTKEMoistEDMF:
             self._k_mask,
             self._xlamue,
             self._zl,
-            self._ad,
-            self._f1,
             self._krad,
             self._mrad,
             self._xlamde,
@@ -2488,7 +2467,7 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         if self._ntrac1 >= 2:
-            for n in range(1, self._ntrac1):
+            for n in range(self._ntrac1):
                 dim_n = n if n < self._ntke else n + 1
                 self._reset_tracers(
                     self._f2,
