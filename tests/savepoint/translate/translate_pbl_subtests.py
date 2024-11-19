@@ -740,9 +740,9 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "rbsoil": {"shield": True, },
             "radmin": {"shield": True, },
             "mrad": {"shield": True, },
-            "krad": {"shield": True, },
-            "lcld": {"shield": True, },
-            "kcld": {"shield": True, },
+            "krad": {"shield": True, "index_variable": True},
+            "lcld": {"shield": True, "index_variable": True},
+            "kcld": {"shield": True, "index_variable": True},
             "theta": {"shield": True, },
             "prslk": {"shield": True, },
             "psk": {"shield": True, },
@@ -820,9 +820,9 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "rbsoil": {"shield": True, },
             "radmin": {"shield": True, },
             "mrad": {"shield": True, },
-            "krad": {"shield": True, },
-            "lcld": {"shield": True, },
-            "kcld": {"shield": True, },
+            "krad": {"shield": True, "index_variable": True},
+            "lcld": {"shield": True, "index_variable": True},
+            "kcld": {"shield": True, "index_variable": True},
             "theta": {"shield": True, },
             "prslk": {"shield": True, },
             "psk": {"shield": True, },
@@ -884,6 +884,9 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
         config = self.namelist.pbl
         config.ntke = 8
         inputs["kpbl"] = inputs["kpbl"].astype(int)
+        inputs["krad"] = inputs["krad"].astype(int)
+        inputs["lcld"] = inputs["lcld"].astype(int)
+        inputs["kcld"] = inputs["kcld"].astype(int)
         inputs["kpblx"] = inputs["kpblx"].astype(int)
 
         compute_func = InitTurb(

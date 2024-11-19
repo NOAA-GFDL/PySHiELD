@@ -211,7 +211,7 @@ def init_turbulence(
                     ),
                 )
                 xkzmo = xkzm_mx * tem1
-
+    with computation(FORWARD), interval(0, -1):
         pix = psk[0, 0] / prslk[0, 0, 0]
         theta = t1[0, 0, 0] * pix[0, 0, 0]
         if (ntiw + 1) > 0:
