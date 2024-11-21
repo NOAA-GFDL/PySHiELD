@@ -228,20 +228,25 @@ def init_turbulence(
                 - constants.HLV * qlx[0, 0, 0]
             )
 
-        tem = 1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.QMIN) - qlx[0, 0, 0]
-        thvx = theta[0, 0, 0] * tem
+        tem2 = 1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.QMIN) - qlx[0, 0, 0]
+        thvx = theta[0, 0, 0] * tem2
+        tvx = t1 * tem2
         qtx = max(q1[0, 0, 0][0], physcons.QMIN) + qlx[0, 0, 0]
         thlx = theta[0, 0, 0] - pix[0, 0, 0] * physcons.ELOCP * qlx[0, 0, 0]
         thlvx = thlx[0, 0, 0] * (1.0 + constants.ZVIR * qtx[0, 0, 0])
-        svx = constants.CP_AIR * t1[0, 0, 0] * tem
+        svx = constants.CP_AIR * t1[0, 0, 0] * tvx
         thetae = theta[0, 0, 0] + physcons.ELOCP * pix[0, 0, 0] * max(
             q1[0, 0, 0][0], physcons.QMIN
         )
-        gotvx = constants.GRAV / (t1[0, 0, 0] * tem)
+        gotvx = constants.GRAV / (tvx)
 
-        tem = (t1[0, 0, 1] - t1[0, 0, 0]) * tem * rdzt[0, 0, 0]
+        tem = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
             if tem > 1.0e-5:
+                xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
+                xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
+        else:
+            if (tem1 > 0.):
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
