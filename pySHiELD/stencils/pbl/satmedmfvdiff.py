@@ -251,6 +251,7 @@ def init_turbulence(
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
+    with computation(FORWARD), interval(0, -1):
         #  Compute empirical cloud fraction based on Xu & Randall (1996, JAS)
         plyr = 0.01 * prsl[0, 0, 0]
         es = 0.01 * fpvs(t1)
