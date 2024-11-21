@@ -234,7 +234,7 @@ def init_turbulence(
         qtx = max(q1[0, 0, 0][0], physcons.QMIN) + qlx[0, 0, 0]
         thlx = theta[0, 0, 0] - pix[0, 0, 0] * physcons.ELOCP * qlx[0, 0, 0]
         thlvx = thlx[0, 0, 0] * (1.0 + constants.ZVIR * qtx[0, 0, 0])
-        svx = constants.CP_AIR * t1[0, 0, 0] * tvx
+        svx = constants.CP_AIR * tvx
         thetae = theta[0, 0, 0] + physcons.ELOCP * pix[0, 0, 0] * max(
             q1[0, 0, 0][0], physcons.QMIN
         )
