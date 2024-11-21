@@ -154,7 +154,7 @@ def init_turbulence(
         with interval(0, -1):
             zi = phii[0, 0, 0] * constants.RGRAV
             zl = phil[0, 0, 0] * constants.RGRAV
-            tke = max(q1[0, 0, 0][ntke], physcons.TKMIN)
+            tke = max(q1[0, 0, 0][-1], physcons.TKMIN)
             ckz = physcons.CK1
             chz = physcons.CH1
         with interval(-1, None):
