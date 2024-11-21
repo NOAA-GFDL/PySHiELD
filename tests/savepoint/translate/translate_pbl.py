@@ -105,11 +105,11 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
 
         config = self.namelist.pbl
-        config.ntracers = int(inputs.pop("pbl_ntrac"))
-        config.ntcw = int(inputs.pop("pbl_ntcw"))
-        config.ntiw = int(inputs.pop("pbl_ntiw"))
-        config.ntke = int(inputs.pop("pbl_ntke"))
-        print("tracers: ", config.ntcw, config.ntiw, config.ntke)
+        config.ntracers = int(inputs.pop("pbl_ntrac") - 1)
+        config.ntcw = int(inputs.pop("pbl_ntcw") - 1)
+        config.ntiw = int(inputs.pop("pbl_ntiw") - 1)
+        config.ntke = int(inputs.pop("pbl_ntke") - 1)
+        print("tracers: ", config.ntracers, config.ntcw, config.ntiw, config.ntke)
         inputs.pop("pbl_dtp")
         inputs.pop("pbl_dspheat")
         inputs.pop("pbl_xkzm_m")
