@@ -240,6 +240,7 @@ def init_turbulence(
         )
         gotvx = constants.GRAV / (tvx)
 
+    with computation(FORWARD), interval(0, -2):
         tem = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
             if tem > 1.0e-5:
