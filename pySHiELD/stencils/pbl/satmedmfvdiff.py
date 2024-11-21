@@ -172,7 +172,7 @@ def init_turbulence(
         #  and 0.01 for gdx=5m
         kx1 = 0.0
         tx1 = 1.0 / prsi
-        tx2 = tx1
+        tx2 = 1.0 / prsi
         if do_dk_hb19:
             if gdx[0, 0] >= physcons.XKGDX:
                 xkzm_hx = xkzm_h
@@ -188,16 +188,15 @@ def init_turbulence(
             xkzm_hx = xkzm_h
             xkzm_mx = xkzm_m
     with computation(FORWARD), interval(0, -2):
-        xkzo  = 0.0
-        xkzmo = 0.0
+        xkzo[0, 0, 0]  = 0.0
+        xkzmo[0, 0, 0] = 0.0
         if k_mask[0] < kinver[0, 0]:
             ptem = prsi[0, 0, 1] * tx1[0, 0]
-            tem1 = 1.0 - ptem
-            tem1 = tem1 * tem1 * 10.0
-            xkzo = xkzm_hx * min(1.0, exp(-tem1))
+            tem1 = (1.0 - ptem) * (1.0 - ptem) * 10.0
+            xkzo[0, 0, 0] = xkzm_hx * min(1.0, exp(-tem1))
 
             if ptem >= xkzm_s:
-                xkzmo = xkzm_mx
+                xkzmo[0, 0, 0] = xkzm_mx
                 kx1 = k_mask[0] + 1
             else:
                 tem1 = min(
@@ -210,7 +209,7 @@ def init_turbulence(
                         )
                     ),
                 )
-                xkzmo = xkzm_mx * tem1
+                xkzmo[0, 0, 0] = xkzm_mx * tem1
     with computation(FORWARD), interval(0, -1):
         pix = psk[0, 0] / prslk[0, 0, 0]
         theta = t1[0, 0, 0] * pix[0, 0, 0]
@@ -247,7 +246,7 @@ def init_turbulence(
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
         else:
-            if (tem1 > 0.):
+            if (tem > 0.):
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
