@@ -882,7 +882,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
 
         config = self.namelist.pbl
-        config.ntke = 7
+        config.ntke = config.ntracers - 1
         config.ntcw = 1
         config.ntiw = 3
         inputs["kpbl"] = inputs["kpbl"].astype(int)
