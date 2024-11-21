@@ -134,9 +134,9 @@ def init_turbulence(
         dvsfc = 0.0
         dtsfc = 0.0
         dqsfc = 0.0
-        kpbl = 1
+        kpbl = 2
         hpbl = 0.0
-        kpblx = 1
+        kpblx = 2
         hpblx = 0.0
         pblflg = True
         lcld = km1 - 1
