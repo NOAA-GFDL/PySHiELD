@@ -43,9 +43,9 @@ def set_pbot_ptop(
 ):
     with computation(FORWARD):
         with interval(0, 1):
-            ptop = phii
-        with interval(-1, None):
             pbot = phii
+        with interval(-1, None):
+            ptop = phii
 
 
 class InitTurb:

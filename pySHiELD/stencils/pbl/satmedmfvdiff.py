@@ -150,7 +150,7 @@ def init_turbulence(
         mrad = km1
         krad = 0
         radmin = 0.0
-        ptop = phii
+        pbot = phii
         sfcflg = True
         if rbsoil[0, 0] > 0.0:
             sfcflg = False
@@ -347,7 +347,7 @@ def init_turbulence(
             dw2 = (u1[0, 0, 0] - u1[0, 0, 1]) ** 2 + (v1[0, 0, 0] - v1[0, 0, 1]) ** 2
             shr2 = max(dw2, physcons.DW2MIN) * rdzt[0, 0, 0] * rdzt[0, 0, 0]
         with interval(-2, -1):
-            pbot = phii
+            ptop = phii
 
 
 def mrf_pbl_scheme_part1(
