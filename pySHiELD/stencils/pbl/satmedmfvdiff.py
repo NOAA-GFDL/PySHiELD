@@ -130,7 +130,7 @@ def init_turbulence(
         xkzm_mi,
         xkzm_ml,
         xkzm_mo,
-        xkzm_s,
+        xkzm_s
     )
 
     with computation(FORWARD), interval(0, 1):
