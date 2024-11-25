@@ -1219,13 +1219,13 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             "gotvx": {"serialname": "gotvx", "shield": True},
             "zol": {"serialname": "zol", "shield": True},
             "heat": {"serialname": "heat", "shield": True},
-            "hpbl": {"serialname": "hpbl", "shield": True},
-            "hpblx": {"serialname": "hpblx", "shield": True},
+            "hpbl": {"serialname": "hpbl", "shield": True},  # !
+            "hpblx": {"serialname": "hpblx", "shield": True},  # !
             "kpbl": {"serialname": "kpbl", "shield": True, "index_variable": True},
             "pblflg": {"serialname": "pblflg", "shield": True},
             "pcnvflg": {"serialname": "pcnvflg", "shield": True},
-            "phih": {"serialname": "phih", "shield": True},
-            "phim": {"serialname": "phim", "shield": True},
+            "phih": {"serialname": "phih", "shield": True},  # !
+            "phim": {"serialname": "phim", "shield": True},  # !
             "sfcflg": {"serialname": "sfcflg", "shield": True},
             "sflux": {"serialname": "sflux", "shield": True},
             "theta": {"serialname": "theta", "shield": True},
