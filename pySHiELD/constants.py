@@ -1,6 +1,7 @@
 import ndsl.constants as constants
 
-CPH2O1 = 4.218e+3
+
+CPH2O1 = 4.218e3
 
 # Constants used for turbulence schemes
 A1 = 0.13
@@ -17,7 +18,7 @@ CM = 1.0
 F1 = 0.15
 DW2MIN = 1.0e-4
 DKMAX = 1000.0
-XKGDX = 25000.0 # background vertical diffusion threshold
+XKGDX = 25000.0  # background vertical diffusion threshold
 QMIN = 1.0e-8
 QLMIN = 1.0e-12
 ZFMIN = 1.0e-8

@@ -82,17 +82,17 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
         inputs.pop("t1")
         cnvflg = quantity_factory.from_array(
-            data=inputs.pop('cnvflg'),
+            data=inputs.pop("cnvflg"),
             dims=[X_DIM, Y_DIM],
             units="",
         )
         mrad = quantity_factory.from_array(
-            data=inputs.pop('mrad'),
+            data=inputs.pop("mrad"),
             dims=[X_DIM, Y_DIM],
             units="",
         )
         zm = quantity_factory.from_array(
-            data=inputs.pop('zm'),
+            data=inputs.pop("zm"),
             dims=[X_DIM, Y_DIM, Z_DIM],
             units="",
         )

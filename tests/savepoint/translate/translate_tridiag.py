@@ -1,16 +1,13 @@
-from gt4py.cartesian.gtscript import (
-    PARALLEL,
-    computation,
-    interval,
-)
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.dsl.typing import Float
+from gt4py.cartesian.gtscript import PARALLEL, computation, interval
+
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.stencil import StencilFactory
+from ndsl.dsl.typing import Float
+from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
-from pySHiELD.stencils.pbl.tridiag import tridit, tridi2, tridin
 from ndsl.stencils.basic_operations import copy_defn
 from pySHiELD._config import TRACER_DIM, FloatFieldTracer
+from pySHiELD.stencils.pbl.tridiag import tridi2, tridin, tridit
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -20,6 +17,7 @@ def copy_4d(
 ):
     with computation(PARALLEL), interval(...):
         q_out = q_in
+
 
 class TridiT:
     def __init__(
@@ -66,6 +64,7 @@ class TridiT:
             au,
             f1,
         )
+
 
 class Tridi2:
     def __init__(
@@ -137,6 +136,7 @@ class Tridi2:
             f2,
         )
 
+
 class TridiN:
     def __init__(
         self,
@@ -201,17 +201,7 @@ class TridiN:
         for n in range(0, int(nt1)):
             dim_n = n if n < self._ntke else n + 1
             breakpoint()
-            self._tridin(
-                al,
-                ad,
-                self._cu,
-                self._r1,
-                self._r2,
-                au,
-                f1,
-                f2,
-                int(dim_n)
-            )
+            self._tridin(al, ad, self._cu, self._r1, self._r2, au, f1, f2, int(dim_n))
 
 
 class TranslateTridit(TranslatePhysicsFortranData2Py):
@@ -253,6 +243,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
 
         return self.slice_output(inputs)
 
+
 class TranslateTridi2(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -292,6 +283,7 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
 
         return self.slice_output(inputs)
 
+
 class TranslateTridin(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -302,9 +294,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             "f1": {"shield": True},
             "f2": {"shield": True},
         }
-        self.in_vars["parameters"] = [
-            "nt1"
-        ]
+        self.in_vars["parameters"] = ["nt1"]
         self.out_vars = {
             "al": {"shield": True, "kend": namelist.npz - 1},
             "au": {"shield": True, "kend": namelist.npz - 1},

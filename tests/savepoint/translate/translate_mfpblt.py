@@ -79,7 +79,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
         inputs.pop("t1")
 
         cnvflg = quantity_factory.from_array(
-            data=inputs.pop('cnvflg'),
+            data=inputs.pop("cnvflg"),
             dims=[X_DIM, Y_DIM],
             units="",
         )

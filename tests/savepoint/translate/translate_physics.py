@@ -180,7 +180,9 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
             self.update_info(info, inputs)
             manual = info["manual"] if "manual" in info else False
             serialname = info["serialname"] if "serialname" in info else var
-            index_variable = info["index_variable"] if "index_variable" in info else False
+            index_variable = (
+                info["index_variable"] if "index_variable" in info else False
+            )
             compute_domain = info["compute"] if "compute" in info else True
             if not manual:
                 data_result = as_numpy(out_data[var])

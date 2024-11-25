@@ -94,9 +94,9 @@ def mfpblt_s1(
         if cnvflg[0, 0]:
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             if k_mask[0] < kpbl[0, 0]:
-                ptem = 1. / (zm[0, 0, 0] + dz)
+                ptem = 1.0 / (zm[0, 0, 0] + dz)
                 tem = max((hpbl[0, 0] - zm[0, 0, 0] + dz), dz)
-                ptem1 = 1. / tem
+                ptem1 = 1.0 / tem
                 xlamue = physcons.CE0 * (ptem + ptem1)
             else:
                 xlamue = physcons.CE0 / dz
@@ -110,9 +110,8 @@ def mfpblt_s1(
                 tem = 0.5 * xlamue[0, 0, -1] * dz
                 factor = 1.0 + tem
                 thlu = (
-                    (1.0 - tem) * thlu[0, 0, -1] + tem * (
-                        thlx[0, 0, -1] + thlx[0, 0, 0]
-                    )
+                    (1.0 - tem) * thlu[0, 0, -1]
+                    + tem * (thlx[0, 0, -1] + thlx[0, 0, 0])
                 ) / factor
                 qtu = (
                     (1.0 - tem) * qtu[0, 0, -1] + tem * (qtx[0, 0, -1] + qtx[0, 0, 0])
@@ -148,9 +147,9 @@ def mfpblt_s1(
             if cnvflg[0, 0]:
                 dz = zm[0, 0, 0] - zm[0, 0, -1]
                 tem = 0.25 * bb1 * (xlamue[0, 0, 0] + xlamue[0, 0, -1]) * dz
-                wu2 = (
-                    ((1.0 - tem) * wu2[0, 0, -1]) + (bb2 * buo[0, 0, 0] * dz)
-                ) / (1.0 + tem)
+                wu2 = (((1.0 - tem) * wu2[0, 0, -1]) + (bb2 * buo[0, 0, 0] * dz)) / (
+                    1.0 + tem
+                )
     # Update pbl height as the height where updraft velocity vanishes
     with computation(FORWARD):
         with interval(0, 1):
@@ -409,7 +408,7 @@ class PBLMassFlux:
         self._scaldfunc = make_quantity_2D(Float)
         self._sumx = make_quantity_2D(Float)
         self._flg = make_quantity_2D(Bool)
-        
+
         # From our tuning:
         self._bb1 = 2.0
         self._bb2 = 4.0

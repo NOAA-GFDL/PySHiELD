@@ -123,14 +123,14 @@ def init_turbulence(
         ntcw,
         ntiw,
         ntke,
-        xkzm_hl,
         xkzm_hi,
+        xkzm_hl,
         xkzm_ho,
-        xkzm_ml,
+        xkzm_lim,
         xkzm_mi,
+        xkzm_ml,
         xkzm_mo,
         xkzm_s,
-        xkzm_lim,
     )
 
     with computation(FORWARD), interval(0, 1):
@@ -191,7 +191,7 @@ def init_turbulence(
                     xkzm_hx = xkzm_ho
                     xkzm_mx = xkzm_mo
             else:
-                tem = 1. / (physcons.XKGDX - 5.0)
+                tem = 1.0 / (physcons.XKGDX - 5.0)
                 if islimsk == 1:  # Land points
                     tem1 = (xkzm_hl - xkzm_lim) * tem
                     tem2 = (xkzm_ml - xkzm_lim) * tem
@@ -201,7 +201,7 @@ def init_turbulence(
                 else:  # Ocean points
                     tem1 = (xkzm_hi - xkzm_lim) * tem
                     tem2 = (xkzm_mi - xkzm_lim) * tem
-                ptem = gdx - 5.
+                ptem = gdx - 5.0
                 xkzm_hx = xkzm_lim + tem1 * ptem
                 xkzm_mx = xkzm_lim + tem2 * ptem
         else:  # use values in the namelist; no res dependency
@@ -274,7 +274,7 @@ def init_turbulence(
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
         else:
-            if (tem > 0.):
+            if tem > 0.0:
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
@@ -687,7 +687,7 @@ def compute_prandtl_num_exchange_coeff(
 ):
 
     with computation(PARALLEL), interval(...):
-        tem1 = 0.
+        tem1 = 0.0
         if k_mask[0] < kpbl[0, 0]:
             tem1 = max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0)
             ptem = -3.0 * (tem1 ** 2.0) / (hpbl[0, 0] ** 2.0)
@@ -701,12 +701,16 @@ def compute_prandtl_num_exchange_coeff(
                 min(
                     physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem),
                     physcons.CK0,
-                ), physcons.CK1)
+                ),
+                physcons.CK1,
+            )
             chz = max(
                 min(
                     physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem),
                     physcons.CH0,
-                ), physcons.CH1)
+                ),
+                physcons.CH1,
+            )
 
 
 def compute_asymptotic_mixing_length(
@@ -1343,8 +1347,8 @@ def heat_moist_tridiag_mat_ele_comp(
             ad = ad_p1[0, 0]
 
     with computation(PARALLEL), interval(...):
-        cu = au,
-        rt = f1,
+        cu = (au,)
+        rt = (f1,)
 
 
 def setup_multi_tracer_tridiag(
