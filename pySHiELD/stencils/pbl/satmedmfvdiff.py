@@ -432,7 +432,7 @@ def mrf_pbl_2_thermal_excess(
 
     with computation(FORWARD), interval(0, 1):
         if kpblx <= 0:
-            hpblx = zl[0, 0, -1]
+            hpblx = zl[0, 0, 0]
             kpblx = 0
 
         hpbl = hpblx[0, 0]
