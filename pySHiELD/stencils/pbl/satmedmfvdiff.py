@@ -429,18 +429,19 @@ def mrf_pbl_2_thermal_excess(
 
                 if hpblx[0, 0] < zi[0, 0, 0]:
                     kpblx = kpblx[0, 0] - 1
-            else:
-                hpblx = zl[0, 0, -1]
-                kpblx = 0
 
-            hpbl = hpblx[0, 0]
-            kpbl = kpblx[0, 0]
-
-            if kpbl[0, 0] <= 0:
-                pblflg = False
-
-    # Compute similarity parameters
     with computation(FORWARD), interval(0, 1):
+        if kpblx <= 0:
+            hpblx = zl[0, 0, -1]
+            kpblx = 0
+
+        hpbl = hpblx[0, 0]
+        kpbl = kpblx[0, 0]
+
+        if kpbl[0, 0] <= 0:
+            pblflg = False
+
+        # Compute similarity parameters
         zol = max(rbsoil[0, 0] * fm[0, 0] * fm[0, 0] / fh[0, 0], physcons.RIMIN)
         if sfcflg[0, 0]:
             zol = min(zol[0, 0], -physcons.ZFMIN)
