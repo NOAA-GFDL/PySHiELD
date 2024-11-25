@@ -736,7 +736,7 @@ def compute_asymptotic_mixing_length(
         zlup = 0.0
         bsum = 0.0
         lev = 0
-        while phii[0, 0, lev] < pbot:  # strictly less-than to prevent illegal access
+        while phii[0, 0, lev] > ptop:  # strictly less-than to prevent illegal access
             if mlenflg:
                 dz = zl[0, 0, lev + 1] - zl[0, 0, lev]
                 ptem = gotvx[0, 0, lev] * (thvx[0, 0, lev + 1] - thvx) * dz
@@ -757,7 +757,7 @@ def compute_asymptotic_mixing_length(
         bsum = 0.0
         zldn = 0.0
         lev = 0
-        while phii[0, 0, lev] > ptop:  # strictly less-than to prevent illegal access
+        while phii[0, 0, lev] < pbot:  # strictly less-than to prevent illegal access
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                 tem1 = thvx[0, 0, lev - 1]
