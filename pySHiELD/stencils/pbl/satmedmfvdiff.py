@@ -111,6 +111,7 @@ def init_turbulence(
     u10m: FloatFieldIJ,
     v10m: FloatFieldIJ,
     xmu: FloatFieldIJ,
+    islimsk: IntFieldIJ,
     ptop: FloatFieldIJ,
     pbot: FloatFieldIJ,
 ):
@@ -122,9 +123,14 @@ def init_turbulence(
         ntcw,
         ntiw,
         ntke,
-        xkzm_h,
-        xkzm_m,
+        xkzm_hl,
+        xkzm_hi,
+        xkzm_ho,
+        xkzm_ml,
+        xkzm_mi,
+        xkzm_mo,
         xkzm_s,
+        xkzm_lim,
     )
 
     with computation(FORWARD), interval(0, 1):
@@ -175,20 +181,42 @@ def init_turbulence(
         tx2 = 1.0 / prsi
         if do_dk_hb19:
             if gdx[0, 0] >= physcons.XKGDX:
-                xkzm_hx = xkzm_h
-                xkzm_mx = xkzm_m
+                if islimsk == 1:  # Land points
+                    xkzm_hx = xkzm_hl
+                    xkzm_mx = xkzm_ml
+                elif islimsk == 2:  # Sea ice points
+                    xkzm_hx = xkzm_hi
+                    xkzm_mx = xkzm_mi
+                else:  # Ocean points
+                    xkzm_hx = xkzm_ho
+                    xkzm_mx = xkzm_mo
             else:
-                xkzm_hx = 0.01 + ((xkzm_h - 0.01) * (1.0 / (physcons.XKGDX - 5.0))) * (
-                    gdx[0, 0] - 5.0
-                )
-                xkzm_mx = 0.01 + ((xkzm_m - 0.01) * (1.0 / (physcons.XKGDX - 5.0))) * (
-                    gdx[0, 0] - 5.0
-                )
-        else:
-            xkzm_hx = xkzm_h
-            xkzm_mx = xkzm_m
+                tem = 1. / (physcons.XKGDX - 5.0)
+                if islimsk == 1:  # Land points
+                    tem1 = (xkzm_hl - xkzm_lim) * tem
+                    tem2 = (xkzm_ml - xkzm_lim) * tem
+                elif islimsk == 2:  # Sea ice points
+                    tem1 = (xkzm_hi - xkzm_lim) * tem
+                    tem2 = (xkzm_mi - xkzm_lim) * tem
+                else:  # Ocean points
+                    tem1 = (xkzm_hi - xkzm_lim) * tem
+                    tem2 = (xkzm_mi - xkzm_lim) * tem
+                ptem = gdx - 5.
+                xkzm_hx = xkzm_lim + tem1 * ptem
+                xkzm_mx = xkzm_lim + tem2 * ptem
+        else:  # use values in the namelist; no res dependency
+            if islimsk == 1:  # Land points
+                xkzm_hx = xkzm_hl
+                xkzm_mx = xkzm_ml
+            elif islimsk == 2:  # Sea ice points
+                xkzm_hx = xkzm_hi
+                xkzm_mx = xkzm_mi
+            else:  # Ocean points
+                xkzm_hx = xkzm_ho
+                xkzm_mx = xkzm_mo
+
     with computation(FORWARD), interval(0, -2):
-        xkzo[0, 0, 0]  = 0.0
+        xkzo[0, 0, 0] = 0.0
         xkzmo[0, 0, 0] = 0.0
         if k_mask[0] < kinver[0, 0]:
             ptem = prsi[0, 0, 1] * tx1[0, 0]
@@ -1852,8 +1880,12 @@ class ScaleAwareTKEMoistEDMF:
             func=init_turbulence,
             externals={
                 "km1": km1,
-                "xkzm_h": config.xkzm_h,
-                "xkzm_m": config.xkzm_m,
+                "xkzm_hi": config.xkzm_hi,
+                "xkzm_hl": config.xkzm_hl,
+                "xkzm_ho": config.xkzm_ho,
+                "xkzm_mi": config.xkzm_mi,
+                "xkzm_ml": config.xkzm_ml,
+                "xkzm_mo": config.xkzm_mo,
                 "xkzm_s": config.xkzm_s,
                 "dt2": self._dt_atmos,
                 "ntke": self._ntke,
@@ -1861,6 +1893,7 @@ class ScaleAwareTKEMoistEDMF:
                 "ntcw": self._ntcw,
                 "cap_k0_land": config.cap_k0_land,
                 "do_dk_hb19": config.do_dk_hb19,
+                "xkzm_lim": config.xkzm_lim,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, 1)),
@@ -2088,6 +2121,7 @@ class ScaleAwareTKEMoistEDMF:
         dtsfc: FloatFieldIJ,
         dqsfc: FloatFieldIJ,
         dkt: FloatField,
+        islimsk: IntFieldIJ,
     ):
 
         """
@@ -2175,6 +2209,7 @@ class ScaleAwareTKEMoistEDMF:
             u10m,
             v10m,
             xmu,
+            islimsk,
             self._ptop,
             self._pbot,
         )

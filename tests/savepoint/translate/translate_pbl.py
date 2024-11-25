@@ -127,7 +127,6 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
         inputs.pop("pbl_rlmx")
         inputs.pop("pbl_cap_k0_land")
 
-        inputs.pop("islmsk")  # Not used yet
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["kinver"] = inputs["kinver"].astype(int)
 

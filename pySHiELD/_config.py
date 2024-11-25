@@ -38,6 +38,8 @@ class PBLConfig:
     xkzm_ml: float = NamelistDefaults.xkzm_ml
     xkzm_hi: float = NamelistDefaults.xkzm_hi
     xkzm_mi: float = NamelistDefaults.xkzm_mi
+    xkzm_ho: float = NamelistDefaults.xkzm_ho
+    xkzm_mo: float = NamelistDefaults.xkzm_mo
     xkzminv: float = NamelistDefaults.xkzminv
     xkzm_s: float = NamelistDefaults.xkzm_s
     xkzm_lim: float = NamelistDefaults.xkzm_lim
@@ -162,6 +164,8 @@ class PhysicsConfig:
     xkzm_ml: float = NamelistDefaults.xkzm_ml
     xkzm_hi: float = NamelistDefaults.xkzm_hi
     xkzm_mi: float = NamelistDefaults.xkzm_mi
+    xkzm_ho: float = NamelistDefaults.xkzm_ho
+    xkzm_mo: float = NamelistDefaults.xkzm_mo
     xkzminv: float = NamelistDefaults.xkzminv
     xkzm_lim: float = NamelistDefaults.xkzm_lim
     xkgdx: float = NamelistDefaults.xkgdx
@@ -283,6 +287,8 @@ class PhysicsConfig:
             xkzm_ml=self.xkzm_ml,
             xkzm_hi=self.xkzm_hi,
             xkzm_mi=self.xkzm_mi,
+            xkzm_ho=self.xkzm_ho,
+            xkzm_mo=self.xkzm_mo,
             xkzminv=self.xkzminv,
             xkzm_s=self.xkzm_s,
             xkzm_lim=self.xkzm_lim,

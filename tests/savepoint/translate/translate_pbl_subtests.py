@@ -178,6 +178,7 @@ class InitTurb:
         u10m: FloatFieldIJ,
         v10m: FloatFieldIJ,
         xmu: FloatFieldIJ,
+        islimsk: FloatFieldIJ,
     ):
         self._init_turbulence(
             zi,
@@ -258,6 +259,7 @@ class InitTurb:
             u10m,
             v10m,
             xmu,
+            islimsk,
             self._ptop,
             self._pbot,
         )
@@ -781,8 +783,13 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True, },
             "v10m": {"shield": True, },
             "xmu": {"shield": True, },
+            "islimsk": {"shield": True},
         }
-
+        self.in_vars["parameters"] = [
+            "ntcw",
+            "ntiw",
+            "ntke",
+        ]
         self.out_vars = {
             "zi": {"shield": True, "kend": namelist.npz + 1},
             "zl": {"shield": True, },
@@ -882,9 +889,9 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
 
         config = self.namelist.pbl
-        config.ntke = config.ntracers - 1
-        config.ntcw = 1
-        config.ntiw = 3
+        config.ntke = inputs.pop("ntke") - 1
+        config.ntcw = inputs.pop("ntcw") - 1
+        config.ntiw = inputs.pop("ntiw") - 1
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["lcld"] = inputs["lcld"].astype(int)
