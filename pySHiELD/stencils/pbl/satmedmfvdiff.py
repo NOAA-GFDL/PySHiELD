@@ -498,19 +498,7 @@ def thermal_pbl_calc(
     # enhance the pbl height by considering the thermal excess
     # (overshoot pbl top)
     with computation(FORWARD):
-        with interval(1, 2):
-            thlvx_0 = thlvx[0, 0, -1]
-            if not flg[0, 0]:
-                rbdn = rbup[0, 0]
-                rbup = (
-                    (thlvx[0, 0, 0] - thermal[0, 0])
-                    * (constants.GRAV * zl[0, 0, 0] / thlvx_0[0, 0])
-                    / max(u1[0, 0, 0] ** 2 + v1[0, 0, 0] ** 2, 1.0)
-                )
-                kpbl = k_mask[0]
-                flg = rbup[0, 0] > crb[0, 0]
-
-        with interval(2, None):
+        with interval(1, None):
             if flg[0, 0]:
                 rbdn = rbup[0, 0]
                 rbup = (
