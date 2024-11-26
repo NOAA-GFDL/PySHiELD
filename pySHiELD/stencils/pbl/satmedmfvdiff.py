@@ -499,7 +499,7 @@ def thermal_pbl_calc(
     # (overshoot pbl top)
     with computation(FORWARD):
         with interval(1, None):
-            if flg[0, 0]:
+            if not flg[0, 0]:
                 rbdn = rbup[0, 0]
                 rbup = (
                     (thlvx[0, 0, 0] - thermal[0, 0])
