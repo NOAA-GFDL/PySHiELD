@@ -1129,13 +1129,10 @@ def tke_tridiag_matrix_ele_comp(
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
                 f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
-                f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
+                f1_p1 = f1_p1 - (ptem2 - tem) * (dtodsu * ptem)
         with interval(1, -1):
             ad = ad_p1[0, 0]
-            if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
-                f1 = f1_p1[0, 0]
-            if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
-                f1 = f1_p1[0, 0]
+            f1 = f1_p1[0, 0]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1162,14 +1159,11 @@ def tke_tridiag_matrix_ele_comp(
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
                 f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
-                f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
+                f1_p1 = f1_p1 - (ptem2 - tem) * (dtodsu * ptem)
 
         with interval(-1, None):
             ad = ad_p1[0, 0]
-            if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
-                f1 = f1_p1[0, 0]
-            if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
-                f1 = f1_p1[0, 0]
+            f1 = f1_p1[0, 0]
     with computation(PARALLEL), interval(...):
         cu = au
         rt = f1
@@ -1288,13 +1282,9 @@ def heat_moist_tridiag_mat_ele_comp(
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(1, -1):
+            f1 = f1_p1[0, 0]
+            f2[0, 0, 0][0] = f2_p1[0, 0]
             ad = ad_p1[0, 0]
-            if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
-            if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1342,13 +1332,9 @@ def heat_moist_tridiag_mat_ele_comp(
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(-1, None):
+            f1 = f1_p1[0, 0]
+            f2[0, 0, 0][0] = f2_p1[0, 0]
             ad = ad_p1[0, 0]
-            if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
-            if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
 
     with computation(PARALLEL), interval(...):
         cu = (au,)
@@ -1584,12 +1570,8 @@ def moment_tridiag_mat_ele_comp(
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(1, -1):
-            if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
-            if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
+            f1 = f1_p1[0, 0]
+            f2[0, 0, 0][0] = f2_p1[0, 0]
             ad = ad_p1[0, 0]
 
             dtodsd = dt2 / delta[0, 0, 0]
@@ -1628,12 +1610,8 @@ def moment_tridiag_mat_ele_comp(
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
 
         with interval(-1, None):
-            if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
-            if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
-                f1 = f1_p1[0, 0]
-                f2[0, 0, 0][0] = f2_p1[0, 0]
+            f1 = f1_p1[0, 0]
+            f2[0, 0, 0][0] = f2_p1[0, 0]
             ad = ad_p1[0, 0]
     with computation(PARALLEL), interval(...):
         cu = au
