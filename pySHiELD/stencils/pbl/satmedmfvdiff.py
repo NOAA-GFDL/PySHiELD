@@ -415,7 +415,10 @@ def mrf_pbl_2_thermal_excess(
     zl: FloatField,
     zol: FloatFieldIJ,
 ):
-
+    with computation(FORWARD), interval(0, 1):
+        if kpblx <= 0:
+            hpblx = zl[0, 0, 0]
+            kpblx = 0
     with computation(FORWARD), interval(1, None):
         if k_mask[0] == kpblx[0, 0]:
             if kpblx[0, 0] > 0:
@@ -431,10 +434,6 @@ def mrf_pbl_2_thermal_excess(
                     kpblx = kpblx[0, 0] - 1
 
     with computation(FORWARD), interval(0, 1):
-        if kpblx <= 0:
-            hpblx = zl[0, 0, 0]
-            kpblx = 0
-
         hpbl = hpblx[0, 0]
         kpbl = kpblx[0, 0]
 
