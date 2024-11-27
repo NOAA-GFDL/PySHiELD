@@ -26,7 +26,7 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
             "thetae": {"shield": True},
             "radj": {"shield": True},
             "krad": {"shield": True, "index_variable": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "radmin": {"shield": True},
             "buo": {"shield": True},
             "xmfd": {"shield": True},
@@ -46,7 +46,6 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
         self.out_vars = {
             "radj": {"shield": True},
             "krad": {"shield": True, "index_variable": True},
-            "mrad": {"shield": True},
             "buo": {"shield": True},
             "xmfd": {"shield": True},
             "tcdo": {"shield": True},
