@@ -1128,9 +1128,6 @@ def tke_tridiag_matrix_ele_comp(
                 ptem = 0.5 * tem2 * xmfd
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
-                tem = (
-                    qcdo[0, 0, 0][7] + qcdo[0, 0, 1][7] - (tke[0, 0, 0] + tke[0, 0, 1])
-                )
                 f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
                 f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
         with interval(1, -1):
@@ -1161,9 +1158,6 @@ def tke_tridiag_matrix_ele_comp(
                 ptem = 0.5 * tem2 * xmfd
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
-                tem = (
-                    qcdo[0, 0, 0][7] + qcdo[0, 0, 1][7] - (tke[0, 0, 0] + tke[0, 0, 1])
-                )
                 f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
                 f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
 
