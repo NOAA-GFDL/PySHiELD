@@ -1096,7 +1096,7 @@ def tke_tridiag_matrix_ele_comp(
     cu: FloatField,
     rt: FloatField,
 ):
-    from __externals__ import dt2
+    from __externals__ import dt2, ntke
 
     with computation(FORWARD), interval(0, 1):
         ad = 1.0
@@ -1116,20 +1116,23 @@ def tke_tridiag_matrix_ele_comp(
             tem2 = dsig * rdz
 
             if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
-                tem = (
-                    qcko[0, 0, 0][7] + qcko[0, 0, 1][7] - (tke[0, 0, 0] + tke[0, 0, 1])
-                )
-                f1 = f1[0, 0, 0] - tem * dtodsd * 0.5 * tem2 * xmf[0, 0, 0]
-                f1_p1 = tke[0, 0, 1] + tem * dtodsu * 0.5 * tem2 * xmf[0, 0, 0]
+                ptem = 0.5 * tem2 * xmf
+                ptem2 = qcko[0, 0, 0][ntke] + qcko[0, 0, 1][ntke]
+                tem = tke[0, 0, 0] + tke[0, 0, 1]
+                f1 = f1[0, 0, 0] - (ptem2 - tem) * (dtodsd * ptem)
+                f1_p1 = tke[0, 0, 1] + (ptem2 - tem) * (dtodsu * ptem)
             else:
                 f1_p1 = tke[0, 0, 1]
 
             if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+                ptem = 0.5 * tem2 * xmfd
+                ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
+                tem = tke[0, 0, 0] + tke[0, 0, 1]
                 tem = (
                     qcdo[0, 0, 0][7] + qcdo[0, 0, 1][7] - (tke[0, 0, 0] + tke[0, 0, 1])
                 )
-                f1 = f1[0, 0, 0] + tem * dtodsd * 0.5 * tem2 * xmfd[0, 0, 0]
-                f1_p1 = f1_p1 - tem * dtodsu * 0.5 * tem2 * xmfd[0, 0, 0]
+                f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
+                f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
         with interval(1, -1):
             ad = ad_p1[0, 0]
             f1 = f1_p1[0, 0]
@@ -1145,20 +1148,23 @@ def tke_tridiag_matrix_ele_comp(
             ad_p1 = 1.0 - al[0, 0, 0]
 
             if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
-                tem = (
-                    qcko[0, 0, 0][7] + qcko[0, 0, 1][7] - (tke[0, 0, 0] + tke[0, 0, 1])
-                )
-                f1 = f1[0, 0, 0] - tem * dtodsd * 0.5 * dsig * rdz * xmf[0, 0, 0]
-                f1_p1 = tke[0, 0, 1] + tem * dtodsu * 0.5 * dsig * rdz * xmf[0, 0, 0]
+                ptem = 0.5 * tem2 * xmf
+                ptem2 = qcko[0, 0, 0][ntke] + qcko[0, 0, 1][ntke]
+                tem = tke[0, 0, 0] + tke[0, 0, 1]
+                f1 = f1[0, 0, 0] - (ptem2 - tem) * (dtodsd * ptem)
+                f1_p1 = tke[0, 0, 1] + (ptem2 - tem) * (dtodsu * ptem)
             else:
                 f1_p1 = tke[0, 0, 1]
 
             if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+                ptem = 0.5 * tem2 * xmfd
+                ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
+                tem = tke[0, 0, 0] + tke[0, 0, 1]
                 tem = (
                     qcdo[0, 0, 0][7] + qcdo[0, 0, 1][7] - (tke[0, 0, 0] + tke[0, 0, 1])
                 )
-                f1 = f1[0, 0, 0] + tem * dtodsd * 0.5 * dsig * rdz * xmfd[0, 0, 0]
-                f1_p1 = f1_p1 - tem * dtodsu * 0.5 * dsig * rdz * xmfd[0, 0, 0]
+                f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
+                f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
 
         with interval(-1, None):
             ad = ad_p1[0, 0]
@@ -1988,7 +1994,10 @@ class ScaleAwareTKEMoistEDMF:
 
         self._tke_tridiag_matrix_ele_comp = stencil_factory.from_origin_domain(
             func=tke_tridiag_matrix_ele_comp,
-            externals={"dt2": self._dt_atmos},
+            externals={
+                "dt2": self._dt_atmos,
+                "ntke": self._ntke,
+            },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
