@@ -718,7 +718,6 @@ def compute_asymptotic_mixing_length(
     phii: FloatField,
     ptop: FloatFieldIJ,
     pbot: FloatFieldIJ,
-    lev: IntFieldIJ,
 ):
     with computation(FORWARD), interval(...):
         mlenflg = True
@@ -1792,7 +1791,6 @@ class ScaleAwareTKEMoistEDMF:
         self._xkzmo = make_quantity()
         self._xkzm_hx = make_quantity_2D(Float)
         self._xkzm_mx = make_quantity_2D(Float)
-        self._lev = make_quantity_2D(Int)
         self._rdzt = make_quantity()
         self._al = make_quantity()
         self._ad = make_quantity()
@@ -2406,7 +2404,6 @@ class ScaleAwareTKEMoistEDMF:
             phii,
             self._ptop,
             self._pbot,
-            self._lev,
         )
 
         self._compute_eddy_diffusivity_buoy_shear(
