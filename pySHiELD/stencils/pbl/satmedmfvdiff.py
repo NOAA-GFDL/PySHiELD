@@ -1135,7 +1135,7 @@ def tke_tridiag_matrix_ele_comp(
                 f1_p1 = tke[0, 0, 1] - (ptem2 - tem) * (dtodsu * ptem)
         with interval(1, -1):
             ad = ad_p1[0, 0]
-            f1 = f1_p1[0, 0]
+            f1 = f1_p1[0, -1]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1168,7 +1168,7 @@ def tke_tridiag_matrix_ele_comp(
 
         with interval(-1, None):
             ad = ad_p1[0, 0]
-            f1 = f1_p1[0, 0]
+            f1 = f1_p1[0, -1]
     with computation(PARALLEL), interval(...):
         cu = au
         rt = f1
@@ -1287,9 +1287,9 @@ def heat_moist_tridiag_mat_ele_comp(
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(1, -1):
-            f1 = f1_p1[0, 0]
-            f2[0, 0, 0][0] = f2_p1[0, 0]
-            ad = ad_p1[0, 0]
+            f1 = f1_p1[0, -1]
+            f2[0, 0, 0][0] = f2_p1[0, -1]
+            ad = ad_p1[0, -1]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1337,9 +1337,9 @@ def heat_moist_tridiag_mat_ele_comp(
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(-1, None):
-            f1 = f1_p1[0, 0]
-            f2[0, 0, 0][0] = f2_p1[0, 0]
-            ad = ad_p1[0, 0]
+            f1 = f1_p1[0, -1]
+            f2[0, 0, 0][0] = f2_p1[0, -1]
+            ad = ad_p1[0, -1]
 
     with computation(PARALLEL), interval(...):
         cu = (au,)
@@ -1575,9 +1575,9 @@ def moment_tridiag_mat_ele_comp(
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(1, -1):
-            f1 = f1_p1[0, 0]
-            f2[0, 0, 0][0] = f2_p1[0, 0]
-            ad = ad_p1[0, 0]
+            f1 = f1_p1[0, -1]
+            f2[0, 0, 0][0] = f2_p1[0, -1]
+            ad = ad_p1[0, -1]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1615,9 +1615,9 @@ def moment_tridiag_mat_ele_comp(
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
 
         with interval(-1, None):
-            f1 = f1_p1[0, 0]
-            f2[0, 0, 0][0] = f2_p1[0, 0]
-            ad = ad_p1[0, 0]
+            f1 = f1_p1[0, -1]
+            f2[0, 0, 0][0] = f2_p1[0, -1]
+            ad = ad_p1[0, -1]
     with computation(PARALLEL), interval(...):
         cu = au
         rt = f1
