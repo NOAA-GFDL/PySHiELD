@@ -100,9 +100,9 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
             self.stencil_factory,
             quantity_factory,
             dt2=inputs.pop("dt2"),
-            ntcw=int(inputs.pop("ntcw")),
-            ntrac1=int(inputs.pop("ntrac1")),
-            kmscu=int(inputs.pop("kmscu")),
+            ntcw=int(inputs.pop("ntcw") - 1),
+            ntrac1=int(inputs.pop("ntrac1") - 1),
+            kmscu=int(inputs.pop("kmscu") - 1),
             ntke=8,
         )
 

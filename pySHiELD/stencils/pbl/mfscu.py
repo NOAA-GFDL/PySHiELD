@@ -59,7 +59,7 @@ def mfscu_s0(
         if cnvflg[0, 0]:
             buo = 0.0
             wd2 = 0.0
-            qtx = q1[0, 0, 0][0] + q1[0, 0, 0][ntcw - 1]
+            qtx = q1[0, 0, 0][0] + q1[0, 0, 0][ntcw]
 
     with computation(FORWARD), interval(...):
         if krad[0, 0] == k_mask[0]:
@@ -425,11 +425,11 @@ def mfscu_s9(
             if dq > 0.0:
                 qtd = qs + qld
                 qcdo[0, 0, 0][0] = qs
-                qcdo[0, 0, 0][ntcw - 1] = qld
+                qcdo[0, 0, 0][ntcw] = qld
                 tcdo = tld + physcons.ELOCP * qld
             else:
                 qcdo[0, 0, 0][0] = qtd[0, 0, 0]
-                qcdo[0, 0, 0][ntcw - 1] = 0.0
+                qcdo[0, 0, 0][ntcw] = 0.0
                 tcdo = tld
 
         if cnvflg[0, 0] and k_mask[0] < krad[0, 0] and k_mask[0] >= mrad[0, 0]:
