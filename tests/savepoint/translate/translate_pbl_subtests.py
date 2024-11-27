@@ -627,6 +627,7 @@ class TKETridiag:
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._dt_atmos = config.dt_atmos
+        self._ntke = config.ntracers - 1
         self._k_mask = quantity_factory.zeros(
             [Z_DIM],
             units="unknown",
@@ -659,7 +660,10 @@ class TKETridiag:
 
         self._tke_tridiag_matrix_ele_comp = stencil_factory.from_origin_domain(
             func=tke_tridiag_matrix_ele_comp,
-            externals={"dt2": self._dt_atmos},
+            externals={
+                "dt2": self._dt_atmos,
+                "ntke": self._ntke,
+            },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
