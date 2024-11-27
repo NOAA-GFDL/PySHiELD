@@ -20,7 +20,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             "hlw": {"serialname": "pbl_hlw", "shield": True},
             "xmu": {"serialname": "pbl_xmu", "shield": True},
             "garea": {"serialname": "pbl_garea", "shield": True},
-            "islmsk": {"serialname": "pbl_islmsk", "shield": True},
+            "islimsk": {"serialname": "pbl_islmsk", "shield": True},
             "psk": {"serialname": "pbl_psk", "shield": True},
             "rbsoil": {"serialname": "pbl_rbsoil", "shield": True},
             "zorl": {"serialname": "pbl_zorl", "shield": True},
