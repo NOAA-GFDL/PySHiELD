@@ -718,7 +718,10 @@ def compute_asymptotic_mixing_length(
     phii: FloatField,
     ptop: FloatFieldIJ,
     pbot: FloatFieldIJ,
+    lev: IntFieldIJ,
 ):
+    with computation(FORWARD), interval(...):
+        q1_0 = q1[0, 0, 0][0]
     with computation(FORWARD), interval(...):
         mlenflg = True
         zlup = 0.0
@@ -764,7 +767,7 @@ def compute_asymptotic_mixing_length(
             lev -= 1
         # Do last iteration of while-loop outside the loop for indexing safety
         dz = zl[0, 0, lev]
-        tem1 = tsea * (1.0 + constants.ZVIR * max(q1[0, 0, lev][0], physcons.QMIN))
+        tem1 = tsea * (1.0 + constants.ZVIR * max(q1_0[0, 0, lev], physcons.QMIN))
         ptem = gotvx[0, 0, lev] * (thvx - tem1) * dz
         bsum = bsum + ptem
         zldn = zldn + dz
@@ -1045,19 +1048,19 @@ def tke_up_down_prop(
     mrad: IntFieldIJ,
     xlamde: FloatField,
 ):
-
+    from __externals__ import ntke
     with computation(PARALLEL), interval(...):
         if pcnvflg[0, 0]:
-            qcko[0, 0, 0][7] = tke[0, 0, 0]
+            qcko[0, 0, 0][ntke] = tke[0, 0, 0]
         if scuflg[0, 0]:
-            qcdo[0, 0, 0][7] = tke[0, 0, 0]
+            qcdo[0, 0, 0][ntke] = tke[0, 0, 0]
 
     with computation(FORWARD), interval(1, None):
         if k_mask[0] < kpbl:
             tem = 0.5 * xlamue[0, 0, -1] * (zl[0, 0, 0] - zl[0, 0, -1])
             if pcnvflg[0, 0] and k_mask[0] <= kpbl[0, 0]:
-                qcko[0, 0, 0][7] = (
-                    (1.0 - tem) * qcko[0, 0, -1][7]
+                qcko[0, 0, 0][ntke] = (
+                    (1.0 - tem) * qcko[0, 0, -1][ntke]
                     + tem * (tke[0, 0, 0] + tke[0, 0, -1])
                 ) / (1.0 + tem)
 
@@ -1065,8 +1068,8 @@ def tke_up_down_prop(
         if k_mask[0] < krad:
             tem = 0.5 * xlamde[0, 0, 0] * (zl[0, 0, 1] - zl[0, 0, 0])
             if scuflg[0, 0] and k_mask[0] < krad[0, 0] and k_mask[0] >= mrad[0, 0]:
-                qcdo[0, 0, 0][7] = (
-                    (1.0 - tem) * qcdo[0, 0, 1][7] + tem * (tke[0, 0, 0] + tke[0, 0, 1])
+                qcdo[0, 0, 0][ntke] = (
+                    (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (tke[0, 0, 0] + tke[0, 0, 1])
                 ) / (1.0 + tem)
 
 
@@ -1182,8 +1185,8 @@ def recover_tke_tendency_start_tridiag(
     from __externals__ import ntke, rdt
 
     with computation(PARALLEL), interval(...):
-        rtg[0, 0, 0][ntke - 1] = (
-            rtg[0, 0, 0][ntke - 1] + (f1[0, 0, 0] - q1[0, 0, 0][ntke - 1]) * rdt
+        rtg[0, 0, 0][ntke] = (
+            rtg[0, 0, 0][ntke] + (f1[0, 0, 0] - q1[0, 0, 0][ntke]) * rdt
         )
 
     with computation(FORWARD), interval(0, 1):
@@ -1791,6 +1794,7 @@ class ScaleAwareTKEMoistEDMF:
         self._xkzmo = make_quantity()
         self._xkzm_hx = make_quantity_2D(Float)
         self._xkzm_mx = make_quantity_2D(Float)
+        self._lev = make_quantity_2D(Int)
         self._rdzt = make_quantity()
         self._al = make_quantity()
         self._ad = make_quantity()
@@ -1981,6 +1985,9 @@ class ScaleAwareTKEMoistEDMF:
 
         self._tke_up_down_prop = stencil_factory.from_origin_domain(
             func=tke_up_down_prop,
+            externals={
+                "ntke": self._ntke,
+            },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
@@ -2404,6 +2411,7 @@ class ScaleAwareTKEMoistEDMF:
             phii,
             self._ptop,
             self._pbot,
+            self._lev,
         )
 
         self._compute_eddy_diffusivity_buoy_shear(
