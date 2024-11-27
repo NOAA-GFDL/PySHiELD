@@ -1146,6 +1146,7 @@ def tke_tridiag_matrix_ele_comp(
             al = -dtodsu * dsdz2
             ad = ad[0, 0, 0] - au[0, 0, 0]
             ad_p1 = 1.0 - al[0, 0, 0]
+            tem2 = dsig * rdz
 
             if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
                 ptem = 0.5 * tem2 * xmf
