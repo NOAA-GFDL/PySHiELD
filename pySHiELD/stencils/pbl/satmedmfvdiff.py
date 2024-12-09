@@ -176,9 +176,9 @@ def init_turbulence(
         #  set background diffusivities as a function of
         #  horizontal grid size with xkzm_h & xkzm_m for gdx >= 25km
         #  and 0.01 for gdx=5m
-        kx1 = 0.0
-        tx1 = 1.0 / prsi
-        tx2 = 1.0 / prsi
+        kx1 = 0
+        tx1 = 1.0 / prsi[0, 0, 0]
+        tx2 = 1.0 / prsi[0, 0, 0]
         if do_dk_hb19:
             if gdx[0, 0] >= physcons.XKGDX:
                 if islimsk == 1:  # Land points
@@ -219,24 +219,21 @@ def init_turbulence(
         xkzo[0, 0, 0] = 0.0
         xkzmo[0, 0, 0] = 0.0
         if k_mask[0] < kinver[0, 0]:
+            # vertical background diffusivity
             ptem = prsi[0, 0, 1] * tx1[0, 0]
-            tem1 = (1.0 - ptem) * (1.0 - ptem) * 10.0
+            tem1 = 1.0 - ptem
+            tem1 = tem1 * tem1 * 10.0
             xkzo[0, 0, 0] = xkzm_hx * min(1.0, exp(-tem1))
-
+            # vertical background diffusivity for momentum
             if ptem >= xkzm_s:
                 xkzmo[0, 0, 0] = xkzm_mx
                 kx1 = k_mask[0] + 1
             else:
-                tem1 = min(
-                    1.0,
-                    exp(
-                        -(
-                            (1.0 - prsi[0, 0, 1] * tx2[0, 0])
-                            * (1.0 - prsi[0, 0, 1] * tx2[0, 0])
-                            * 5.0
-                        )
-                    ),
-                )
+                if k_mask[0] == kx1:
+                    tx2[0, 0] = 1.0 / prsi[0, 0, 0]
+                tem1 = 1.0 - prsi[0, 0, 1] * tx2[0, 0]
+                tem1 = tem1 * tem1 * 5.0
+                xkzmo = xkzm_mx * min(1.0, exp(-tem1))
                 xkzmo[0, 0, 0] = xkzm_mx * tem1
     with computation(FORWARD), interval(0, -1):
         pix = psk[0, 0] / prslk[0, 0, 0]
@@ -268,12 +265,16 @@ def init_turbulence(
         gotvx = constants.GRAV / (tvx)
 
     with computation(FORWARD), interval(0, -2):
+        # The background vertical diffusivities in the inversion layers are limited
+        # to be less than or equal to xkzminv
         tem = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
             if tem > 1.0e-5:
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
         else:
+            # kgao note: do not apply upper-limiter over land and sea ice points
+            # (consistent with change in satmedmfdifq.f in Jun 2020)
             if tem > 0.0:
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
