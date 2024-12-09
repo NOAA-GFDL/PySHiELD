@@ -1,4 +1,3 @@
-from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import (
     FORWARD,
     BACKWARD,
@@ -12,9 +11,11 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
+from pySHiELD.functions.physics_functions import fpvs
+from pySHiELD._config import PhysicsConfig
 
 # from pace.dsl.dace.orchestration import orchestrate
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import StencilFactory, QuantityFactory
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -27,7 +28,6 @@ from ndsl.dsl.typing import (
     IntField,
 )
 from ndsl.stencils.basic_operations import sign
-from pySHiELD.functions.physics_functions import fpvsx
 
 
 def pa_to_cb(
@@ -414,7 +414,7 @@ def stencil_static0(
                 + constants.HLV * qo[0, 0, 0]
             )
             heso = (
-                0.5 * g * (zo[0, 0, 0] + zo[0, 0, 1])
+                0.5 * constants.GRAV * (zo[0, 0, 0] + zo[0, 0, 1])
                 + constants.CP_AIR * to[0, 0, 0]
                 + constants.HLV * qeso[0, 0, 0]
             )
@@ -490,10 +490,10 @@ def stencil_static2(
             pdot[0, 0, 0] = 0.01 * dot_kbcon  # Now dot is in Pa/s
 
     with computation(PARALLEL), interval(...):
-        w1 = w1s
-        w2 = w2s
-        w3 = w3s
-        w4 = w4s
+        w1 = physcons.W1S
+        w2 = physcons.W2S
+        w3 = physcons.W3S
+        w4 = physcons.W4S
         tem = 0.0
         tem1 = 0.0
         ptem = 0.0
@@ -502,10 +502,10 @@ def stencil_static2(
 
         if cnvflg:
             if islimsk == 1:
-                w1 = w1l
-                w2 = w2l
-                w3 = w3l
-                w4 = w4l
+                physcons.W1L
+                w2 = physcons.W2L
+                w3 = physcons.W3L
+                w4 = physcons.W4L
             if pdot <= w4:
                 tem = (pdot - w4) / (w3 - w4)
             elif pdot >= -w4:
@@ -537,7 +537,7 @@ def stencil_static3(
     zo: FloatField,
     qtr: FloatField,
     clamt: FloatField,
-    clam: DTYPE_FLOAT
+    clam: Float,
 ):
     with computation(BACKWARD), interval(-1, None):
         if cnvflg:
@@ -575,7 +575,7 @@ def stencil_static3(
 
 
 # else :
-def stencil_static4(cnvflg: BoolField, clamt: FloatField, *, clam: DTYPE_FLOAT):
+def stencil_static4(cnvflg: BoolField, clamt: FloatField, *, clam: Float):
     with computation(PARALLEL), interval(...):
         if cnvflg:
             clamt = clam
@@ -708,7 +708,7 @@ def stencil_static7(
     uo: FloatField,
     vcko: FloatField,
     vo: FloatField,
-    pgcon: DTYPE_FLOAT
+    pgcon: Float
 ):
     with computation(FORWARD), interval(1, -1):
         dz = 0.0
@@ -870,20 +870,20 @@ def stencil_static10(
         cina = cina[0, 0, 1]
 
     with computation(PARALLEL), interval(...):
-        w1 = w1s
-        w2 = w2s
-        w3 = w3s
-        w4 = w4s
+        w1 = physcons.W1S
+        w2 = physcons.W2S
+        w3 = physcons.W3S
+        w4 = physcons.W4S
         tem = 0.0
         tem1 = 0.0
         cinacr = 0.0
 
         if cnvflg:
             if islimsk == 1:
-                w1 = w1l
-                w2 = w2l
-                w3 = w3l
-                w4 = w4l
+                w1 = physcons.W1L
+                w2 = physcons.W2L
+                w3 = physcons.W3L
+                w4 = physcons.W4L
 
             if pdot <= w4:
                 tem = (pdot - w4) / (w3 - w4)
@@ -938,9 +938,9 @@ def stencil_static11(
     k_idx: IntField,
     pwo: FloatField,
     cnvwt: FloatField,
-    c1: DTYPE_FLOAT,
-    dt2: DTYPE_FLOAT,
-    ncloud: DTYPE_INT
+    c1: Float,
+    dt2: Float,
+    ncloud: Int
 ):
     with computation(PARALLEL), interval(...):
         flg = cnvflg
@@ -976,7 +976,7 @@ def stencil_static11(
             if k_idx == kbcon:
                 dp = 1000.0 * del0
 
-                xmbmax = dp / (2.0 * g * dt2)
+                xmbmax = dp / (2.0 * constants.GRAV * dt2)
 
     with computation(BACKWARD), interval(0, -1):
         xmbmax = xmbmax[0, 0, 1]
@@ -1132,12 +1132,12 @@ def stencil_static12(
     kbcon1: IntField,
     drag: FloatField,
     dellal: FloatField,
-    c1: DTYPE_FLOAT,
-    ncloud: DTYPE_INT
+    c1: Float,
+    ncloud: Int
 ):
     with computation(PARALLEL), interval(...):
         if cnvflg:
-            aa1 = aafac * aa1
+            aa1 = physcons.AAFAC * aa1
 
         flg = cnvflg
         ktcon1 = kbm
@@ -1224,13 +1224,13 @@ def stencil_static12(
                     if ncloud > 0:
                         ptem = c0t + c1
                         qlk = dq / (eta + etah * ptem * dz)
-                        dellal = etah * c1 * dz * qlk * g / dp
+                        dellal = etah * c1 * dz * qlk * constants.GRAV / dp
                     else:
                         qlk = dq / (eta + etah * c0t * dz)
 
                     qcko = qlk + qrch
                     pwo = etah * c0t * dz * qlk
-                    cnvwt = etah * qlk * g / dp
+                    cnvwt = etah * qlk * constants.GRAV / dp
 
     # Compute updraft velocity square(wu2)
     # Calculate updraft velocity square(wu2) according to Han et al.'s
@@ -1453,7 +1453,7 @@ def comp_tendencies(
     xmbmax: FloatField,
     sumx: FloatField,
     umean: FloatField,
-    dt2: DTYPE_FLOAT,
+    dt2: Float,
 ):
     # Calculate the change in moist static energy, moisture
     # mixing ratio, and horizontal winds per unit cloud base mass
@@ -1823,9 +1823,9 @@ def feedback_control_update(
     ud_mf: FloatField,
     dt_mf: FloatField,
     eta: FloatField,
-    dt2: DTYPE_FLOAT,
-    evfact: DTYPE_FLOAT,
-    evfactl: DTYPE_FLOAT,
+    dt2: Float,
+    evfact: Float,
+    evfactl: Float,
 ):
     with computation(PARALLEL), interval(...):
 
@@ -2161,7 +2161,7 @@ def feedback_control_upd_trr(
     dellae: FloatField,
     xmb: FloatField,
     qtr: FloatField,
-    dt2: DTYPE_FLOAT,
+    dt2: Float,
 ):
     with computation(PARALLEL), interval(...):
         delebar = 0.0
@@ -2229,9 +2229,9 @@ def separate_detrained_cw(
     t1: FloatField,
     qtr_1: FloatField,
     qtr_0: FloatField,
-    dt2: DTYPE_FLOAT,
-    tcr: DTYPE_FLOAT,
-    tcrf: DTYPE_FLOAT
+    dt2: Float,
+    tcr: Float,
+    tcrf: Float
 ):
     with computation(PARALLEL), interval(...):
 
@@ -2289,7 +2289,12 @@ class ScaleAwareMassFluxShallowConvection:
     """
     Fortran name is samfshalconv
     """
-    def __init__(self):
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+        namelist: PhysicsConfig,
+    ):
         pass
 
     def __call__(self):

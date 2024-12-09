@@ -30,3 +30,16 @@ GAM1 = .5
 BETAW = .03
 DXCRT = 15.e3
 H1 = 0.33333333
+
+AAFAC = 0.05
+EVFACT = 0.3
+EVFACTL = 0.3
+
+W1L = -8.0e-3
+W2L = -4.0e-2
+W3L = -5.0e-3
+W4L = -5.0e-4
+W1S = -2.0e-4
+W2S = -2.0e-3
+W3S = -1.0e-3
+W4S = -2.0e-5
