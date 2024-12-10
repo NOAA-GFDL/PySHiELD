@@ -13,6 +13,7 @@ import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from pySHiELD.functions.physics_functions import fpvs
 from pySHiELD._config import PhysicsConfig
+import numpy as np
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl import StencilFactory, QuantityFactory
@@ -28,6 +29,7 @@ from ndsl.dsl.typing import (
     IntField,
 )
 from ndsl.stencils.basic_operations import sign
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 
 def pa_to_cb(
@@ -2285,6 +2287,12 @@ def tke_contribution(
             qtr_ntk = qtr_ntk + 0.5 * sigmagfm * ptem * ptem
 
 
+def exit_routine(cnvflg, im):
+    cnvflg.synchronize()
+    cnvflg_np = cnvflg.view(np.ndarray)
+    return cnvflg_np.sum() == 0
+
+
 class ScaleAwareMassFluxShallowConvection:
     """
     Fortran name is samfshalconv
@@ -2295,6 +2303,44 @@ class ScaleAwareMassFluxShallowConvection:
         quantity_factory: QuantityFactory,
         namelist: PhysicsConfig,
     ):
+        grid_indexing = stencil_factory.grid_indexing
+
+        def make_quantity(**kwargs):
+            return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+
+        def make_quantity_2D(**kwargs):
+            return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+
+        # Allocate arrays
+        self._cnvflg = make_quantity_2D()
+        self._drag = make_quantity()
+
+        # Configure stencils
+        self._pa_to_cb = stencil_factory.from_origin_domain(
+            func=pa_to_cb,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_col_arr = stencil_factory.from_origin_domain(
+            func=init_col_arr,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_par_and_arr = stencil_factory.from_origin_domain(
+            func=init_par_and_arr,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_kbm_kmax = stencil_factory.from_origin_domain(
+            func=init_kbm_kmax,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_final = stencil_factory.from_origin_domain(
+            func=init_final,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         pass
 
     def __call__(self):
