@@ -1069,7 +1069,9 @@ def tke_up_down_prop(
             tem = 0.5 * xlamde[0, 0, 0] * (zl[0, 0, 1] - zl[0, 0, 0])
             if scuflg[0, 0] and k_mask[0] < krad[0, 0] and k_mask[0] >= mrad[0, 0]:
                 qcdo[0, 0, 0][ntke] = (
-                    (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (tke[0, 0, 0] + tke[0, 0, 1])
+                    (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (
+                        tke[0, 0, 0] + tke[0, 0, 1]
+                    )
                 ) / (1.0 + tem)
 
 
