@@ -82,7 +82,7 @@ class InitTurb:
         self._tvx = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
-            dtype=Int,
+            dtype=Float,
         )
 
         for k in range(idx.domain[2]):
