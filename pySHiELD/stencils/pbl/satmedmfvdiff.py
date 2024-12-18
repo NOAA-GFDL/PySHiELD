@@ -220,7 +220,7 @@ def init_turbulence(
         xkzmo[0, 0, 0] = 0.0
         if k_mask[0] < kinver[0, 0]:
             # vertical background diffusivity
-            ptem = prsi[0, 0, 1] * tx1[0, 0]
+            ptem = prsi[0, 0, 1] / prsi[0, 0, 0]
             tem1 = (1.0 - ptem) * (1.0 - ptem) * 10.0
             xkzo[0, 0, 0] = xkzm_hx * min(1.0, exp(-tem1))
             # vertical background diffusivity for momentum
