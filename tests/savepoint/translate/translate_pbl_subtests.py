@@ -186,6 +186,8 @@ class InitTurb:
         v10m: FloatFieldIJ,
         xmu: FloatFieldIJ,
         islimsk: FloatFieldIJ,
+        xkzm_hx: FloatFieldIJ,
+        xkzm_mx: FloatFieldIJ,
     ):
         self._init_turbulence(
             zi,
@@ -269,6 +271,8 @@ class InitTurb:
             islimsk,
             self._ptop,
             self._pbot,
+            xkzm_hx,
+            xkzm_mx,
         )
 
 
