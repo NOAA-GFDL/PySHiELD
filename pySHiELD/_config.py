@@ -52,7 +52,7 @@ class PBLConfig:
     ntcw: int = DEFAULT_INT
     ntke: int = DEFAULT_INT
     dspheat: bool = NamelistDefaults.dspheat
-    cap_k0_land: bool = DEFAULT_BOOL
+    cap_k0_land: bool = NamelistDefaults.cap_k0_land
 
     def __post_init__(self):
         if self.isatmedmf != 0:
@@ -172,7 +172,7 @@ class PhysicsConfig:
     do_dk_hb19: bool = DEFAULT_BOOL
     rlmn: float = NamelistDefaults.rlmn
     rlmx: float = NamelistDefaults.rlmx
-    cap_k0_land: bool = DEFAULT_BOOL
+    cap_k0_land: bool = NamelistDefaults.cap_k0_land
     xkzm_s: float = NamelistDefaults.xkzm_s
     namelist_override: Optional[str] = None
 
