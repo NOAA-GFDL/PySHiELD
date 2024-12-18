@@ -116,6 +116,7 @@ def init_turbulence(
     pbot: FloatFieldIJ,
     xkzm_hx: FloatFieldIJ,
     xkzm_mx: FloatFieldIJ,
+    tvx: FloatField,
 ):
     from __externals__ import (
         cap_k0_land,
@@ -2218,6 +2219,7 @@ class ScaleAwareTKEMoistEDMF:
             self._pbot,
             self._xkzm_hx,
             self._xkzm_mx,
+            self._tvx,
         )
 
         self._mrf_pbl_scheme_part1(
