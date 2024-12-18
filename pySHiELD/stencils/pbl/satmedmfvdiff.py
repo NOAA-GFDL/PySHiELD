@@ -221,20 +221,18 @@ def init_turbulence(
         if k_mask[0] < kinver[0, 0]:
             # vertical background diffusivity
             ptem = prsi[0, 0, 1] * tx1[0, 0]
-            tem1 = 1.0 - ptem
-            tem1 = tem1 * tem1 * 10.0
+            tem1 = (1.0 - ptem) * (1.0 - ptem) * 10.0
             xkzo[0, 0, 0] = xkzm_hx * min(1.0, exp(-tem1))
             # vertical background diffusivity for momentum
             if ptem >= xkzm_s:
                 xkzmo[0, 0, 0] = xkzm_mx
                 kx1 = k_mask[0] + 1
             else:
-                if k_mask[0] == kx1:
+                if (k_mask[0] == kx1) and (k_mask[0] > 1):
                     tx2[0, 0] = 1.0 / prsi[0, 0, 0]
                 tem1 = 1.0 - prsi[0, 0, 1] * tx2[0, 0]
                 tem1 = tem1 * tem1 * 5.0
                 xkzmo = xkzm_mx * min(1.0, exp(-tem1))
-                xkzmo[0, 0, 0] = xkzm_mx * tem1
     with computation(FORWARD), interval(0, -1):
         pix = psk[0, 0] / prslk[0, 0, 0]
         theta = t1[0, 0, 0] * pix[0, 0, 0]
