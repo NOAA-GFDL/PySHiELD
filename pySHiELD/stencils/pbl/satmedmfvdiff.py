@@ -716,11 +716,10 @@ def compute_asymptotic_mixing_length(
     ele: FloatField,
     zol: FloatFieldIJ,
     gdx: FloatFieldIJ,
-    phii: FloatField,
-    ptop: FloatFieldIJ,
-    pbot: FloatFieldIJ,
     lev: IntFieldIJ,
+    k_mask: IntFieldK,
 ):
+    from __externals__ import km1
     with computation(FORWARD), interval(...):
         q1_0 = q1[0, 0, 0][0]
     with computation(FORWARD), interval(...):
@@ -728,7 +727,7 @@ def compute_asymptotic_mixing_length(
         zlup = 0.0
         bsum = 0.0
         lev = 0
-        while phii[0, 0, lev] > ptop:  # strictly less-than to prevent illegal access
+        while k_mask[0, 0, lev] < km1:  # strictly less-than to prevent illegal access
             if mlenflg:
                 dz = zl[0, 0, lev + 1] - zl[0, 0, lev]
                 ptem = gotvx[0, 0, lev] * (thvx[0, 0, lev + 1] - thvx) * dz
@@ -749,7 +748,7 @@ def compute_asymptotic_mixing_length(
         bsum = 0.0
         zldn = 0.0
         lev = 0
-        while phii[0, 0, lev] < pbot:  # strictly less-than to prevent illegal access
+        while k_mask[0, 0, lev] > 0:  # strictly greater-than to prevent illegal access
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                 tem1 = thvx[0, 0, lev - 1]
@@ -1967,6 +1966,7 @@ class ScaleAwareTKEMoistEDMF:
 
         self._compute_asymptotic_mixing_length = stencil_factory.from_origin_domain(
             func=compute_asymptotic_mixing_length,
+            externals={"km1": km1},
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, -1)),
         )
@@ -2414,9 +2414,6 @@ class ScaleAwareTKEMoistEDMF:
             self._ele,
             self._zol,
             self._gdx,
-            phii,
-            self._ptop,
-            self._pbot,
             self._lev,
         )
 

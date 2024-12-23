@@ -560,27 +560,21 @@ class PBLAML:
             units="unknown",
             dtype=Int,
         )
-        self._ptop = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+
+        self._k_mask = quantity_factory.zeros(
+            [Z_DIM],
             units="unknown",
-            dtype=Float,
+            dtype=Int,
         )
-        self._pbot = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
-            units="unknown",
-            dtype=Float,
-        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[k] = k
 
         self._compute_asymptotic_mixing_length = stencil_factory.from_origin_domain(
             func=compute_asymptotic_mixing_length,
+            externals={"km1": km1},
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, -1)),
-        )
-
-        self._set_pbot_ptop = stencil_factory.from_origin_domain(
-            func=set_pbot_ptop,
-            origin=idx.origin_compute(),
-            domain=idx.domain_compute(),
         )
 
     def __call__(
@@ -597,14 +591,7 @@ class PBLAML:
         ele,
         zol,
         gdx,
-        phii,
     ):
-        self._set_pbot_ptop(
-            phii,
-            self._pbot,
-            self._ptop,
-        )
-
         self._compute_asymptotic_mixing_length(
             zldn,
             thvx,
@@ -618,10 +605,8 @@ class PBLAML:
             ele,
             zol,
             gdx,
-            phii,
-            self._ptop,
-            self._pbot,
             self._lev,
+            self._k_mask,
         )
 
 
@@ -1220,6 +1205,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
         )
 
         self.make_storage_data_input_vars(inputs)
+        inputs.pop("phii")
 
         config = self.namelist.pbl
 
