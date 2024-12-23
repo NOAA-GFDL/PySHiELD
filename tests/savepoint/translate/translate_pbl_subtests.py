@@ -79,6 +79,11 @@ class InitTurb:
             units="unknown",
             dtype=Int,
         )
+        self._tvx = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[k] = k
@@ -186,6 +191,8 @@ class InitTurb:
         v10m: FloatFieldIJ,
         xmu: FloatFieldIJ,
         islimsk: FloatFieldIJ,
+        xkzm_hx: FloatFieldIJ,
+        xkzm_mx: FloatFieldIJ,
     ):
         self._init_turbulence(
             zi,
@@ -269,6 +276,9 @@ class InitTurb:
             islimsk,
             self._ptop,
             self._pbot,
+            xkzm_hx,
+            xkzm_mx,
+            self._tvx,
         )
 
 
@@ -799,6 +809,8 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "v10m": {"shield": True},
             "xmu": {"shield": True},
             "islimsk": {"shield": True},
+            "xkzm_hx": {"shield": True},
+            "xkzm_mx": {"shield": True},
         }
         self.in_vars["parameters"] = [
             "ntcw",
@@ -883,6 +895,8 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "v10m": {"shield": True},
             "xmu": {"shield": True},
+            "xkzm_hx": {"shield": True},
+            "xkzm_mx": {"shield": True},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing

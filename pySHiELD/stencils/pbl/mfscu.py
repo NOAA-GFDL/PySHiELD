@@ -66,9 +66,9 @@ def mfscu_s0(
             if cnvflg[0, 0]:
                 hrad = zm[0, 0, 0]
                 krad1 = k_mask[0] - 1
-                tem1 = max(
-                    physcons.CLDTIME * radmin[0, 0] / (zm[0, 0, 1] - zm[0, 0, 0]), -3.0
-                )
+                tem = zm[0, 0, 1] - zm[0, 0, 0]
+                tem1 = physcons.CLDTIME * radmin[0, 0] / tem
+                tem1 = max(tem1, -3.0)
                 thld = thlx[0, 0, 0] + tem1
                 qtd = qtx[0, 0, 0]
                 thlvd = thlvx[0, 0, 0] + tem1
@@ -193,7 +193,8 @@ def mfscu_s3(
             if dq > 0.0:
                 qtd = qs + qld
                 tem1 = 1.0 + constants.ZVIR * qs - qld
-                thvd = (thld[0, 0, 0] + pix[0, 0, 0] * physcons.ELOCP * qld) * tem1
+                thdn = thld[0, 0, 0] + pix[0, 0, 0] * physcons.ELOCP * qld
+                thvd = thdn * tem1
             else:
                 tem1 = 1.0 + constants.ZVIR * qtd[0, 0, 0]
                 thvd = thld[0, 0, 0] * tem1
@@ -354,14 +355,16 @@ def mfscu_s7(
 
             if cnvflg[0, 0]:
                 if sigma > ra1[0, 0]:
-                    scaldfunc = max(min((1.0 - sigma) * (1.0 - sigma), 1.0), 0.0)
+                    scaldfunc = (1.0 - sigma) * (1.0 - sigma)
+                    scaldfunc = max(min(scaldfunc, 1.0), 0.0)
                 else:
                     scaldfunc = 1.0
 
     with computation(BACKWARD), interval(...):
         if cnvflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            xmfd = scaldfunc[0, 0] * xmfd[0, 0, 0]
             xmmx = (zl[0, 0, 1] - zl[0, 0, 0]) / dt2
-            xmfd = min(scaldfunc[0, 0] * xmfd[0, 0, 0], xmmx)
+            xmfd = min(xmfd[0, 0, 0], xmmx)
 
 
 def mfscu_s8(
@@ -412,16 +415,15 @@ def mfscu_s9(
                 (1.0 - tem) * qtd[0, 0, 1] + tem * (qtx[0, 0, 0] + qtx[0, 0, 1])
             ) / factor
 
-        tld = thld[0, 0, 0] / pix[0, 0, 0]
-        es = 0.01 * fpvs(tld)
-        qs = max(
-            physcons.QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
-        )
-        dq = qtd[0, 0, 0] - qs
-        gamma = physcons.EL2ORC * qs / (tld ** 2)
-        qld = dq / (1.0 + gamma)
+            tld = thld[0, 0, 0] / pix[0, 0, 0]
+            es = 0.01 * fpvs(tld)
+            qs = max(
+                physcons.QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
+            )
+            dq = qtd[0, 0, 0] - qs
+            gamma = physcons.EL2ORC * qs / (tld ** 2)
+            qld = dq / (1.0 + gamma)
 
-        if cnvflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
             if dq > 0.0:
                 qtd = qs + qld
                 qcdo[0, 0, 0][0] = qs
