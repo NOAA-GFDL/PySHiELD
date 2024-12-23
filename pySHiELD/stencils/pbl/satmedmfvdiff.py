@@ -703,7 +703,7 @@ def compute_prandtl_num_exchange_coeff(
 
 
 def compute_asymptotic_mixing_length(
-    zldn: FloatFieldIJ,
+    zldn: FloatField,
     thvx: FloatField,
     tke: FloatField,
     gotvx: FloatField,
@@ -1790,7 +1790,7 @@ class ScaleAwareTKEMoistEDMF:
         self._radmin = make_quantity_2D(Float)
         self._zi = make_quantity()
         self._zl = make_quantity()
-        self._zldn = make_quantity_2D(Float)
+        self._zldn = make_quantity()
         self._zm = make_quantity()
         self._xkzo = make_quantity()
         self._xkzmo = make_quantity()
