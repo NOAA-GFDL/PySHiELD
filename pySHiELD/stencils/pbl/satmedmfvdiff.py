@@ -1389,7 +1389,7 @@ def setup_multi_tracer_tridiag(
         else:
             f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
 
-        if scuflg[0, 0] and k_mask[0, 0, -1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
+        if scuflg[0, 0] and k_mask[0, 0, -1] >= mrad[0, 0] and k_mask[0, 0, -1] < krad[0, 0]:
             dtodsu = dt2 / delta[0, 0, 0]
             dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
             tem = dsig * rdzt[0, 0, -1]
