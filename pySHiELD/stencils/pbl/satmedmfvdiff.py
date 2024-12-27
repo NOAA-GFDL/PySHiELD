@@ -727,7 +727,8 @@ def compute_asymptotic_mixing_length(
         zlup = 0.0
         bsum = 0.0
         lev = 0
-        while k_mask[0, 0, lev] <= km1:
+        while k_mask[0, 0, lev] < km1:
+            lev += 1
             if mlenflg:
                 dz = zl[0, 0, lev + 1] - zl[0, 0, lev]
                 ptem = gotvx[0, 0, lev] * (thvx[0, 0, lev + 1] - thvx) * dz
@@ -742,13 +743,13 @@ def compute_asymptotic_mixing_length(
                     zlup = zlup - ptem1 * dz
                     zlup = max(zlup, 0.0)
                     mlenflg = False
-            lev += 1
 
         mlenflg = True
         bsum = 0.0
         zldn = 0.0
         lev = 0
         while abs(lev) <= k_mask[0, 0, 0]:
+            lev -= 1
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                 tem1 = thvx[0, 0, lev - 1]
@@ -764,7 +765,6 @@ def compute_asymptotic_mixing_length(
                     zldn = zldn - ptem1 * dz
                     zldn = max(zldn, 0.0)
                     mlenflg = False
-            lev -= 1
 
         tem = 0.5 * (zi[0, 0, 1] - zi)
         tem1 = min(tem, physcons.RLMN)
