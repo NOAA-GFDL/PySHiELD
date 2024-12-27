@@ -13,8 +13,8 @@ from ndsl.dsl.typing import (
     FloatField,
     FloatFieldIJ,
     Int,
+    IntField,
     IntFieldIJ,
-    IntFieldK,
 )
 from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD._config import FloatFieldTracer
@@ -61,7 +61,7 @@ def mfpblt_s1(
     kpbl: IntFieldIJ,
     kpblx: IntFieldIJ,
     kpbly: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     pix: FloatField,
     plyr: FloatField,
     qtu: FloatField,
@@ -93,7 +93,7 @@ def mfpblt_s1(
         # Compute entrainment rate
         if cnvflg[0, 0]:
             dz = zl[0, 0, 1] - zl[0, 0, 0]
-            if k_mask[0] < kpbl[0, 0]:
+            if k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 1.0 / (zm[0, 0, 0] + dz)
                 tem = max((hpbl[0, 0] - zm[0, 0, 0] + dz), dz)
                 ptem1 = 1.0 / tem
@@ -163,7 +163,7 @@ def mfpblt_s1(
             if not flg[0, 0]:
                 rbdn = rbup[0, 0]
                 rbup = wu2[0, 0, 0]
-                kpblx = k_mask[0]
+                kpblx = k_mask[0, 0, 0]
                 flg = rbup[0, 0] <= 0.0
 
 
@@ -173,7 +173,7 @@ def finish_pbl_height(
     hpbl: FloatFieldIJ,
     hpblx: FloatFieldIJ,
     kpblx: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     rbdn: FloatFieldIJ,
     rbup: FloatFieldIJ,
     zm: FloatField,
@@ -181,7 +181,7 @@ def finish_pbl_height(
     with computation(FORWARD), interval(1, None):
         rbint = 0.0
 
-        if k_mask[0] == kpblx[0, 0]:
+        if k_mask[0, 0, 0] == kpblx[0, 0]:
             if cnvflg[0, 0]:
                 if rbdn[0, 0] <= 0.0:
                     rbint = 0.0
@@ -207,7 +207,7 @@ def mfpblt_s2(
     kpbl: IntFieldIJ,
     kpblx: IntFieldIJ,
     kpbly: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     pix: FloatField,
     plyr: FloatField,
     qcko: FloatFieldTracer,
@@ -236,7 +236,7 @@ def mfpblt_s2(
         # Update entrainment rate
         if cnvflg[0, 0] and (kpbly[0, 0] > kpblx[0, 0]):
             dz = zl[0, 0, 1] - zl[0, 0, 0]
-            if k_mask[0] < kpbl[0, 0]:
+            if k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 1 / (zm[0, 0, 0] + dz)
                 ptem1 = 1 / max(hpbl[0, 0] - zm[0, 0, 0] + dz, dz)
                 xlamue = physcons.CE0 * (ptem + ptem1)
@@ -247,7 +247,7 @@ def mfpblt_s2(
     # Compute entrainment rate averaged over the whole pbl
     with computation(FORWARD), interval(...):
         dz = zl[0, 0, 1] - zl[0, 0, 0]
-        if cnvflg[0, 0] and (k_mask[0] < kpbl[0, 0]):
+        if cnvflg[0, 0] and (k_mask[0, 0, 0] < kpbl[0, 0]):
             xlamavg = xlamavg[0, 0] + xlamue[0, 0, 0] * dz
             sumx = sumx[0, 0] + dz
 
@@ -257,7 +257,7 @@ def mfpblt_s2(
 
     with computation(PARALLEL), interval(...):
         # Updraft mass flux as a function of updraft velocity profile
-        if cnvflg[0, 0] and (k_mask[0] < kpbl[0, 0]):
+        if cnvflg[0, 0] and (k_mask[0, 0, 0] < kpbl[0, 0]):
             if wu2[0, 0, 0] > 0.0:
                 xmf = physcons.A1 * sqrt(wu2[0, 0, 0])
             else:
@@ -282,7 +282,7 @@ def mfpblt_s2(
 
     with computation(PARALLEL), interval(...):
         # Final scale-aware updraft mass flux
-        if cnvflg[0, 0] and (k_mask[0] < kpbl[0, 0]):
+        if cnvflg[0, 0] and (k_mask[0, 0, 0] < kpbl[0, 0]):
             xmmx = (zl[0, 0, 1] - zl[0, 0, 0]) / dt2
             xmf = min(scaldfunc[0, 0] * xmf[0, 0, 0], xmmx)
 
@@ -292,7 +292,7 @@ def mfpblt_s2(
             if cnvflg[0, 0]:
                 thlu = thlx[0, 0, 0]
         with interval(1, None):
-            if cnvflg[0, 0] and (k_mask[0] <= kpbl[0, 0]):
+            if cnvflg[0, 0] and (k_mask[0, 0, 0] <= kpbl[0, 0]):
                 dz = zl[0, 0, 0] - zl[0, 0, -1]
                 tem = 0.5 * xlamue[0, 0, -1] * dz
                 factor = 1.0 + tem
@@ -324,7 +324,7 @@ def mfpblt_s2(
                     qcko_track = 1
                     tcko = tlu
 
-            if cnvflg[0, 0] and (k_mask[0] <= kpbl[0, 0]):
+            if cnvflg[0, 0] and (k_mask[0, 0, 0] <= kpbl[0, 0]):
                 tem = 0.5 * xlamuem[0, 0, -1] * dz
                 factor = 1.0 + tem
                 ucko = (
@@ -342,7 +342,7 @@ def mfpblt_s2(
 def tracer_updraft(
     cnvflg: BoolFieldIJ,
     kpbl: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     xlamue: FloatField,
     qcko: FloatFieldTracer,
     q1: FloatFieldTracer,
@@ -350,7 +350,7 @@ def tracer_updraft(
     n_tracer: int,
 ):
     with computation(FORWARD), interval(1, None):
-        if cnvflg[0, 0] and k_mask[0] <= kpbl[0, 0]:
+        if cnvflg[0, 0] and k_mask[0, 0, 0] <= kpbl[0, 0]:
             dz = zl[0, 0, 0] - zl[0, 0, -1]
             tem = 0.5 * xlamue[0, 0, -1] * dz
             factor = 1.0 + tem
@@ -472,7 +472,7 @@ class PBLMassFlux:
         ucko: FloatField,
         vcko: FloatField,
         xlamue: FloatField,
-        k_mask: IntFieldK,
+        k_mask: IntField,
     ):
         totflag = True
 

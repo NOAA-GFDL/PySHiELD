@@ -21,8 +21,8 @@ from ndsl.dsl.typing import (
     FloatField,
     FloatFieldIJ,
     Int,
+    IntField,
     IntFieldIJ,
-    IntFieldK,
 )
 from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD._config import TRACER_DIM, FloatFieldTracer, PBLConfig
@@ -48,7 +48,7 @@ def init_turbulence(
     prn: FloatField,
     kx1: IntFieldIJ,
     prsi: FloatField,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     kinver: IntFieldIJ,
     tx1: FloatFieldIJ,
     tx2: FloatFieldIJ,
@@ -221,7 +221,7 @@ def init_turbulence(
     with computation(FORWARD), interval(0, -2):
         xkzo[0, 0, 0] = 0.0
         xkzmo[0, 0, 0] = 0.0
-        if k_mask[0] < kinver[0, 0]:
+        if k_mask[0, 0, 0] < kinver[0, 0]:
             # vertical background diffusivity
             ptem = prsi[0, 0, 1] * tx1[0, 0]
             tem1 = (1.0 - ptem) * (1.0 - ptem) * 10.0
@@ -229,9 +229,9 @@ def init_turbulence(
             # vertical background diffusivity for momentum
             if ptem >= xkzm_s:
                 xkzmo[0, 0, 0] = xkzm_mx
-                kx1 = k_mask[0] + 1
+                kx1 = k_mask[0, 0, 0] + 1
             else:
-                if (k_mask[0] == kx1) and (k_mask[0] > 1):
+                if (k_mask[0, 0, 0] == kx1) and (k_mask[0, 0, 0] > 1):
                     tx2[0, 0] = 1.0 / prsi[0, 0, 0]
                 tem1 = 1.0 - prsi[0, 0, 1] * tx2[0, 0]
                 tem1 = tem1 * tem1 * 5.0
@@ -356,7 +356,7 @@ def mrf_pbl_scheme_part1(
     crb: FloatFieldIJ,
     flg: BoolFieldIJ,
     kpblx: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     rbdn: FloatFieldIJ,
     rbup: FloatFieldIJ,
     rbsoil: FloatFieldIJ,
@@ -383,7 +383,7 @@ def mrf_pbl_scheme_part1(
                     * (constants.GRAV * zl[0, 0, 0] / thlvx_0[0, 0])
                     / max(u1[0, 0, 0] ** 2 + v1[0, 0, 0] ** 2, 1.0)
                 )
-                kpblx = k_mask[0]
+                kpblx = k_mask[0, 0, 0]
                 flg = rbup[0, 0] > crb[0, 0]
 
 
@@ -399,7 +399,7 @@ def mrf_pbl_2_thermal_excess(
     hpblx: FloatFieldIJ,
     kpbl: IntFieldIJ,
     kpblx: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     pblflg: BoolFieldIJ,
     pcnvflg: BoolFieldIJ,
     phih: FloatFieldIJ,
@@ -422,7 +422,7 @@ def mrf_pbl_2_thermal_excess(
             hpblx = zl[0, 0, 0]
             kpblx = 0
     with computation(FORWARD), interval(1, None):
-        if k_mask[0] == kpblx[0, 0]:
+        if k_mask[0, 0, 0] == kpblx[0, 0]:
             if kpblx[0, 0] > 0:
                 if rbdn[0, 0] >= crb[0, 0]:
                     rbint = 0.0
@@ -486,7 +486,7 @@ def thermal_pbl_calc(
     crb: FloatFieldIJ,
     flg: BoolFieldIJ,
     kpbl: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     rbdn: FloatFieldIJ,
     rbup: FloatFieldIJ,
     thermal: FloatFieldIJ,
@@ -507,7 +507,7 @@ def thermal_pbl_calc(
                     * (constants.GRAV * zl[0, 0, 0] / thlvx_0[0, 0])
                     / max(u1[0, 0, 0] ** 2 + v1[0, 0, 0] ** 2, 1.0)
                 )
-                kpbl = k_mask[0]
+                kpbl = k_mask[0, 0, 0]
                 flg = rbup[0, 0] > crb[0, 0]
 
 
@@ -515,7 +515,7 @@ def enhance_pbl_height_thermal(
     crb: FloatFieldIJ,
     hpbl: FloatFieldIJ,
     kpbl: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     pblflg: BoolFieldIJ,
     pcnvflg: BoolFieldIJ,
     rbdn: FloatFieldIJ,
@@ -525,7 +525,7 @@ def enhance_pbl_height_thermal(
 ):
 
     with computation(FORWARD), interval(1, None):
-        if pcnvflg[0, 0] and (kpbl[0, 0] == k_mask[0]):
+        if pcnvflg[0, 0] and (kpbl[0, 0] == k_mask[0, 0, 0]):
             if rbdn[0, 0] >= crb[0, 0]:
                 rbint = 0.0
             elif rbup[0, 0] <= crb[0, 0]:
@@ -548,7 +548,7 @@ def stratocumulus(
     kcld: IntFieldIJ,
     krad: IntFieldIJ,
     lcld: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     radmin: FloatFieldIJ,
     radx: FloatField,
     qlx: FloatField,
@@ -562,11 +562,11 @@ def stratocumulus(
         with interval(0, 1):
             flg = scuflg[0, 0]
             if flg[0, 0] and (zl[0, 0, 0] >= physcons.ZSTBLMAX):
-                lcld = k_mask[0]
+                lcld = k_mask[0, 0, 0]
                 flg = 0
         with interval(1, -1):
             if flg[0, 0] and (zl[0, 0, 0] >= physcons.ZSTBLMAX):
-                lcld = k_mask[0]
+                lcld = k_mask[0, 0, 0]
                 flg = 0
 
     with computation(FORWARD):
@@ -577,19 +577,19 @@ def stratocumulus(
         with interval(-1, None):
             if (
                 flg[0, 0]
-                and (k_mask[0] <= lcld[0, 0])
+                and (k_mask[0, 0, 0] <= lcld[0, 0])
                 and (qlx[0, 0, 0] >= physcons.QLCR)
             ):
-                kcld = k_mask[0]
+                kcld = k_mask[0, 0, 0]
                 flg = 0
 
         with interval(0, -1):
             if (
                 flg[0, 0]
-                and (k_mask[0] <= lcld[0, 0])
+                and (k_mask[0, 0, 0] <= lcld[0, 0])
                 and (qlx[0, 0, 0] >= physcons.QLCR)
             ):
-                kcld = k_mask[0]
+                kcld = k_mask[0, 0, 0]
                 flg = 0
 
     with computation(FORWARD):
@@ -600,20 +600,20 @@ def stratocumulus(
 
     with computation(BACKWARD):
         with interval(-1, None):
-            if flg[0, 0] and (k_mask[0] <= kcld[0, 0]):
+            if flg[0, 0] and (k_mask[0, 0, 0] <= kcld[0, 0]):
                 if qlx[0, 0, 0] >= physcons.QLCR:
                     if radx[0, 0, 0] < radmin[0, 0]:
                         radmin = radx[0, 0, 0]
-                        krad = k_mask[0]
+                        krad = k_mask[0, 0, 0]
                 else:
                     flg = 0
 
         with interval(0, -1):
-            if flg[0, 0] and (k_mask[0] <= kcld[0, 0]):
+            if flg[0, 0] and (k_mask[0, 0, 0] <= kcld[0, 0]):
                 if qlx[0, 0, 0] >= physcons.QLCR:
                     if radx[0, 0, 0] < radmin[0, 0]:
                         radmin = radx[0, 0, 0]
-                        krad = k_mask[0]
+                        krad = k_mask[0, 0, 0]
                 else:
                     flg = 0
 
@@ -668,7 +668,7 @@ def compute_prandtl_num_exchange_coeff(
     ckz: FloatField,
     hpbl: FloatFieldIJ,
     kpbl: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     pcnvflg: BoolFieldIJ,
     phih: FloatFieldIJ,
     phim: FloatFieldIJ,
@@ -678,7 +678,7 @@ def compute_prandtl_num_exchange_coeff(
 
     with computation(PARALLEL), interval(...):
         tem1 = 0.0
-        if k_mask[0] < kpbl[0, 0]:
+        if k_mask[0, 0, 0] < kpbl[0, 0]:
             tem1 = max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0)
             ptem = -3.0 * (tem1 ** 2.0) / (hpbl[0, 0] ** 2.0)
             if pcnvflg[0, 0]:
@@ -717,7 +717,7 @@ def compute_asymptotic_mixing_length(
     zol: FloatFieldIJ,
     gdx: FloatFieldIJ,
     lev: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
 ):
     from __externals__ import km1
     with computation(FORWARD), interval(...):
@@ -727,7 +727,7 @@ def compute_asymptotic_mixing_length(
         zlup = 0.0
         bsum = 0.0
         lev = 0
-        while k_mask[lev] < km1:  # strictly less-than to prevent illegal access
+        while k_mask[0, 0, lev] < km1:  # strictly less-than to prevent illegal access
             if mlenflg:
                 dz = zl[0, 0, lev + 1] - zl[0, 0, lev]
                 ptem = gotvx[0, 0, lev] * (thvx[0, 0, lev + 1] - thvx) * dz
@@ -748,7 +748,7 @@ def compute_asymptotic_mixing_length(
         bsum = 0.0
         zldn = 0.0
         lev = 0
-        while k_mask[lev] > 0:  # strictly greater-than to prevent illegal access
+        while k_mask[0, 0, lev] > 0:  # strictly greater-than to prevent illegal access
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                 tem1 = thvx[0, 0, lev - 1]
@@ -823,7 +823,7 @@ def compute_eddy_diffusivity_buoy_shear(
     elm: FloatField,
     gotvx: FloatField,
     kpbl: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     mrad: IntFieldIJ,
     krad: IntFieldIJ,
     pblflg: BoolFieldIJ,
@@ -860,7 +860,7 @@ def compute_eddy_diffusivity_buoy_shear(
         )
         ri = max(bf[0, 0, 0] / shr2[0, 0, 0], physcons.RIMIN)
 
-        if k_mask[0] < kpbl[0, 0]:
+        if k_mask[0, 0, 0] < kpbl[0, 0]:
             if pblflg[0, 0]:
                 dku = ckz[0, 0, 0] * tem
                 dkt = dku[0, 0, 0] / prn[0, 0, 0]
@@ -880,7 +880,7 @@ def compute_eddy_diffusivity_buoy_shear(
         dkt_tmp = max(dkt[0, 0, 0], tem / physcons.PRSCU)
 
         if scuflg[0, 0]:
-            if k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 dku = dku_tmp
                 dkt = dkt_tmp
 
@@ -893,7 +893,7 @@ def compute_eddy_diffusivity_buoy_shear(
         dku = max(min(dku[0, 0, 0], physcons.DKMAX), xkzmo[0, 0, 0])
 
     with computation(PARALLEL), interval(...):
-        if k_mask[0] == krad[0, 0]:
+        if k_mask[0, 0, 0] == krad[0, 0]:
             if scuflg[0, 0]:
                 tem1 = bf[0, 0, 0] / gotvx[0, 0, 0]
                 if tem1 < physcons.TDZMIN:
@@ -950,7 +950,7 @@ def compute_eddy_diffusivity_buoy_shear(
             tem1_2 = (v1[0, 0, 1] - v1[0, 0, 0]) * rdzt[0, 0, 0]
             tem2_2 = (v1[0, 0, 0] - v1[0, 0, -1]) * rdzt[0, 0, -1]
 
-            if pcnvflg[0, 0] and k_mask[0] <= kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] <= kpbl[0, 0]:
                 ptem1_0 = 0.5 * (xmf[0, 0, -1] + xmf[0, 0, 0]) * buou[0, 0, 0]
                 ptem1_1 = (
                     0.5
@@ -968,7 +968,7 @@ def compute_eddy_diffusivity_buoy_shear(
                 ptem1_2 = 0.0
 
             if scuflg[0, 0]:
-                if k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+                if k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                     ptem2_0 = 0.5 * (xmfd[0, 0, -1] + xmfd[0, 0, 0]) * buod[0, 0, 0]
                     ptem2_1 = (
                         0.5
@@ -1041,7 +1041,7 @@ def tke_up_down_prop(
     scuflg: BoolFieldIJ,
     tke: FloatField,
     kpbl: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     xlamue: FloatField,
     zl: FloatField,
     krad: IntFieldIJ,
@@ -1056,18 +1056,18 @@ def tke_up_down_prop(
             qcdo[0, 0, 0][ntke] = tke[0, 0, 0]
 
     with computation(FORWARD), interval(1, None):
-        if k_mask[0] < kpbl:
+        if k_mask[0, 0, 0] < kpbl:
             tem = 0.5 * xlamue[0, 0, -1] * (zl[0, 0, 0] - zl[0, 0, -1])
-            if pcnvflg[0, 0] and k_mask[0] <= kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] <= kpbl[0, 0]:
                 qcko[0, 0, 0][ntke] = (
                     (1.0 - tem) * qcko[0, 0, -1][ntke]
                     + tem * (tke[0, 0, 0] + tke[0, 0, -1])
                 ) / (1.0 + tem)
 
     with computation(BACKWARD), interval(...):
-        if k_mask[0] < krad:
+        if k_mask[0, 0, 0] < krad:
             tem = 0.5 * xlamde[0, 0, 0] * (zl[0, 0, 1] - zl[0, 0, 0])
-            if scuflg[0, 0] and k_mask[0] < krad[0, 0] and k_mask[0] >= mrad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0]:
                 qcdo[0, 0, 0][ntke] = (
                     (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (
                         tke[0, 0, 0] + tke[0, 0, 1]
@@ -1086,7 +1086,7 @@ def tke_tridiag_matrix_ele_comp(
     f1_p1: FloatFieldIJ,
     kpbl: IntFieldIJ,
     krad: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     mrad: IntFieldIJ,
     pcnvflg: BoolFieldIJ,
     prsl: FloatField,
@@ -1119,7 +1119,7 @@ def tke_tridiag_matrix_ele_comp(
             ad_p1 = 1.0 - al[0, 0, 0]
             tem2 = dsig * rdz
 
-            if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 0.5 * tem2 * xmf
                 ptem2 = qcko[0, 0, 0][ntke] + qcko[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
@@ -1128,7 +1128,7 @@ def tke_tridiag_matrix_ele_comp(
             else:
                 f1_p1 = tke[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 ptem = 0.5 * tem2 * xmfd
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
@@ -1149,7 +1149,7 @@ def tke_tridiag_matrix_ele_comp(
             ad_p1 = 1.0 - al[0, 0, 0]
             tem2 = dsig * rdz
 
-            if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 0.5 * tem2 * xmf
                 ptem2 = qcko[0, 0, 0][ntke] + qcko[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
@@ -1158,7 +1158,7 @@ def tke_tridiag_matrix_ele_comp(
             else:
                 f1_p1 = tke[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 ptem = 0.5 * tem2 * xmfd
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
@@ -1219,7 +1219,7 @@ def heat_moist_tridiag_mat_ele_comp(
     f2_p1: FloatFieldIJ,
     kpbl: IntFieldIJ,
     krad: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     mrad: IntFieldIJ,
     pcnvflg: BoolFieldIJ,
     prsl: FloatField,
@@ -1252,7 +1252,7 @@ def heat_moist_tridiag_mat_ele_comp(
             ad = ad[0, 0, 0] - au[0, 0, 0]
             ad_p1 = 1.0 - al[0, 0, 0]
 
-            if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1271,7 +1271,7 @@ def heat_moist_tridiag_mat_ele_comp(
                 f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt
                 f2_p1 = q1[0, 0, 1][0]
 
-            if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1302,7 +1302,7 @@ def heat_moist_tridiag_mat_ele_comp(
             ad = ad[0, 0, 0] - au[0, 0, 0]
             ad_p1 = 1.0 - al[0, 0, 0]
 
-            if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1321,7 +1321,7 @@ def heat_moist_tridiag_mat_ele_comp(
                 f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt
                 f2_p1 = q1[0, 0, 1][0]
 
-            if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1347,7 +1347,7 @@ def heat_moist_tridiag_mat_ele_comp(
 
 def setup_multi_tracer_tridiag(
     pcnvflg: BoolFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     kpbl: IntFieldIJ,
     delta: FloatField,
     prsl: FloatField,
@@ -1367,7 +1367,7 @@ def setup_multi_tracer_tridiag(
     from __externals__ import dt2
 
     with computation(FORWARD), interval(0, 1):
-        if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+        if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
             dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
@@ -1379,7 +1379,7 @@ def setup_multi_tracer_tridiag(
             tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
             f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] - (tem1 - tem2) * ptem1
 
-        if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+        if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
             dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
@@ -1392,7 +1392,7 @@ def setup_multi_tracer_tridiag(
             f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] + (tem1 - tem2) * ptem1
 
     with computation(FORWARD), interval(1, -1):
-        if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
+        if pcnvflg[0, 0] and k_mask[0, 0, -1] < kpbl[0, 0]:
             dtodsu = dt2 / delta[0, 0, 0]
             dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
             tem = dsig * rdzt[0, 0, -1]
@@ -1404,7 +1404,7 @@ def setup_multi_tracer_tridiag(
         else:
             f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
 
-        if scuflg[0, 0] and k_mask[-1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
+        if scuflg[0, 0] and k_mask[0, 0, -1] >= mrad[0, 0] and k_mask[-1] < krad[0, 0]:
             dtodsu = dt2 / delta[0, 0, 0]
             dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
             tem = dsig * rdzt[0, 0, -1]
@@ -1414,7 +1414,7 @@ def setup_multi_tracer_tridiag(
             tem2 = q1[0, 0, -1][n_index] + q1[0, 0, 0][n_index]
             f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] - (tem1 - tem2) * ptem2
 
-        if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+        if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
             dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
@@ -1426,7 +1426,7 @@ def setup_multi_tracer_tridiag(
             tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
             f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] - (tem1 - tem2) * ptem1
 
-        if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+        if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
             dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
@@ -1439,7 +1439,7 @@ def setup_multi_tracer_tridiag(
             f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] + (tem1 - tem2) * ptem1
 
     with computation(FORWARD), interval(-1, None):
-        if pcnvflg[0, 0] and k_mask[-1] < kpbl[0, 0]:
+        if pcnvflg[0, 0] and k_mask[0, 0, -1] < kpbl[0, 0]:
             dtodsu = dt2 / delta[0, 0, 0]
             dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
             tem = dsig * rdzt[0, 0, -1]
@@ -1505,7 +1505,7 @@ def moment_tridiag_mat_ele_comp(
     f2_p1: FloatFieldIJ,
     kpbl: IntFieldIJ,
     krad: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     mrad: IntFieldIJ,
     pcnvflg: BoolFieldIJ,
     prsl: FloatField,
@@ -1549,7 +1549,7 @@ def moment_tridiag_mat_ele_comp(
             ad = ad[0, 0, 0] - au[0, 0, 0]
             ad_p1 = 1.0 - al[0, 0, 0]
 
-            if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1563,7 +1563,7 @@ def moment_tridiag_mat_ele_comp(
                 f1_p1 = u1[0, 0, 1]
                 f2_p1 = v1[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1588,7 +1588,7 @@ def moment_tridiag_mat_ele_comp(
             ad = ad[0, 0, 0] - au[0, 0, 0]
             ad_p1 = 1.0 - al[0, 0, 0]
 
-            if pcnvflg[0, 0] and k_mask[0] < kpbl[0, 0]:
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1602,7 +1602,7 @@ def moment_tridiag_mat_ele_comp(
                 f1_p1 = u1[0, 0, 1]
                 f2_p1 = v1[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0] >= mrad[0, 0] and k_mask[0] < krad[0, 0]:
+            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1635,7 +1635,7 @@ def recover_momentum_tendency_and_finish(
     hpblx: FloatFieldIJ,
     kpbl: IntFieldIJ,
     kpblx: IntFieldIJ,
-    k_mask: IntFieldK,
+    k_mask: IntField,
     u1: FloatField,
     v1: FloatField,
     dkt: FloatField,
@@ -1644,7 +1644,7 @@ def recover_momentum_tendency_and_finish(
     from __externals__ import rdt
 
     with computation(FORWARD), interval(...):
-        if k_mask[0] < 1:
+        if k_mask[0, 0, 0] < 1:
             hpbl = hpblx[0, 0]
             kpbl = kpblx[0, 0]
         utend = (f1[0, 0, 0] - u1[0, 0, 0]) * rdt
@@ -1725,13 +1725,13 @@ class ScaleAwareTKEMoistEDMF:
 
         # Layer mask:
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         # Internal compute variables
         self._lcld = make_quantity_2D(Int)

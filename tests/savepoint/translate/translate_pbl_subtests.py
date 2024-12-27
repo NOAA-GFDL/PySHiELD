@@ -75,7 +75,7 @@ class InitTurb:
             dtype=Float,
         )
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -86,7 +86,7 @@ class InitTurb:
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         self._init_turbulence = stencil_factory.from_origin_domain(
             func=init_turbulence,
@@ -304,13 +304,13 @@ class MRFScheme:
             domain=idx.domain_compute(),
         )
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         self._thlvx_0 = quantity_factory.zeros(
             [X_DIM, Y_DIM],
@@ -409,13 +409,13 @@ class ThermalPBL:
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         self._thlvx_0 = quantity_factory.zeros(
             [X_DIM, Y_DIM],
@@ -503,13 +503,13 @@ class Stratocumulus:
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         self._stratocumulus = stencil_factory.from_origin_domain(
             func=stratocumulus,
@@ -562,13 +562,13 @@ class PBLAML:
         )
 
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         self._compute_asymptotic_mixing_length = stencil_factory.from_origin_domain(
             func=compute_asymptotic_mixing_length,
@@ -624,13 +624,13 @@ class TKETridiag:
         self._dt_atmos = config.dt_atmos
         self._ntke = config.ntracers - 1
         self._k_mask = quantity_factory.zeros(
-            [Z_DIM],
+            [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[k] = k
+            self._k_mask.data[:, :, k] = k
 
         self._cu = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
