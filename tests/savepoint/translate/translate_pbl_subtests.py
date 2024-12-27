@@ -1206,7 +1206,6 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
         )
 
         self.make_storage_data_input_vars(inputs)
-        inputs.pop("phii")
 
         config = self.namelist.pbl
 
