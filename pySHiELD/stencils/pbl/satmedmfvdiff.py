@@ -2400,6 +2400,7 @@ class ScaleAwareTKEMoistEDMF:
             self._zol,
             self._gdx,
             self._lev,
+            self._k_mask,
         )
 
         self._compute_eddy_diffusivity_buoy_shear(
