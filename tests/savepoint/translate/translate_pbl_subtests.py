@@ -591,6 +591,7 @@ class PBLAML:
         ele,
         zol,
         gdx,
+        phii,
     ):
         self._compute_asymptotic_mixing_length(
             zldn,
