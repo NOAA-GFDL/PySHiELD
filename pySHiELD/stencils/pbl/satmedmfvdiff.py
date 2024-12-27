@@ -727,7 +727,7 @@ def compute_asymptotic_mixing_length(
         zlup = 0.0
         bsum = 0.0
         lev = 0
-        while k_mask[0, 0, lev] < km1:  # strictly less-than to prevent illegal access
+        while k_mask[0, 0, lev] <= km1:
             if mlenflg:
                 dz = zl[0, 0, lev + 1] - zl[0, 0, lev]
                 ptem = gotvx[0, 0, lev] * (thvx[0, 0, lev + 1] - thvx) * dz
@@ -744,11 +744,11 @@ def compute_asymptotic_mixing_length(
                     mlenflg = False
             lev += 1
 
-            mlenflg = True
+        mlenflg = True
         bsum = 0.0
         zldn = 0.0
         lev = 0
-        while k_mask[0, 0, lev] > 0:  # strictly greater-than to prevent illegal access
+        while k_mask[0, 0, 0] + lev >= 0:
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                 tem1 = thvx[0, 0, lev - 1]
@@ -765,21 +765,6 @@ def compute_asymptotic_mixing_length(
                     zldn = max(zldn, 0.0)
                     mlenflg = False
             lev -= 1
-        # Do last iteration of while-loop outside the loop for indexing safety
-        dz = zl[0, 0, lev]
-        tem1 = tsea * (1.0 + constants.ZVIR * max(q1_0[0, 0, lev], physcons.QMIN))
-        ptem = gotvx[0, 0, lev] * (thvx - tem1) * dz
-        bsum = bsum + ptem
-        zldn = zldn + dz
-        if bsum >= tke:
-            if ptem >= 0.0:
-                tem2 = max(ptem, physcons.ZFMIN)
-            else:
-                tem2 = min(ptem, -physcons.ZFMIN)
-            ptem1 = (bsum - tke) / tem2
-            zldn = zldn - ptem1 * dz
-            zldn = max(zldn, 0.0)
-            mlenflg = False
 
         tem = 0.5 * (zi[0, 0, 1] - zi)
         tem1 = min(tem, physcons.RLMN)
