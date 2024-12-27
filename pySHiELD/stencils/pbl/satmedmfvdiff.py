@@ -268,15 +268,15 @@ def init_turbulence(
     with computation(FORWARD), interval(0, -2):
         # The background vertical diffusivities in the inversion layers are limited
         # to be less than or equal to xkzminv
-        tem = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
+        tem1 = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
-            if tem > 1.0e-5:
+            if tem1 > 1.0e-5:
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
         else:
             # kgao note: do not apply upper-limiter over land and sea ice points
             # (consistent with change in satmedmfdifq.f in Jun 2020)
-            if tem > 0.0:
+            if (tem1 > 0.0) and (islimsk == 0):
                 xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
