@@ -748,7 +748,7 @@ def compute_asymptotic_mixing_length(
         bsum = 0.0
         zldn = 0.0
         lev = 0
-        while abs(lev) <= k_mask[0, 0, 0]:
+        while k_mask[0, 0, 0] + lev >= 0:
             lev -= 1
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
