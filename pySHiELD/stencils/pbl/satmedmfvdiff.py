@@ -271,14 +271,14 @@ def init_turbulence(
         tem1 = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
             if tem1 > 1.0e-5:
-                xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
-                xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
+                xkzo[0, 0, 0] = min(xkzo[0, 0, 0], physcons.XKZINV)
+                xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], physcons.XKZINV)
         else:
             # kgao note: do not apply upper-limiter over land and sea ice points
             # (consistent with change in satmedmfdifq.f in Jun 2020)
             if (tem1 > 0.0) and (islimsk == 0):
-                xkzo = min(xkzo[0, 0, 0], physcons.XKZINV)
-                xkzmo = min(xkzmo[0, 0, 0], physcons.XKZINV)
+                xkzo[0, 0, 0] = min(xkzo[0, 0, 0], physcons.XKZINV)
+                xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
     with computation(FORWARD), interval(0, -1):
         #  Compute empirical cloud fraction based on Xu & Randall (1996, JAS)
@@ -728,7 +728,6 @@ def compute_asymptotic_mixing_length(
         bsum = 0.0
         lev = 0
         while k_mask[0, 0, 0] + lev <= km1:
-            lev += 1
             if mlenflg:
                 dz = zl[0, 0, lev + 1] - zl[0, 0, lev]
                 ptem = gotvx[0, 0, lev] * (thvx[0, 0, lev + 1] - thvx) * dz
@@ -743,13 +742,13 @@ def compute_asymptotic_mixing_length(
                     zlup = zlup - ptem1 * dz
                     zlup = max(zlup, 0.0)
                     mlenflg = False
+            lev += 1
 
         mlenflg = True
         bsum = 0.0
         zldn = 0.0
         lev = 0
         while k_mask[0, 0, 0] + lev >= 0:
-            lev -= 1
             if mlenflg:
                 dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                 tem1 = thvx[0, 0, lev - 1]
@@ -765,6 +764,7 @@ def compute_asymptotic_mixing_length(
                     zldn = zldn - ptem1 * dz
                     zldn = max(zldn, 0.0)
                     mlenflg = False
+            lev -= 1
 
         tem = 0.5 * (zi[0, 0, 1] - zi)
         tem1 = min(tem, physcons.RLMN)
