@@ -797,6 +797,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "islimsk": {"shield": True},
             "xkzm_hx": {"shield": True},
             "xkzm_mx": {"shield": True},
+            "tvx": {"shield": True},
         }
         self.in_vars["parameters"] = [
             "ntcw",
@@ -883,6 +884,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "xmu": {"shield": True},
             "xkzm_hx": {"shield": True},
             "xkzm_mx": {"shield": True},
+            "tvx": {"shield": True},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
