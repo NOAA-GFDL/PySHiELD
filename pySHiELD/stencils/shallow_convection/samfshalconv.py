@@ -31,6 +31,8 @@ from ndsl.dsl.typing import (
 from ndsl.stencils.basic_operations import sign
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
+def exit_routine(cnvflg):
+    return cnvflg.sum() == 0
 
 def pa_to_cb(
     psp: FloatField,
@@ -2287,12 +2289,6 @@ def tke_contribution(
             qtr_ntk = qtr_ntk + 0.5 * sigmagfm * ptem * ptem
 
 
-def exit_routine(cnvflg, im):
-    cnvflg.synchronize()
-    cnvflg_np = cnvflg.view(np.ndarray)
-    return cnvflg_np.sum() == 0
-
-
 class ScaleAwareMassFluxShallowConvection:
     """
     Fortran name is samfshalconv
@@ -2341,7 +2337,141 @@ class ScaleAwareMassFluxShallowConvection:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
+        self._init_tracers = stencil_factory.from_origin_domain(
+            func=init_tracers,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static0 = stencil_factory.from_origin_domain(
+            func=stencil_static0,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static1 = stencil_factory.from_origin_domain(
+            func=stencil_static1,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static2 = stencil_factory.from_origin_domain(
+            func=stencil_static2,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static3 = stencil_factory.from_origin_domain(
+            func=stencil_static3,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_ntrstatic0 = stencil_factory.from_origin_domain(
+            func=stencil_ntrstatic0,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static5 = stencil_factory.from_origin_domain(
+            func=stencil_static5,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_ntrstatic1 = stencil_factory.from_origin_domain(
+            func=stencil_ntrstatic1,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static7 = stencil_factory.from_origin_domain(
+            func=stencil_static7,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_ntrstatic2 = stencil_factory.from_origin_domain(
+            func=stencil_ntrstatic2,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_update_kbcon1_cnvflg = stencil_factory.from_origin_domain(
+            func=stencil_update_kbcon1_cnvflg,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static9 = stencil_factory.from_origin_domain(
+            func=stencil_static9,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static10 = stencil_factory.from_origin_domain(
+            func=stencil_static10,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static11 = stencil_factory.from_origin_domain(
+            func=stencil_static11,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static12 = stencil_factory.from_origin_domain(
+            func=stencil_static12,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static13 = stencil_factory.from_origin_domain(
+            func=stencil_static13,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static14 = stencil_factory.from_origin_domain(
+            func=stencil_static14,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._comp_tendencies = stencil_factory.from_origin_domain(
+            func=comp_tendencies,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._comp_tendencies_tr = stencil_factory.from_origin_domain(
+            func=comp_tendencies_tr,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._feedback_control_update = stencil_factory.from_origin_domain(
+            func=feedback_control_update,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._feedback_control_upd_trr = stencil_factory.from_origin_domain(
+            func=feedback_control_upd_trr,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._separate_detrained_cw = stencil_factory.from_origin_domain(
+            func=separate_detrained_cw,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._tke_contribution = stencil_factory.from_origin_domain(
+            func=tke_contribution,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         pass
 
-    def __call__(self):
+    def __call__(
+        self,
+        cnvflg: BoolFieldIJ
+    ):
+        self._pa_to_cb()
+
+        self._init_col_arr()
+        if exit_routine(cnvflg.view()):
+            return
+
+        self._init_par_and_arr()
+        self._init_kbm_kmax()
+        self._init_final()
+        # Init tracers
+
+        self._stencil_static0()
+        # stencil_ntrstatic0
+
+        self._stencil_static1()
+        # Redo "get_1D_from_index" to k masking
         pass
