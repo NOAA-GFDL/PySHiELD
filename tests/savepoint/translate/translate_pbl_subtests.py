@@ -79,7 +79,7 @@ class InitTurb:
             units="unknown",
             dtype=Int,
         )
-        self._tvx = quantity_factory.zeros(
+        self._tem1 = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Float,
@@ -193,6 +193,7 @@ class InitTurb:
         islimsk: FloatFieldIJ,
         xkzm_hx: FloatFieldIJ,
         xkzm_mx: FloatFieldIJ,
+        tvx: FloatField,
     ):
         self._init_turbulence(
             zi,
@@ -278,7 +279,8 @@ class InitTurb:
             self._pbot,
             xkzm_hx,
             xkzm_mx,
-            self._tvx,
+            tvx,
+            self._tem1,
         )
 
 
@@ -797,6 +799,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "islimsk": {"shield": True},
             "xkzm_hx": {"shield": True},
             "xkzm_mx": {"shield": True},
+            "tvx": {"shield": True},
         }
         self.in_vars["parameters"] = [
             "ntcw",
@@ -883,6 +886,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "xmu": {"shield": True},
             "xkzm_hx": {"shield": True},
             "xkzm_mx": {"shield": True},
+            "tvx": {"shield": True},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
