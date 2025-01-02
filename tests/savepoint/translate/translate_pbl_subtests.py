@@ -79,6 +79,11 @@ class InitTurb:
             units="unknown",
             dtype=Int,
         )
+        self._tem1 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
@@ -275,6 +280,7 @@ class InitTurb:
             xkzm_hx,
             xkzm_mx,
             tvx,
+            self._tem1,
         )
 
 

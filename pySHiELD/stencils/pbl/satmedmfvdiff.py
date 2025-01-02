@@ -117,6 +117,7 @@ def init_turbulence(
     xkzm_hx: FloatFieldIJ,
     xkzm_mx: FloatFieldIJ,
     tvx: FloatField,
+    tem1: FloatField,
 ):
     from __externals__ import (
         cap_k0_land,
@@ -1804,6 +1805,7 @@ class ScaleAwareTKEMoistEDMF:
         self._ad_p1 = make_quantity_2D(Float)
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
+        self._tem1 = make_quantity()
 
         # Variables for updrafts (thermals):
         self._tcko = make_quantity()
@@ -2205,6 +2207,7 @@ class ScaleAwareTKEMoistEDMF:
             self._xkzm_hx,
             self._xkzm_mx,
             self._tvx,
+            self._tem1,
         )
 
         self._mrf_pbl_scheme_part1(
