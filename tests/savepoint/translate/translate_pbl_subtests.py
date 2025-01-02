@@ -79,11 +79,6 @@ class InitTurb:
             units="unknown",
             dtype=Int,
         )
-        self._tvx = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
-            units="unknown",
-            dtype=Float,
-        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
@@ -193,6 +188,7 @@ class InitTurb:
         islimsk: FloatFieldIJ,
         xkzm_hx: FloatFieldIJ,
         xkzm_mx: FloatFieldIJ,
+        tvx: FloatField,
     ):
         self._init_turbulence(
             zi,
@@ -278,7 +274,7 @@ class InitTurb:
             self._pbot,
             xkzm_hx,
             xkzm_mx,
-            self._tvx,
+            tvx,
         )
 
 
