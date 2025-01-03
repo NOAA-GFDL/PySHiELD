@@ -3,6 +3,7 @@ from gt4py.cartesian.gtscript import FORWARD, computation, interval
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import (
+    Bool,
     BoolFieldIJ,
     Float,
     FloatField,
@@ -573,6 +574,11 @@ class PBLAML:
             units="unknown",
             dtype=Float,
         )
+        self._mlenflg = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Bool,
+        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
@@ -620,6 +626,7 @@ class PBLAML:
             gdx,
             self._lev,
             self._k_mask,
+            self._mlenflg,
         )
 
 

@@ -17,6 +17,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
+    BoolField,
     Float,
     FloatField,
     FloatFieldIJ,
@@ -722,6 +723,7 @@ def compute_asymptotic_mixing_length(
     gdx: FloatFieldIJ,
     lev: IntFieldIJ,
     k_mask: IntField,
+    mlenflg: BoolField,
 ):
     from __externals__ import km1
     with computation(FORWARD), interval(...):
@@ -754,8 +756,14 @@ def compute_asymptotic_mixing_length(
         lev = 0
         while k_mask[0, 0, 0] + lev >= 0:
             if mlenflg:
-                dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
-                tem1 = thvx[0, 0, lev - 1]
+                if k_mask[0, 0, 0] + lev == 0:
+                    dz = zl[0, 0, lev]
+                    tem1 = tsea * (1. + constants.ZVIR * max(
+                        q1[0, 0, lev][0], physcons.QMIN
+                    ))
+                else:
+                    dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
+                    tem1 = thvx[0, 0, lev - 1]
                 ptem = gotvx[0, 0, lev] * (thvx - tem1) * dz
                 bsum = bsum + ptem
                 zldn = zldn + dz
@@ -1829,7 +1837,11 @@ class ScaleAwareTKEMoistEDMF:
         self._buod = make_quantity()
         self._xmfd = make_quantity()
 
-        self._mlenflg = False
+        self._mlenflg = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Bool,
+        )
         self._pblflg = make_quantity_2D(Bool)
         self._sfcflg = make_quantity_2D(Bool)
         self._flg = make_quantity_2D(Bool)
@@ -2415,6 +2427,7 @@ class ScaleAwareTKEMoistEDMF:
             self._gdx,
             self._lev,
             self._k_mask,
+            self._mlenflg,
         )
 
         self._compute_eddy_diffusivity_buoy_shear(
