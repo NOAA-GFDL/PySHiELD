@@ -117,7 +117,7 @@ def init_turbulence(
     xkzm_hx: FloatFieldIJ,
     xkzm_mx: FloatFieldIJ,
     tvx: FloatField,
-    tem1: FloatField,
+    tem3: FloatField,
 ):
     from __externals__ import (
         cap_k0_land,
@@ -269,15 +269,15 @@ def init_turbulence(
     with computation(FORWARD), interval(0, -2):
         # The background vertical diffusivities in the inversion layers are limited
         # to be less than or equal to xkzminv
-        tem1 = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
+        tem3 = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
-            if tem1 > 1.0e-5:
+            if tem3 > 1.0e-5:
                 xkzo[0, 0, 0] = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], physcons.XKZINV)
         else:
             # kgao note: do not apply upper-limiter over land and sea ice points
             # (consistent with change in satmedmfdifq.f in Jun 2020)
-            if (tem1 > 0.0) and (islimsk == 0):
+            if (tem3 > 0.0) and (islimsk == 0):
                 xkzo[0, 0, 0] = min(xkzo[0, 0, 0], physcons.XKZINV)
                 xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], physcons.XKZINV)
 
