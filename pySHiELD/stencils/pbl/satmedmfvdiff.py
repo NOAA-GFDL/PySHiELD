@@ -759,7 +759,7 @@ def compute_asymptotic_mixing_length(
                 if k_mask[0, 0, 0] + lev == 0:
                     dz = zl[0, 0, lev]
                     tem1 = tsea * (1. + constants.ZVIR * max(
-                        q1[0, 0, lev][0], physcons.QMIN
+                        q1_0[0, 0, lev][0], physcons.QMIN
                     ))
                 else:
                     dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
