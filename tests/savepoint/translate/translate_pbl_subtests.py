@@ -568,6 +568,11 @@ class PBLAML:
             units="unknown",
             dtype=Int,
         )
+        self._ptem = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
@@ -582,6 +587,7 @@ class PBLAML:
     def __call__(
         self,
         zldn,
+        zlup,
         thvx,
         tke,
         gotvx,
@@ -591,12 +597,14 @@ class PBLAML:
         zi,
         rlam,
         ele,
+        elm,
         zol,
         gdx,
         phii,
     ):
         self._compute_asymptotic_mixing_length(
             zldn,
+            zlup,
             thvx,
             tke,
             gotvx,
@@ -606,6 +614,8 @@ class PBLAML:
             zi,
             rlam,
             ele,
+            elm,
+            self._ptem,
             zol,
             gdx,
             self._lev,

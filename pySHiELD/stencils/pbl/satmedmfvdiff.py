@@ -706,6 +706,7 @@ def compute_prandtl_num_exchange_coeff(
 
 def compute_asymptotic_mixing_length(
     zldn: FloatField,
+    zlup: FloatField,
     thvx: FloatField,
     tke: FloatField,
     gotvx: FloatField,
@@ -715,6 +716,8 @@ def compute_asymptotic_mixing_length(
     zi: FloatField,
     rlam: FloatField,
     ele: FloatField,
+    elm: FloatField,
+    ptem2: FloatField,
     zol: FloatFieldIJ,
     gdx: FloatFieldIJ,
     lev: IntFieldIJ,
@@ -771,10 +774,14 @@ def compute_asymptotic_mixing_length(
         tem1 = min(tem, physcons.RLMN)
 
         ptem2 = min(zlup, zldn)
-        rlam = min(max(physcons.ELMFAC * ptem2, tem1), physcons.RLMX)
+        rlam = physcons.ELMFAC * ptem2
+        rlam = max(rlam, tem1)
+        rlam = min(rlam, physcons.RLMX)
 
         ptem2 = sqrt(zlup * zldn)
-        ele = min(max(physcons.ELEFAC * ptem2, tem1), physcons.ELMX)
+        ele = physcons.ELEFAC * ptem2
+        ele = max(ele, tem1)
+        ele = min(ele, physcons.ELMX)
 
     with computation(FORWARD):
         with interval(0, -1):
@@ -1777,6 +1784,7 @@ class ScaleAwareTKEMoistEDMF:
         self._zi = make_quantity()
         self._zl = make_quantity()
         self._zldn = make_quantity()
+        self._zlup = make_quantity()
         self._zm = make_quantity()
         self._xkzo = make_quantity()
         self._xkzmo = make_quantity()
@@ -2391,6 +2399,7 @@ class ScaleAwareTKEMoistEDMF:
 
         self._compute_asymptotic_mixing_length(
             self._zldn,
+            self._zlup,
             self._thvx,
             self._tke,
             self._gotvx,
@@ -2400,6 +2409,8 @@ class ScaleAwareTKEMoistEDMF:
             self._zi,
             self._rlam,
             self._ele,
+            self._elm,
+            self._tem1,
             self._zol,
             self._gdx,
             self._lev,
