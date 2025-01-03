@@ -728,7 +728,7 @@ def compute_asymptotic_mixing_length(
     from __externals__ import km1
     with computation(FORWARD), interval(...):
         q1_0 = q1[0, 0, 0][0]
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, -1):
         mlenflg = True
         zlup = 0.0
         bsum = 0.0
@@ -1975,7 +1975,7 @@ class ScaleAwareTKEMoistEDMF:
             func=compute_asymptotic_mixing_length,
             externals={"km1": km1},
             origin=idx.origin_compute(),
-            domain=idx.domain_compute(add=(0, 0, -1)),
+            domain=idx.domain_compute(),
         )
 
         self._compute_eddy_diffusivity_buoy_shear = stencil_factory.from_origin_domain(
