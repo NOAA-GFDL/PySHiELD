@@ -1180,6 +1180,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
             "zldn": {"shield": True},
+            "zlup": {"shield": True},
             "thvx": {"shield": True},
             "tke": {"shield": True},
             "gotvx": {"shield": True},
@@ -1189,6 +1190,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             "zi": {"shield": True, "kend": namelist.npz + 1},
             "rlam": {"shield": True, "kend": namelist.npz - 1},
             "ele": {"shield": True},
+            "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
             "phii": {"shield": True, "kend": namelist.npz + 1},
@@ -1196,6 +1198,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
 
         self.out_vars = {
             "zldn": {"shield": True},
+            "zlup": {"shield": True},
             "thvx": {"shield": True},
             "tke": {"shield": True},
             "gotvx": {"shield": True},
@@ -1205,6 +1208,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             "zi": {"shield": True, "kend": namelist.npz + 1},
             "rlam": {"shield": True, "kend": namelist.npz - 1},
             "ele": {"shield": True},
+            "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
             "phii": {"shield": True, "kend": namelist.npz + 1},
