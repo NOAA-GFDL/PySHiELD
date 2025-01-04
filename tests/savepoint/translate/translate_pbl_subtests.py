@@ -587,7 +587,7 @@ class PBLAML:
             func=compute_asymptotic_mixing_length,
             externals={"km1": km1},
             origin=idx.origin_compute(),
-            domain=idx.domain_compute(add=(0, 0, -1)),
+            domain=idx.domain_compute(),
         )
 
     def __call__(
