@@ -820,7 +820,6 @@ def compute_eddy_diffusivity_buoy_shear(
     dku: FloatField,
     dkt: FloatField,
     dkq: FloatField,
-    ele: FloatField,
     elm: FloatField,
     gotvx: FloatField,
     kpbl: IntFieldIJ,
@@ -834,7 +833,6 @@ def compute_eddy_diffusivity_buoy_shear(
     prod: FloatField,
     radj: FloatFieldIJ,
     rdzt: FloatField,
-    rle: FloatField,
     scuflg: BoolFieldIJ,
     sflux: FloatFieldIJ,
     shr2: FloatField,
@@ -1012,27 +1010,33 @@ def compute_eddy_diffusivity_buoy_shear(
 
             prod = buop + shrp
 
-    with computation(PARALLEL), interval(0, -1):
-        rle = physcons.CE0 / ele[0, 0, 0]
-
 
 def predict_tke(
     diss: FloatField,
     prod: FloatField,
     rle: FloatField,
     tke: FloatField,
+    ele: FloatField,
 ):
-    from __externals__ import dtn
+    from __externals__ import dtn, kk
+
+    with computation(PARALLEL), interval(0, -1):
+        rle = physcons.CE0 / ele[0, 0, 0]
 
     with computation(PARALLEL), interval(...):
-        diss = max(
-            min(
-                rle[0, 0, 0] * tke[0, 0, 0] * sqrt(tke[0, 0, 0]),
-                prod[0, 0, 0] + tke[0, 0, 0] / dtn,
-            ),
-            0.0,
-        )
-        tke = max(tke[0, 0, 0] + dtn * (prod[0, 0, 0] - diss[0, 0, 0]), physcons.TKMIN)
+        n = 0
+        while n < kk:
+            diss = max(
+                min(
+                    rle[0, 0, 0] * tke[0, 0, 0] * sqrt(tke[0, 0, 0]),
+                    prod[0, 0, 0] + tke[0, 0, 0] / dtn,
+                ),
+                0.0,
+            )
+            tke = max(tke[0, 0, 0] + dtn * (
+                prod[0, 0, 0] - diss[0, 0, 0]
+            ), physcons.TKMIN)
+            n = n + 1
 
 
 def tke_up_down_prop(
@@ -1188,6 +1192,7 @@ def recover_tke_tendency_start_tridiag(
     from __externals__ import ntke, rdt
 
     with computation(PARALLEL), interval(...):
+        f1 = max(f1, physcons.TKMIN)
         rtg[0, 0, 0][ntke] = (
             rtg[0, 0, 0][ntke] + (f1[0, 0, 0] - q1[0, 0, 0][ntke]) * rdt
         )
@@ -1342,8 +1347,8 @@ def heat_moist_tridiag_mat_ele_comp(
             ad = ad_p1[0, 0]
 
     with computation(PARALLEL), interval(...):
-        cu = (au,)
-        rt = (f1,)
+        cu = au
+        rt = f1
 
 
 def setup_multi_tracer_tridiag(
@@ -1564,7 +1569,9 @@ def moment_tridiag_mat_ele_comp(
                 f1_p1 = u1[0, 0, 1]
                 f2_p1 = v1[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+            if (scuflg[0, 0]) and (k_mask[0, 0, 0] >= mrad[0, 0]) and (
+                k_mask[0, 0, 0] < krad[0, 0]
+            ):
                 ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1603,7 +1610,9 @@ def moment_tridiag_mat_ele_comp(
                 f1_p1 = u1[0, 0, 1]
                 f2_p1 = v1[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+            if (scuflg[0, 0]) and (k_mask[0, 0, 0] >= mrad[0, 0]) and (
+                k_mask[0, 0, 0] < krad[0, 0]
+            ):
                 ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1988,6 +1997,7 @@ class ScaleAwareTKEMoistEDMF:
             func=predict_tke,
             externals={
                 "dtn": self._dtn,
+                "kk": self._kk,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, -1)),
@@ -2439,7 +2449,6 @@ class ScaleAwareTKEMoistEDMF:
             self._dku,
             self._dkt,
             self._dkq,
-            self._ele,
             self._elm,
             self._gotvx,
             kpbl,
@@ -2453,7 +2462,6 @@ class ScaleAwareTKEMoistEDMF:
             self._prod,
             self._radj,
             self._rdzt,
-            self._rle,
             self._scuflg,
             self._sflux,
             self._shr2,
@@ -2473,13 +2481,13 @@ class ScaleAwareTKEMoistEDMF:
             self._zl,
         )
 
-        for n in range(self._kk):
-            self._predict_tke(
-                self._diss,
-                self._prod,
-                self._rle,
-                self._tke,
-            )
+        self._predict_tke(
+            self._diss,
+            self._prod,
+            self._rle,
+            self._tke,
+            self._ele,
+        )
 
         self._tke_up_down_prop(
             self._pcnvflg,

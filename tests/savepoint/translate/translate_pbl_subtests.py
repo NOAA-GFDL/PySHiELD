@@ -1,5 +1,6 @@
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
+import pySHiELD.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import (
@@ -13,7 +14,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
-from pySHiELD._config import FloatFieldTracer
+from pySHiELD._config import TRACER_DIM, FloatFieldTracer, PBLConfig
 from pySHiELD.stencils.pbl.satmedmfvdiff import (
     compute_asymptotic_mixing_length,
     enhance_pbl_height_thermal,
@@ -23,6 +24,21 @@ from pySHiELD.stencils.pbl.satmedmfvdiff import (
     stratocumulus,
     thermal_pbl_calc,
     tke_tridiag_matrix_ele_comp,
+    compute_prandtl_num_exchange_coeff,
+    compute_eddy_diffusivity_buoy_shear,
+    predict_tke,
+    tke_up_down_prop,
+    tridit,
+    recover_tke_tendency_start_tridiag,
+    reset_tracers,
+    heat_moist_tridiag_mat_ele_comp,
+    setup_multi_tracer_tridiag,
+    tridin,
+    recover_moisture_tendency,
+    recover_heat_tendency_add_diss_heat,
+    moment_tridiag_mat_ele_comp,
+    tridi2,
+    recover_momentum_tendency_and_finish,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -729,8 +745,844 @@ class TKETridiag:
             self._cu,
             self._rt,
         )
-        pass
 
+class Prandtl:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+    ):
+        idx = stencil_factory.grid_indexing
+        self._kmpbl = idx.domain[2] // 2 + 1
+        self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
+            func=compute_prandtl_num_exchange_coeff,
+            origin=idx.origin_compute(),
+            domain=(idx.iec, idx.jec, self._kmpbl),
+        )
+
+    def __call__(
+        self,
+        chz,
+        ckz,
+        hpbl,
+        kpbl,
+        k_mask,
+        pcnvflg,
+        phih,
+        phim,
+        prn,
+        zi,
+    ):
+        self._compute_prandtl_num_exchange_coeff(
+            chz,
+            ckz,
+            hpbl,
+            kpbl,
+            k_mask,
+            pcnvflg,
+            phih,
+            phim,
+            prn,
+            zi,
+        )
+
+class TKEPredict:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        config: PBLConfig,
+    ):
+        idx = stencil_factory.grid_indexing
+        self._dt_atmos = config.dt_atmos
+        self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
+        self._dtn = self._dt_atmos / float(self._kk)
+
+        self._predict_tke = stencil_factory.from_origin_domain(
+            func=predict_tke,
+            externals={
+                "dtn": self._dtn,
+                "kk": self._kk,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(add=(0, 0, -1)),
+        )
+
+    def __call__(
+        self,
+    ):
+        self._predict_tke(
+            self._diss,
+            self._prod,
+            self._rle,
+            self._tke,
+            self._ele,
+        )
+
+class EdDiffShear:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+    ):
+        idx = stencil_factory.grid_indexing
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
+
+        self._compute_eddy_diffusivity_buoy_shear = stencil_factory.from_origin_domain(
+            func=compute_eddy_diffusivity_buoy_shear,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+    def __call__(
+        self,
+        bf,
+            buod,
+            buou,
+            chz,
+            ckz,
+            dku,
+            dkt,
+            dkq,
+            elm,
+            gotvx,
+            kpbl,
+            mrad,
+            krad,
+            pblflg,
+            pcnvflg,
+            phim,
+            prn,
+            prod,
+            radj,
+            rdzt,
+            scuflg,
+            sflux,
+            shr2,
+            stress,
+            tke,
+            u1,
+            ucdo,
+            ucko,
+            ustar,
+            v1,
+            vcdo,
+            vcko,
+            xkzo,
+            xkzmo,
+            xmf,
+            xmfd,
+            zl,
+    ):
+        self._compute_eddy_diffusivity_buoy_shear(
+            bf,
+            buod,
+            buou,
+            chz,
+            ckz,
+            dku,
+            dkt,
+            dkq,
+            elm,
+            gotvx,
+            kpbl,
+            self._k_mask,
+            mrad,
+            krad,
+            pblflg,
+            pcnvflg,
+            phim,
+            prn,
+            prod,
+            radj,
+            rdzt,
+            scuflg,
+            sflux,
+            shr2,
+            stress,
+            tke,
+            u1,
+            ucdo,
+            ucko,
+            ustar,
+            v1,
+            vcdo,
+            vcko,
+            xkzo,
+            xkzmo,
+            xmf,
+            xmfd,
+            zl,
+        )
+
+class UpDownTKE:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+        config: PBLConfig,
+    ):
+        idx = stencil_factory.grid_indexing
+        self._ntke = config.ntke
+
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
+
+        self._tke_up_down_prop = stencil_factory.from_origin_domain(
+            func=tke_up_down_prop,
+            externals={
+                "ntke": self._ntke,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+    def __call__(
+        self,
+        pcnvflg,
+        qcdo,
+        qcko,
+        scuflg,
+        tke,
+        kpbl,
+        xlamue,
+        zl,
+        krad,
+        mrad,
+        xlamde,
+    ):
+        self._tke_up_down_prop(
+            pcnvflg,
+            qcdo,
+            qcko,
+            scuflg,
+            tke,
+            kpbl,
+            self._k_mask,
+            xlamue,
+            zl,
+            krad,
+            mrad,
+            xlamde,
+        )
+
+class MomentTridiagComp:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+        config: PBLConfig,
+    ):
+        idx = stencil_factory.grid_indexing
+        self._dt_atmos = config.dt_atmos
+        self._dspheat = config.dspheat
+
+        def make_quantity():
+            return quantity_factory.zeros(
+                [X_DIM, Y_DIM, Z_DIM],
+                units="unknown",
+                dtype=Float,
+            )
+
+        def make_quantity_2D(type):
+            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+
+        self._cu = make_quantity()
+        self._rt = make_quantity()
+        self._ad_p1 = make_quantity_2D(Float)
+        self._f1_p1 = make_quantity_2D(Float)
+        self._f2_p1 = make_quantity_2D(Float)
+        self._a2 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
+
+        self._moment_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
+            func=moment_tridiag_mat_ele_comp,
+            externals={
+                "dspheat": self._dspheat,
+                "dt2": self._dt_atmos,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+    def __call__(
+        self,
+        ad,
+        al,
+        au,
+        delta,
+        diss,
+        dku,
+        dtdz1,
+        f1,
+        f2,
+        kpbl,
+        krad,
+        mrad,
+        pcnvflg,
+        prsl,
+        rdzt,
+        scuflg,
+        spd1,
+        stress,
+        tdt,
+        u1,
+        ucdo,
+        ucko,
+        v1,
+        vcdo,
+        vcko,
+        xmf,
+        xmfd,
+    ):
+        self._moment_tridiag_mat_ele_comp(
+            ad,
+            self._ad_p1,
+            al,
+            au,
+            delta,
+            diss,
+            dku,
+            dtdz1,
+            f1,
+            self._f1_p1,
+            f2,
+            self._f2_p1,
+            kpbl,
+            krad,
+            self._k_mask,
+            mrad,
+            pcnvflg,
+            prsl,
+            rdzt,
+            scuflg,
+            spd1,
+            stress,
+            tdt,
+            u1,
+            ucdo,
+            ucko,
+            v1,
+            vcdo,
+            vcko,
+            xmf,
+            xmfd,
+            self._cu,
+            self._rt,
+            self._a2,
+        )
+
+# class Half2:
+#     def __init__(
+#         self,
+#         stencil_factory: StencilFactory,
+#         quantity_factory: QuantityFactory,
+#         grid_area: Float,
+#         config: PBLConfig,
+#     ):
+#         self._ntracers = config.ntracers
+#         assert self._ntracers == 9, (
+#             "PBL scheme satmedmfvdif requires ntracer " f"({config.ntracers}) == 9"
+#         )
+
+#         self._ntrac1 = self._ntracers - 1
+
+#         self.TRACER_DIM = TRACER_DIM
+#         self.quantity_factory = quantity_factory
+#         self.quantity_factory.set_extra_dim_lengths(
+#             **{
+#                 self.TRACER_DIM: self._ntracers,
+#             }
+#         )
+#         idx = stencil_factory.grid_indexing
+
+#         km1 = idx.domain[2] - 1
+#         self._kmpbl = idx.domain[2] // 2 + 1
+#         self._kmscu = idx.domain[2] // 2 + 1
+
+#         self._dt_atmos = config.dt_atmos
+#         self._rdt = 1.0 / self._dt_atmos
+#         self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
+#         self._dtn = self._dt_atmos / float(self._kk)
+
+#         self._area = grid_area
+
+#         self._ntiw = config.ntiw
+#         self._ntcw = config.ntcw
+#         self._ntke = config.ntke
+
+#         self._dspheat = config.dspheat
+
+#         # Layer mask:
+#         self._k_mask = quantity_factory.zeros(
+#             [X_DIM, Y_DIM, Z_DIM],
+#             units="unknown",
+#             dtype=Int,
+#         )
+
+#         for k in range(idx.domain[2]):
+#             self._k_mask.data[:, :, k] = k
+
+#         self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
+#             func=compute_prandtl_num_exchange_coeff,
+#             origin=idx.origin_compute(),
+#             domain=(idx.iec, idx.jec, self._kmpbl),
+#         )
+
+#         self._compute_asymptotic_mixing_length = stencil_factory.from_origin_domain(
+#             func=compute_asymptotic_mixing_length,
+#             externals={"km1": km1},
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._compute_eddy_diffusivity_buoy_shear = stencil_factory.from_origin_domain(
+#             func=compute_eddy_diffusivity_buoy_shear,
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._predict_tke = stencil_factory.from_origin_domain(
+#             func=predict_tke,
+#             externals={
+#                 "dtn": self._dtn,
+#             },
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(add=(0, 0, -1)),
+#         )
+
+#         self._tke_up_down_prop = stencil_factory.from_origin_domain(
+#             func=tke_up_down_prop,
+#             externals={
+#                 "ntke": self._ntke,
+#             },
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._tke_tridiag_matrix_ele_comp = stencil_factory.from_origin_domain(
+#             func=tke_tridiag_matrix_ele_comp,
+#             externals={
+#                 "dt2": self._dt_atmos,
+#                 "ntke": self._ntke,
+#             },
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._tridit = stencil_factory.from_origin_domain(
+#             func=tridit,
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._recover_tke_tendency_start_tridiag = stencil_factory.from_origin_domain(
+#             func=recover_tke_tendency_start_tridiag,
+#             externals={"rdt": self._rdt, "ntke": self._ntke},
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         if self._ntrac1 >= 2:
+#             self._reset_tracers = stencil_factory.from_origin_domain(
+#                 func=reset_tracers,
+#                 origin=idx.origin_compute(),
+#                 domain=idx.domain_compute(),
+#             )
+
+#         self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
+#             func=heat_moist_tridiag_mat_ele_comp,
+#             externals={"dt2": self._dt_atmos},
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         if self._ntrac1 >= 2:
+#             self._setup_multi_tracer_tridiag = stencil_factory.from_origin_domain(
+#                 func=setup_multi_tracer_tridiag,
+#                 externals={"dt2": self._dt_atmos},
+#                 origin=idx.origin_compute(),
+#                 domain=idx.domain_compute(),
+#             )
+
+#         self._tridin = stencil_factory.from_origin_domain(
+#             func=tridin,
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._recover_moisture_tendency = stencil_factory.from_origin_domain(
+#             func=recover_moisture_tendency,
+#             externals={
+#                 "rdt": self._rdt,
+#             },
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._recover_heat_tendency_add_diss_heat = stencil_factory.from_origin_domain(
+#             func=recover_heat_tendency_add_diss_heat,
+#             externals={
+#                 "rdt": self._rdt,
+#             },
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._moment_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
+#             func=moment_tridiag_mat_ele_comp,
+#             externals={
+#                 "dspheat": self._dspheat,
+#                 "dt2": self._dt_atmos,
+#             },
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._tridi2 = stencil_factory.from_origin_domain(
+#             func=tridi2,
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+
+#         self._recover_momentum_tendency_and_finish = stencil_factory.from_origin_domain(
+#             func=recover_momentum_tendency_and_finish,
+#             externals={"rdt": self._rdt},
+#             origin=idx.origin_compute(),
+#             domain=idx.domain_compute(),
+#         )
+#         pass
+
+#     def __call__(self):
+#         self._compute_prandtl_num_exchange_coeff(
+#             self._chz,
+#             self._ckz,
+#             hpbl,
+#             kpbl,
+#             self._k_mask,
+#             self._pcnvflg,
+#             self._phih,
+#             self._phim,
+#             self._prn,
+#             self._zi,
+#         )
+
+#         self._compute_asymptotic_mixing_length(
+#             self._zldn,
+#             self._zlup,
+#             self._thvx,
+#             self._tke,
+#             self._gotvx,
+#             self._zl,
+#             tsea,
+#             q1,
+#             self._zi,
+#             self._rlam,
+#             self._ele,
+#             self._elm,
+#             self._tem1,
+#             self._zol,
+#             self._gdx,
+#             self._lev,
+#             self._k_mask,
+#             self._mlenflg,
+#         )
+
+#         self._compute_eddy_diffusivity_buoy_shear(
+#             self._bf,
+#             self._buod,
+#             self._buou,
+#             self._chz,
+#             self._ckz,
+#             self._dku,
+#             self._dkt,
+#             self._dkq,
+#             self._ele,
+#             self._elm,
+#             self._gotvx,
+#             kpbl,
+#             self._k_mask,
+#             self._mrad,
+#             self._krad,
+#             self._pblflg,
+#             self._pcnvflg,
+#             self._phim,
+#             self._prn,
+#             self._prod,
+#             self._radj,
+#             self._rdzt,
+#             self._rle,
+#             self._scuflg,
+#             self._sflux,
+#             self._shr2,
+#             stress,
+#             self._tke,
+#             u1,
+#             self._ucdo,
+#             self._ucko,
+#             self._ustar,
+#             v1,
+#             self._vcdo,
+#             self._vcko,
+#             self._xkzo,
+#             self._xkzmo,
+#             self._xmf,
+#             self._xmfd,
+#             self._zl,
+#         )
+
+#         for n in range(self._kk):
+#             self._predict_tke(
+#                 self._diss,
+#                 self._prod,
+#                 self._rle,
+#                 self._tke,
+#             )
+
+#         self._tke_up_down_prop(
+#             self._pcnvflg,
+#             self._qcdo,
+#             self._qcko,
+#             self._scuflg,
+#             self._tke,
+#             kpbl,
+#             self._k_mask,
+#             self._xlamue,
+#             self._zl,
+#             self._krad,
+#             self._mrad,
+#             self._xlamde,
+#         )
+
+#         self._tke_tridiag_matrix_ele_comp(
+#             self._ad,
+#             self._ad_p1,
+#             self._al,
+#             self._au,
+#             delta,
+#             self._dkq,
+#             self._f1,
+#             self._f1_p1,
+#             kpbl,
+#             self._krad,
+#             self._k_mask,
+#             self._mrad,
+#             self._pcnvflg,
+#             prsl,
+#             self._qcdo,
+#             self._qcko,
+#             self._rdzt,
+#             self._scuflg,
+#             self._tke,
+#             self._xmf,
+#             self._xmfd,
+#             self._cu,
+#             self._rt,
+#         )
+
+#         self._tridit(
+#             self._cu,
+#             self._ad,
+#             self._al,
+#             self._rt,
+#             self._au,
+#             self._f1,
+#         )
+
+#         self._recover_tke_tendency_start_tridiag(
+#             rtg,
+#             self._f1,
+#             q1,
+#             self._ad,
+#             self._f2,
+#             self._dtdz1,
+#             evap,
+#             heat,
+#             t1,
+#         )
+
+#         if self._ntrac1 >= 2:
+#             for n in range(self._ntrac1):
+#                 dim_n = n if n < self._ntke else n + 1
+#                 self._reset_tracers(
+#                     self._f2,
+#                     q1,
+#                     dim_n,
+#                 )
+
+#         self._heat_moist_tridiag_mat_ele_comp(
+#             self._ad,
+#             self._ad_p1,
+#             self._al,
+#             self._au,
+#             delta,
+#             self._dkt,
+#             self._f1,
+#             self._f1_p1,
+#             self._f2,
+#             self._f2_p1,
+#             kpbl,
+#             self._krad,
+#             self._k_mask,
+#             self._mrad,
+#             self._pcnvflg,
+#             prsl,
+#             q1,
+#             self._qcdo,
+#             self._qcko,
+#             self._rdzt,
+#             self._scuflg,
+#             self._tcdo,
+#             self._tcko,
+#             t1,
+#             self._xmf,
+#             self._xmfd,
+#             self._cu,
+#             self._rt,
+#         )
+
+#         for n in range(self._ntrac1):
+#             dim_n = n if n < self._ntke else n + 1
+#             if self._ntrac1 >= 2:
+#                 self._setup_multi_tracer_tridiag(
+#                     self._pcnvflg,
+#                     self._k_mask,
+#                     kpbl,
+#                     delta,
+#                     prsl,
+#                     self._rdzt,
+#                     self._xmf,
+#                     self._qcko,
+#                     q1,
+#                     self._f2,
+#                     self._scuflg,
+#                     self._mrad,
+#                     self._krad,
+#                     self._xmfd,
+#                     self._qcdo,
+#                     self._a2,
+#                     dim_n,
+#                 )
+
+#             self._tridin(
+#                 self._al,
+#                 self._ad,
+#                 self._cu,
+#                 self._rt,
+#                 self._a2,
+#                 self._au,
+#                 self._f1,
+#                 self._f2,
+#                 dim_n,
+#             )
+
+#             self._recover_moisture_tendency(
+#                 self._f2,
+#                 q1,
+#                 rtg,
+#                 dim_n,
+#             )
+
+#         self._recover_heat_tendency_add_diss_heat(
+#             tdt,
+#             self._f1,
+#             t1,
+#             self._f2,
+#             q1,
+#             dtsfc,
+#             delta,
+#             dqsfc,
+#         )
+
+#         self._moment_tridiag_mat_ele_comp(
+#             self._ad,
+#             self._ad_p1,
+#             self._al,
+#             self._au,
+#             delta,
+#             self._diss,
+#             self._dku,
+#             self._dtdz1,
+#             self._f1,
+#             self._f1_p1,
+#             self._f2,
+#             self._f2_p1,
+#             kpbl,
+#             self._krad,
+#             self._k_mask,
+#             self._mrad,
+#             self._pcnvflg,
+#             prsl,
+#             self._rdzt,
+#             self._scuflg,
+#             spd1,
+#             stress,
+#             tdt,
+#             u1,
+#             self._ucdo,
+#             self._ucko,
+#             v1,
+#             self._vcdo,
+#             self._vcko,
+#             self._xmf,
+#             self._xmfd,
+#             self._cu,
+#             self._rt,
+#             self._a2,
+#         )
+
+#         self._tridi2(
+#             self._f1,
+#             self._f2,
+#             self._au,
+#             self._al,
+#             self._ad,
+#             self._cu,
+#             self._rt,
+#             self._a2,
+#         )
+
+#         self._recover_momentum_tendency_and_finish(
+#             delta,
+#             du,
+#             dusfc,
+#             dv,
+#             dvsfc,
+#             self._f1,
+#             self._f2,
+#             hpbl,
+#             self._hpblx,
+#             kpbl,
+#             self._kpblx,
+#             self._k_mask,
+#             u1,
+#             v1,
+#             self._dkt,
+#             dkt,
+#         )
+#         pass
 
 class TranslatePBLInit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -1315,6 +2167,357 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
             self.stencil_factory,
             quantity_factory,
             config,
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+
+class TranslatePrandtl(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "ckz": {"shield": True},
+            "chz": {"shield": True},
+            "hpbl": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "pcnvflg": {"shield": True},
+            "zi": {"shield": True},
+            "phih": {"shield": True},
+            "phim": {"shield": True},
+            "prn": {"shield": True},
+        }
+
+        self.out_vars = {
+            "ckz": {"shield": True},
+            "chz": {"shield": True},
+            "hpbl": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "pcnvflg": {"shield": True},
+            "zi": {"shield": True},
+            "phih": {"shield": True},
+            "phim": {"shield": True},
+            "prn": {"shield": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+
+        self.make_storage_data_input_vars(inputs)
+
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+
+        compute_func = Prandtl(
+            self.stencil_factory,
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "ele": {"shield": True},
+            "rle": {"shield": True},
+            "tke": {"shield": True},
+            "diss": {"shield": True},
+            "prod": {"shield": True},
+        }
+
+        self.out_vars = {
+            "ele": {"shield": True},
+            "rle": {"shield": True},
+            "tke": {"shield": True},
+            "diss": {"shield": True},
+            "prod": {"shield": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+
+        self.make_storage_data_input_vars(inputs)
+
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+        config = self.namelist.pbl
+
+        compute_func = TKEPredict(
+            self.stencil_factory,
+            config,
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "bf": {"shield": True},
+            "buod": {"shield": True},
+            "buou": {"shield": True},
+            "ckz": {"shield": True},
+            "chz": {"shield": True},
+            "dku": {"shield": True},
+            "dkt": {"shield": True},
+            "dkq": {"shield": True},
+            "elm": {"shield": True},
+            "gotvx": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "mrad": {"shield": True},
+            "krad": {"shield": True, "index_variable": True},
+            "pblflg": {"shield": True},
+            "pcnvflg": {"shield": True},
+            "phim": {"shield": True},
+            "prn": {"shield": True},
+            "prod": {"shield": True},
+            "radj": {"shield": True},
+            "rdzt": {"shield": True},
+            "scuflg": {"shield": True},
+            "sflux": {"shield": True},
+            "shr2": {"shield": True},
+            "stress": {"shield": True},
+            "tke": {"shield": True},
+            "u1": {"shield": True},
+            "ucdo": {"shield": True},
+            "ucko": {"shield": True},
+            "ustar": {"shield": True},
+            "v1": {"shield": True},
+            "vcdo": {"shield": True},
+            "vcko": {"shield": True},
+            "xkzo": {"shield": True},
+            "xkzmo": {"shield": True},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+            "zl": {"shield": True},
+        }
+
+        self.out_vars = {
+            "bf": {"shield": True},
+            "buod": {"shield": True},
+            "buou": {"shield": True},
+            "ckz": {"shield": True},
+            "chz": {"shield": True},
+            "dku": {"shield": True},
+            "dkt": {"shield": True},
+            "dkq": {"shield": True},
+            "elm": {"shield": True},
+            "gotvx": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "mrad": {"shield": True},
+            "krad": {"shield": True, "index_variable": True},
+            "pblflg": {"shield": True},
+            "pcnvflg": {"shield": True},
+            "phim": {"shield": True},
+            "prn": {"shield": True},
+            "prod": {"shield": True},
+            "radj": {"shield": True},
+            "rdzt": {"shield": True},
+            "scuflg": {"shield": True},
+            "sflux": {"shield": True},
+            "shr2": {"shield": True},
+            "stress": {"shield": True},
+            "tke": {"shield": True},
+            "u1": {"shield": True},
+            "ucdo": {"shield": True},
+            "ucko": {"shield": True},
+            "ustar": {"shield": True},
+            "v1": {"shield": True},
+            "vcdo": {"shield": True},
+            "vcko": {"shield": True},
+            "xkzo": {"shield": True},
+            "xkzmo": {"shield": True},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+            "zl": {"shield": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+
+        self.make_storage_data_input_vars(inputs)
+
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+        inputs["krad"] = inputs["krad"].astype(int)
+
+        compute_func = EdDiffShear(
+            self.stencil_factory,
+            quantity_factory,
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "pcnvflg": {"shield": True},
+            "qcdo": {"shield": True},
+            "qcko": {"shield": True},
+            "scuflg": {"shield": True},
+            "tke": {"shield": True},
+            "xlamue": {"shield": True},
+            "zl": {"shield": True},
+            "mrad": {"shield": True},
+            "xlamde": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+        }
+
+        self.out_vars = {
+            "pcnvflg": {"shield": True},
+            "qcdo": {"shield": True},
+            "qcko": {"shield": True},
+            "scuflg": {"shield": True},
+            "tke": {"shield": True},
+            "xlamue": {"shield": True},
+            "zl": {"shield": True},
+            "mrad": {"shield": True},
+            "xlamde": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+        config = self.namelist.pbl
+
+        self.make_storage_data_input_vars(inputs)
+
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+        inputs["krad"] = inputs["krad"].astype(int)
+
+        compute_func = UpDownTKE(
+            self.stencil_factory,
+            quantity_factory,
+            config,
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "ad": {"shield": True},
+            "al": {"shield": True},
+            "au": {"shield": True},
+            "delta": {"shield": True},
+            "diss": {"shield": True},
+            "dku": {"shield": True},
+            "dtdz1": {"shield": True},
+            "f1": {"shield": True},
+            "f2": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+            "mrad": {"shield": True},
+            "pcnvflg": {"shield": True},
+            "prsl": {"shield": True},
+            "rdzt": {"shield": True},
+            "scuflg": {"shield": True},
+            "spd1": {"shield": True},
+            "stress": {"shield": True},
+            "tdt": {"shield": True},
+            "u1": {"shield": True},
+            "ucdo": {"shield": True},
+            "ucko": {"shield": True},
+            "v1": {"shield": True},
+            "vcdo": {"shield": True},
+            "vcko": {"shield": True},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+        }
+        self.out_vars = {
+            "ad": {"shield": True},
+            "al": {"shield": True},
+            "au": {"shield": True},
+            "delta": {"shield": True},
+            "diss": {"shield": True},
+            "dku": {"shield": True},
+            "dtdz1": {"shield": True},
+            "f1": {"shield": True},
+            "f2": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+            "mrad": {"shield": True},
+            "pcnvflg": {"shield": True},
+            "prsl": {"shield": True},
+            "rdzt": {"shield": True},
+            "scuflg": {"shield": True},
+            "spd1": {"shield": True},
+            "stress": {"shield": True},
+            "tdt": {"shield": True},
+            "u1": {"shield": True},
+            "ucdo": {"shield": True},
+            "ucko": {"shield": True},
+            "v1": {"shield": True},
+            "vcdo": {"shield": True},
+            "vcko": {"shield": True},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+        config = self.namelist.pbl
+
+        self.make_storage_data_input_vars(inputs)
+
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+        inputs["krad"] = inputs["krad"].astype(int)
+
+        compute_func = MomentTridiagComp(
+            self.stencil_factory,
+            quantity_factory,
+            config
         )
 
         compute_func(**inputs)
