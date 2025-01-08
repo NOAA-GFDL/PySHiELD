@@ -2269,7 +2269,6 @@ class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        inputs["kpbl"] = inputs["kpbl"].astype(int)
         config = self.namelist.pbl
 
         compute_func = TKEPredict(
@@ -2384,6 +2383,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
 
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
+        inputs["mrad"] = inputs["mrad"].astype(int)
 
         compute_func = EdDiffShear(
             self.stencil_factory,
@@ -2446,6 +2446,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
 
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
+        inputs["mrad"] = inputs["mrad"].astype(int)
 
         compute_func = UpDownTKE(
             self.stencil_factory,
@@ -2540,6 +2541,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
 
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
+        inputs["mrad"] = inputs["mrad"].astype(int)
 
         compute_func = MomentTridiagComp(
             self.stencil_factory,
