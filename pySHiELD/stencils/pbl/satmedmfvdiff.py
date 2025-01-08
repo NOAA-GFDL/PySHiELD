@@ -849,11 +849,8 @@ def compute_eddy_diffusivity_buoy_shear(
     zl: FloatField,
 ):
     with computation(PARALLEL), interval(0, -1):
-        tem = (
-            0.5
-            * (elm[0, 0, 0] + elm[0, 0, 1])
-            * sqrt(0.5 * (tke[0, 0, 0] + tke[0, 0, 1]))
-        )
+        tem = 0.5 * (elm[0, 0, 0] + elm[0, 0, 1])
+        tem = tem * sqrt(0.5 * (tke[0, 0, 0] + tke[0, 0, 1]))
         ri = max(bf[0, 0, 0] / shr2[0, 0, 0], physcons.RIMIN)
 
         if k_mask[0, 0, 0] < kpbl[0, 0]:
@@ -864,10 +861,10 @@ def compute_eddy_diffusivity_buoy_shear(
                 dkt = chz[0, 0, 0] * tem
                 dku = dkt[0, 0, 0] * prn[0, 0, 0]
         else:
-            if ri < 0.0:
+            if ri < 0.0:  # Unstable regime
                 dku = physcons.CK1 * tem
                 dkt = physcons.RCHCK * dku[0, 0, 0]
-            else:
+            else:  # Stable regime
                 dkt = physcons.CH1 * tem
                 dku = dkt[0, 0, 0] * min(1.0 + 2.1 * ri, physcons.PRMAX)
 
@@ -891,31 +888,26 @@ def compute_eddy_diffusivity_buoy_shear(
     with computation(PARALLEL), interval(...):
         if k_mask[0, 0, 0] == krad[0, 0]:
             if scuflg[0, 0]:
-                tem1 = bf[0, 0, 0] / gotvx[0, 0, 0]
-                if tem1 < physcons.TDZMIN:
-                    tem1 = physcons.TDZMIN
+                tem1 = max(bf[0, 0, 0] / gotvx[0, 0, 0], physcons.TDZMIN)
                 ptem = radj[0, 0] / tem1
                 dkt = dkt[0, 0, 0] + ptem
                 dku = dku[0, 0, 0] + ptem
                 dkq = dkq[0, 0, 0] + ptem
 
     with computation(PARALLEL):
+        # Compute buoyancy and shear productions of tke 
         with interval(0, 1):
+            tem = -dkt[0, 0, 0] * bf[0, 0, 0]
             if scuflg[0, 0] and mrad[0, 0] == 0:
                 ptem = xmfd[0, 0, 0] * buod[0, 0, 0]
-                ptem1 = (
-                    0.5
-                    * (u1[0, 0, 1] - u1[0, 0, 0])
-                    * rdzt[0, 0, 0]
-                    * xmfd[0, 0, 0]
-                    * (ucdo[0, 0, 0] + ucdo[0, 0, 1] - u1[0, 0, 0] - u1[0, 0, 1])
+                ptem1 = ucdo[0, 0, 0] + ucdo[0, 0, 1] - u1[0, 0, 0] - u1[0, 0, 1]
+                ptem1 = (0.5 * ((u1[0, 0, 1] - u1[0, 0, 0]) * rdzt[0, 0, 0])
+                    * xmfd[0, 0, 0] * ptem1
                 )
+                ptem2 = vcdo[0, 0, 0] + vcdo[0, 0, 1] - v1[0, 0, 0] - v1[0, 0, 1]
                 ptem2 = (
-                    0.5
-                    * (v1[0, 0, 1] - v1[0, 0, 0])
-                    * rdzt[0, 0, 0]
-                    * xmfd[0, 0, 0]
-                    * (vcdo[0, 0, 0] + vcdo[0, 0, 1] - v1[0, 0, 0] - v1[0, 0, 1])
+                    0.5 * ((v1[0, 0, 1] - v1[0, 0, 0]) * rdzt[0, 0, 0])
+                    * xmfd[0, 0, 0] * ptem2
                 )
             else:
                 ptem = 0.0
@@ -923,19 +915,15 @@ def compute_eddy_diffusivity_buoy_shear(
                 ptem2 = 0.0
 
             buop = 0.5 * (
-                gotvx[0, 0, 0] * sflux[0, 0] + (-dkt[0, 0, 0] * bf[0, 0, 0] + ptem)
+                gotvx[0, 0, 0] * sflux[0, 0] + (tem + ptem)
             )
 
+            tem2 = stress * ustar * phim / (physcons.VK * zl)
             shrp = 0.5 * (
                 dku[0, 0, 0] * shr2[0, 0, 0]
                 + ptem1
                 + ptem2
-                + (
-                    stress[0, 0]
-                    * ustar[0, 0]
-                    * phim[0, 0]
-                    / (physcons.VK * zl[0, 0, 0])
-                )
+                + tem2
             )
 
             prod = buop + shrp

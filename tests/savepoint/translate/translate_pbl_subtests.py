@@ -750,9 +750,19 @@ class Prandtl:
     def __init__(
         self,
         stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
     ):
         idx = stencil_factory.grid_indexing
         self._kmpbl = idx.domain[2] // 2 + 1
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
+
         self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
             func=compute_prandtl_num_exchange_coeff,
             origin=idx.origin_compute(),
@@ -765,7 +775,6 @@ class Prandtl:
         ckz,
         hpbl,
         kpbl,
-        k_mask,
         pcnvflg,
         phih,
         phim,
@@ -777,7 +786,7 @@ class Prandtl:
             ckz,
             hpbl,
             kpbl,
-            k_mask,
+            self._k_mask,
             pcnvflg,
             phih,
             phim,
@@ -808,13 +817,18 @@ class TKEPredict:
 
     def __call__(
         self,
+        diss,
+        prod,
+        rle,
+        tke,
+        ele,
     ):
         self._predict_tke(
-            self._diss,
-            self._prod,
-            self._rle,
-            self._tke,
-            self._ele,
+            diss,
+            prod,
+            rle,
+            tke,
+            ele,
         )
 
 class EdDiffShear:
@@ -842,42 +856,42 @@ class EdDiffShear:
     def __call__(
         self,
         bf,
-            buod,
-            buou,
-            chz,
-            ckz,
-            dku,
-            dkt,
-            dkq,
-            elm,
-            gotvx,
-            kpbl,
-            mrad,
-            krad,
-            pblflg,
-            pcnvflg,
-            phim,
-            prn,
-            prod,
-            radj,
-            rdzt,
-            scuflg,
-            sflux,
-            shr2,
-            stress,
-            tke,
-            u1,
-            ucdo,
-            ucko,
-            ustar,
-            v1,
-            vcdo,
-            vcko,
-            xkzo,
-            xkzmo,
-            xmf,
-            xmfd,
-            zl,
+        buod,
+        buou,
+        chz,
+        ckz,
+        dku,
+        dkt,
+        dkq,
+        elm,
+        gotvx,
+        kpbl,
+        mrad,
+        krad,
+        pblflg,
+        pcnvflg,
+        phim,
+        prn,
+        prod,
+        radj,
+        rdzt,
+        scuflg,
+        sflux,
+        shr2,
+        stress,
+        tke,
+        u1,
+        ucdo,
+        ucko,
+        ustar,
+        v1,
+        vcdo,
+        vcko,
+        xkzo,
+        xkzmo,
+        xmf,
+        xmfd,
+        zl,
     ):
         self._compute_eddy_diffusivity_buoy_shear(
             bf,
@@ -1623,7 +1637,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "hpbl": {"shield": True},
             "rbsoil": {"shield": True},
             "radmin": {"shield": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "lcld": {"shield": True, "index_variable": True},
             "kcld": {"shield": True, "index_variable": True},
@@ -1711,7 +1725,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "hpbl": {"shield": True},
             "rbsoil": {"shield": True},
             "radmin": {"shield": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "lcld": {"shield": True, "index_variable": True},
             "kcld": {"shield": True, "index_variable": True},
@@ -2204,6 +2218,18 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
 
         self.make_storage_data_input_vars(inputs)
 
@@ -2211,6 +2237,7 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
 
         compute_func = Prandtl(
             self.stencil_factory,
+            quantity_factory,
         )
 
         compute_func(**inputs)
@@ -2269,7 +2296,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             "elm": {"shield": True},
             "gotvx": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "pblflg": {"shield": True},
             "pcnvflg": {"shield": True},
@@ -2309,7 +2336,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             "elm": {"shield": True},
             "gotvx": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "pblflg": {"shield": True},
             "pcnvflg": {"shield": True},
@@ -2378,7 +2405,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
             "tke": {"shield": True},
             "xlamue": {"shield": True},
             "zl": {"shield": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "xlamde": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
@@ -2392,7 +2419,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
             "tke": {"shield": True},
             "xlamue": {"shield": True},
             "zl": {"shield": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "xlamde": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
@@ -2445,7 +2472,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             "f2": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
             "prsl": {"shield": True},
             "rdzt": {"shield": True},
@@ -2474,7 +2501,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             "f2": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
-            "mrad": {"shield": True},
+            "mrad": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
             "prsl": {"shield": True},
             "rdzt": {"shield": True},

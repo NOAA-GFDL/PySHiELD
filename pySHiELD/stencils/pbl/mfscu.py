@@ -62,10 +62,10 @@ def mfscu_s0(
             qtx = q1[0, 0, 0][0] + q1[0, 0, 0][ntcw]
 
     with computation(FORWARD), interval(...):
-        if krad[0, 0] == k_mask[0, 0, 0]:
+        if k_mask[0, 0, 0] == krad[0, 0]:
             if cnvflg[0, 0]:
                 hrad = zm[0, 0, 0]
-                krad1 = k_mask[0, 0, 0] - 1
+                krad1 = krad[0, 0] - 1
                 tem = zm[0, 0, 1] - zm[0, 0, 0]
                 tem1 = physcons.CLDTIME * radmin[0, 0] / tem
                 tem1 = max(tem1, -3.0)
@@ -542,19 +542,19 @@ class StratocumulusMassFlux:
         self._mfscu_s1 = stencil_factory.from_origin_domain(
             func=mfscu_s1,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         self._mfscu_s2 = stencil_factory.from_origin_domain(
             func=mfscu_s2,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         self._mfscu_s3 = stencil_factory.from_origin_domain(
             func=mfscu_s3,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         self._mfscu_s4 = stencil_factory.from_origin_domain(
@@ -570,13 +570,13 @@ class StratocumulusMassFlux:
         self._mfscu_s5 = stencil_factory.from_origin_domain(
             func=mfscu_s5,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         self._mfscu_s6 = stencil_factory.from_origin_domain(
             func=mfscu_s6,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         self._mfscu_s7 = stencil_factory.from_origin_domain(
@@ -585,7 +585,7 @@ class StratocumulusMassFlux:
                 "dt2": self._dt2,
             },
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         self._mfscu_s8 = stencil_factory.from_origin_domain(
@@ -600,14 +600,14 @@ class StratocumulusMassFlux:
                 "ntcw": self._ntcw,
             },
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu),
+            domain=(idx.iec, idx.jec, kmscu+1),
         )
 
         if (self._ntcw > 2) or (self._ntrac1 > self._ntcw):
             self._mfscu_10 = stencil_factory.from_origin_domain(
                 func=mfscu_10,
                 origin=idx.origin_compute(),
-                domain=(idx.iec, idx.jec, kmscu),
+                domain=(idx.iec, idx.jec, kmscu+1),
             )
 
     def __call__(
