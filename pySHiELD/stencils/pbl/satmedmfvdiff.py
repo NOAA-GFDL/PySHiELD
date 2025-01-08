@@ -1005,7 +1005,7 @@ def predict_tke(
 ):
     from __externals__ import dtn, kk
 
-    with computation(PARALLEL), interval(0, -1):
+    with computation(PARALLEL), interval(...):
         rle = physcons.CE0 / ele[0, 0, 0]
 
     with computation(PARALLEL), interval(...):
