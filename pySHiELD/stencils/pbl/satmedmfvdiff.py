@@ -1046,23 +1046,23 @@ def tke_up_down_prop(
             qcdo[0, 0, 0][ntke] = tke[0, 0, 0]
 
     with computation(FORWARD), interval(1, None):
-        if k_mask[0, 0, 0] < kpbl:
+        if pcnvflg[0, 0] and k_mask[0, 0, 0] <= kpbl[0, 0]:
             tem = 0.5 * xlamue[0, 0, -1] * (zl[0, 0, 0] - zl[0, 0, -1])
-            if pcnvflg[0, 0] and k_mask[0, 0, 0] <= kpbl[0, 0]:
-                qcko[0, 0, 0][ntke] = (
-                    (1.0 - tem) * qcko[0, 0, -1][ntke]
-                    + tem * (tke[0, 0, 0] + tke[0, 0, -1])
-                ) / (1.0 + tem)
+            qcko[0, 0, 0][ntke] = (
+                (1.0 - tem) * qcko[0, 0, -1][ntke]
+                + tem * (tke[0, 0, 0] + tke[0, 0, -1])
+            ) / (1.0 + tem)
 
     with computation(BACKWARD), interval(...):
         if k_mask[0, 0, 0] < krad:
             tem = 0.5 * xlamde[0, 0, 0] * (zl[0, 0, 1] - zl[0, 0, 0])
-            if scuflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0]:
-                qcdo[0, 0, 0][ntke] = (
-                    (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (
-                        tke[0, 0, 0] + tke[0, 0, 1]
-                    )
-                ) / (1.0 + tem)
+            if scuflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+                if k_mask[0, 0, 0] >= mrad[0, 0]:
+                    qcdo[0, 0, 0][ntke] = (
+                        (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (
+                            tke[0, 0, 0] + tke[0, 0, 1]
+                        )
+                    ) / (1.0 + tem)
 
 
 def tke_tridiag_matrix_ele_comp(
