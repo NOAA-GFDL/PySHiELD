@@ -688,21 +688,18 @@ def compute_prandtl_num_exchange_coeff(
             else:
                 prn = phih[0, 0] / phim[0, 0]
 
-            prn = max(min(prn[0, 0, 0], physcons.PRMAX), physcons.PRMIN)
-            ckz = max(
-                min(
-                    physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem),
-                    physcons.CK0,
-                ),
-                physcons.CK1,
+            prn = min(prn, physcons.PRMAX)
+            prn = max(prn, physcons.PRMIN)
+            ckz = min(
+                physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem),
+                physcons.CK0
             )
-            chz = max(
-                min(
-                    physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem),
-                    physcons.CH0,
-                ),
-                physcons.CH1,
+            ckz = max(ckz, physcons.CK1)
+            chz = min(
+                physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem),
+                physcons.CH0
             )
+            chz = max(chz, physcons.CH1,)
 
 
 def compute_asymptotic_mixing_length(
