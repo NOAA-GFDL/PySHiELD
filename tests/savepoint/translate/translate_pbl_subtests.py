@@ -942,7 +942,7 @@ class UpDownTKE:
         config: PBLConfig,
     ):
         idx = stencil_factory.grid_indexing
-        self._ntke = config.ntke
+        self._ntke = config.ntracers - 1
 
         self._k_mask = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
