@@ -1108,6 +1108,158 @@ class MomentTridiagComp:
             self._a2,
         )
 
+class HeatTracerTridiag:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+        config: PBLConfig,
+    ):
+        idx = stencil_factory.grid_indexing
+        self._dt_atmos = config.dt_atmos
+        self._dspheat = config.dspheat
+        self._ntrac1 = config.ntracers - 1
+        self._ntke = config.ntracers - 1
+
+        def make_quantity():
+            return quantity_factory.zeros(
+                [X_DIM, Y_DIM, Z_DIM],
+                units="unknown",
+                dtype=Float,
+            )
+
+        def make_quantity_2D(type):
+            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+
+        self._cu = make_quantity()
+        self._rt = make_quantity()
+        self._ad_p1 = make_quantity_2D(Float)
+        self._f1_p1 = make_quantity_2D(Float)
+        self._f2_p1 = make_quantity_2D(Float)
+        self._a2 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
+
+        if self._ntrac1 >= 2:
+            self._reset_tracers = stencil_factory.from_origin_domain(
+                func=reset_tracers,
+                origin=idx.origin_compute(),
+                domain=idx.domain_compute(),
+            )
+
+        self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
+            func=heat_moist_tridiag_mat_ele_comp,
+            externals={"dt2": self._dt_atmos},
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+        if self._ntrac1 >= 2:
+            self._setup_multi_tracer_tridiag = stencil_factory.from_origin_domain(
+                func=setup_multi_tracer_tridiag,
+                externals={"dt2": self._dt_atmos},
+                origin=idx.origin_compute(),
+                domain=idx.domain_compute(),
+            )
+
+    def __call__(
+        self,
+        ad,
+        al,
+        au,
+        delta,
+        dkq,
+        f1,
+        f2,
+        kpbl,
+        krad,
+        mrad,
+        pcnvflg,
+        prsl,
+        q1,
+        qcdo,
+        qcko,
+        rdzt,
+        scuflg,
+        tcdo,
+        tcko,
+        t1,
+        xmf,
+        xmfd,
+    ):
+        if self._ntrac1 >= 2:
+            for n in range(self._ntrac1):
+                dim_n = n if n < self._ntke else n + 1
+                self._reset_tracers(
+                    f2,
+                    q1,
+                    dim_n,
+                )
+
+        self._heat_moist_tridiag_mat_ele_comp(
+            ad,
+            self._ad_p1,
+            al,
+            au,
+            delta,
+            dkq,
+            f1,
+            self._f1_p1,
+            f2,
+            self._f2_p1,
+            kpbl,
+            krad,
+            self._k_mask,
+            mrad,
+            pcnvflg,
+            prsl,
+            q1,
+            qcdo,
+            qcko,
+            rdzt,
+            scuflg,
+            tcdo,
+            tcko,
+            t1,
+            xmf,
+            xmfd,
+            self._cu,
+            self._rt,
+        )
+
+        for n in range(self._ntrac1):
+            dim_n = n if n < self._ntke else n + 1
+            if self._ntrac1 >= 2:
+                self._setup_multi_tracer_tridiag(
+                    pcnvflg,
+                    self._k_mask,
+                    kpbl,
+                    delta,
+                    prsl,
+                    rdzt,
+                    xmf,
+                    qcko,
+                    q1,
+                    f2,
+                    scuflg,
+                    mrad,
+                    krad,
+                    xmfd,
+                    qcdo,
+                    self._a2,
+                    dim_n,
+                )
+
 # class Half2:
 #     def __init__(
 #         self,
@@ -2518,6 +2670,91 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             "vcko": {"shield": True},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+        config = self.namelist.pbl
+
+        self.make_storage_data_input_vars(inputs)
+
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+        inputs["krad"] = inputs["krad"].astype(int)
+        inputs["mrad"] = inputs["mrad"].astype(int)
+
+        compute_func = MomentTridiagComp(
+            self.stencil_factory,
+            quantity_factory,
+            config
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "ad": {"shield": True},
+            "al": {"shield": True, "kend": namelist.npz - 1},
+            "au": {"shield": True, "kend": namelist.npz - 1},
+            "delta": {"shield": True},
+            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "f1": {"shield": True},
+            "f2": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+            "mrad": {"shield": True, "index_variable": True},
+            "pcnvflg": {"shield": True},
+            "prsl": {"shield": True},
+            "qcdo": {"shield": True},
+            "qcko": {"shield": True},
+            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "scuflg": {"shield": True},
+            "tcdo": {"shield": True},
+            "tcko": {"shield": True},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+            "t1": {"shield": True},
+            "q1": {"shield": True},
+        }
+        self.out_vars = {
+            "ad": {"shield": True},
+            "al": {"shield": True, "kend": namelist.npz - 1},
+            "au": {"shield": True, "kend": namelist.npz - 1},
+            "delta": {"shield": True},
+            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "f1": {"shield": True},
+            "f2": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+            "mrad": {"shield": True, "index_variable": True},
+            "pcnvflg": {"shield": True},
+            "prsl": {"shield": True},
+            "qcdo": {"shield": True},
+            "qcko": {"shield": True},
+            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "scuflg": {"shield": True},
+            "tcdo": {"shield": True},
+            "tcko": {"shield": True},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+            "t1": {"shield": True},
+            "q1": {"shield": True},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
