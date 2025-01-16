@@ -2705,7 +2705,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
 
         return self.slice_output(inputs)
 
-class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
+class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
