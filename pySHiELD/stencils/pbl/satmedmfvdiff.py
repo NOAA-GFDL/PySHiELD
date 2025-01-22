@@ -1523,7 +1523,7 @@ def moment_tridiag_mat_ele_comp(
         if dspheat:
             tdt = tdt[0, 0, 0] + physcons.DSPFAC * (diss[0, 0, 0] / constants.CP_AIR)
 
-    with computation(PARALLEL), interval(0, 1):
+    with computation(FORWARD), interval(0, 1):
         ad = 1.0 + dtdz1[0, 0] * stress[0, 0] / spd1[0, 0]
         f1 = u1[0, 0, 0]
         f2[0, 0, 0][0] = v1[0, 0, 0]
@@ -1541,15 +1541,17 @@ def moment_tridiag_mat_ele_comp(
             ad_p1 = 1.0 - al[0, 0, 0]
 
             if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-                ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
+                ptem = 0.5 * (dsig * rdz) * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
-                tem = ucko[0, 0, 0] + ucko[0, 0, 1] - (u1[0, 0, 0] + u1[0, 0, 1])
+                tem = u1[0, 0, 0] + u1[0, 0, 1]
+                tem = (ucko[0, 0, 0] + ucko[0, 0, 1]) - tem
                 f1 = f1[0, 0, 0] - tem * ptem1
                 f1_p1 = u1[0, 0, 1] + tem * ptem2
-                tem = vcko[0, 0, 0] + vcko[0, 0, 1] - (v1[0, 0, 0] + v1[0, 0, 1])
-                f2[0, 0, 0][0] = f2[0, 0, 0][0] - tem * ptem1
-                f2_p1 = v1[0, 0, 1] + tem * ptem2
+                tem2 = v1[0, 0, 0] + v1[0, 0, 1]
+                tem2 = (vcko[0, 0, 0] + vcko[0, 0, 1]) - tem2
+                f2[0, 0, 0][0] = f2[0, 0, 0][0] - tem2 * ptem1
+                f2_p1 = v1[0, 0, 1] + tem2 * ptem2
             else:
                 f1_p1 = u1[0, 0, 1]
                 f2_p1 = v1[0, 0, 1]
@@ -1557,13 +1559,15 @@ def moment_tridiag_mat_ele_comp(
             if (scuflg[0, 0]) and (k_mask[0, 0, 0] >= mrad[0, 0]) and (
                 k_mask[0, 0, 0] < krad[0, 0]
             ):
-                ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
+                ptem = 0.5 * (dsig * rdz) * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
-                tem = ucdo[0, 0, 0] + ucdo[0, 0, 1] - (u1[0, 0, 0] + u1[0, 0, 1])
+                tem = u1[0, 0, 0] + u1[0, 0, 1]
+                tem = (ucdo[0, 0, 0] + ucdo[0, 0, 1]) - tem
                 f1 = f1[0, 0, 0] + tem * ptem1
                 f1_p1 = f1_p1[0, 0] - tem * ptem2
-                tem = vcdo[0, 0, 0] + vcdo[0, 0, 1] - (v1[0, 0, 0] + v1[0, 0, 1])
+                tem = v1[0, 0, 0] + v1[0, 0, 1]
+                tem = (vcdo[0, 0, 0] + vcdo[0, 0, 1]) - tem
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(1, -1):
@@ -1582,7 +1586,7 @@ def moment_tridiag_mat_ele_comp(
             ad_p1 = 1.0 - al[0, 0, 0]
 
             if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-                ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
+                ptem = 0.5 * (dsig * rdz) * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
                 tem = ucko[0, 0, 0] + ucko[0, 0, 1] - (u1[0, 0, 0] + u1[0, 0, 1])
