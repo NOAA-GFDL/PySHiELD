@@ -1150,9 +1150,8 @@ def recover_tke_tendency(
 
     with computation(PARALLEL), interval(...):
         f1 = max(f1, physcons.TKMIN)
-        rtg[0, 0, 0][ntke] = (
-            rtg[0, 0, 0][ntke] + (f1[0, 0, 0] - q1[0, 0, 0][ntke]) * rdt
-        )
+        qtend = (f1[0, 0, 0] - q1[0, 0, 0][ntke]) * rdt
+        rtg[0, 0, 0][ntke] = rtg[0, 0, 0][ntke] + qtend
 
 
 def heat_moist_tridiag_mat_ele_comp(
@@ -1338,9 +1337,8 @@ def recover_moisture_tendency(
     from __externals__ import rdt
 
     with computation(PARALLEL), interval(...):
-        rtg[0, 0, 0][n_index] = (
-            rtg[0, 0, 0][n_index] + (f2[0, 0, 0][n_index] - q1[0, 0, 0][n_index]) * rdt
-        )
+        qtend = (f2[0, 0, 0][n_index] - q1[0, 0, 0][n_index]) * rdt
+        rtg[0, 0, 0][n_index] = rtg[0, 0, 0][n_index] + qtend
 
 
 def recover_heat_tendency_add_diss_heat(
@@ -1349,6 +1347,7 @@ def recover_heat_tendency_add_diss_heat(
     t1: FloatField,
     f2: FloatFieldTracer,
     q1: FloatFieldTracer,
+    rtg: FloatFieldTracer,
     dtsfc: FloatFieldIJ,
     delta: FloatField,
     dqsfc: FloatFieldIJ,
@@ -1356,13 +1355,16 @@ def recover_heat_tendency_add_diss_heat(
     from __externals__ import rdt
 
     with computation(FORWARD), interval(...):
-        tdt = tdt[0, 0, 0] + (f1[0, 0, 0] - t1[0, 0, 0]) * rdt
-        dtsfc = dtsfc[0, 0] + (constants.CP_AIR / constants.GRAV) * delta[0, 0, 0] * (
-            (f1[0, 0, 0] - t1[0, 0, 0]) * rdt
-        )
-        dqsfc = dqsfc[0, 0] + (constants.HLV / constants.GRAV) * delta[0, 0, 0] * (
-            (f2[0, 0, 0][0] - q1[0, 0, 0][0]) * rdt
-        )
+        ttend = (f1[0, 0, 0] - t1[0, 0, 0]) * rdt
+        qtend = (f2[0, 0, 0][0] - q1[0, 0, 0][0]) * rdt
+        tdt = tdt[0, 0, 0] + ttend
+        rtg[0, 0, 0][0] = rtg[0, 0, 0][0] + qtend
+        dtsfc = dtsfc[0, 0] + (
+            constants.CP_AIR / constants.GRAV
+        ) * delta[0, 0, 0] * ttend
+        dqsfc = dqsfc[0, 0] + (
+            constants.HLV / constants.GRAV
+        ) * delta[0, 0, 0] * qtend
 
 
 def moment_tridiag_mat_ele_comp(
@@ -1494,7 +1496,7 @@ def recover_momentum_tendency_and_finish(
     from __externals__ import rdt
 
     with computation(FORWARD), interval(...):
-        if k_mask[0, 0, 0] < 1:
+        if k_mask[0, 0, 0] == 0:
             hpbl = hpblx[0, 0]
             kpbl = kpblx[0, 0]
         utend = (f1[0, 0, 0] - u1[0, 0, 0]) * rdt
@@ -2462,6 +2464,7 @@ class ScaleAwareTKEMoistEDMF:
             t1,
             self._f2,
             q1,
+            rtg,
             dtsfc,
             delta,
             dqsfc,
