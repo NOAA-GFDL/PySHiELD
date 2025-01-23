@@ -30,13 +30,13 @@ extras_requires = {
 
 
 setup(
-    author="Vulcan Technologies LLC",
-    author_email="elynnw@vulcan.com",
+    author="NOAA - Geophysical Fluid Dynamics Laboratory",
+    author_email="oliver.elbert@noaa.gov",
     python_requires=">=3.11.7",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: Apache License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
@@ -46,7 +46,7 @@ setup(
     "for atmospheric models",
     install_requires=requirements,
     extras_require=extras_requires,
-    license="BSD license",
+    license="Apache 2.0 license",
     long_description=readme,
     include_package_data=True,
     name="pySHiELD",
