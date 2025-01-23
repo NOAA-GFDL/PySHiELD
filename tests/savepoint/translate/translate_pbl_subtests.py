@@ -1196,6 +1196,9 @@ class HeatTracerTridiag:
         t1,
         xmf,
         xmfd,
+        dtdz1,
+        evap,
+        heat,
     ):
         if self._ntrac1 >= 2:
             for n in range(self._ntrac1):
@@ -1233,8 +1236,12 @@ class HeatTracerTridiag:
             t1,
             xmf,
             xmfd,
+            dtdz1,
+            evap,
+            heat,
             self._cu,
             self._rt,
+            self._a2,
         )
 
         for n in range(self._ntrac1):
@@ -1251,6 +1258,7 @@ class HeatTracerTridiag:
                     qcko,
                     q1,
                     f2,
+                    self._f2_p1,
                     scuflg,
                     mrad,
                     krad,
@@ -2731,6 +2739,9 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             "xmfd": {"shield": True},
             "t1": {"shield": True},
             "q1": {"shield": True},
+            "dtdz1": {"shield": True},
+            "evap": {"shield": True},
+            "heat": {"shield": True},
         }
         self.out_vars = {
             "ad": {"shield": True},

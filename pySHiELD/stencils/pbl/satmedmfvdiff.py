@@ -901,9 +901,9 @@ def compute_eddy_diffusivity_buoy_shear(
             if scuflg[0, 0] and mrad[0, 0] == 0:
                 ptem = xmfd[0, 0, 0] * buod[0, 0, 0]
                 ptem1 = ucdo[0, 0, 0] + ucdo[0, 0, 1] - u1[0, 0, 0] - u1[0, 0, 1]
-                ptem1 = (0.5 * ((u1[0, 0, 1] - u1[0, 0, 0]) * rdzt[0, 0, 0])
-                    * xmfd[0, 0, 0] * ptem1
-                )
+                ptem1 = (0.5 * (
+                    (u1[0, 0, 1] - u1[0, 0, 0]) * rdzt[0, 0, 0]
+                ) * xmfd[0, 0, 0] * ptem1)
                 ptem2 = vcdo[0, 0, 0] + vcdo[0, 0, 1] - v1[0, 0, 0] - v1[0, 0, 1]
                 ptem2 = (
                     0.5 * ((v1[0, 0, 1] - v1[0, 0, 0]) * rdzt[0, 0, 0])
@@ -1095,38 +1095,14 @@ def tke_tridiag_matrix_ele_comp(
     with computation(FORWARD), interval(0, 1):
         ad = 1.0
         f1 = tke[0, 0, 0]
+        ad_p1 = 0.
+        f1_p1 = 0.
 
     with computation(FORWARD):
-        with interval(0, 1):
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            rdz = rdzt[0, 0, 0]
-            dsdz2 = dsig * dkq[0, 0, 0] * rdz * rdz
-            au = -dtodsd * dsdz2
-            al = -dtodsu * dsdz2
-            ad = ad[0, 0, 0] - au[0, 0, 0]
-            ad_p1 = 1.0 - al[0, 0, 0]
-            tem2 = dsig * rdz
-
-            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-                ptem = 0.5 * tem2 * xmf
-                ptem2 = qcko[0, 0, 0][ntke] + qcko[0, 0, 1][ntke]
-                tem = tke[0, 0, 0] + tke[0, 0, 1]
-                f1 = f1[0, 0, 0] - (ptem2 - tem) * (dtodsd * ptem)
-                f1_p1 = tke[0, 0, 1] + (ptem2 - tem) * (dtodsu * ptem)
-            else:
-                f1_p1 = tke[0, 0, 1]
-
-            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-                ptem = 0.5 * tem2 * xmfd
-                ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
-                tem = tke[0, 0, 0] + tke[0, 0, 1]
-                f1 = f1[0, 0, 0] + (ptem2 - tem) * (dtodsd * ptem)
-                f1_p1 = f1_p1 - (ptem2 - tem) * (dtodsu * ptem)
-        with interval(1, -1):
-            ad = ad_p1[0, 0]
-            f1 = f1_p1[0, 0]
+        with interval(0, -1):
+            if k_mask > 0:
+                ad = ad_p1[0, 0]
+                f1 = f1_p1[0, 0]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1148,7 +1124,9 @@ def tke_tridiag_matrix_ele_comp(
             else:
                 f1_p1 = tke[0, 0, 1]
 
-            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+            if scuflg[0, 0] and (
+                k_mask[0, 0, 0] >= mrad[0, 0]
+            ) and (k_mask[0, 0, 0] < krad[0, 0]):
                 ptem = 0.5 * tem2 * xmfd
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
@@ -1163,16 +1141,10 @@ def tke_tridiag_matrix_ele_comp(
         rt = f1
 
 
-def recover_tke_tendency_start_tridiag(
+def recover_tke_tendency(
     rtg: FloatFieldTracer,
     f1: FloatField,
     q1: FloatFieldTracer,
-    ad: FloatField,
-    f2: FloatFieldTracer,
-    dtdz1: FloatFieldIJ,
-    evap: FloatFieldIJ,
-    heat: FloatFieldIJ,
-    t1: FloatField,
 ):
     from __externals__ import ntke, rdt
 
@@ -1181,20 +1153,6 @@ def recover_tke_tendency_start_tridiag(
         rtg[0, 0, 0][ntke] = (
             rtg[0, 0, 0][ntke] + (f1[0, 0, 0] - q1[0, 0, 0][ntke]) * rdt
         )
-
-    with computation(FORWARD), interval(0, 1):
-        ad = 1.0
-        f1 = t1[0, 0, 0] + dtdz1[0, 0] * heat[0, 0]
-        f2[0, 0, 0][0] = q1[0, 0, 0][0] + dtdz1[0, 0] * evap[0, 0]
-
-
-def reset_tracers(
-    f2: FloatFieldTracer,
-    q1: FloatFieldTracer,
-    n_index: int,
-):
-    with computation(FORWARD), interval(0, 1):
-        f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
 
 
 def heat_moist_tridiag_mat_ele_comp(
@@ -1224,62 +1182,29 @@ def heat_moist_tridiag_mat_ele_comp(
     t1: FloatField,
     xmf: FloatField,
     xmfd: FloatField,
+    dtdz1: FloatFieldIJ,
+    evap: FloatFieldIJ,
+    heat: FloatFieldIJ,
     cu: FloatField,
     rt: FloatField,
+    a2: FloatFieldTracer,
 ):
     from __externals__ import dt2
 
+    with computation(FORWARD), interval(0, 1):
+        ad = 1.0
+        f1 = t1[0, 0, 0] + dtdz1[0, 0] * heat[0, 0]
+        f2[0, 0, 0][0] = q1[0, 0, 0][0] + dtdz1[0, 0] * evap[0, 0]
+        ad_p1 = 0.
+        f1_p1 = 0.
+        f2_p1 = 0.
+
     with computation(FORWARD):
-        with interval(0, 1):
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            rdz = rdzt[0, 0, 0]
-            tem1 = dsig * dkt[0, 0, 0] * rdz
-            dsdzt = tem1 * (constants.GRAV / constants.CP_AIR)
-            dsdz2 = tem1 * rdz
-            au = -dtodsd * dsdz2
-            al = -dtodsu * dsdz2
-            ad = ad[0, 0, 0] - au[0, 0, 0]
-            ad_p1 = 1.0 - al[0, 0, 0]
-
-            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-                ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
-                ptem1 = dtodsd * ptem
-                ptem2 = dtodsu * ptem
-                tem = tcko[0, 0, 0] + tcko[0, 0, 1] - (t1[0, 0, 0] + t1[0, 0, 1])
-                f1 = f1[0, 0, 0] + dtodsd * dsdzt - tem * ptem1
-                f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt + tem * ptem2
-                tem = (
-                    qcko[0, 0, 0][0]
-                    + qcko[0, 0, 1][0]
-                    - (q1[0, 0, 0][0] + q1[0, 0, 1][0])
-                )
-                f2[0, 0, 0][0] = f2[0, 0, 0][0] - tem * ptem1
-                f2_p1 = q1[0, 0, 1][0] + tem * ptem2
-            else:
-                f1 = f1[0, 0, 0] + dtodsd * dsdzt
-                f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt
-                f2_p1 = q1[0, 0, 1][0]
-
-            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-                ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
-                ptem1 = dtodsd * ptem
-                ptem2 = dtodsu * ptem
-                tem = tcdo[0, 0, 0] + tcdo[0, 0, 1] - (t1[0, 0, 0] + t1[0, 0, 1])
-                f1 = f1[0, 0, 0] + tem * ptem1
-                f1_p1 = f1_p1[0, 0] - tem * ptem2
-                tem = (
-                    qcdo[0, 0, 0][0]
-                    + qcdo[0, 0, 1][0]
-                    - (q1[0, 0, 0][0] + q1[0, 0, 1][0])
-                )
-                f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
-                f2_p1 = f2_p1[0, 0] - tem * ptem2
-        with interval(1, -1):
-            f1 = f1_p1[0, 0]
-            f2[0, 0, 0][0] = f2_p1[0, 0]
-            ad = ad_p1[0, 0]
+        with interval(0, -1):
+            if k_mask > 0:
+                f1 = f1_p1[0, 0]
+                f2[0, 0, 0][0] = f2_p1[0, 0]
+                ad = ad_p1[0, 0]
 
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
@@ -1294,17 +1219,15 @@ def heat_moist_tridiag_mat_ele_comp(
             ad_p1 = 1.0 - al[0, 0, 0]
 
             if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-                ptem = 0.5 * dsig * rdz * xmf[0, 0, 0]
+                ptem = 0.5 * (dsig * rdz) * xmf[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
-                tem = tcko[0, 0, 0] + tcko[0, 0, 1] - (t1[0, 0, 0] + t1[0, 0, 1])
+                tem = t1[0, 0, 0] + t1[0, 0, 1]
+                tem = (tcko[0, 0, 0] + tcko[0, 0, 1]) - tem
                 f1 = f1[0, 0, 0] + dtodsd * dsdzt - tem * ptem1
                 f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt + tem * ptem2
-                tem = (
-                    qcko[0, 0, 0][0]
-                    + qcko[0, 0, 1][0]
-                    - (q1[0, 0, 0][0] + q1[0, 0, 1][0])
-                )
+                tem = q1[0, 0, 0][0] + q1[0, 0, 1][0]
+                tem = (qcko[0, 0, 0][0] + qcko[0, 0, 1][0]) - tem
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] - tem * ptem1
                 f2_p1 = q1[0, 0, 1][0] + tem * ptem2
             else:
@@ -1312,18 +1235,18 @@ def heat_moist_tridiag_mat_ele_comp(
                 f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt
                 f2_p1 = q1[0, 0, 1][0]
 
-            if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-                ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
+            if scuflg[0, 0] and (
+                k_mask[0, 0, 0] >= mrad[0, 0]
+            ) and (k_mask[0, 0, 0] < krad[0, 0]):
+                ptem = 0.5 * (dsig * rdz) * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
-                tem = tcdo[0, 0, 0] + tcdo[0, 0, 1] - (t1[0, 0, 0] + t1[0, 0, 1])
+                tem = t1[0, 0, 0] + t1[0, 0, 1]
+                tem = (tcdo[0, 0, 0] + tcdo[0, 0, 1]) - tem
                 f1 = f1[0, 0, 0] + tem * ptem1
                 f1_p1 = f1_p1[0, 0] - tem * ptem2
-                tem = (
-                    qcdo[0, 0, 0][0]
-                    + qcdo[0, 0, 1][0]
-                    - (q1[0, 0, 0][0] + q1[0, 0, 1][0])
-                )
+                tem = q1[0, 0, 0][0] + q1[0, 0, 1][0]
+                tem = (qcdo[0, 0, 0][0] + qcdo[0, 0, 1][0]) - tem
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
         with interval(-1, None):
@@ -1334,6 +1257,7 @@ def heat_moist_tridiag_mat_ele_comp(
     with computation(PARALLEL), interval(...):
         cu = au
         rt = f1
+        a2[0, 0, 0][0] = f2[0, 0, 0][0]
 
 
 def setup_multi_tracer_tridiag(
@@ -1347,6 +1271,7 @@ def setup_multi_tracer_tridiag(
     qcko: FloatFieldTracer,
     q1: FloatFieldTracer,
     f2: FloatFieldTracer,
+    f2_p1: FloatFieldIJ,
     scuflg: BoolFieldIJ,
     mrad: IntFieldIJ,
     krad: IntFieldIJ,
@@ -1358,89 +1283,48 @@ def setup_multi_tracer_tridiag(
     from __externals__ import dt2
 
     with computation(FORWARD), interval(0, 1):
-        if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            tem = dsig * rdzt[0, 0, 0]
-            ptem = 0.5 * tem * xmf[0, 0, 0]
-            ptem1 = dtodsd * ptem
-            ptem2 = dtodsu * ptem
-            tem1 = qcko[0, 0, 0][n_index] + qcko[0, 0, 1][n_index]
-            tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
-            f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] - (tem1 - tem2) * ptem1
+        f2[0, 0, 0][0] = q1[0, 0, 0][0]
 
-        if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            tem = dsig * rdzt[0, 0, 0]
-            ptem = 0.5 * tem * xmfd[0, 0, 0]
-            ptem1 = dtodsd * ptem
-            ptem2 = dtodsu * ptem
-            tem1 = qcdo[0, 0, 0][n_index] + qcdo[0, 0, 1][n_index]
-            tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
-            f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] + (tem1 - tem2) * ptem1
+    with computation(FORWARD):
+        with interval(0, -1):
+            if k_mask > 0:
+                f2[0, 0, 0][n_index] = f2_p1
 
-    with computation(FORWARD), interval(1, -1):
-        if pcnvflg[0, 0] and k_mask[0, 0, -1] < kpbl[0, 0]:
-            dtodsu = dt2 / delta[0, 0, 0]
-            dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
-            tem = dsig * rdzt[0, 0, -1]
-            ptem = 0.5 * tem * xmf[0, 0, -1]
-            ptem2 = dtodsu * ptem
-            tem1 = qcko[0, 0, -1][n_index] + qcko[0, 0, 0][n_index]
-            tem2 = q1[0, 0, -1][n_index] + q1[0, 0, 0][n_index]
-            f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index] + (tem1 - tem2) * ptem2
-        else:
-            f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
+            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
+                dtodsd = dt2 / delta[0, 0, 0]
+                dtodsu = dt2 / delta[0, 0, 1]
+                dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
+                tem = dsig * rdzt[0, 0, 0]
+                ptem = 0.5 * tem * xmf[0, 0, 0]
+                ptem1 = dtodsd * ptem
+                ptem2 = dtodsu * ptem
+                tem1 = qcko[0, 0, 0][n_index] + qcko[0, 0, 1][n_index]
+                tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
+                # Kgao note: turmn off non-local mixing
+                f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index]  # - (tem1 - tem2) * ptem1
+                f2_p1 = q1[0, 0, 1][n_index]  # + (tem1 - tem2) * ptem2
+            else:
+                f2_p1 = q1[0, 0, 1][n_index]
 
-        if scuflg[0, 0] and k_mask[0, 0, -1] >= mrad[0, 0] and k_mask[0, 0, -1] < krad[0, 0]:
-            dtodsu = dt2 / delta[0, 0, 0]
-            dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
-            tem = dsig * rdzt[0, 0, -1]
-            ptem = 0.5 * tem * xmfd[0, 0, -1]
-            ptem2 = dtodsu * ptem
-            tem1 = qcdo[0, 0, -1][n_index] + qcdo[0, 0, 0][n_index]
-            tem2 = q1[0, 0, -1][n_index] + q1[0, 0, 0][n_index]
-            f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] - (tem1 - tem2) * ptem2
+            if scuflg[0, 0] and (
+                k_mask[0, 0, 0] >= mrad[0, 0]
+            ) and (k_mask[0, 0, 0] < krad[0, 0]):
+                dtodsd = dt2 / delta[0, 0, 0]
+                dtodsu = dt2 / delta[0, 0, 1]
+                dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
+                tem = dsig * rdzt[0, 0, 0]
+                ptem = 0.5 * tem * xmfd[0, 0, 0]
+                ptem1 = dtodsd * ptem
+                ptem2 = dtodsu * ptem
+                tem1 = qcdo[0, 0, 0][n_index] + qcdo[0, 0, 1][n_index]
+                tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
+                # Kgao note: turmn off non-local mixing
+                f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index]  # + (tem1 - tem2) * ptem1
+                f2_p1 = f2_p1  # - (tem1 - tem2) * ptem2
 
-        if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            tem = dsig * rdzt[0, 0, 0]
-            ptem = 0.5 * tem * xmf[0, 0, 0]
-            ptem1 = dtodsd * ptem
-            ptem2 = dtodsu * ptem
-            tem1 = qcko[0, 0, 0][n_index] + qcko[0, 0, 1][n_index]
-            tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
-            f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] - (tem1 - tem2) * ptem1
+        with interval(-1, None):
+            f2[0, 0, 0][n_index] = f2_p1
 
-        if scuflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            tem = dsig * rdzt[0, 0, 0]
-            ptem = 0.5 * tem * xmfd[0, 0, 0]
-            ptem1 = dtodsd * ptem
-            ptem2 = dtodsu * ptem
-            tem1 = qcdo[0, 0, 0][n_index] + qcdo[0, 0, 1][n_index]
-            tem2 = q1[0, 0, 0][n_index] + q1[0, 0, 1][n_index]
-            f2[0, 0, 0][n_index] = f2[0, 0, 0][n_index] + (tem1 - tem2) * ptem1
-
-    with computation(FORWARD), interval(-1, None):
-        if pcnvflg[0, 0] and k_mask[0, 0, -1] < kpbl[0, 0]:
-            dtodsu = dt2 / delta[0, 0, 0]
-            dsig = prsl[0, 0, -1] - prsl[0, 0, 0]
-            tem = dsig * rdzt[0, 0, -1]
-            ptem = 0.5 * tem * xmf[0, 0, -1]
-            ptem2 = dtodsu * ptem
-            tem1 = qcko[0, 0, -1][n_index] + qcko[0, 0, 0][n_index]
-            tem2 = q1[0, 0, -1][n_index] + q1[0, 0, 0][n_index]
-            f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index] + (tem1 - tem2) * ptem2
-        else:
-            f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
     with computation(PARALLEL), interval(...):
         a2[0, 0, 0][n_index] = f2[0, 0, 0][n_index]
 
@@ -1527,9 +1411,17 @@ def moment_tridiag_mat_ele_comp(
         ad = 1.0 + dtdz1[0, 0] * stress[0, 0] / spd1[0, 0]
         f1 = u1[0, 0, 0]
         f2[0, 0, 0][0] = v1[0, 0, 0]
+        ad_p1 = 0.
+        f1_p1 = 0.
+        f2_p1 = 0.
 
     with computation(FORWARD):
-        with interval(0, 1):
+        with interval(0, -1):
+            if k_mask > 0:
+                f1 = f1_p1[0, 0]
+                f2[0, 0, 0][0] = f2_p1[0, 0]
+                ad = ad_p1[0, 0]
+
             dtodsd = dt2 / delta[0, 0, 0]
             dtodsu = dt2 / delta[0, 0, 1]
             dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
@@ -1570,47 +1462,6 @@ def moment_tridiag_mat_ele_comp(
                 tem = (vcdo[0, 0, 0] + vcdo[0, 0, 1]) - tem
                 f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
                 f2_p1 = f2_p1[0, 0] - tem * ptem2
-        with interval(1, -1):
-            f1 = f1_p1[0, 0]
-            f2[0, 0, 0][0] = f2_p1[0, 0]
-            ad = ad_p1[0, 0]
-
-            dtodsd = dt2 / delta[0, 0, 0]
-            dtodsu = dt2 / delta[0, 0, 1]
-            dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
-            rdz = rdzt[0, 0, 0]
-            dsdz2 = dsig * dku[0, 0, 0] * rdz * rdz
-            au = -dtodsd * dsdz2
-            al = -dtodsu * dsdz2
-            ad = ad[0, 0, 0] - au[0, 0, 0]
-            ad_p1 = 1.0 - al[0, 0, 0]
-
-            if pcnvflg[0, 0] and k_mask[0, 0, 0] < kpbl[0, 0]:
-                ptem = 0.5 * (dsig * rdz) * xmf[0, 0, 0]
-                ptem1 = dtodsd * ptem
-                ptem2 = dtodsu * ptem
-                tem = ucko[0, 0, 0] + ucko[0, 0, 1] - (u1[0, 0, 0] + u1[0, 0, 1])
-                f1 = f1[0, 0, 0] - tem * ptem1
-                f1_p1 = u1[0, 0, 1] + tem * ptem2
-                tem = vcko[0, 0, 0] + vcko[0, 0, 1] - (v1[0, 0, 0] + v1[0, 0, 1])
-                f2[0, 0, 0][0] = f2[0, 0, 0][0] - tem * ptem1
-                f2_p1 = v1[0, 0, 1] + tem * ptem2
-            else:
-                f1_p1 = u1[0, 0, 1]
-                f2_p1 = v1[0, 0, 1]
-
-            if (scuflg[0, 0]) and (k_mask[0, 0, 0] >= mrad[0, 0]) and (
-                k_mask[0, 0, 0] < krad[0, 0]
-            ):
-                ptem = 0.5 * dsig * rdz * xmfd[0, 0, 0]
-                ptem1 = dtodsd * ptem
-                ptem2 = dtodsu * ptem
-                tem = ucdo[0, 0, 0] + ucdo[0, 0, 1] - (u1[0, 0, 0] + u1[0, 0, 1])
-                f1 = f1[0, 0, 0] + tem * ptem1
-                f1_p1 = f1_p1[0, 0] - tem * ptem2
-                tem = vcdo[0, 0, 0] + vcdo[0, 0, 1] - (v1[0, 0, 0] + v1[0, 0, 1])
-                f2[0, 0, 0][0] = f2[0, 0, 0][0] + tem * ptem1
-                f2_p1 = f2_p1[0, 0] - tem * ptem2
 
         with interval(-1, None):
             f1 = f1_p1[0, 0]
@@ -1619,7 +1470,7 @@ def moment_tridiag_mat_ele_comp(
     with computation(PARALLEL), interval(...):
         cu = au
         rt = f1
-        a2 = f2
+        a2[0, 0, 0][0] = f2[0, 0, 0][0]
 
 
 def recover_momentum_tendency_and_finish(
@@ -2017,19 +1868,12 @@ class ScaleAwareTKEMoistEDMF:
             domain=idx.domain_compute(),
         )
 
-        self._recover_tke_tendency_start_tridiag = stencil_factory.from_origin_domain(
-            func=recover_tke_tendency_start_tridiag,
+        self._recover_tke_tendency = stencil_factory.from_origin_domain(
+            func=recover_tke_tendency,
             externals={"rdt": self._rdt, "ntke": self._ntke},
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
-
-        if self._ntrac1 >= 2:
-            self._reset_tracers = stencil_factory.from_origin_domain(
-                func=reset_tracers,
-                origin=idx.origin_compute(),
-                domain=idx.domain_compute(),
-            )
 
         self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
             func=heat_moist_tridiag_mat_ele_comp,
@@ -2528,26 +2372,11 @@ class ScaleAwareTKEMoistEDMF:
             self._f1,
         )
 
-        self._recover_tke_tendency_start_tridiag(
+        self._recover_tke_tendency(
             rtg,
             self._f1,
             q1,
-            self._ad,
-            self._f2,
-            self._dtdz1,
-            evap,
-            heat,
-            t1,
         )
-
-        if self._ntrac1 >= 2:
-            for n in range(self._ntrac1):
-                dim_n = n if n < self._ntke else n + 1
-                self._reset_tracers(
-                    self._f2,
-                    q1,
-                    dim_n,
-                )
 
         self._heat_moist_tridiag_mat_ele_comp(
             self._ad,
@@ -2576,8 +2405,12 @@ class ScaleAwareTKEMoistEDMF:
             t1,
             self._xmf,
             self._xmfd,
+            self._dtdz1,
+            evap,
+            heat,
             self._cu,
             self._rt,
+            self._a2,
         )
 
         for n in range(self._ntrac1):
@@ -2594,6 +2427,7 @@ class ScaleAwareTKEMoistEDMF:
                     self._qcko,
                     q1,
                     self._f2,
+                    self._f2_p1,
                     self._scuflg,
                     self._mrad,
                     self._krad,
