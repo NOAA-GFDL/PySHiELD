@@ -1004,7 +1004,7 @@ class MomentTridiagComp:
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: config.ntracers,
+                self.TRACER_DIM: config.ntracers - 1,
             }
         )
 
@@ -1130,7 +1130,7 @@ class HeatTracerTridiag:
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: config.ntracers,
+                self.TRACER_DIM: self._ntrac1,
             }
         )
 
