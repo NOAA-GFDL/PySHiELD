@@ -1017,7 +1017,7 @@ class MomentTridiagComp:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -1136,7 +1136,7 @@ class HeatTracerTridiag:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -1267,11 +1267,10 @@ class HeatTracerTridiag:
 
 #         self._ntrac1 = self._ntracers - 1
 
-#         self.TRACER_DIM = TRACER_DIM
 #         self.quantity_factory = quantity_factory
 #         self.quantity_factory.set_extra_dim_lengths(
 #             **{
-#                 self.TRACER_DIM: self._ntracers,
+#                 TRACER_DIM: self._ntracers,
 #             }
 #         )
 #         idx = stencil_factory.grid_indexing
