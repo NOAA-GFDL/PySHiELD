@@ -29,8 +29,7 @@ from pySHiELD.stencils.pbl.satmedmfvdiff import (
     predict_tke,
     tke_up_down_prop,
     tridit,
-    recover_tke_tendency_start_tridiag,
-    reset_tracers,
+    recover_tke_tendency,
     heat_moist_tridiag_mat_ele_comp,
     setup_multi_tracer_tridiag,
     tridin,
@@ -1150,13 +1149,6 @@ class HeatTracerTridiag:
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
 
-        if self._ntrac1 >= 2:
-            self._reset_tracers = stencil_factory.from_origin_domain(
-                func=reset_tracers,
-                origin=idx.origin_compute(),
-                domain=idx.domain_compute(),
-            )
-
         self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
             func=heat_moist_tridiag_mat_ele_comp,
             externals={"dt2": self._dt_atmos},
@@ -1200,14 +1192,6 @@ class HeatTracerTridiag:
         evap,
         heat,
     ):
-        if self._ntrac1 >= 2:
-            for n in range(self._ntrac1):
-                dim_n = n if n < self._ntke else n + 1
-                self._reset_tracers(
-                    f2,
-                    q1,
-                    dim_n,
-                )
 
         self._heat_moist_tridiag_mat_ele_comp(
             ad,
@@ -1372,19 +1356,12 @@ class HeatTracerTridiag:
 #             domain=idx.domain_compute(),
 #         )
 
-#         self._recover_tke_tendency_start_tridiag = stencil_factory.from_origin_domain(
-#             func=recover_tke_tendency_start_tridiag,
+#         self._recover_tke_tendency = stencil_factory.from_origin_domain(
+#             func=recover_tke_tendency,
 #             externals={"rdt": self._rdt, "ntke": self._ntke},
 #             origin=idx.origin_compute(),
 #             domain=idx.domain_compute(),
 #         )
-
-#         if self._ntrac1 >= 2:
-#             self._reset_tracers = stencil_factory.from_origin_domain(
-#                 func=reset_tracers,
-#                 origin=idx.origin_compute(),
-#                 domain=idx.domain_compute(),
-#             )
 
 #         self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
 #             func=heat_moist_tridiag_mat_ele_comp,
@@ -1585,7 +1562,7 @@ class HeatTracerTridiag:
 #             self._f1,
 #         )
 
-#         self._recover_tke_tendency_start_tridiag(
+#         self._recover_tke_tendency(
 #             rtg,
 #             self._f1,
 #             q1,
@@ -1596,15 +1573,6 @@ class HeatTracerTridiag:
 #             heat,
 #             t1,
 #         )
-
-#         if self._ntrac1 >= 2:
-#             for n in range(self._ntrac1):
-#                 dim_n = n if n < self._ntke else n + 1
-#                 self._reset_tracers(
-#                     self._f2,
-#                     q1,
-#                     dim_n,
-#                 )
 
 #         self._heat_moist_tridiag_mat_ele_comp(
 #             self._ad,
