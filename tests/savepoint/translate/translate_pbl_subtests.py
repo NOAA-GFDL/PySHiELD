@@ -1004,7 +1004,7 @@ class MomentTridiagComp:
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: config.ntracers - 1,
+                self.TRACER_DIM: config.ntracers,
             }
         )
 
@@ -1016,7 +1016,11 @@ class MomentTridiagComp:
             )
 
         def make_quantity_2D(type):
-            return self.quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return self.quantity_factory.zeros(
+                [X_DIM, Y_DIM],
+                units="unknown",
+                dtype=type,
+            )
 
         self._cu = make_quantity()
         self._rt = make_quantity()
@@ -1130,7 +1134,7 @@ class HeatTracerTridiag:
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: self._ntrac1,
+                self.TRACER_DIM: config.ntracers,
             }
         )
 
@@ -1142,7 +1146,11 @@ class HeatTracerTridiag:
             )
 
         def make_quantity_2D(type):
-            return self.quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return self.quantity_factory.zeros(
+                [X_DIM, Y_DIM],
+                units="unknown",
+                dtype=type,
+            )
 
         self._cu = make_quantity()
         self._rt = make_quantity()
@@ -1243,7 +1251,7 @@ class HeatTracerTridiag:
         )
 
         for n in range(self._ntrac1):
-            dim_n = n if n < self._ntke else n + 1
+            dim_n = n  # if n < self._ntke else n + 1
             if self._ntrac1 >= 2:
                 self._setup_multi_tracer_tridiag(
                     pcnvflg,

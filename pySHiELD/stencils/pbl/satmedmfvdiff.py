@@ -2177,16 +2177,17 @@ class ScaleAwareTKEMoistEDMF:
             self._vcko,
         )
 
-        for n in range(self._ntrac1):
-            dim_n = n if n < self._ntke else n + 1
-            self._compute_mass_flux_tracer_prelim(
-                self._qcdo,
-                self._qcko,
-                q1,
-                self._pcnvflg,
-                self._scuflg,
-                dim_n,
-            )
+        for n in range(self._ntracers):
+            dim_n = n  # if n < self._ntke else n + 1
+            if dim_n != self._ntke:
+                self._compute_mass_flux_tracer_prelim(
+                    self._qcdo,
+                    self._qcko,
+                    q1,
+                    self._pcnvflg,
+                    self._scuflg,
+                    dim_n,
+                )
 
         self._mfpblt(
             self._pcnvflg,
@@ -2416,47 +2417,48 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         for n in range(self._ntrac1):
-            dim_n = n if n < self._ntke else n + 1
-            if self._ntrac1 >= 2:
-                self._setup_multi_tracer_tridiag(
-                    self._pcnvflg,
-                    self._k_mask,
-                    kpbl,
-                    delta,
-                    prsl,
-                    self._rdzt,
-                    self._xmf,
-                    self._qcko,
-                    q1,
-                    self._f2,
-                    self._f2_p1,
-                    self._scuflg,
-                    self._mrad,
-                    self._krad,
-                    self._xmfd,
-                    self._qcdo,
+            dim_n = n  # if n < self._ntke else n + 1
+            if dim_n != self._ntke:
+                if self._ntrac1 >= 2:
+                    self._setup_multi_tracer_tridiag(
+                        self._pcnvflg,
+                        self._k_mask,
+                        kpbl,
+                        delta,
+                        prsl,
+                        self._rdzt,
+                        self._xmf,
+                        self._qcko,
+                        q1,
+                        self._f2,
+                        self._f2_p1,
+                        self._scuflg,
+                        self._mrad,
+                        self._krad,
+                        self._xmfd,
+                        self._qcdo,
+                        self._a2,
+                        dim_n,
+                    )
+
+                self._tridin(
+                    self._al,
+                    self._ad,
+                    self._cu,
+                    self._rt,
                     self._a2,
+                    self._au,
+                    self._f1,
+                    self._f2,
                     dim_n,
                 )
 
-            self._tridin(
-                self._al,
-                self._ad,
-                self._cu,
-                self._rt,
-                self._a2,
-                self._au,
-                self._f1,
-                self._f2,
-                dim_n,
-            )
-
-            self._recover_moisture_tendency(
-                self._f2,
-                q1,
-                rtg,
-                dim_n,
-            )
+                self._recover_moisture_tendency(
+                    self._f2,
+                    q1,
+                    rtg,
+                    dim_n,
+                )
 
         self._recover_heat_tendency_add_diss_heat(
             tdt,
