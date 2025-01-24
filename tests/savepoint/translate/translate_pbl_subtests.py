@@ -1000,28 +1000,35 @@ class MomentTridiagComp:
         idx = stencil_factory.grid_indexing
         self._dt_atmos = config.dt_atmos
         self._dspheat = config.dspheat
+        self.TRACER_DIM = TRACER_DIM
+        self.quantity_factory = quantity_factory
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: config.ntracers,
+            }
+        )
 
         def make_quantity():
-            return quantity_factory.zeros(
+            return self.quantity_factory.zeros(
                 [X_DIM, Y_DIM, Z_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return self.quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
 
         self._cu = make_quantity()
         self._rt = make_quantity()
         self._ad_p1 = make_quantity_2D(Float)
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
-        self._a2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+        self._a2 = self.quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
-        self._k_mask = quantity_factory.zeros(
+        self._k_mask = self.quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
@@ -1119,28 +1126,35 @@ class HeatTracerTridiag:
         self._dspheat = config.dspheat
         self._ntrac1 = config.ntracers - 1
         self._ntke = config.ntracers - 1
+        self.TRACER_DIM = TRACER_DIM
+        self.quantity_factory = quantity_factory
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: config.ntracers,
+            }
+        )
 
         def make_quantity():
-            return quantity_factory.zeros(
+            return self.quantity_factory.zeros(
                 [X_DIM, Y_DIM, Z_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return self.quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
 
         self._cu = make_quantity()
         self._rt = make_quantity()
         self._ad_p1 = make_quantity_2D(Float)
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
-        self._a2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+        self._a2 = self.quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
-        self._k_mask = quantity_factory.zeros(
+        self._k_mask = self.quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
