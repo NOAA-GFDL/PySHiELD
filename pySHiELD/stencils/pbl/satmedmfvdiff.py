@@ -1282,7 +1282,8 @@ def setup_multi_tracer_tridiag(
     from __externals__ import dt2
 
     with computation(FORWARD), interval(0, 1):
-        f2[0, 0, 0][0] = q1[0, 0, 0][0]
+        f2[0, 0, 0][n_index] = q1[0, 0, 0][n_index]
+        f2_p1 = 0.0
 
     with computation(FORWARD):
         with interval(0, -1):
@@ -2416,9 +2417,9 @@ class ScaleAwareTKEMoistEDMF:
             self._a2,
         )
 
-        for n in range(self._ntrac1):
+        for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if dim_n != self._ntke:
+            if (dim_n != self._ntke) and (dim_n > 0):
                 if self._ntrac1 >= 2:
                     self._setup_multi_tracer_tridiag(
                         self._pcnvflg,
