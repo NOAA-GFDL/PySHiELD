@@ -2780,7 +2780,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["mrad"] = inputs["mrad"].astype(int)
 
-        compute_func = MomentTridiagComp(
+        compute_func = HeatTracerTridiag(
             self.stencil_factory,
             quantity_factory,
             config
