@@ -2419,28 +2419,29 @@ class ScaleAwareTKEMoistEDMF:
 
         for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if (dim_n != self._ntke) and (dim_n > 0):
-                if self._ntrac1 >= 2:
-                    self._setup_multi_tracer_tridiag(
-                        self._pcnvflg,
-                        self._k_mask,
-                        kpbl,
-                        delta,
-                        prsl,
-                        self._rdzt,
-                        self._xmf,
-                        self._qcko,
-                        q1,
-                        self._f2,
-                        self._f2_p1,
-                        self._scuflg,
-                        self._mrad,
-                        self._krad,
-                        self._xmfd,
-                        self._qcdo,
-                        self._a2,
-                        dim_n,
-                    )
+            if (dim_n != self._ntke):
+                if (dim_n > 0):
+                    if self._ntrac1 >= 2:
+                        self._setup_multi_tracer_tridiag(
+                            self._pcnvflg,
+                            self._k_mask,
+                            kpbl,
+                            delta,
+                            prsl,
+                            self._rdzt,
+                            self._xmf,
+                            self._qcko,
+                            q1,
+                            self._f2,
+                            self._f2_p1,
+                            self._scuflg,
+                            self._mrad,
+                            self._krad,
+                            self._xmfd,
+                            self._qcdo,
+                            self._a2,
+                            dim_n,
+                        )
 
                 self._tridin(
                     self._al,

@@ -1253,28 +1253,29 @@ class HeatTracerTridiag:
 
         for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if (dim_n != self._ntke) and (dim_n > 0):
-                if self._ntrac1 >= 2:
-                    self._setup_multi_tracer_tridiag(
-                        pcnvflg,
-                        self._k_mask,
-                        kpbl,
-                        delta,
-                        prsl,
-                        rdzt,
-                        xmf,
-                        qcko,
-                        q1,
-                        f2,
-                        self._f2_p1,
-                        scuflg,
-                        mrad,
-                        krad,
-                        xmfd,
-                        qcdo,
-                        self._a2,
-                        dim_n,
-                    )
+            if (dim_n != self._ntke):
+                if (dim_n > 0):
+                    if self._ntrac1 >= 2:
+                        self._setup_multi_tracer_tridiag(
+                            pcnvflg,
+                            self._k_mask,
+                            kpbl,
+                            delta,
+                            prsl,
+                            rdzt,
+                            xmf,
+                            qcko,
+                            q1,
+                            f2,
+                            self._f2_p1,
+                            scuflg,
+                            mrad,
+                            krad,
+                            xmfd,
+                            qcdo,
+                            self._a2,
+                            dim_n,
+                        )
 
 # class Half2:
 #     def __init__(
