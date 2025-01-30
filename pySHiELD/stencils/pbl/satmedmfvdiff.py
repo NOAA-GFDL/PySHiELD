@@ -847,6 +847,7 @@ def compute_eddy_diffusivity_buoy_shear(
     xmf: FloatField,
     xmfd: FloatField,
     zl: FloatField,
+    dkt_out: FloatField,
 ):
     with computation(PARALLEL), interval(0, -1):
         tem = 0.5 * (elm[0, 0, 0] + elm[0, 0, 1])
@@ -893,7 +894,7 @@ def compute_eddy_diffusivity_buoy_shear(
                 dkt = dkt[0, 0, 0] + ptem
                 dku = dku[0, 0, 0] + ptem
                 dkq = dkq[0, 0, 0] + ptem
-
+        dkt_out = dkt
     with computation(PARALLEL):
         # Compute buoyancy and shear productions of tke 
         with interval(0, 1):
@@ -1506,7 +1507,6 @@ def recover_momentum_tendency_and_finish(
         dv = dv[0, 0, 0] + vtend
         dusfc = dusfc[0, 0] + constants.RGRAV * delta[0, 0, 0] * utend
         dvsfc = dvsfc[0, 0] + constants.RGRAV * delta[0, 0, 0] * vtend
-        dkt_out = dkt
 
 
 class ScaleAwareTKEMoistEDMF:
@@ -2316,6 +2316,7 @@ class ScaleAwareTKEMoistEDMF:
             self._xmf,
             self._xmfd,
             self._zl,
+            dkt,
         )
 
         self._predict_tke(
@@ -2537,6 +2538,4 @@ class ScaleAwareTKEMoistEDMF:
             self._k_mask,
             u1,
             v1,
-            self._dkt,
-            dkt,
         )
