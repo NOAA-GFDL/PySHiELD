@@ -86,6 +86,11 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
             dims=[X_DIM, Y_DIM],
             units="",
         )
+        mrad = quantity_factory.from_array(
+            data=inputs.pop("mrad"),
+            dims=[X_DIM, Y_DIM],
+            units="",
+        )
         zm = quantity_factory.from_array(
             data=inputs.pop("zm"),
             dims=[X_DIM, Y_DIM, Z_DIM],
@@ -102,6 +107,7 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
             ntke=8,
         )
 
-        compute_func(**inputs, k_mask=k_mask, cnvflg=cnvflg, zm=zm)
+        compute_func(**inputs, k_mask=k_mask, cnvflg=cnvflg, mrad=mrad, zm=zm)
+        inputs["mrad"] = mrad
 
         return self.slice_output(inputs)
