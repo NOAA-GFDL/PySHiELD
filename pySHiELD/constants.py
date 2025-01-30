@@ -4,7 +4,7 @@ import ndsl.constants as constants
 CPH2O1 = 4.218e3
 
 # Constants used for turbulence schemes
-A1 = 0.13
+A1 = 0.12
 A2 = 0.5
 A11 = 0.2
 A22 = 1.0
