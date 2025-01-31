@@ -456,6 +456,15 @@ def mfscu_10(
                 + tem * (q1[0, 0, 0][n_tracer] + q1[0, 0, 1][n_tracer])
             ) / factor
 
+def set_zm_mrad(
+    zm_mrad: FloatFieldIJ,
+    zm: FloatField,
+    mrad: IntFieldIJ,
+    k_mask: IntField,
+):
+    with computation(FORWARD), interval(...):
+        if k_mask[0, 0, 0] == mrad[0, 0] - 1:
+            zm_mrad = zm
 
 class StratocumulusMassFlux:
     """
@@ -593,6 +602,16 @@ class StratocumulusMassFlux:
             origin=idx.origin_compute(),
             domain=(idx.iec, idx.jec, kmscu+1),
         )
+
+        self._set_zm_mrad = stencil_factory.from_origin_domain(
+            func=set_zm_mrad,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
+
+    with computation(FORWARD), interval(...):
+        if k_mask[0, 0, 0] == mrad[0, 0] - 1:
+            zm_mrad = zm
 
         if (self._ntcw > 2) or (self._ntrac1 > self._ntcw):
             self._mfscu_10 = stencil_factory.from_origin_domain(
@@ -751,9 +770,11 @@ class StratocumulusMassFlux:
         if totflg:
             return
 
-        for i in range(self._im):
-            for j in range(self._jm):
-                self._zm_mrad.view[i, j] = zm.view[i, j, mrad.view[i, j] - 1]
+        self._set_zm_mrad(self._zm_mrad, zm, mrad, k_mask)
+
+        # for i in range(self._im):
+        #     for j in range(self._jm):
+        #         self._zm_mrad.view[i, j] = zm.view[i, j, mrad.view[i, j] - 1]
 
         self._mfscu_s6(
             zl,
