@@ -1811,6 +1811,7 @@ class ScaleAwareTKEMoistEDMF:
             stencil_factory,
             quantity_factory,
             self._dt_atmos,
+            self._ntracers,
             self._ntcw,
             self._ntrac1,
             self._kmscu,

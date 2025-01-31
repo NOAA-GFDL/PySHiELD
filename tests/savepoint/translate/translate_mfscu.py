@@ -96,15 +96,17 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
             dims=[X_DIM, Y_DIM, Z_DIM],
             units="",
         )
+        ntrac1 = int(inputs.pop("ntrac1"))
 
         compute_func = StratocumulusMassFlux(
             self.stencil_factory,
             quantity_factory,
             dt2=inputs.pop("dt2"),
             ntcw=int(inputs.pop("ntcw") - 1),
-            ntrac1=int(inputs.pop("ntrac1") - 1),
+            ntracers=ntrac1 + 1,
+            ntrac1=ntrac1,
             kmscu=int(inputs.pop("kmscu") - 1),
-            ntke=8,
+            ntke=ntrac1,
         )
 
         compute_func(**inputs, k_mask=k_mask, cnvflg=cnvflg, mrad=mrad, zm=zm)

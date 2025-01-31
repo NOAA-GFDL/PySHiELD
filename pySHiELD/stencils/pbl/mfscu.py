@@ -77,10 +77,10 @@ def mfscu_s0(
                 ra1 = physcons.A1
                 ra2 = physcons.A11
 
-                tem = thetae[0, 0, 0] - thetae[0, 0, 1]
-                tem1 = qtx[0, 0, 0] - qtx[0, 0, 1]
-                if (tem > 0.0) and (tem1 > 0.0):
-                    cteit = constants.CP_AIR * tem / (constants.HLV * tem1)
+                tem2 = thetae[0, 0, 0] - thetae[0, 0, 1]
+                tem3 = qtx[0, 0, 0] - qtx[0, 0, 1]
+                if (tem2 > 0.0) and (tem3 > 0.0):
+                    cteit = constants.CP_AIR * tem2 / (constants.HLV * tem3)
                     if cteit > physcons.ACTEI:
                         ra1 = physcons.A2
                         ra2 = physcons.A22
@@ -102,24 +102,18 @@ def mfscu_s1(
     thlvx: FloatField,
 ):
     with computation(BACKWARD):
-        with interval(-1, None):
+        with interval(...):
             if flg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 if thlvd[0, 0] <= thlvx[0, 0, 0]:
                     mrad[0, 0] = k_mask[0, 0, 0]
                 else:
-                    flg[0, 0] = 0
-        with interval(0, -1):
-            if flg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-                if thlvd[0, 0] <= thlvx[0, 0, 0]:
-                    mrad[0, 0] = k_mask[0, 0, 0]
-                else:
-                    flg[0, 0] = 0
+                    flg[0, 0] = False
 
     with computation(FORWARD), interval(0, 1):
         kk = krad[0, 0] - mrad[0, 0]
         if cnvflg[0, 0]:
             if kk < 1:
-                cnvflg[0, 0] = 0
+                cnvflg[0, 0] = False
 
 
 def mfscu_s2(
@@ -249,25 +243,19 @@ def mfscu_s5(
             mradx = krad[0, 0]
 
     with computation(BACKWARD):
-        with interval(-1, None):
+        with interval(...):
             if flg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 if wd2[0, 0, 0] > 0.0:
                     mradx = k_mask[0, 0, 0]
                 else:
-                    flg = 0
-        with interval(0, -1):
-            if flg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-                if wd2[0, 0, 0] > 0.0:
-                    mradx = k_mask[0, 0, 0]
-                else:
-                    flg = 0
+                    flg = False
 
     with computation(FORWARD), interval(0, 1):
         if cnvflg[0, 0]:
             if mrad[0, 0] < mradx[0, 0]:
                 mrad = mradx[0, 0]
             if (krad[0, 0] - mrad[0, 0]) < 1:
-                cnvflg = 0
+                cnvflg = False
 
 
 def mfscu_s6(
@@ -481,11 +469,13 @@ class StratocumulusMassFlux:
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         dt2: Float,
+        ntracers: Int,
         ntcw: Int,
         ntrac1: Int,
         kmscu: Int,
         ntke: Int,
     ):
+        assert ntrac1 == ntracers - 1
 
         idx = stencil_factory.grid_indexing
         self._im = idx.iec - idx.isc
@@ -493,6 +483,7 @@ class StratocumulusMassFlux:
 
         self._kmscu = kmscu
         self._ntcw = ntcw
+        self._ntracers = ntracers
         self._ntrac1 = ntrac1
         self._dt2 = dt2
         self._ntke = ntke
@@ -825,8 +816,9 @@ class StratocumulusMassFlux:
             zl,
         )
 
-        if self._ntcw > 2:
-            for n in range(1, self._ntcw):
+        
+        for n in range(1, self._ntracers):
+            if (n != self._ntcw) and (n != self._ntke):
                 self._mfscu_10(
                     cnvflg,
                     krad,
@@ -837,19 +829,4 @@ class StratocumulusMassFlux:
                     qcdo,
                     q1,
                     n,
-                )
-
-        if self._ntrac1 > self._ntcw:
-            for n in range(self._ntcw, self._ntrac1):
-                dim_n = n if n < self._ntke else n + 1
-                self._mfscu_10(
-                    cnvflg,
-                    krad,
-                    mrad,
-                    k_mask,
-                    zl,
-                    xlamde,
-                    qcdo,
-                    q1,
-                    dim_n,
                 )
