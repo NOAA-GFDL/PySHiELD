@@ -102,13 +102,7 @@ def mfscu_s1(
     thlvx: FloatField,
 ):
     with computation(BACKWARD):
-        with interval(-1, None):
-            if flg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
-                if thlvd[0, 0] <= thlvx[0, 0, 0]:
-                    mrad[0, 0] = k_mask[0, 0, 0]
-                else:
-                    flg[0, 0] = 0
-        with interval(0, -1):
+        with interval(...):
             if flg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 if thlvd[0, 0] <= thlvx[0, 0, 0]:
                     mrad[0, 0] = k_mask[0, 0, 0]
