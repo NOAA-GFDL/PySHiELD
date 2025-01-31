@@ -609,10 +609,6 @@ class StratocumulusMassFlux:
             domain=idx.domain_compute(),
         )
 
-    with computation(FORWARD), interval(...):
-        if k_mask[0, 0, 0] == mrad[0, 0] - 1:
-            zm_mrad = zm
-
         if (self._ntcw > 2) or (self._ntrac1 > self._ntcw):
             self._mfscu_10 = stencil_factory.from_origin_domain(
                 func=mfscu_10,
