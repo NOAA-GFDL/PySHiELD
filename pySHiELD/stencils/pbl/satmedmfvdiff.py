@@ -1492,8 +1492,6 @@ def recover_momentum_tendency_and_finish(
     k_mask: IntField,
     u1: FloatField,
     v1: FloatField,
-    dkt: FloatField,
-    dkt_out: FloatField,
 ):
     from __externals__ import rdt
 
