@@ -19,6 +19,9 @@ from .translate_pbl_subtests import (
     TranslateTKEPredict,
     TranslateUpDownTKE,
     TranslateHeatTracerTridiagEle,
+    TranslateTKETendencyCalc,
+    TranslateHeatTracerTendencyCalc,
+    TranslateMomentTendencyCalc,
 )
 from .translate_phifv3 import TranslatePhiFV3
 from .translate_physics import ParallelPhysicsTranslate2Py, TranslateFortranData2Py
