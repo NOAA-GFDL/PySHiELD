@@ -3571,11 +3571,11 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             sizer, self.stencil_factory.backend
         )
 
+        self.make_storage_data_input_vars(inputs)
+
         config = self.namelist.pbl
         config.ntke = config.ntracers - 1
         config.dt_atmos = inputs.pop("delt")
-
-        self.make_storage_data_input_vars(inputs)
 
         inputs["kpblx"] = inputs["kpblx"].astype(int)
         inputs["kpbl"] = inputs["kpbl"].astype(int)
