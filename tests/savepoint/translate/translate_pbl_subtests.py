@@ -3447,6 +3447,10 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
             "dtdz1": {"shield": True},
             "evap": {"shield": True},
             "heat": {"shield": True},
+            "rtg": {"shield": True},
+            "tdt": {"shield": True},
+            "dtsfc": {"shield": True},
+            "dqsfc": {"shield": True},
         }
         self.out_vars = {
             "ad": {"shield": True},
