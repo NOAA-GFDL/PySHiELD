@@ -252,14 +252,14 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
-            "f2": {"shield": True},
+            "f2": {"serialname": "f2_ser", "shield": True},
         }
         self.out_vars = {
             "al": {"shield": True, "kend": namelist.npz - 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
-            "f2": {"shield": True},
+            "f2": {"serialname": "f2_ser", "shield": True},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
@@ -292,7 +292,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
-            "f2": {"shield": True},
+            "f2": {"serialname": "f2_ser", "shield": True},
         }
         self.in_vars["parameters"] = ["nt1"]
         self.out_vars = {
@@ -300,7 +300,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             "au": {"shield": True, "kend": namelist.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
-            "f2": {"shield": True},
+            "f2": {"serialname": "f2_ser", "shield": True},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
