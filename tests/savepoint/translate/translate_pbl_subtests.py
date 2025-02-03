@@ -3261,7 +3261,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             "al": {"shield": True, "kend": namelist.npz - 1},
             "au": {"shield": True, "kend": namelist.npz - 1},
             "delta": {"shield": True},
-            "dkt": {"serialname": "dkq", "shield": True, "kend": namelist.npz - 1},
+            "dkt": {"shield": True, "kend": namelist.npz - 1},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "kpbl": {"shield": True, "index_variable": True},
