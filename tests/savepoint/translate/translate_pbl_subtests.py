@@ -3395,13 +3395,13 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
             sizer, self.stencil_factory.backend
         )
 
+        self.make_storage_data_input_vars(inputs)
+
         config = self.namelist.pbl
         inputs.pop("ntke")
         config.ntcw = int(inputs.pop("ntcw") - 1)
         config.ntiw = int(inputs.pop("ntiw") - 1)
         config.ntke = config.ntracers - 1
-
-        self.make_storage_data_input_vars(inputs)
 
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
