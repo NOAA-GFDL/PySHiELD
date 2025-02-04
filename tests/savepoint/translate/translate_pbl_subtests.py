@@ -1834,478 +1834,583 @@ class MomentTendencyCalc:
             v1,
         )
 
-# class Half2:
-#     def __init__(
-#         self,
-#         stencil_factory: StencilFactory,
-#         quantity_factory: QuantityFactory,
-#         grid_area: Float,
-#         config: PBLConfig,
-#     ):
-#         self._ntracers = config.ntracers
-#         assert self._ntracers == 9, (
-#             "PBL scheme satmedmfvdif requires ntracer " f"({config.ntracers}) == 9"
-#         )
+class Half2:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+        config: PBLConfig,
+    ):
+        self._ntracers = config.ntracers
+        assert self._ntracers == 9, (
+            "PBL scheme satmedmfvdif requires ntracer " f"({config.ntracers}) == 9"
+        )
 
-#         self._ntrac1 = self._ntracers - 1
+        self._ntrac1 = self._ntracers - 1
 
-#         self.quantity_factory = quantity_factory
-#         self.quantity_factory.set_extra_dim_lengths(
-#             **{
-#                 TRACER_DIM: self._ntracers,
-#             }
-#         )
-#         idx = stencil_factory.grid_indexing
+        self.quantity_factory = quantity_factory
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                TRACER_DIM: self._ntracers,
+            }
+        )
+        idx = stencil_factory.grid_indexing
 
-#         km1 = idx.domain[2] - 1
-#         self._kmpbl = idx.domain[2] // 2 + 1
-#         self._kmscu = idx.domain[2] // 2 + 1
+        km1 = idx.domain[2] - 1
+        self._kmpbl = idx.domain[2] // 2 + 1
+        self._kmscu = idx.domain[2] // 2 + 1
 
-#         self._dt_atmos = config.dt_atmos
-#         self._rdt = 1.0 / self._dt_atmos
-#         self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
-#         self._dtn = self._dt_atmos / float(self._kk)
+        self._dt_atmos = config.dt_atmos
+        self._rdt = 1.0 / self._dt_atmos
+        self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
+        self._dtn = self._dt_atmos / float(self._kk)
 
-#         self._area = grid_area
+        self._ntiw = config.ntiw
+        self._ntcw = config.ntcw
+        self._ntke = config.ntke
 
-#         self._ntiw = config.ntiw
-#         self._ntcw = config.ntcw
-#         self._ntke = config.ntke
+        self._dspheat = config.dspheat
 
-#         self._dspheat = config.dspheat
+        def make_quantity():
+            return self.quantity_factory.zeros(
+                [X_DIM, Y_DIM, Z_DIM],
+                units="unknown",
+                dtype=Float,
+            )
 
-#         # Layer mask:
-#         self._k_mask = quantity_factory.zeros(
-#             [X_DIM, Y_DIM, Z_DIM],
-#             units="unknown",
-#             dtype=Int,
-#         )
+        def make_quantity_2D(type):
+            return self.quantity_factory.zeros(
+                [X_DIM, Y_DIM],
+                units="unknown",
+                dtype=type,
+            )
 
-#         for k in range(idx.domain[2]):
-#             self._k_mask.data[:, :, k] = k
+        self._cu = make_quantity()
+        self._rt = make_quantity()
+        self._ad_p1 = make_quantity_2D(Float)
+        self._f1_p1 = make_quantity_2D(Float)
+        self._f2_p1 = make_quantity_2D(Float)
+        self._a2 = self.quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
-#         self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
-#             func=compute_prandtl_num_exchange_coeff,
-#             origin=idx.origin_compute(),
-#             domain=(idx.iec, idx.jec, self._kmpbl),
-#         )
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
 
-#         self._compute_asymptotic_mixing_length = stencil_factory.from_origin_domain(
-#             func=compute_asymptotic_mixing_length,
-#             externals={"km1": km1},
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._tem1 = make_quantity()
+        self._lev = make_quantity_2D(Int)
+        self._mlenflg = make_quantity()
 
-#         self._compute_eddy_diffusivity_buoy_shear = stencil_factory.from_origin_domain(
-#             func=compute_eddy_diffusivity_buoy_shear,
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
+            func=compute_prandtl_num_exchange_coeff,
+            origin=idx.origin_compute(),
+            domain=(idx.iec, idx.jec, self._kmpbl),
+        )
 
-#         self._predict_tke = stencil_factory.from_origin_domain(
-#             func=predict_tke,
-#             externals={
-#                 "dtn": self._dtn,
-#             },
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(add=(0, 0, -1)),
-#         )
+        self._compute_asymptotic_mixing_length = stencil_factory.from_origin_domain(
+            func=compute_asymptotic_mixing_length,
+            externals={"km1": km1},
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._tke_up_down_prop = stencil_factory.from_origin_domain(
-#             func=tke_up_down_prop,
-#             externals={
-#                 "ntke": self._ntke,
-#             },
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._compute_eddy_diffusivity_buoy_shear = stencil_factory.from_origin_domain(
+            func=compute_eddy_diffusivity_buoy_shear,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._tke_tridiag_matrix_ele_comp = stencil_factory.from_origin_domain(
-#             func=tke_tridiag_matrix_ele_comp,
-#             externals={
-#                 "dt2": self._dt_atmos,
-#                 "ntke": self._ntke,
-#             },
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._predict_tke = stencil_factory.from_origin_domain(
+            func=predict_tke,
+            externals={
+                "dtn": self._dtn,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(add=(0, 0, -1)),
+        )
 
-#         self._tridit = stencil_factory.from_origin_domain(
-#             func=tridit,
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._tke_up_down_prop = stencil_factory.from_origin_domain(
+            func=tke_up_down_prop,
+            externals={
+                "ntke": self._ntke,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._recover_tke_tendency = stencil_factory.from_origin_domain(
-#             func=recover_tke_tendency,
-#             externals={"rdt": self._rdt, "ntke": self._ntke},
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._tke_tridiag_matrix_ele_comp = stencil_factory.from_origin_domain(
+            func=tke_tridiag_matrix_ele_comp,
+            externals={
+                "dt2": self._dt_atmos,
+                "ntke": self._ntke,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
-#             func=heat_moist_tridiag_mat_ele_comp,
-#             externals={"dt2": self._dt_atmos},
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._tridit = stencil_factory.from_origin_domain(
+            func=tridit,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         if self._ntrac1 >= 2:
-#             self._setup_multi_tracer_tridiag = stencil_factory.from_origin_domain(
-#                 func=setup_multi_tracer_tridiag,
-#                 externals={"dt2": self._dt_atmos},
-#                 origin=idx.origin_compute(),
-#                 domain=idx.domain_compute(),
-#             )
+        self._recover_tke_tendency = stencil_factory.from_origin_domain(
+            func=recover_tke_tendency,
+            externals={"rdt": self._rdt, "ntke": self._ntke},
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._tridin = stencil_factory.from_origin_domain(
-#             func=tridin,
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._heat_moist_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
+            func=heat_moist_tridiag_mat_ele_comp,
+            externals={"dt2": self._dt_atmos},
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._recover_moisture_tendency = stencil_factory.from_origin_domain(
-#             func=recover_moisture_tendency,
-#             externals={
-#                 "rdt": self._rdt,
-#             },
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        if self._ntrac1 >= 2:
+            self._setup_multi_tracer_tridiag = stencil_factory.from_origin_domain(
+                func=setup_multi_tracer_tridiag,
+                externals={"dt2": self._dt_atmos},
+                origin=idx.origin_compute(),
+                domain=idx.domain_compute(),
+            )
 
-#         self._recover_heat_tendency_add_diss_heat = stencil_factory.from_origin_domain(
-#             func=recover_heat_tendency_add_diss_heat,
-#             externals={
-#                 "rdt": self._rdt,
-#             },
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._tridin = stencil_factory.from_origin_domain(
+            func=tridin,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._moment_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
-#             func=moment_tridiag_mat_ele_comp,
-#             externals={
-#                 "dspheat": self._dspheat,
-#                 "dt2": self._dt_atmos,
-#             },
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._recover_moisture_tendency = stencil_factory.from_origin_domain(
+            func=recover_moisture_tendency,
+            externals={
+                "rdt": self._rdt,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._tridi2 = stencil_factory.from_origin_domain(
-#             func=tridi2,
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
+        self._recover_heat_tendency_add_diss_heat = stencil_factory.from_origin_domain(
+            func=recover_heat_tendency_add_diss_heat,
+            externals={
+                "rdt": self._rdt,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._recover_momentum_tendency_and_finish = stencil_factory.from_origin_domain(
-#             func=recover_momentum_tendency_and_finish,
-#             externals={"rdt": self._rdt},
-#             origin=idx.origin_compute(),
-#             domain=idx.domain_compute(),
-#         )
-#         pass
+        self._moment_tridiag_mat_ele_comp = stencil_factory.from_origin_domain(
+            func=moment_tridiag_mat_ele_comp,
+            externals={
+                "dspheat": self._dspheat,
+                "dt2": self._dt_atmos,
+            },
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#     def __call__(self):
-#         self._compute_prandtl_num_exchange_coeff(
-#             self._chz,
-#             self._ckz,
-#             hpbl,
-#             kpbl,
-#             self._k_mask,
-#             self._pcnvflg,
-#             self._phih,
-#             self._phim,
-#             self._prn,
-#             self._zi,
-#         )
+        self._tridi2 = stencil_factory.from_origin_domain(
+            func=tridi2,
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._compute_asymptotic_mixing_length(
-#             self._zldn,
-#             self._zlup,
-#             self._thvx,
-#             self._tke,
-#             self._gotvx,
-#             self._zl,
-#             tsea,
-#             q1,
-#             self._zi,
-#             self._rlam,
-#             self._ele,
-#             self._elm,
-#             self._tem1,
-#             self._zol,
-#             self._gdx,
-#             self._lev,
-#             self._k_mask,
-#             self._mlenflg,
-#         )
+        self._recover_momentum_tendency_and_finish = stencil_factory.from_origin_domain(
+            func=recover_momentum_tendency_and_finish,
+            externals={"rdt": self._rdt},
+            origin=idx.origin_compute(),
+            domain=idx.domain_compute(),
+        )
 
-#         self._compute_eddy_diffusivity_buoy_shear(
-#             self._bf,
-#             self._buod,
-#             self._buou,
-#             self._chz,
-#             self._ckz,
-#             self._dku,
-#             self._dkt,
-#             self._dkq,
-#             self._ele,
-#             self._elm,
-#             self._gotvx,
-#             kpbl,
-#             self._k_mask,
-#             self._mrad,
-#             self._krad,
-#             self._pblflg,
-#             self._pcnvflg,
-#             self._phim,
-#             self._prn,
-#             self._prod,
-#             self._radj,
-#             self._rdzt,
-#             self._rle,
-#             self._scuflg,
-#             self._sflux,
-#             self._shr2,
-#             stress,
-#             self._tke,
-#             u1,
-#             self._ucdo,
-#             self._ucko,
-#             self._ustar,
-#             v1,
-#             self._vcdo,
-#             self._vcko,
-#             self._xkzo,
-#             self._xkzmo,
-#             self._xmf,
-#             self._xmfd,
-#             self._zl,
-#         )
+    def __call__(
+        self,
+        ckz,
+        chz,
+        hpbl,
+        kpbl,
+        pcnvflg,
+        zi,
+        phih,
+        zldn,
+        zlup,
+        thvx,
+        tke,
+        gotvx,
+        zl,
+        tsea,
+        q1,
+        rlam,
+        ele,
+        elm,
+        zol,
+        gdx,
+        phii,
+        phim,
+        prn,
+        bf,
+        buod,
+        buou,
+        dku,
+        dkt,
+        dkq,
+        mrad,
+        krad,
+        pblflg,
+        prod,
+        radj,
+        rdzt,
+        scuflg,
+        sflux,
+        shr2,
+        stress,
+        u1,
+        ucdo,
+        ucko,
+        ustar,
+        v1,
+        vcdo,
+        vcko,
+        xkzo,
+        xkzmo,
+        xmf,
+        xmfd,
+        rle,
+        diss,
+        prsl,
+        rtg,
+        qcdo,
+        qcko,
+        f2,
+        spd1,
+        xlamue,
+        xlamde,
+        evap,
+        ad,
+        al,
+        au,
+        delta,
+        f1,
+        hpblx,
+        kpblx,
+        tcdo,
+        tcko,
+        t1,
+        dtdz1,
+        heat,
+        dtsfc,
+        dqsfc,
+        tdt,
+        du,
+        dv,
+        dusfc,
+        dvsfc,
+    ):
+        self._compute_prandtl_num_exchange_coeff(
+            chz,
+            ckz,
+            hpbl,
+            kpbl,
+            self._k_mask,
+            pcnvflg,
+            phih,
+            phim,
+            prn,
+            zi,
+        )
 
-#         for n in range(self._kk):
-#             self._predict_tke(
-#                 self._diss,
-#                 self._prod,
-#                 self._rle,
-#                 self._tke,
-#             )
+        self._compute_asymptotic_mixing_length(
+            zldn,
+            zlup,
+            thvx,
+            tke,
+            gotvx,
+            zl,
+            tsea,
+            q1,
+            zi,
+            rlam,
+            ele,
+            elm,
+            self._tem1,
+            zol,
+            gdx,
+            self._lev,
+            self._k_mask,
+            self._mlenflg,
+        )
 
-#         self._tke_up_down_prop(
-#             self._pcnvflg,
-#             self._qcdo,
-#             self._qcko,
-#             self._scuflg,
-#             self._tke,
-#             kpbl,
-#             self._k_mask,
-#             self._xlamue,
-#             self._zl,
-#             self._krad,
-#             self._mrad,
-#             self._xlamde,
-#         )
+        self._compute_eddy_diffusivity_buoy_shear(
+            bf,
+            buod,
+            buou,
+            chz,
+            ckz,
+            dku,
+            dkt,
+            dkq,
+            elm,
+            gotvx,
+            kpbl,
+            self._k_mask,
+            mrad,
+            krad,
+            pblflg,
+            pcnvflg,
+            phim,
+            prn,
+            prod,
+            radj,
+            rdzt,
+            scuflg,
+            sflux,
+            shr2,
+            stress,
+            tke,
+            u1,
+            ucdo,
+            ucko,
+            ustar,
+            v1,
+            vcdo,
+            vcko,
+            xkzo,
+            xkzmo,
+            xmf,
+            xmfd,
+            zl,
+            dkt,
+        )
 
-#         self._tke_tridiag_matrix_ele_comp(
-#             self._ad,
-#             self._ad_p1,
-#             self._al,
-#             self._au,
-#             delta,
-#             self._dkq,
-#             self._f1,
-#             self._f1_p1,
-#             kpbl,
-#             self._krad,
-#             self._k_mask,
-#             self._mrad,
-#             self._pcnvflg,
-#             prsl,
-#             self._qcdo,
-#             self._qcko,
-#             self._rdzt,
-#             self._scuflg,
-#             self._tke,
-#             self._xmf,
-#             self._xmfd,
-#             self._cu,
-#             self._rt,
-#         )
+        self._predict_tke(
+            diss,
+            prod,
+            rle,
+            tke,
+            ele,
+        )
 
-#         self._tridit(
-#             self._cu,
-#             self._ad,
-#             self._al,
-#             self._rt,
-#             self._au,
-#             self._f1,
-#         )
+        self._tke_up_down_prop(
+            pcnvflg,
+            qcdo,
+            qcko,
+            scuflg,
+            tke,
+            kpbl,
+            self._k_mask,
+            xlamue,
+            zl,
+            krad,
+            mrad,
+            xlamde,
+        )
 
-#         self._recover_tke_tendency(
-#             rtg,
-#             self._f1,
-#             q1,
-#             self._ad,
-#             self._f2,
-#             self._dtdz1,
-#             evap,
-#             heat,
-#             t1,
-#         )
+        self._tke_tridiag_matrix_ele_comp(
+            ad,
+            self._ad_p1,
+            al,
+            au,
+            delta,
+            dkq,
+            f1,
+            self._f1_p1,
+            kpbl,
+            krad,
+            self._k_mask,
+            mrad,
+            pcnvflg,
+            prsl,
+            qcdo,
+            qcko,
+            rdzt,
+            scuflg,
+            tke,
+            xmf,
+            xmfd,
+            self._cu,
+            self._rt,
+        )
 
-#         self._heat_moist_tridiag_mat_ele_comp(
-#             self._ad,
-#             self._ad_p1,
-#             self._al,
-#             self._au,
-#             delta,
-#             self._dkt,
-#             self._f1,
-#             self._f1_p1,
-#             self._f2,
-#             self._f2_p1,
-#             kpbl,
-#             self._krad,
-#             self._k_mask,
-#             self._mrad,
-#             self._pcnvflg,
-#             prsl,
-#             q1,
-#             self._qcdo,
-#             self._qcko,
-#             self._rdzt,
-#             self._scuflg,
-#             self._tcdo,
-#             self._tcko,
-#             t1,
-#             self._xmf,
-#             self._xmfd,
-#             self._cu,
-#             self._rt,
-#         )
+        self._tridit(
+            self._cu,
+            ad,
+            al,
+            self._rt,
+            au,
+            f1,
+        )
 
-#         for n in range(self._ntrac1):
-#             dim_n = n if n < self._ntke else n + 1
-#             if self._ntrac1 >= 2:
-#                 self._setup_multi_tracer_tridiag(
-#                     self._pcnvflg,
-#                     self._k_mask,
-#                     kpbl,
-#                     delta,
-#                     prsl,
-#                     self._rdzt,
-#                     self._xmf,
-#                     self._qcko,
-#                     q1,
-#                     self._f2,
-#                     self._scuflg,
-#                     self._mrad,
-#                     self._krad,
-#                     self._xmfd,
-#                     self._qcdo,
-#                     self._a2,
-#                     dim_n,
-#                 )
+        self._recover_tke_tendency(
+            rtg,
+            f1,
+            q1,
+        )
 
-#             self._tridin(
-#                 self._al,
-#                 self._ad,
-#                 self._cu,
-#                 self._rt,
-#                 self._a2,
-#                 self._au,
-#                 self._f1,
-#                 self._f2,
-#                 dim_n,
-#             )
+        self._heat_moist_tridiag_mat_ele_comp(
+            ad,
+            self._ad_p1,
+            al,
+            au,
+            delta,
+            dkt,
+            f1,
+            self._f1_p1,
+            f2,
+            self._f2_p1,
+            kpbl,
+            krad,
+            self._k_mask,
+            mrad,
+            pcnvflg,
+            prsl,
+            q1,
+            qcdo,
+            qcko,
+            rdzt,
+            scuflg,
+            tcdo,
+            tcko,
+            t1,
+            xmf,
+            xmfd,
+            dtdz1,
+            evap,
+            heat,
+            self._cu,
+            self._rt,
+            self._a2,
+        )
 
-#             self._recover_moisture_tendency(
-#                 self._f2,
-#                 q1,
-#                 rtg,
-#                 dim_n,
-#             )
+        for n in range(self._ntracers):
+            dim_n = n  # if n < self._ntke else n + 1
+            if (dim_n != self._ntke):
+                if (dim_n > 0):
+                    if self._ntrac1 >= 2:
+                        self._setup_multi_tracer_tridiag(
+                            pcnvflg,
+                            self._k_mask,
+                            kpbl,
+                            delta,
+                            prsl,
+                            rdzt,
+                            xmf,
+                            qcko,
+                            q1,
+                            f2,
+                            self._f2_p1,
+                            scuflg,
+                            mrad,
+                            krad,
+                            xmfd,
+                            qcdo,
+                            self._a2,
+                            dim_n,
+                        )
 
-#         self._recover_heat_tendency_add_diss_heat(
-#             tdt,
-#             self._f1,
-#             t1,
-#             self._f2,
-#             q1,
-#             dtsfc,
-#             delta,
-#             dqsfc,
-#         )
+                self._tridin(
+                    al,
+                    ad,
+                    self._cu,
+                    self._rt,
+                    self._a2,
+                    au,
+                    f1,
+                    f2,
+                    dim_n,
+                )
 
-#         self._moment_tridiag_mat_ele_comp(
-#             self._ad,
-#             self._ad_p1,
-#             self._al,
-#             self._au,
-#             delta,
-#             self._diss,
-#             self._dku,
-#             self._dtdz1,
-#             self._f1,
-#             self._f1_p1,
-#             self._f2,
-#             self._f2_p1,
-#             kpbl,
-#             self._krad,
-#             self._k_mask,
-#             self._mrad,
-#             self._pcnvflg,
-#             prsl,
-#             self._rdzt,
-#             self._scuflg,
-#             spd1,
-#             stress,
-#             tdt,
-#             u1,
-#             self._ucdo,
-#             self._ucko,
-#             v1,
-#             self._vcdo,
-#             self._vcko,
-#             self._xmf,
-#             self._xmfd,
-#             self._cu,
-#             self._rt,
-#             self._a2,
-#         )
+                if (dim_n > 0):
+                    if self._ntrac1 >= 2:
+                        self._recover_moisture_tendency(
+                            f2,
+                            q1,
+                            rtg,
+                            dim_n,
+                        )
 
-#         self._tridi2(
-#             self._f1,
-#             self._f2,
-#             self._au,
-#             self._al,
-#             self._ad,
-#             self._cu,
-#             self._rt,
-#             self._a2,
-#         )
+        self._recover_heat_tendency_add_diss_heat(
+            tdt,
+            f1,
+            t1,
+            f2,
+            q1,
+            rtg,
+            dtsfc,
+            delta,
+            dqsfc,
+        )
 
-#         self._recover_momentum_tendency_and_finish(
-#             delta,
-#             du,
-#             dusfc,
-#             dv,
-#             dvsfc,
-#             self._f1,
-#             self._f2,
-#             hpbl,
-#             self._hpblx,
-#             kpbl,
-#             self._kpblx,
-#             self._k_mask,
-#             u1,
-#             v1,
-#             self._dkt,
-#             dkt,
-#         )
-#         pass
+        self._moment_tridiag_mat_ele_comp(
+            ad,
+            self._ad_p1,
+            al,
+            au,
+            delta,
+            diss,
+            dku,
+            dtdz1,
+            f1,
+            self._f1_p1,
+            f2,
+            self._f2_p1,
+            kpbl,
+            krad,
+            self._k_mask,
+            mrad,
+            pcnvflg,
+            prsl,
+            rdzt,
+            scuflg,
+            spd1,
+            stress,
+            tdt,
+            u1,
+            ucdo,
+            ucko,
+            v1,
+            vcdo,
+            vcko,
+            xmf,
+            xmfd,
+            self._cu,
+            self._rt,
+            self._a2,
+        )
+
+        self._tridi2(
+            f1,
+            f2,
+            au,
+            al,
+            ad,
+            self._cu,
+            self._rt,
+            self._a2,
+        )
+
+        self._recover_momentum_tendency_and_finish(
+            delta,
+            du,
+            dusfc,
+            dv,
+            dvsfc,
+            f1,
+            f2,
+            hpbl,
+            hpblx,
+            kpbl,
+            kpblx,
+            self._k_mask,
+            u1,
+            v1,
+        )
 
 class TranslatePBLInit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3591,6 +3696,220 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
         inputs["mrad"] = inputs["mrad"].astype(int)
 
         compute_func = MomentTendencyCalc(
+            self.stencil_factory,
+            quantity_factory,
+            config,
+        )
+
+        compute_func(**inputs)
+
+        return self.slice_output(inputs)
+
+class TranslateHalf2(TranslatePhysicsFortranData2Py):
+    def __init__(self, grid, namelist, stencil_factory):
+        super().__init__(grid, namelist, stencil_factory)
+        self.in_vars["data_vars"] = {
+            "ckz": {"shield": True},
+            "chz": {"shield": True},
+            "hpbl": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "pcnvflg": {"shield": True},
+            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "phih": {"shield": True},
+            "zldn": {"shield": True},
+            "zlup": {"shield": True},
+            "thvx": {"shield": True},
+            "tke": {"shield": True},
+            "gotvx": {"shield": True},
+            "zl": {"shield": True},
+            "tsea": {"shield": True},
+            "q1": {"shield": True},
+            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "ele": {"shield": True},
+            "elm": {"shield": True},
+            "zol": {"shield": True},
+            "gdx": {"shield": True},
+            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phim": {"shield": True},
+            "prn": {"shield": True, "kend": namelist.npz - 1},
+            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "buod": {"shield": True},
+            "buou": {"shield": True},
+            "dku": {"shield": True, "kend": namelist.npz - 1},
+            "dkt": {"shield": True, "kend": namelist.npz - 1},
+            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "mrad": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+            "pblflg": {"shield": True},
+            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "radj": {"shield": True},
+            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "scuflg": {"shield": True},
+            "sflux": {"shield": True},
+            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "stress": {"shield": True},
+            "u1": {"shield": True},
+            "ucdo": {"shield": True},
+            "ucko": {"shield": True},
+            "ustar": {"shield": True},
+            "v1": {"shield": True},
+            "vcdo": {"shield": True},
+            "vcko": {"shield": True},
+            "xkzo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+            "rle": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": namelist.npz - 1},
+            "prsl": {"shield": True},
+            "rtg": {"shield": True},
+            "qcdo": {"shield": True},
+            "qcko": {"shield": True},
+            "f2": {"shield": True, "serialname": "f2_ser"},
+            "spd1": {"shield": True},
+            "xlamue": {"shield": True, "kend": namelist.npz - 1},
+            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "evap": {"shield": True},
+            "ad": {"shield": True},
+            "al": {"shield": True, "kend": namelist.npz - 1},
+            "au": {"shield": True, "kend": namelist.npz - 1},
+            "delta": {"shield": True},
+            "f1": {"shield": True},
+            "hpblx": {"shield": True},
+            "kpblx": {"shield": True, "index_variable": True},
+            "tcdo": {"shield": True},
+            "tcko": {"shield": True},
+            "t1": {"shield": True},
+            "dtdz1": {"shield": True},
+            "heat": {"shield": True},
+            "dtsfc": {"shield": True},
+            "dqsfc": {"shield": True},
+            "tdt": {"shield": True},
+            "du": {"shield": True},
+            "dv": {"shield": True},
+            "dusfc": {"shield": True},
+            "dvsfc": {"shield": True},
+        }
+        self.in_vars["parameters"] = [
+            "delt",
+            "ntcw",
+            "ntiw",
+            "ntke",
+        ]
+        self.out_vars = {
+            "ckz": {"shield": True},
+            "chz": {"shield": True},
+            "hpbl": {"shield": True},
+            "kpbl": {"shield": True, "index_variable": True},
+            "pcnvflg": {"shield": True},
+            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "phih": {"shield": True},
+            "zldn": {"shield": True},
+            "zlup": {"shield": True},
+            "thvx": {"shield": True},
+            "tke": {"shield": True},
+            "gotvx": {"shield": True},
+            "zl": {"shield": True},
+            "tsea": {"shield": True},
+            "q1": {"shield": True},
+            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "ele": {"shield": True},
+            "elm": {"shield": True},
+            "zol": {"shield": True},
+            "gdx": {"shield": True},
+            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phim": {"shield": True},
+            "prn": {"shield": True, "kend": namelist.npz - 1},
+            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "buod": {"shield": True},
+            "buou": {"shield": True},
+            "dku": {"shield": True, "kend": namelist.npz - 1},
+            "dkt": {"shield": True, "kend": namelist.npz - 1},
+            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "mrad": {"shield": True, "index_variable": True},
+            "krad": {"shield": True, "index_variable": True},
+            "pblflg": {"shield": True},
+            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "radj": {"shield": True},
+            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "scuflg": {"shield": True},
+            "sflux": {"shield": True},
+            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "stress": {"shield": True},
+            "u1": {"shield": True},
+            "ucdo": {"shield": True},
+            "ucko": {"shield": True},
+            "ustar": {"shield": True},
+            "v1": {"shield": True},
+            "vcdo": {"shield": True},
+            "vcko": {"shield": True},
+            "xkzo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xmf": {"shield": True},
+            "xmfd": {"shield": True},
+            "rle": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": namelist.npz - 1},
+            "prsl": {"shield": True},
+            "rtg": {"shield": True},
+            "qcdo": {"shield": True},
+            "qcko": {"shield": True},
+            "f2": {"shield": True, "serialname": "f2_ser"},
+            "spd1": {"shield": True},
+            "xlamue": {"shield": True, "kend": namelist.npz - 1},
+            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "evap": {"shield": True},
+            "ad": {"shield": True},
+            "al": {"shield": True, "kend": namelist.npz - 1},
+            "au": {"shield": True, "kend": namelist.npz - 1},
+            "delta": {"shield": True},
+            "f1": {"shield": True},
+            "hpblx": {"shield": True},
+            "kpblx": {"shield": True, "index_variable": True},
+            "tcdo": {"shield": True},
+            "tcko": {"shield": True},
+            "t1": {"shield": True},
+            "dtdz1": {"shield": True},
+            "heat": {"shield": True},
+            "dtsfc": {"shield": True},
+            "dqsfc": {"shield": True},
+            "tdt": {"shield": True},
+            "du": {"shield": True},
+            "dv": {"shield": True},
+            "dusfc": {"shield": True},
+            "dvsfc": {"shield": True},
+        }
+        self.stencil_factory = stencil_factory
+        self.grid_indexing = self.stencil_factory.grid_indexing
+
+    def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+
+        self.make_storage_data_input_vars(inputs)
+
+        config = self.namelist.pbl
+        config.ntke = config.ntracers - 1
+        config.dt_atmos = inputs.pop("delt")
+        config.ntiw = inputs.pop("ntiw")
+        config.ntiw = inputs.pop("ntcw")
+        inputs.pop("ntke")
+
+        inputs["kpblx"] = inputs["kpblx"].astype(int)
+        inputs["kpbl"] = inputs["kpbl"].astype(int)
+        inputs["krad"] = inputs["krad"].astype(int)
+        inputs["mrad"] = inputs["mrad"].astype(int)
+
+        compute_func = Half2(
             self.stencil_factory,
             quantity_factory,
             config,
