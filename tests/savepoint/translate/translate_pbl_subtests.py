@@ -1603,24 +1603,27 @@ class HeatTracerTendencyCalc:
                             dim_n,
                         )
 
-                    self._tridin(
-                        al,
-                        ad,
-                        self._cu,
-                        self._rt,
-                        self._a2,
-                        au,
-                        f1,
-                        f2,
-                        dim_n,
-                    )
+                self._tridin(
+                    al,
+                    ad,
+                    self._cu,
+                    self._rt,
+                    self._a2,
+                    au,
+                    f1,
+                    f2,
+                    dim_n,
+                )
 
-                    self._recover_moisture_tendency(
-                        f2,
-                        q1,
-                        rtg,
-                        dim_n,
-                    )
+                if (dim_n > 0):
+                    if self._ntrac1 >= 2:
+                        self._recover_moisture_tendency(
+                            f2,
+                            q1,
+                            rtg,
+                            dim_n,
+                        )
+
         self._recover_heat_tendency_add_diss_heat(
             tdt,
             f1,

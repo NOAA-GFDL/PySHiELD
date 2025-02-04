@@ -2455,12 +2455,14 @@ class ScaleAwareTKEMoistEDMF:
                     dim_n,
                 )
 
-                self._recover_moisture_tendency(
-                    self._f2,
-                    q1,
-                    rtg,
-                    dim_n,
-                )
+                if (dim_n > 0):
+                    if self._ntrac1 >= 2:
+                        self._recover_moisture_tendency(
+                            self._f2,
+                            q1,
+                            rtg,
+                            dim_n,
+                        )
 
         self._recover_heat_tendency_add_diss_heat(
             tdt,
