@@ -1621,7 +1621,7 @@ class HeatTracerTendencyCalc:
                         rtg,
                         dim_n,
                     )
-            self._recover_heat_tendency_add_diss_heat(
+        self._recover_heat_tendency_add_diss_heat(
             tdt,
             f1,
             t1,
