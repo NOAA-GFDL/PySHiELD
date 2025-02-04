@@ -843,6 +843,11 @@ class EdDiffShear:
             units="unknown",
             dtype=Int,
         )
+        self._dkt_out = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
@@ -932,6 +937,7 @@ class EdDiffShear:
             xmf,
             xmfd,
             zl,
+            self._dkt_out,
         )
 
 class UpDownTKE:
