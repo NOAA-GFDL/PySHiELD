@@ -1932,6 +1932,7 @@ class Half2:
             func=predict_tke,
             externals={
                 "dtn": self._dtn,
+                "kk": self._kk,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, -1)),
