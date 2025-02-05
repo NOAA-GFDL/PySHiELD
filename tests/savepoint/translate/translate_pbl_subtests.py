@@ -1870,6 +1870,7 @@ class Half2:
         self._ntke = config.ntke
 
         self._dspheat = config.dspheat
+        self.TRACER_DIM = TRACER_DIM
 
         def make_quantity():
             return self.quantity_factory.zeros(
