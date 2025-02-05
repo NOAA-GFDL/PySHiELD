@@ -20,6 +20,7 @@ from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD._config import FloatFieldTracer
 from pySHiELD.functions.physics_functions import fpvs
 
+A1 = 0.13
 
 def init_mfpbl(
     buo: FloatField,
@@ -259,7 +260,7 @@ def mfpblt_s2(
         # Updraft mass flux as a function of updraft velocity profile
         if cnvflg[0, 0] and (k_mask[0, 0, 0] < kpbl[0, 0]):
             if wu2[0, 0, 0] > 0.0:
-                xmf = physcons.A1 * sqrt(wu2[0, 0, 0])
+                xmf = A1 * sqrt(wu2[0, 0, 0])
             else:
                 xmf = 0.0
 
@@ -275,7 +276,7 @@ def mfpblt_s2(
                 )
 
                 # compute scale-aware function based on Arakawa & Wu (2013)
-                if sigma > physcons.A1:
+                if sigma > A1:
                     scaldfunc = max(min((1.0 - sigma) * (1.0 - sigma), 1.0), 0.0)
                 else:
                     scaldfunc = 1.0
