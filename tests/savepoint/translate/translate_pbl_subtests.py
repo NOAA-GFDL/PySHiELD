@@ -40,6 +40,8 @@ from pySHiELD.stencils.pbl.satmedmfvdiff import (
     tridi2,
     recover_momentum_tendency_and_finish,
 )
+from pySHiELD.stencils.pbl.mfpblt import PBLMassFlux
+from pySHiELD.stencils.pbl.mfscu import StratocumulusMassFlux
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -1840,6 +1842,8 @@ class Half2:
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         config: PBLConfig,
+        kmscu: int,
+        kmpbl: int,
     ):
         self._ntracers = config.ntracers
         assert self._ntracers == 9, (
@@ -1857,8 +1861,8 @@ class Half2:
         idx = stencil_factory.grid_indexing
 
         km1 = idx.domain[2] - 1
-        self._kmpbl = idx.domain[2] // 2 + 1
-        self._kmscu = idx.domain[2] // 2 + 1
+        self._kmpbl = kmpbl
+        self._kmscu = kmscu
 
         self._dt_atmos = config.dt_atmos
         self._rdt = 1.0 / self._dt_atmos
@@ -1911,6 +1915,26 @@ class Half2:
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Bool,
+        )
+
+        self._mfpblt = PBLMassFlux(
+            stencil_factory,
+            quantity_factory,
+            self._dt_atmos,
+            self._ntcw,
+            self._ntrac1,
+            self._kmpbl,
+        )
+
+        self._mfscu = StratocumulusMassFlux(
+            stencil_factory,
+            quantity_factory,
+            self._dt_atmos,
+            self._ntracers,
+            self._ntcw,
+            self._ntrac1,
+            self._kmscu,
+            self._ntke,
         )
 
         self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
@@ -2118,7 +2142,68 @@ class Half2:
         dv,
         dusfc,
         dvsfc,
+        zm,
+        plyr,
+        pix,
+        thlx,
+        vpert,
+        thlvx,
+        thetae,
+        radmin,
     ):
+        self._mfpblt(
+            pcnvflg,
+            zl,
+            zm,
+            q1,  # I, J, K, ntracer field
+            u1,
+            v1,
+            plyr,
+            pix,
+            thlx,
+            thvx,
+            gdx,
+            hpbl,
+            kpbl,
+            vpert,
+            buou,
+            xmf,
+            tcko,
+            qcko,  # I, J, K, ntracer field
+            ucko,
+            vcko,
+            xlamue,
+            self._k_mask,
+        )
+
+        self._mfscu(
+            pcnvflg,
+            zl,
+            zm,
+            q1,  # I, J, K, ntracer field
+            u1,
+            v1,
+            plyr,
+            pix,
+            thlx,
+            thvx,
+            thlvx,
+            gdx,
+            thetae,
+            radj,
+            krad,
+            mrad,
+            radmin,
+            buod,
+            xmfd,
+            tcdo,
+            qcdo,  # I, J, K, ntracer field
+            ucdo,
+            vcdo,
+            xlamde,
+            self._k_mask,
+        )
+
         self._compute_prandtl_num_exchange_coeff(
             chz,
             ckz,
@@ -3795,12 +3880,23 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             "dv": {"shield": True},
             "dusfc": {"shield": True},
             "dvsfc": {"shield": True},
+            "zm": {"shield": True},
+            "plyr": {"shield": True},
+            "pix": {"shield": True},
+            "thlx": {"shield": True},
+            "vpert": {"shield": True},
+            "thlvx": {"shield": True},
+            "thetae": {"shield": True},
+            "radmin": {"shield": True},
         }
         self.in_vars["parameters"] = [
             "delt",
             "ntcw",
             "ntiw",
             "ntke",
+            "ntrac1",
+            "kmpbl",
+            "kmscu",
         ]
         self.out_vars = {
             "ckz": {"shield": True},
@@ -3909,6 +4005,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
         config.ntiw = inputs.pop("ntiw")
         config.ntiw = inputs.pop("ntcw")
         inputs.pop("ntke")
+        inputs.pop("ntrac1")
 
         inputs["kpblx"] = inputs["kpblx"].astype(int)
         inputs["kpbl"] = inputs["kpbl"].astype(int)
@@ -3919,6 +4016,8 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             self.stencil_factory,
             quantity_factory,
             config,
+            int(inputs.pop("kmpbl")),
+            int(inputs.pop("kmscu")),
         )
 
         compute_func(**inputs)
