@@ -1907,7 +1907,11 @@ class Half2:
 
         self._tem1 = make_quantity()
         self._lev = make_quantity_2D(Int)
-        self._mlenflg = make_quantity()
+        self._mlenflg = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Bool,
+        )
 
         self._compute_prandtl_num_exchange_coeff = stencil_factory.from_origin_domain(
             func=compute_prandtl_num_exchange_coeff,
