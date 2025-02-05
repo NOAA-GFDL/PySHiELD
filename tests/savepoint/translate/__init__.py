@@ -22,6 +22,7 @@ from .translate_pbl_subtests import (
     TranslateTKETendencyCalc,
     TranslateHeatTracerTendencyCalc,
     TranslateMomentTendencyCalc,
+    TranslateHalf2,
 )
 from .translate_phifv3 import TranslatePhiFV3
 from .translate_physics import ParallelPhysicsTranslate2Py, TranslateFortranData2Py
