@@ -152,7 +152,7 @@ def init_turbulence(
         pblflg = True
         lcld = km1 - 1
         kcld = km1 - 1
-        mrad = km1
+        mrad = km1 - 1
         krad = 0
         radmin = 0.0
         pbot = phii
