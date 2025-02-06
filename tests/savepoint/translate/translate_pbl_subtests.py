@@ -4033,5 +4033,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
         )
 
         compute_func(**inputs, pcnvflg=pcnvflg, scuflg=scuflg)
+        inputs["pcnvflg"] = pcnvflg
+        inputs["scuflg"] = scuflg
 
         return self.slice_output(inputs)
