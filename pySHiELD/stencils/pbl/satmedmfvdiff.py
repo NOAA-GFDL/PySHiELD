@@ -2215,7 +2215,7 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         self._mfscu(
-            self._pcnvflg,
+            self._scuflg,
             self._zl,
             self._zm,
             q1,  # I, J, K, ntracer field

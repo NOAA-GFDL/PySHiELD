@@ -2177,7 +2177,7 @@ class Half2:
         )
 
         self._mfscu(
-            pcnvflg,
+            scuflg,
             zl,
             zm,
             q1,  # I, J, K, ntracer field
@@ -4012,6 +4012,12 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["mrad"] = inputs["mrad"].astype(int)
 
+        pcnvflg = quantity_factory.from_array(
+            data=inputs.pop("pcnvflg"),
+            dims=[X_DIM, Y_DIM],
+            units="",
+        )
+
         compute_func = Half2(
             self.stencil_factory,
             quantity_factory,
@@ -4020,6 +4026,6 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             int(inputs.pop("kmscu")),
         )
 
-        compute_func(**inputs)
+        compute_func(**inputs, pcnvflg=pcnvflg)
 
         return self.slice_output(inputs)
