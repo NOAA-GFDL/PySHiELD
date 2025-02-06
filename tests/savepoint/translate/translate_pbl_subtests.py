@@ -4018,6 +4018,12 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             units="",
         )
 
+        scuflg = quantity_factory.from_array(
+            data=inputs.pop("scuflg"),
+            dims=[X_DIM, Y_DIM],
+            units="",
+        )
+
         compute_func = Half2(
             self.stencil_factory,
             quantity_factory,
@@ -4026,6 +4032,6 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             int(inputs.pop("kmscu")),
         )
 
-        compute_func(**inputs, pcnvflg=pcnvflg)
+        compute_func(**inputs, pcnvflg=pcnvflg, scuflg=scuflg)
 
         return self.slice_output(inputs)
