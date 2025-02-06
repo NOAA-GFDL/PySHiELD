@@ -698,10 +698,12 @@ class StratocumulusMassFlux:
 
         if totflg:
             return
+        
+        self._set_zm_mrad(self._zm_mrad, zm, mrad, k_mask)
 
-        for i in range(self._im):
-            for j in range(self._jm):
-                self._zm_mrad.view[i, j] = zm.view[i, j, mrad.view[i, j] - 1]
+        # for i in range(self._im):
+        #     for j in range(self._jm):
+        #         self._zm_mrad.view[i, j] = zm.view[i, j, mrad.view[i, j] - 1]
 
         self._mfscu_s2(
             zl,
