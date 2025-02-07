@@ -213,6 +213,7 @@ class InitTurb:
         xkzm_hx: FloatFieldIJ,
         xkzm_mx: FloatFieldIJ,
         tvx: FloatField,
+        tem1: FloatField,
     ):
         self._init_turbulence(
             zi,
@@ -299,7 +300,7 @@ class InitTurb:
             xkzm_hx,
             xkzm_mx,
             tvx,
-            self._tem1,
+            tem1,
         )
 
 
@@ -2588,6 +2589,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "xkzm_hx": {"shield": True},
             "xkzm_mx": {"shield": True},
             "tvx": {"shield": True},
+            "tem1": {"shield": True, "serialname": "ser_tem"},
         }
         self.in_vars["parameters"] = [
             "ntcw",
@@ -2675,6 +2677,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "xkzm_hx": {"shield": True},
             "xkzm_mx": {"shield": True},
             "tvx": {"shield": True},
+            "tem1": {"shield": True, "serialname": "ser_tem"},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
