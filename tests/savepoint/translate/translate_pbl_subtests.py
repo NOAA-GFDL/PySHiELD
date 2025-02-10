@@ -2067,7 +2067,6 @@ class Half2:
         chz,
         hpbl,
         kpbl,
-        pcnvflg,
         zi,
         phih,
         zldn,
@@ -2098,7 +2097,6 @@ class Half2:
         prod,
         radj,
         rdzt,
-        scuflg,
         sflux,
         shr2,
         stress,
@@ -2151,6 +2149,8 @@ class Half2:
         thlvx,
         thetae,
         radmin,
+        pcnvflg,
+        scuflg,
     ):
         self._mfpblt(
             pcnvflg,
