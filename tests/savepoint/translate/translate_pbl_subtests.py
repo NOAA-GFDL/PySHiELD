@@ -762,6 +762,11 @@ class Prandtl:
             units="unknown",
             dtype=Int,
         )
+        self._tem1 = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
         for k in range(idx.domain[2]):
             self._k_mask.data[:, :, k] = k
@@ -795,6 +800,7 @@ class Prandtl:
             phim,
             prn,
             zi,
+            self._tem1,
         )
 
 class TKEPredict:
@@ -2216,6 +2222,7 @@ class Half2:
             phim,
             prn,
             zi,
+            self._tem1
         )
 
         self._compute_asymptotic_mixing_length(
