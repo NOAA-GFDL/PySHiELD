@@ -676,28 +676,28 @@ def compute_prandtl_num_exchange_coeff(
     phim: FloatFieldIJ,
     prn: FloatField,
     zi: FloatField,
-    temp: FloatField
 ):
 
     with computation(PARALLEL), interval(...):
-        temp = 0.0
+        ptem = 0.0
         if k_mask[0, 0, 0] < kpbl[0, 0]:
-            
-            temp = -3.0 * (max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0) ** 2.0) / (hpbl[0, 0] ** 2.0)
+            ptem = -3.0 * (
+                max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0) ** 2.0
+            ) / (hpbl[0, 0] ** 2.0)
             if pcnvflg[0, 0]:
-                prn = 1.0 + ((phih[0, 0] / phim[0, 0]) - 1.0) * exp(temp)
+                prn = 1.0 + ((phih[0, 0] / phim[0, 0]) - 1.0) * exp(ptem)
             else:
                 prn = phih[0, 0] / phim[0, 0]
 
             prn = min(prn, physcons.PRMAX)
             prn = max(prn, physcons.PRMIN)
             ckz = min(
-                physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(temp),
+                physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem),
                 physcons.CK0
             )
             ckz = max(ckz, physcons.CK1)
             chz = min(
-                physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(temp),
+                physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem),
                 physcons.CH0
             )
             chz = max(chz, physcons.CH1,)
@@ -2254,7 +2254,6 @@ class ScaleAwareTKEMoistEDMF:
             self._phim,
             self._prn,
             self._zi,
-            self._tem1,
         )
 
         self._compute_asymptotic_mixing_length(
