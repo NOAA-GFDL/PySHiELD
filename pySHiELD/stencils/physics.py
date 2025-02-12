@@ -272,14 +272,15 @@ class Physics:
         else:
             self._gfs_microphysics = False
 
+        self._dudt = make_quantity()
+        self._dvdt = make_quantity()
+        self._dtdt = make_quantity()
+        self._dusfc = make_quantity()
+        self._dvsfc = make_quantity()
+        self._dtsfc = make_quantity()
+        self._dqsfc = make_quantity()
+
         if "SATM_EDMF" in schemes:
-            self._dudt = make_quantity()
-            self._dvdt = make_quantity()
-            self._dtdt = make_quantity()
-            self._dusfc = make_quantity()
-            self._dvsfc = make_quantity()
-            self._dtsfc = make_quantity()
-            self._dqsfc = make_quantity()
             self._u1 = make_quantity()
             self._v1 = make_quantity()
             self._t1 = make_quantity()
