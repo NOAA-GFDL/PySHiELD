@@ -12,10 +12,10 @@ from gt4py.cartesian.gtscript import (
 import ndsl.constants as constants
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.typing import Float, FloatField
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.stencils.basic_operations import copy_defn
-from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
+from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig, TRACER_DIM, FloatFieldTracer
 from pySHiELD.physics_state import PhysicsState
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
@@ -101,6 +101,52 @@ def atmos_phys_driver_statein(
     with computation(PARALLEL), interval(0, 1):
         prsik = pktop
 
+
+def start_physics(
+    dvdt: FloatField,
+    dudt: FloatField,
+    dtdt: FloatField,
+    dqdt: FloatFieldTracer,
+    dusfc: FloatFieldIJ,
+    dvsfc: FloatFieldIJ,
+    dtsfc: FloatFieldIJ,
+    dqsfc: FloatFieldIJ,
+):
+    with computation(FORWARD), interval(0, 1):
+        dusfc = 0.0
+        dvsfc = 0.0
+        dtsfc = 0.0
+        dqsfc = 0.0
+    with computation(FORWARD), interval(...):
+        dvdt = 0.0
+        dudt = 0.0
+        dtdt = 0.0
+        dqdt = 0.0
+
+def pack_tracers(
+    qgrs: FloatFieldTracer,
+    qvapor: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    qo3mr: FloatField,
+    qsgs_tke: FloatField,
+    qcld: FloatField,
+):
+    from __externals__ import ntcw, ntiw, ntke, ntliquid, ntrain, ntsnow, ntgraupel, nto3, ntvap
+
+    with computation(PARALLEL), interval(...):
+        qgrs[0, 0, 0][ntvap] = qvapor
+        qgrs[0, 0, 0][ntliquid] = qliquid
+        qgrs[0, 0, 0][ntrain] = qrain
+        qgrs[0, 0, 0][ntiw] = qice
+        qgrs[0, 0, 0][ntsnow] = qsnow
+        qgrs[0, 0, 0][ntgraupel] = qgraupel
+        qgrs[0, 0, 0][nto3] = qo3mr
+        qgrs[0, 0, 0][ntke] = qsgs_tke
+        qgrs[0, 0, 0][ntcw] = qcld
 
 def prepare_microphysics(
     dz: FloatField,
@@ -213,15 +259,34 @@ class Physics:
             config=stencil_factory.config.dace_config,
             dace_compiletime_args=["physics_state"],
         )
+        self._ntracers = namelist.ntracers
+        if self._ntracers != 9:
+            raise NotImplementedError(
+                f"ntracers != 9 has not been implemented, got {self._ntracers}"
+            )
+        self.TRACER_DIM = TRACER_DIM
+        self.quantity_factory = quantity_factory
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: self._ntracers,
+            }
+        )
 
         grid_indexing = stencil_factory.grid_indexing
         self._setup_statein()
         self._ptop = grid_data.ptop
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
+        if self._ntracers == 9:
+            self._ntliquid = 1
+            self._ntrain = 2
+            self._ntsnow = 4
+            self._ntgraupel = 5
+            self._nto3 = 6
+            self._ntvap = 0
 
         def make_quantity():
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return self.quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
 
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
@@ -230,6 +295,27 @@ class Physics:
             func=copy_defn,
             origin=grid_indexing.origin_full(),
             domain=grid_indexing.domain_full(add=(0, 0, 1)),
+        )
+        self._start_physics = stencil_factory.from_origin_domain(
+            func=start_physics,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._pack_tracers = stencil_factory.from_origin_domain(
+            func=pack_tracers,
+            externals={
+                "ntiw": namelist.ntiw,
+                "ntcw": namelist.ntcw,
+                "ntke": namelist.ntke,
+                "ntliquid": self._ntliquid,
+                "ntrain": self._ntrain,
+                "ntsnow": self._ntsnow,
+                "ntgraupel": self._ntgraupel,
+                "nto3": self._nto3,
+                "ntvap": self._ntvap,
+            },
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
         )
         self._get_prs_fv3 = stencil_factory.from_origin_domain(
             func=get_prs_fv3,
@@ -267,7 +353,7 @@ class Physics:
                 )
             )
             self._microphysics = Microphysics(
-                stencil_factory, quantity_factory, grid_data, namelist=namelist
+                stencil_factory, self.quantity_factory, grid_data, namelist=namelist
             )
         else:
             self._gfs_microphysics = False
@@ -275,6 +361,17 @@ class Physics:
         self._dudt = make_quantity()
         self._dvdt = make_quantity()
         self._dtdt = make_quantity()
+        self._dqdt = self.quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+        self._qgrs = self.quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
         self._dusfc = make_quantity()
         self._dvsfc = make_quantity()
         self._dtsfc = make_quantity()
@@ -287,7 +384,7 @@ class Physics:
             self._satm_edmf = True
             self._pbl = ScaleAwareTKEMoistEDMF(
                 stencil_factory,
-                quantity_factory,
+                self.quantity_factory,
                 grid_data,
                 namelist.pbl,
             )
@@ -319,6 +416,29 @@ class Physics:
             physics_state.pt,
             self._dm3d,
         )
+        self._start_physics(
+            self._dvdt,
+            self._dudt,
+            self._dtdt,
+            self._dqdt,  # FloatField with extra data dimension
+            self._dusfc,
+            self._dvsfc,
+            self._dtsfc,
+            self._dqsfc,
+        )
+        if self._ntracers == 9:
+            self._pack_tracers(
+                self._qgrs,
+                physics_state.qvapor,
+                physics_state.qliquid,
+                physics_state.qrain,
+                physics_state.qice,
+                physics_state.qsnow,
+                physics_state.qgraupel,
+                physics_state.qo3mr,
+                physics_state.qsgs_tke,
+                physics_state.qcld,
+            )
         self._get_prs_fv3(
             physics_state.phii,
             physics_state.prsi,
@@ -342,12 +462,12 @@ class Physics:
                 self._dvdt,
                 self._dudt,
                 self._dtdt,
-                rtg,  # FloatField with extra data dimension
+                self._dqdt,  # FloatField with extra data dimension
                 physics_state.hpbl,
-                self._u1,
-                self._v1,
-                self._t1,
-                q1,  # FloatField with extra data dimension
+                physics_state.ua,
+                physics_state.va,
+                physics_state.pt,
+                self._qgrs,  # FloatField with extra data dimension
                 physics_state.hsw,
                 physics_state.hlw,
                 xmu,
