@@ -49,6 +49,7 @@ def interpolate_radiation(
     dtdt: FloatField,
     dtdtc: FloatField,
     adjsfcdlw: FloatFieldIJ,
+    adjsfculw: FloatFieldIJ,
     adjsfcnsw: FloatFieldIJ,
     adjsfcdsw: FloatFieldIJ,
     adjnirbmu: FloatFieldIJ,
