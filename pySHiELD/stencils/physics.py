@@ -152,7 +152,6 @@ def interpolate_radiation(
             xmu = xcosz / coszen
         else:
             xmu = 0.0
-        pass
 
         # adjust sfc net and downward sw fluxes for zenith angle changes
         adjsfcnsw = sfcnsw * xmu
