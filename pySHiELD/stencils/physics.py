@@ -27,9 +27,9 @@ def interpolate_radiation(
     coslat: FloatFieldIJ,
     xlon: FloatFieldIJ,
     coszen: FloatFieldIJ,
+    t_sea: FloatFieldIJ,
     t_surface: FloatFieldIJ,
     t_surface_longwave: FloatFieldIJ,
-    t_sea: FloatFieldIJ,
     sfcemis: FloatFieldIJ,
     sfcdlw: FloatFieldIJ,
     sfcnsw: FloatFieldIJ,
@@ -136,7 +136,7 @@ def interpolate_radiation(
         adjsfcdlw = sfcdlw * tem1 * tem1
 
         # compute sfc upward lw flux from current sfc temp
-        adjsfculw = sfcemis * constants.SBC * (t_sea) ** 2 + (1.0 - sfcemis) * adjsfcdlw
+        adjsfculw = sfcemis * constants.SBC * (t_sea) ** 4 + (1.0 - sfcemis) * adjsfcdlw
 
         # sw time-step adjustment
         ss = sinlat * sdec
