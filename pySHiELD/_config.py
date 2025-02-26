@@ -107,7 +107,7 @@ class PhysicsConfig:
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
     namelist_override: Optional[str] = None
-    daily_mean: bool = DEFAULT_BOOL # flag to replace cosz with daily mean value
+    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
     def __post_init__(self):
         if self.schemes is None:
