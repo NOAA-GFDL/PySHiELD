@@ -349,6 +349,7 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
+        pre_radiation = False
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -367,6 +368,7 @@ class Physics:
         self._ptop = grid_data.ptop
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
+        self._pre_radiation = pre_radiation
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -395,6 +397,13 @@ class Physics:
                 "pktop": self._pktop,
             },
         )
+        if not self._pre_radiation:
+            self._interpolate_radiation = stencil_factory.from_origin_domain(
+                func=interpolate_radiation,
+                externals={namelist.daily_mean,},
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
         if "GFS_microphysics" in schemes:
             self._gfs_microphysics = True
             self._prepare_microphysics = stencil_factory.from_origin_domain(
