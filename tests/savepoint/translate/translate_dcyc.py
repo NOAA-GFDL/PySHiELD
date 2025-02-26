@@ -1,5 +1,5 @@
-from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 from pySHiELD.stencils.physics import interpolate_radiation
+from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslateRadInterp(TranslatePhysicsFortranData2Py):
@@ -70,13 +70,11 @@ class TranslateRadInterp(TranslatePhysicsFortranData2Py):
         self._daily_mean = namelist.daily_mean
         self.compute_func = stencil_factory.from_origin_domain(
             interpolate_radiation,
-            externals={
-                "daily_mean": namelist.daily_mean
-            },
+            externals={"daily_mean": namelist.daily_mean},
             origin=self.grid_indexing.origin_full(),
             domain=self.grid_indexing.domain_full(),
         )
-    
+
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
         assert self._daily_mean == inputs.pop("daily_mean")
