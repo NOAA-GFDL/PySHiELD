@@ -142,7 +142,7 @@ def interpolate_radiation(
         ss = sinlat * sdec
         cc = coslat * cdec
         ch = cc * cos(xlon + cns)
-        xcosz = cc + ss
+        xcosz = ch + ss
 
         if daily_mean:
             # replace cosz with daily mean value
