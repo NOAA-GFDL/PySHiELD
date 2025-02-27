@@ -403,7 +403,7 @@ class Physics:
         if not self._pre_radiation:
             self._interpolate_radiation = stencil_factory.from_origin_domain(
                 func=interpolate_radiation,
-                externals={namelist.daily_mean,},
+                externals={"daily_mean": namelist.daily_mean,},
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
