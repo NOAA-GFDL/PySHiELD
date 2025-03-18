@@ -5,12 +5,17 @@ from typing import List, Optional, Tuple
 import f90nml
 
 from ndsl import MetaEnumStr
+from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.namelist import Namelist, NamelistDefaults
 
+
+# TODO: This is a hack
+FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
+TRACER_DIM = "n_tracers"
 
 
 @unique

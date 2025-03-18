@@ -10,9 +10,10 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
+from ndsl.stencils.basic_operations import select_k
 import pySHiELD.constants as physcons
 from pySHiELD.functions.physics_functions import fpvs
-from pySHiELD._config import PhysicsConfig
+from pySHiELD._config import PhysicsConfig, FloatFieldTracer, TRACER_DIM
 import numpy as np
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -312,17 +313,18 @@ def init_tracers(
     cnvflg: BoolField,
     k_idx: IntField,
     kmax: IntField,
-    ctr: FloatField,
-    ctro: FloatField,
-    ecko: FloatField,
-    qtr: FloatField,
+    ctr: FloatFieldTracer,
+    ctro: FloatFieldTracer,
+    ecko: FloatFieldTracer,
+    qtr: FloatFieldTracer,
+    n_tracer: int,
 ):
     with computation(PARALLEL), interval(...):
         # Initialize tracer variables
         if cnvflg and k_idx <= kmax:
-            ctr = qtr
-            ctro = qtr
-            ecko = 0.0
+            ctr[0, 0, 0][n_tracer] = qtr[0, 0, 0][n_tracer]
+            ctro[0, 0, 0][n_tracer] = qtr[0, 0, 0][n_tracer]
+            ecko[0, 0, 0][n_tracer] = 0.0
 
 
 def stencil_static0(
@@ -428,11 +430,17 @@ def stencil_static0(
 
 # ntr stencil put at last
 def stencil_ntrstatic0(
-    cnvflg: BoolField, k_idx: IntField, kmax: IntField, ctro: FloatField
+    cnvflg: BoolField,
+    k_idx: IntField,
+    kmax: IntField,
+    ctro: FloatFieldTracer,
+    n_tracer: int
 ):
     with computation(PARALLEL), interval(0, -1):
         if (cnvflg) and (k_idx <= (kmax - 1)):
-            ctro = 0.5 * (ctro + ctro[0, 0, 1])
+            ctro[0, 0, 0][n_tracer] = 0.5 * (
+                ctro[0, 0, 0][n_tracer] + ctro[0, 0, 1][n_tracer]
+            )
 
 
 def stencil_static1(
@@ -443,27 +451,32 @@ def stencil_static1(
     k_idx: IntField,
     kbm: IntField,
     kb: IntField,
-    heo_kb: FloatField,
+    heo_kb: FloatFieldIJ,
+    heo: FloatField,
     heso: FloatField,
 ):
-    with computation(PARALLEL), interval(...):
-        flg = cnvflg
-        if flg:
-            kbcon = kmax
+    with computation(FORWARD), interval(...):
+        if k_idx == kb:
+            heo_kb[0, 0] = heo[0, 0, 0]
+    with computation(FORWARD):
+        with interval(0, 1):
+            flg = cnvflg
+            if flg:
+                kbcon = kmax
 
-    with computation(FORWARD), interval(1, -1):
-        kbcon = kbcon[0, 0, -1]
-        flg = flg[0, 0, -1]
-        if flg and k_idx < kbm:
-            # To use heo_kb to represent heo(i,kb(i))
-            if k_idx[0, 0, 0] > kb[0, 0, 0] and heo_kb > heso[0, 0, 0]:
-                kbcon = k_idx
-                flg = False
+        with interval(1, -1):
+            kbcon = kbcon[0, 0, -1]
+            flg = flg[0, 0, -1]
+            if flg and k_idx < kbm:
+                # To use heo_kb to represent heo(i,kb(i))
+                if k_idx[0, 0, 0] > kb[0, 0, 0] and heo_kb > heso[0, 0, 0]:
+                    kbcon = k_idx
+                    flg = False
 
-    # To make all slices like the final slice
-    with computation(FORWARD), interval(-1, None):
-        kbcon = kbcon[0, 0, -1]
-        flg = flg[0, 0, -1]
+        # To make all slices like the final slice
+        with interval(-1, None):
+            kbcon = kbcon[0, 0, -1]
+            flg = flg[0, 0, -1]
 
     with computation(BACKWARD), interval(0, -1):
         kbcon = kbcon[0, 0, 1]
@@ -479,14 +492,23 @@ def stencil_static1(
 def stencil_static2(
     cnvflg: BoolField,
     pdot: FloatField,
-    dot_kbcon: FloatField,
+    dot: FloatField,
+    dot_kbcon: FloatFieldIJ,
     islimsk: IntField,
-    k_idx: IntField,
-    kbcon: IntField,
-    kb: IntField,
-    pfld_kb: FloatField,
-    pfld_kbcon: FloatField,
+    k_mask: IntField,
+    kbcon: IntFieldIJ,
+    kb: IntFieldIJ,
+    pfld: FloatField,
+    pfld_kb: FloatFieldIJ,
+    pfld_kbcon: FloatFieldIJ,
 ):
+    with computation(PARALLEL), interval(...):
+        if k_mask == kbcon:
+            dot_kbcon = dot
+            pfld_kbcon = pfld
+        if k_mask == kb:
+            pfld_kb = pfld
+
     with computation(PARALLEL), interval(...):
         if cnvflg:
             # To use dotkbcon to represent dot(i,kbcon(i))
@@ -539,10 +561,11 @@ def stencil_static3(
     kb: IntField,
     kbcon: IntField,
     zo: FloatField,
-    qtr: FloatField,
+    qtr: FloatFieldTracer,
     clamt: FloatField,
     clam: Float,
 ):
+    from __externals__ import ntk
     with computation(BACKWARD), interval(-1, None):
         if cnvflg:
             sumx = 0.0
@@ -557,7 +580,7 @@ def stencil_static3(
         if cnvflg:
             if (k_idx >= kb) and (k_idx < kbcon):
                 dz = zo[0, 0, 1] - zo[0, 0, 0]
-                tem = 0.5 * (qtr[0, 0, 0] + qtr[0, 0, 1])
+                tem = 0.5 * (qtr[0, 0, 0][ntk] + qtr[0, 0, 1][ntk])
                 tkemean = tkemean[0, 0, 1] + tem * dz  # dz, tem to be 3d
                 sumx = sumx[0, 0, 1] + dz
 
@@ -808,8 +831,17 @@ def stencil_update_kbcon1_cnvflg(
 
 # pass
 def stencil_static9(
-    cnvflg: BoolField, pfld_kbcon: FloatField, pfld_kbcon1: FloatField
+    cnvflg: BoolField,
+    pfld: FloatField,
+    pfld_kbcon: FloatFieldIJ,
+    pfld_kbcon1: FloatFieldIJ,
+    k_mask: IntField,
+    kbcon1: IntFieldIJ,
 ):
+    with computation(PARALLEL), interval(...):
+        if k_mask == kbcon1:
+            pfld_kbcon1 = pfld
+
     with computation(PARALLEL), interval(...):
         tem = 0.0
 
@@ -2297,9 +2329,21 @@ class ScaleAwareMassFluxShallowConvection:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        namelist: PhysicsConfig,
+        config: PhysicsConfig,
     ):
         grid_indexing = stencil_factory.grid_indexing
+
+        # Determine whether to perform aerosol transport #
+        self._ntk = config.ntke
+        self._ntr = config.ntr
+        self._ncloud = config.ncloud
+        self._do_aerosols = (config.itc > 0) and (config.ntc > 0) and (config.ntr > 0)
+        if self._do_aerosols:
+            self._do_aerosols = config.ntr >= config.itc
+
+        km1 = idx.domain[2] - 1
+
+        idx = stencil_factory.grid_indexing
 
         def make_quantity(**kwargs):
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -2308,10 +2352,28 @@ class ScaleAwareMassFluxShallowConvection:
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
 
         # Allocate arrays
+
+        # Layer mask:
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(idx.domain[2]):
+            self._k_mask.data[:, :, k] = k
+
         self._cnvflg = make_quantity_2D()
+        self._kbm = make_quantity_2D()
+        self._heo_kb = make_quantity_2D()
         self._drag = make_quantity()
 
         # Configure stencils
+        self._select_k = stencil_factory.from_origin_domain(
+            func=select_k,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         self._pa_to_cb = stencil_factory.from_origin_domain(
             func=pa_to_cb,
             origin=grid_indexing.origin_compute(),
@@ -2359,6 +2421,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._stencil_static3 = stencil_factory.from_origin_domain(
             func=stencil_static3,
+            externals={"ntk", self._ntk},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2458,6 +2521,7 @@ class ScaleAwareMassFluxShallowConvection:
         self,
         cnvflg: BoolFieldIJ
     ):
+        # Convert input Pa terms to Cb terms
         self._pa_to_cb()
 
         self._init_col_arr()
@@ -2467,11 +2531,81 @@ class ScaleAwareMassFluxShallowConvection:
         self._init_par_and_arr()
         self._init_kbm_kmax()
         self._init_final()
+
         # Init tracers
+        for n in range(self._ntr):
+            n_tracer = n + 2
+            self._init_tracers(
+                cnvflg,
+                k_idx,
+                kmax,
+                ctr,
+                ctro,
+                ecko,
+                qtr,
+                n_tracer,
+            )
 
         self._stencil_static0()
-        # stencil_ntrstatic0
+        for n in range(self._ntr):
+            n_tracer = n + 2
+            stencil_ntrstatic0(
+                cnvflg,
+                k_idx,
+                kmax,
+                ctro,
+            )
 
         self._stencil_static1()
-        # Redo "get_1D_from_index" to k masking
+        if exit_routine(cnvflg.view()):
+            return
+
+        self._stencil_static2()
+        if exit_routine(cnvflg.view()):
+            return
+
+        if self._ntk > 0:
+            self._stencil_static3()
+
+        self._stencil_static5()
+
+        for n in range(self._ntr):
+            n_tracer = n + 2
+            self._stencil_ntrstatic1()
+
+        self._stencil_static7()
+
+        for n in range(self._ntr):
+            n_tracer = n + 2
+            self._stencil_ntrstatic2()
+
+        self._stencil_update_kbcon1_cnvflg()
+
+        self._stencil_static9()
+        if exit_routine(cnvflg.view()):
+            return
+
+        self._stencil_static11()
+        if exit_routine(cnvflg.view()):
+            return
+
+        self._stencil_static12()
+
+        if self._ncloud > 0:
+            self._stencil_static13()
+
+        self._stencil_static14()
+
+        self._comp_tendencies()
+
+        for n in range(self._ntr):
+            n_tracer = n + 2
+            self._comp_tendencies_tr()
+
+        self._feedback_control_update()
+
+        for n in range(self._ntr):
+            n_tracer = n + 2
+            self._feedback_control_upd_trr
+
         pass
