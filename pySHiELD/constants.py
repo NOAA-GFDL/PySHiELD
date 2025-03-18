@@ -21,3 +21,6 @@ CONQ = constants.HLV / constants.GRAV
 # Alternative Units and Precision in Physics:
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
 CPH2O2 = 4.2e6
+
+# Constants used in interpolating radiation onto physics timestep:
+F_EPS = 0.0001
