@@ -2768,7 +2768,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         for n in range(self._ntr):
             n_tracer = n + 2
-            self._feedback_control_upd_trr
+            self._feedback_control_upd_trr()
 
         if self._ncloud > 0:
             self._separate_detrained_cw()
