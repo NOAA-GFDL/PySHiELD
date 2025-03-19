@@ -14,7 +14,6 @@ from ndsl.stencils.basic_operations import select_k
 import pySHiELD.constants as physcons
 from pySHiELD.functions.physics_functions import fpvs
 from pySHiELD._config import PhysicsConfig, FloatFieldTracer, TRACER_DIM
-import numpy as np
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl import StencilFactory, QuantityFactory
@@ -29,42 +28,54 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
     IntField,
 )
-from ndsl.stencils.basic_operations import sign
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 def exit_routine(cnvflg):
     return cnvflg.sum() == 0
 
 def pa_to_cb(
-    psp: FloatField,
+    psp: FloatFieldIJ,
     prslp: FloatField,
     delp: FloatField,
-    ps: FloatField,
+    ps: FloatFieldIJ,
     prsl: FloatField,
     del0: FloatField,
 ):
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD):
         # Convert input Pa terms to Cb terms
-        ps = psp * 0.001
-        prsl = prslp * 0.001
-        del0 = delp * 0.001
+        with interval(0, 1):
+            ps = psp * 0.001
+            prsl = prslp * 0.001
+            del0 = delp * 0.001
+        with interval(1, None):
+            prsl = prslp * 0.001
+            del0 = delp * 0.001
 
 
 def init_col_arr(
-    kcnv: IntField,
-    cnvflg: BoolField,
-    kbot: IntField,
-    ktop: IntField,
-    kbcon: IntField,
-    kb: IntField,
-    rn: FloatField,
-    gdx: FloatField,
-    garea: FloatField,
-    km: Int
+    kcnv: IntFieldIJ,
+    cnvflg: BoolFieldIJ,
+    kbot: IntFieldIJ,
+    ktop: IntFieldIJ,
+    kbcon: IntFieldIJ,
+    kb: IntFieldIJ,
+    ktcon: IntFieldIJ,
+    ktconn: IntFieldIJ,
+    pdot: FloatFieldIJ,
+    rn: FloatFieldIJ,
+    qlko_ktcon: FloatFieldIJ,
+    edt: FloatFieldIJ,
+    aa1: FloatFieldIJ,
+    cina: FloatFieldIJ,
+    vshear: FloatFieldIJ,
+    gdx: FloatFieldIJ,
+    garea: FloatFieldIJ,
 ):
-    with computation(PARALLEL), interval(...):
+    from __externals__ import km
+    with computation(FORWARD), interval(0, 1):
         # Initialize column-integrated and other single-value-per-column
         # variable arrays
+        cnvflg = True
         if kcnv == 1:
             cnvflg = False
 
@@ -74,37 +85,44 @@ def init_col_arr(
 
         rn = 0.0
         kbcon = km
+        ktcon = 1
+        ktconn = 1
         kb = km
+        pdot = 0.
+        qlko_ktcon = 0.
+        edt = 0.
+        aa1 = 0.
+        cina = 0.
+        vshear = 0.
         gdx = sqrt(garea)
 
 
 def init_par_and_arr(
-    islimsk: IntField,
-    c0: FloatField,
+    islimsk: IntFieldIJ,
+    c0: FloatFieldIJ,
     t1: FloatField,
     c0t: FloatField,
     cnvw: FloatField,
     cnvc: FloatField,
     ud_mf: FloatField,
     dt_mf: FloatField,
-    c0s: Float,
-    asolfac: Float,
-    d0: Float
 ):
-    with computation(PARALLEL), interval(...):
+    from __externals__ import asolfac, c0s
+    with computation(FORWARD), interval(0, 1):
         # Determine aerosol-aware rain conversion parameter over land
         if islimsk == 1:
             c0 = c0s * asolfac
         else:
             c0 = c0s
 
+    with computation(FORWARD), interval(...):
         # Determine rain conversion parameter above the freezing level
         # which exponentially decreases with decreasing temperature
         # from Han et al.'s (2017) \cite han_et_al_2017 equation 8
-        tem = exp(d0 * (t1 - 273.16))
         if t1 > 273.16:
             c0t = c0
         else:
+            tem = exp(physcons.D0_SHAL * (t1 - 273.16))
             c0t = c0 * tem
 
         # Initialize convective cloud water and cloud cover to zero
@@ -117,81 +135,35 @@ def init_par_and_arr(
 
 
 def init_kbm_kmax(
-    kbm: IntField,
-    k_idx: IntField,
-    kmax: IntField,
-    state_buf1: BoolField,
-    state_buf2: BoolField,
-    tx1: FloatField,
-    ps: FloatField,
+    kbm: IntFieldIJ,
+    kmax: IntFieldIJ,
+    tx1: FloatFieldIJ,
+    ps: FloatFieldIJ,
     prsl: FloatField,
-    km: Int
+    k_mask: IntField,
 ):
-    with computation(FORWARD):
-        # Determine maximum indices for the parcel starting point (kbm)
-        # and cloud top (kmax)
-        with interval(0, 1):
-            tx1 = 1.0 / ps
-
-            if prsl * tx1 > 0.7:
-                kbm = k_idx + 1
-                state_buf1 = 1
-            else:
-                kbm = km
-                state_buf1 = 0  # means kbm is set to default `km`
-
-        with interval(1, None):
-            tx1 = 1.0 / ps
-
-            if prsl * tx1 > 0.7:
-                kbm = k_idx + 1
-                state_buf1 = 1
-            elif state_buf1[0, 0, -1]:
-                kbm = kbm[0, 0, -1]
-                state_buf1 = 1
-            else:
-                kbm = km
-                state_buf1 = 0
-
-    with computation(FORWARD):
-        with interval(0, 1):
-            if prsl * tx1 > 0.6:
-                kmax = k_idx + 1
-                state_buf2 = 1  # reuse flg
-            else:
-                kmax = km
-                state_buf2 = 0  # means kmax is set to default `km`
-
-        with interval(1, None):
-            if prsl * tx1 > 0.6:
-                kmax = k_idx + 1
-                state_buf2 = 1
-            elif state_buf2[0, 0, -1]:
-                kmax = kmax[0, 0, -1]
-                state_buf2 = 1
-            else:
-                kmax = km
-                state_buf2 = 0
-
-    with computation(BACKWARD):
-        with interval(-1, None):
-            kbm = min(kbm, kmax)
-
-        with interval(0, -1):
-            kbm = kbm[0, 0, 1]
-            kmax = kmax[0, 0, 1]
-            kbm = min(kbm, kmax)
+    from __externals__ import km
+    # Determine maximum indices for the parcel starting point (kbm)
+    # and cloud top (kmax)
+    with computation(FORWARD), interval(0, 1):
+        kbm = km
+        kmax = km
+        tx1 = 1.0 / ps
+    with computation(FORWARD), interval(...):
+        if prsl * tx1 > 0.7:
+            kbm = k_mask + 1
+        if prsl * tx1 > 0.6:
+            kmax = k_mask + 1
+    with computation(FORWARD), interval(-1, None):
+        kbm = min(kbm, kmax)
 
 
 def init_final(
     kbm: IntField,
-    k_idx: IntField,
     kmax: IntField,
-    flg: BoolField,
-    cnvflg: BoolField,
-    kpbl: IntField,
-    tx1: FloatField,
-    ps: FloatField,
+    flg: BoolFieldIJ,
+    cnvflg: BoolFieldIJ,
+    kpbl: IntFieldIJ,
     prsl: FloatField,
     zo: FloatField,
     phil: FloatField,
@@ -217,56 +189,43 @@ def init_final(
     qeso: FloatField,
     heo: FloatField,
     heso: FloatField,
-    hpbl: FloatField,
+    hpbl: FloatFieldIJ,
     t1: FloatField,
     q1: FloatField,
     u1: FloatField,
     v1: FloatField,
-    km: Int
+    k_mask: IntField,
 ):
-    with computation(FORWARD), interval(...):
+    with computation(PARALLEL), interval(...):
         # Calculate hydrostatic height at layer centers assuming a flat
         # surface (no terrain) from the geopotential
         zo = phil / constants.GRAV
-
-        # Initialize flg in parallel computation block
-        flg = cnvflg
-
-        kpbl = 1
 
     with computation(PARALLEL), interval(0, -1):
         # Calculate interface height
         zi = 0.5 * (zo[0, 0, 0] + zo[0, 0, +1])
 
+    with computation(FORWARD), interval(0, 1):
+        flg = cnvflg
+        kpbl = 1
+
     with computation(FORWARD), interval(1, -1):
         # Find the index for the PBL top using the PBL height; enforce
         # that it is lower than the maximum parcel starting level
-        flg = flg[0, 0, -1]
-        kpbl = kpbl[0, 0, -1]
         if flg and (zo <= hpbl):
-            kpbl = k_idx
+            kpbl = k_mask
         else:
             flg = False
 
     with computation(FORWARD), interval(-1, None):
-        flg = flg[0, 0, -1]
-        kpbl = kpbl[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        # Propagate results back to update whole field
-        kpbl = kpbl[0, 0, 1]
-        flg = flg[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
         kpbl = min(kpbl, kbm)
 
-        # Temporary var have to be defined outside of if-clause
+    with computation(PARALLEL), interval(...):
         val1 = 0.0
         val2 = 0.0
         tem = 0.0
-        fpvsto = fpvs(t1)  # fpvs(to) and to = t1
 
-        if cnvflg and k_idx <= kmax:
+        if cnvflg and k_mask <= kmax:
 
             # Convert prsl from centibar to millibar, set normalized mass
             # flux to 1, cloud properties to 0, and save model state
@@ -292,11 +251,10 @@ def init_final(
 
             # Calculate saturation specific humidity and enforce minimum
             # moisture values
-            qeso = 0.01 * fpvsto
+            qeso = 0.01 * fpvs(to)
             qeso = (constants.EPS * qeso) / (
                 pfld + (constants.EPS - 1) * qeso
-            )  # fpsv is a function (can't be called inside conditional)
-            # also how to access lookup table?
+            )
             val1 = 1.0e-8
             val2 = 1.0e-10
             qeso = max(qeso, val1)
@@ -311,7 +269,7 @@ def init_final(
 
 def init_tracers(
     cnvflg: BoolField,
-    k_idx: IntField,
+    k_mask: IntField,
     kmax: IntField,
     ctr: FloatFieldTracer,
     ctro: FloatFieldTracer,
@@ -321,20 +279,20 @@ def init_tracers(
 ):
     with computation(PARALLEL), interval(...):
         # Initialize tracer variables
-        if cnvflg and k_idx <= kmax:
+        if cnvflg and k_mask <= kmax:
             ctr[0, 0, 0][n_tracer] = qtr[0, 0, 0][n_tracer]
             ctro[0, 0, 0][n_tracer] = qtr[0, 0, 0][n_tracer]
             ecko[0, 0, 0][n_tracer] = 0.0
 
 
 def stencil_static0(
-    cnvflg: BoolField,
-    hmax: FloatField,
+    cnvflg: BoolFieldIJ,
+    hmax: FloatFieldIJ,
     heo: FloatField,
-    kb: IntField,
-    k_idx: IntField,
-    kpbl: IntField,
-    kmax: IntField,
+    kb: IntFieldIJ,
+    k_mask: IntField,
+    kpbl: IntFieldIJ,
+    kmax: IntFieldIJ,
     zo: FloatField,
     to: FloatField,
     qeso: FloatField,
@@ -347,26 +305,22 @@ def stencil_static0(
 ):
     """
     Scale-Aware Mass-Flux Shallow Convection
-    :to use the k_idx[1,0:im,0:km] as storage of 1 to k_idx index.
     """
+    # Search in the PBL for the level of maximum moist
+    # static energy to start the ascending parcel.
     with computation(FORWARD), interval(0, 1):
         if cnvflg:
             hmax = heo
             kb = 1
 
     with computation(FORWARD), interval(1, None):
-        hmax = hmax[0, 0, -1]
-        kb = kb[0, 0, -1]
-        if (cnvflg) and (k_idx <= kpbl):
+        if (cnvflg) and (k_mask <= kpbl):
             if heo > hmax:
-                kb = k_idx
+                kb = k_mask
                 hmax = heo
 
-    # To make all slice like the final slice
-    with computation(BACKWARD), interval(0, -1):
-        kb = kb[0, 0, 1]
-        hmax = hmax[0, 0, 1]
-
+    # Calculate the temperature, water vapor mixing ratio,
+    # and pressure at interface levels.
     with computation(FORWARD), interval(0, -1):
         tmp = fpvs(to[0, 0, 1])
         dz = 1.0
@@ -381,7 +335,7 @@ def stencil_static0(
         dt = 1.0
         dq = 1.0
 
-        if cnvflg[0, 0, 0] and k_idx[0, 0, 0] <= kmax[0, 0, 0] - 1:
+        if cnvflg and (k_mask <= kmax - 1):
             dz = 0.5 * (zo[0, 0, 1] - zo[0, 0, 0])
             dp = 0.5 * (pfld[0, 0, 1] - pfld[0, 0, 0])
             es = 0.01 * tmp  # fpvs is in pa
@@ -402,27 +356,30 @@ def stencil_static0(
             po = 0.5 * (pfld[0, 0, 0] + pfld[0, 0, 1])
 
     with computation(FORWARD), interval(0, -1):
+        # Recalculate saturation specific humidity, moist static energy,
+        # saturation moist static energy, and horizontal momentum on
+        # interface levels. Enforce minimum specific humidity.
         tmp = fpvs(to)
 
-        if cnvflg[0, 0, 0] and k_idx[0, 0, 0] <= kmax[0, 0, 0] - 1:
+        if cnvflg and k_mask <= kmax - 1:
             qeso = 0.01 * tmp  # fpvs is in pa
-            qeso = constants.EPS * qeso[0, 0, 0] / (
-                po[0, 0, 0] + (constants.EPS - 1) * qeso[0, 0, 0]
+            qeso = constants.EPS * qeso / (
+                po + (constants.EPS - 1) * qeso
             )
-            # val1      =    1.e-8
-            qeso = qeso[0, 0, 0] if (qeso[0, 0, 0] > 1.0e-8) else 1.0e-8
-            # val2      =    1.e-10
-            qo = qo[0, 0, 0] if (qo[0, 0, 0] > 1.0e-10) else 1.0e-10
+            val1 = 1.e-8
+            qeso = max(qeso, val1)
+            val2 = 1.e-10
+            qo = max(qo, val2)
             # qo   = min(qo[0,0,0],qeso[0,0,0])
             heo = (
                 0.5 * constants.GRAV * (zo[0, 0, 0] + zo[0, 0, 1])
-                + constants.CP_AIR * to[0, 0, 0]
-                + constants.HLV * qo[0, 0, 0]
+                + constants.CP_AIR * to
+                + constants.HLV * qo
             )
             heso = (
                 0.5 * constants.GRAV * (zo[0, 0, 0] + zo[0, 0, 1])
-                + constants.CP_AIR * to[0, 0, 0]
-                + constants.HLV * qeso[0, 0, 0]
+                + constants.CP_AIR * to
+                + constants.HLV * qeso
             )
             uo = 0.5 * (uo[0, 0, 0] + uo[0, 0, 1])
             vo = 0.5 * (vo[0, 0, 0] + vo[0, 0, 1])
@@ -431,13 +388,13 @@ def stencil_static0(
 # ntr stencil put at last
 def stencil_ntrstatic0(
     cnvflg: BoolField,
-    k_idx: IntField,
+    k_mask: IntField,
     kmax: IntField,
     ctro: FloatFieldTracer,
     n_tracer: int
 ):
     with computation(PARALLEL), interval(0, -1):
-        if (cnvflg) and (k_idx <= (kmax - 1)):
+        if (cnvflg) and (k_mask <= (kmax - 1)):
             ctro[0, 0, 0][n_tracer] = 0.5 * (
                 ctro[0, 0, 0][n_tracer] + ctro[0, 0, 1][n_tracer]
             )
@@ -455,6 +412,11 @@ def stencil_static1(
     heo: FloatField,
     heso: FloatField,
 ):
+    # Search below the index "kbm" for the level of free convection (LFC)
+    # where the condition \f$h_b > h^*\f$ is first met, 
+    # where \f$h_b, h^*\f$ are the state moist static energy at the parcel's
+    # starting level and saturation moist static energy, respectively.
+    # Set "kbcon" to the index of the LFC.
     with computation(FORWARD), interval(...):
         if k_idx == kb:
             heo_kb[0, 0] = heo[0, 0, 0]
@@ -2341,15 +2303,31 @@ class ScaleAwareMassFluxShallowConvection:
         if self._do_aerosols:
             self._do_aerosols = config.ntr >= config.itc
 
-        km1 = idx.domain[2] - 1
+        self._clam = config.clam_shal
+        self._c0s = config.c0s_shal
+        self._c1 = config.c1_shal
+        self._pgcon = config.pgcon_shal
+        self._asolfac = config.asolfac_shal
 
-        idx = stencil_factory.grid_indexing
+        self._km = grid_indexing.domain[2]
+        self._km1 = grid_indexing.domain[2] - 1
+        self.TRACER_DIM = TRACER_DIM
 
-        def make_quantity(**kwargs):
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: self._ntracers,
+            }
+        )
 
-        def make_quantity_2D(**kwargs):
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        def make_quantity():
+            return quantity_factory.zeros(
+                [X_DIM, Y_DIM, Z_DIM],
+                units="unknown",
+                dtype=Float,
+            )
+
+        def make_quantity_2D(type=Float):
+            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
 
         # Allocate arrays
 
@@ -2360,13 +2338,78 @@ class ScaleAwareMassFluxShallowConvection:
             dtype=Int,
         )
 
-        for k in range(idx.domain[2]):
+        for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
 
-        self._cnvflg = make_quantity_2D()
-        self._kbm = make_quantity_2D()
+        self._kbm = make_quantity_2D(Int)
         self._heo_kb = make_quantity_2D()
         self._drag = make_quantity()
+        self._ps = make_quantity_2D()
+        self._prsl = make_quantity()
+        self._del0 = make_quantity()
+        self._kbot = make_quantity_2D(Int)
+        self._ktop = make_quantity_2D(Int)
+        self._kbcon = make_quantity_2D(Int)
+        self._kb = make_quantity_2D(Int)
+        self._ktcon = make_quantity_2D(Int)
+        self._ktconn = make_quantity_2D(Int)
+        self._pdot = make_quantity_2D()
+        self._rn = make_quantity_2D()
+        self._qlko_ktcon = make_quantity_2D()
+        self._edt = make_quantity_2D()
+        self._aa1 = make_quantity_2D()
+        self._cina = make_quantity_2D()
+        self._vshear = make_quantity_2D()
+        self._gdx = make_quantity_2D()
+        self._c0 = make_quantity_2D()
+        self._c0t = make_quantity()
+        self._kbm = make_quantity_2D(Int)
+        self._kmax = make_quantity_2D(Int)
+        self._tx1 = make_quantity_2D()
+        self._kpbl = make_quantity_2D(Int)
+        self._flg = make_quantity_2D(Bool)
+        self._zo = make_quantity()
+        self._zi = make_quantity()
+        self._pfld = make_quantity()
+        self._eta = make_quantity()
+        self._hcko = make_quantity()
+        self._qcko = make_quantity()
+        self._qrcko = make_quantity()
+        self._ucko = make_quantity()
+        self._vcko = make_quantity()
+        self._dbyo = make_quantity()
+        self._pwo = make_quantity()
+        self._dellal = make_quantity()
+        self._to = make_quantity()
+        self._qo = make_quantity()
+        self._uo = make_quantity()
+        self._vo = make_quantity()
+        self._wu2 = make_quantity()
+        self._buo = make_quantity()
+        self._cnvwt = make_quantity()
+        self._qeso = make_quantity()
+        self._heo = make_quantity()
+        self._heso = make_quantity()
+        self._hmax = make_quantity_2D()
+        self._po = make_quantity()
+
+        self._ctr = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._ctro = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._ecko = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
         # Configure stencils
         self._select_k = stencil_factory.from_origin_domain(
@@ -2381,16 +2424,22 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._init_col_arr = stencil_factory.from_origin_domain(
             func=init_col_arr,
+            externals={"km": self._km},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
         self._init_par_and_arr = stencil_factory.from_origin_domain(
             func=init_par_and_arr,
+            externals={
+                "asolfac": self._asolfac,
+                "c0s": self._c0s,
+            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
         self._init_kbm_kmax = stencil_factory.from_origin_domain(
             func=init_kbm_kmax,
+            externals={"km": self._km},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2519,41 +2568,154 @@ class ScaleAwareMassFluxShallowConvection:
 
     def __call__(
         self,
-        cnvflg: BoolFieldIJ
+        u1: FloatField,
+        v1: FloatField,
+        t1: FloatField,
+        q1: FloatField,
+        qtr: FloatFieldTracer,
+        hpbl: FloatFieldIJ,
+        prslp: FloatField,
+        phil: FloatField,
+        delp: FloatField,
+        cnvw: FloatField,
+        cnvc: FloatField,
+        ud_mf: FloatField,
+        dt_mf: FloatField,
+        psp: FloatFieldIJ,
+        cnvflg: BoolFieldIJ,
+        kcnv: IntFieldIJ,
+        islimsk: IntFieldIJ,
+        garea: FloatFieldIJ,
     ):
         # Convert input Pa terms to Cb terms
-        self._pa_to_cb()
+        self._pa_to_cb(
+            psp,
+            prslp,
+            delp,
+            self._ps,
+            self._prsl,
+            self._del0,
+        )
 
-        self._init_col_arr()
+        self._init_col_arr(
+            kcnv,
+            cnvflg,
+            self._kbot,
+            self._ktop,
+            self._kbcon,
+            self._kb,
+            self._ktcon,
+            self._ktconn,
+            self._pdot,
+            self._rn,
+            self._qlko_ktcon,
+            self._edt,
+            self._aa1,
+            self._cina,
+            self._vshear,
+            self._gdx,
+            garea,
+            self._km,
+        )
         if exit_routine(cnvflg.view()):
             return
 
-        self._init_par_and_arr()
-        self._init_kbm_kmax()
-        self._init_final()
+        self._init_par_and_arr(
+            islimsk,
+            self._c0,
+            t1,
+            self._c0t,
+            cnvw,
+            cnvc,
+            ud_mf,
+            dt_mf,
+        )
+        self._init_kbm_kmax(
+            self._kbm,
+            self._kmax,
+            self._tx1,
+            self._ps,
+            self._prsl,
+            self._k_mask,
+        )
+        self._init_final(
+            self._kbm,
+            self._kmax,
+            self._flg,
+            cnvflg,
+            self._kpbl,
+            self._prsl,
+            self._zo,
+            phil,
+            self._zi,
+            self._pfld,
+            self._eta,
+            self._hcko,
+            self._qcko,
+            self._qrcko,
+            self._ucko,
+            self._vcko,
+            self._dbyo,
+            self._pwo,
+            self._dellal,
+            self._to,
+            self._qo,
+            self._uo,
+            self._vo,
+            self._wu2,
+            self._buo,
+            self._drag,
+            self._cnvwt,
+            self._qeso,
+            self._heo,
+            self._heso,
+            hpbl,
+            t1,
+            q1,
+            u1,
+            v1,
+            self._k_mask,
+        )
 
         # Init tracers
         for n in range(self._ntr):
             n_tracer = n + 2
             self._init_tracers(
                 cnvflg,
-                k_idx,
-                kmax,
-                ctr,
-                ctro,
-                ecko,
+                self._k_mask,
+                self._kmax,
+                self._ctr,
+                self._ctro,
+                self._ecko,
                 qtr,
                 n_tracer,
             )
 
-        self._stencil_static0()
+        self._stencil_static0(
+            cnvflg,
+            self._hmax,
+            self._heo,
+            self._kb,
+            self._k_mask,
+            self._kpbl,
+            self._kmax,
+            self._zo,
+            self._to,
+            self._qeso,
+            self._qo,
+            self._po,
+            self._uo,
+            self._vo,
+            self._heso,
+            self._pfld,
+        )
         for n in range(self._ntr):
             n_tracer = n + 2
             stencil_ntrstatic0(
                 cnvflg,
-                k_idx,
-                kmax,
-                ctro,
+                self._k_mask,
+                self._kmax,
+                self._ctro,
             )
 
         self._stencil_static1()
@@ -2608,4 +2770,9 @@ class ScaleAwareMassFluxShallowConvection:
             n_tracer = n + 2
             self._feedback_control_upd_trr
 
+        if self._ncloud > 0:
+            self._separate_detrained_cw()
+
+        if self._ntk > 0:
+            self._tke_contribution()
         pass
