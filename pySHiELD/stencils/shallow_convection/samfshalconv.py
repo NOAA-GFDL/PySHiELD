@@ -401,13 +401,13 @@ def stencil_ntrstatic0(
 
 
 def stencil_static1(
-    cnvflg: BoolField,
-    flg: BoolField,
-    kbcon: IntField,
-    kmax: IntField,
-    k_idx: IntField,
-    kbm: IntField,
-    kb: IntField,
+    cnvflg: BoolFieldIJ,
+    flg: BoolFieldIJ,
+    kbcon: IntFieldIJ,
+    kmax: IntFieldIJ,
+    k_mask: IntField,
+    kbm: IntFieldIJ,
+    kb: IntFieldIJ,
     heo_kb: FloatFieldIJ,
     heo: FloatField,
     heso: FloatField,
@@ -418,7 +418,7 @@ def stencil_static1(
     # starting level and saturation moist static energy, respectively.
     # Set "kbcon" to the index of the LFC.
     with computation(FORWARD), interval(...):
-        if k_idx == kb:
+        if k_mask == kb:
             heo_kb[0, 0] = heo[0, 0, 0]
     with computation(FORWARD):
         with interval(0, 1):
@@ -427,35 +427,23 @@ def stencil_static1(
                 kbcon = kmax
 
         with interval(1, -1):
-            kbcon = kbcon[0, 0, -1]
-            flg = flg[0, 0, -1]
-            if flg and k_idx < kbm:
+            if flg and k_mask < kbm:
                 # To use heo_kb to represent heo(i,kb(i))
-                if k_idx[0, 0, 0] > kb[0, 0, 0] and heo_kb > heso[0, 0, 0]:
-                    kbcon = k_idx
+                if k_mask > kb and heo_kb > heso:
+                    kbcon = k_mask
                     flg = False
 
         # To make all slices like the final slice
         with interval(-1, None):
-            kbcon = kbcon[0, 0, -1]
-            flg = flg[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        kbcon = kbcon[0, 0, 1]
-        flg = flg[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
-        if cnvflg:
-            if kbcon == kmax:
-                cnvflg = False
+            if cnvflg:
+                if kbcon == kmax:
+                    cnvflg = False
 
 
-# Judge LFC and return 553-558
 def stencil_static2(
     cnvflg: BoolField,
-    pdot: FloatField,
+    pdot: FloatFieldIJ,
     dot: FloatField,
-    dot_kbcon: FloatFieldIJ,
     islimsk: IntField,
     k_mask: IntField,
     kbcon: IntFieldIJ,
@@ -464,129 +452,120 @@ def stencil_static2(
     pfld_kb: FloatFieldIJ,
     pfld_kbcon: FloatFieldIJ,
 ):
-    with computation(PARALLEL), interval(...):
-        if k_mask == kbcon:
-            dot_kbcon = dot
-            pfld_kbcon = pfld
-        if k_mask == kb:
-            pfld_kb = pfld
-
-    with computation(PARALLEL), interval(...):
+    # Determine the vertical pressure velocity at the LFC.
+    # After Han and Pan (2011) \cite han_and_pan_2011 , determine
+    # the maximum pressure thickness between a parcel's starting
+    # level and the LFC. If a parcel doesn't reach the LFC within
+    # the critical thickness, then the convective inhibition is
+    # deemed too great for convection to be triggered, and the
+    # subroutine returns to the calling routine without modifying
+    # the state variables.
+    with computation(FORWARD), interval(...):
         if cnvflg:
-            # To use dotkbcon to represent dot(i,kbcon(i))
-            # pdot(i)  = 10.* dotkbcon
-            pdot[0, 0, 0] = 0.01 * dot_kbcon  # Now dot is in Pa/s
+            if k_mask == kbcon:
+                # pdot = 10. * dot
+                pdot = 0.01 * dot  # Now dot is in Pa/s
+                pfld_kbcon = pfld
+            if k_mask == kb:
+                pfld_kb = pfld
 
-    with computation(PARALLEL), interval(...):
-        w1 = physcons.W1S
-        w2 = physcons.W2S
-        w3 = physcons.W3S
-        w4 = physcons.W4S
+    with computation(FORWARD), interval(0, 1):
+        # turn off convection if pressure depth between parcel source level
+        # and cloud base is larger than a critical value, cinpcr
         tem = 0.0
         tem1 = 0.0
         ptem = 0.0
         ptem1 = 0.0
         cinpcr = 0.0
-
         if cnvflg:
             if islimsk == 1:
-                physcons.W1L
+                w1 = physcons.W1L
                 w2 = physcons.W2L
                 w3 = physcons.W3L
                 w4 = physcons.W4L
+            else:
+                w1 = physcons.W1S
+                w2 = physcons.W2S
+                w3 = physcons.W3S
+                w4 = physcons.W4S
+
             if pdot <= w4:
                 tem = (pdot - w4) / (w3 - w4)
             elif pdot >= -w4:
                 tem = -(pdot + w4) / (w4 - w3)
             else:
                 tem = 0.0
-
-            tem = tem if (tem > -1) else -1
-            tem = tem if (tem < 1) else 1
+            val1 = -1.0
+            val2 = 1.0
+            tem = max(tem, val1)
+            tem = min(tem, val2)
             ptem = 1.0 - tem
             ptem1 = 0.5 * (physcons.CINPCRMX - physcons.CINPCRMN)
             cinpcr = physcons.CINPCRMX - ptem * ptem1
-
-            # To use pfld_kb and pfld_kbcon to represent pfld(i,kb(i))
             tem1 = pfld_kb - pfld_kbcon
             if tem1 > cinpcr:
                 cnvflg = False
 
 
-# Do totflg judgement and return
-# if ntk > 0 : also need to define ntk dimension to 1
 def stencil_static3(
-    sumx: FloatField,
-    tkemean: FloatField,
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kb: IntField,
-    kbcon: IntField,
+    sumx: FloatFieldIJ,
+    tkemean: FloatFieldIJ,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
+    kbcon: IntFieldIJ,
     zo: FloatField,
     qtr: FloatFieldTracer,
-    clamt: FloatField,
-    clam: Float,
+    clamt: FloatFieldIJ,
 ):
-    from __externals__ import ntk
-    with computation(BACKWARD), interval(-1, None):
+    # turbulent entrainment rate assumed to be proportional
+    # to subcloud mean TKE
+    from __externals__ import clam, ntk
+    with computation(FORWARD), interval(0, 1):
         if cnvflg:
             sumx = 0.0
             tkemean = 0.0
 
-    with computation(BACKWARD), interval(0, -1):
+    with computation(FORWARD), interval(0, -1):
         dz = 0.0
         tem = 0.0
-        tkemean = tkemean[0, 0, 1]
-        sumx = sumx[0, 0, 1]
-
         if cnvflg:
-            if (k_idx >= kb) and (k_idx < kbcon):
-                dz = zo[0, 0, 1] - zo[0, 0, 0]
-                tem = 0.5 * (qtr[0, 0, 0][ntk] + qtr[0, 0, 1][ntk])
-                tkemean = tkemean[0, 0, 1] + tem * dz  # dz, tem to be 3d
-                sumx = sumx[0, 0, 1] + dz
+            if ntk > 0:
+                if (k_mask >= kb) and (k_mask < kbcon):
+                    dz = zo[0, 0, 1] - zo[0, 0, 0]
+                    tem = 0.5 * (qtr[0, 0, 0][ntk] + qtr[0, 0, 1][ntk])
+                    tkemean = tkemean + tem * dz
+                    sumx = sumx + dz
 
-    with computation(FORWARD), interval(1, None):
-        tkemean = tkemean[0, 0, -1]
-        sumx = sumx[0, 0, -1]
-
-    with computation(PARALLEL), interval(...):
-        tkemean = tkemean / sumx
-        tem1 = 1.0 - 2.0 * (physcons.TKEMX - tkemean) / physcons.DTKE
-
+    with computation(FORWARD), interval(-1, None):
+        tem1 = 0.0
         if cnvflg:
-            if tkemean > physcons.TKEMX:  # tkemx, clam, clamd, tkemnm, dtke to be 3d
-                clamt = clam + physcons.CLAMD
-            elif tkemean < physcons.TKEMN:
-                clamt = clam - physcons.CLAMD
+            if ntk > 0:
+                tkemean = tkemean / sumx
+                if tkemean > physcons.TKEMX:
+                    clamt = clam + physcons.CLAMD
+                elif tkemean < physcons.TKEMN:
+                    clamt = clam - physcons.CLAMD
+                else:
+                    tem1 = 1.0 - 2.0 * (physcons.TKEMX - tkemean) / physcons.DTKE
+                    clamt = clam + physcons.CLAMD * tem1
             else:
-                clamt = clam + physcons.CLAMD * tem1
+                clamt = clam
 
 
-# else :
-def stencil_static4(cnvflg: BoolField, clamt: FloatField, *, clam: Float):
-    with computation(PARALLEL), interval(...):
-        if cnvflg:
-            clamt = clam
-
-
-# Start updraft entrainment rate.
-# pass
 def stencil_static5(
-    cnvflg: BoolField,
+    cnvflg: BoolFieldIJ,
     xlamue: FloatField,
-    clamt: FloatField,
+    clamt: FloatFieldIJ,
     zi: FloatField,
-    xlamud: FloatField,
-    k_idx: IntField,
-    kbcon: IntField,
-    kb: IntField,
-    # dz   : FloatField,
-    # ptem : FloatField,
+    xlamud: FloatFieldIJ,
+    k_mask: IntField,
+    kbcon: IntFieldIJ,
+    kb: IntFieldIJ,
     eta: FloatField,
-    ktconn: IntField,
-    kmax: IntField,
-    kbm: IntField,
+    ktconn: IntFieldIJ,
+    kmax: IntFieldIJ,
+    kbm: IntFieldIJ,
     hcko: FloatField,
     ucko: FloatField,
     vcko: FloatField,
@@ -594,6 +573,9 @@ def stencil_static5(
     uo: FloatField,
     vo: FloatField,
 ):
+    # Start updraft entrainment rate.
+    # assume updraft entrainment rate
+    # is an inverse function of height
     with computation(FORWARD), interval(0, -1):
         if cnvflg:
             xlamue = clamt / zi
@@ -602,7 +584,11 @@ def stencil_static5(
         if cnvflg:
             xlamue[0, 0, 0] = xlamue[0, 0, -1]
 
-    with computation(PARALLEL), interval(...):
+    # specify the detrainment rate for the updrafts
+    # (The updraft detrainment rate is set constant and equal to
+    # the entrainment rate at cloud base.)
+    # The updraft detrainment rate is vertically constant and proportional to clamt
+    with computation(FORWARD), interval(0, 1):
         if cnvflg:
             # xlamud(i) = xlamue(i,kbcon(i))
             # xlamud(i) = crtlamd
@@ -612,83 +598,59 @@ def stencil_static5(
         dz = 0.0
         ptem = 0.0
         if cnvflg:
-            if k_idx < kbcon and k_idx >= kb:
+            if k_mask < kbcon and k_mask >= kb:
                 dz = zi[0, 0, 1] - zi[0, 0, 0]
-                ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, 1]) - xlamud[0, 0, 0]
+                ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, 1]) - xlamud
                 eta = eta[0, 0, 1] / (1.0 + ptem * dz)
 
-    with computation(PARALLEL), interval(...):
+    # compute mass flux above cloud base
+    with computation(FORWARD), interval(0, 1):
         flg = cnvflg
 
     with computation(FORWARD), interval(1, -1):
-        flg = flg[0, 0, -1]
-        kmax = kmax[0, 0, -1]
-        ktconn = ktconn[0, 0, -1]
-        kbm = kbm[0, 0, -1]
         if flg:
-            if k_idx > kbcon and k_idx < kmax:
+            if k_mask > kbcon and k_mask < kmax:
                 dz = zi[0, 0, 0] - zi[0, 0, -1]
-                ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, -1]) - xlamud[0, 0, 0]
+                ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, -1]) - xlamud
                 eta = eta[0, 0, -1] * (1 + ptem * dz)
 
                 if eta <= 0.0:
-                    kmax = k_idx
-                    ktconn = k_idx
+                    kmax = k_mask
+                    ktconn = k_mask
                     kbm = kbm if (kbm < kmax) else kmax
                     flg = False
 
-    # To make all slice same as final slice
-    with computation(FORWARD), interval(-1, None):
-        flg = flg[0, 0, -1]
-        kmax = kmax[0, 0, -1]
-        ktconn = ktconn[0, 0, -1]
-        kbm = kbm[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        flg = flg[0, 0, 1]
-        kmax = kmax[0, 0, 1]
-        ktconn = ktconn[0, 0, 1]
-        kbm = kbm[0, 0, 1]
-
+    # compute updraft cloud property
+    # Set cloud properties equal to the state variables
+    # at updraft starting level (kb).
     with computation(PARALLEL), interval(...):
         if cnvflg:
-            # indx = kb
-            if k_idx == kb:
+            if k_mask == kb:
                 hcko = heo
                 ucko = uo
                 vcko = vo
 
 
-# for tracers do n = 1, ntr: use ecko, ctro [n] => [1,i,k_idx]
-# pass
 def stencil_ntrstatic1(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kb: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
     ecko: FloatField,
     ctro: FloatField,
 ):
     with computation(PARALLEL), interval(...):
-        if (cnvflg) and (k_idx == kb):
+        if (cnvflg) and (k_mask == kb):
             ecko = ctro
 
 
-# Line 769
-# Calculate the cloud properties as a parcel ascends, modified by entrainment and
-# detrainment. Discretization follows Appendix B of Grell (1993) \cite grell_1993.
-# Following Han and Pan (2006) \cite han_and_pan_2006, the convective momentum
-# transport is reduced by the convection-induced pressure gradient force by the
-# constant "pgcon", currently set to 0.55 after Zhang and Wu (2003) 
-# \cite zhang_and_wu_2003.
-# pass
 def stencil_static7(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kb: IntField,
-    kmax: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
+    kmax: IntFieldIJ,
     zi: FloatField,
     xlamue: FloatField,
-    xlamud: FloatField,
+    xlamud: FloatFieldIJ,
     hcko: FloatField,
     heo: FloatField,
     dbyo: FloatField,
@@ -697,8 +659,16 @@ def stencil_static7(
     uo: FloatField,
     vcko: FloatField,
     vo: FloatField,
-    pgcon: Float
 ):
+    # cm is an enhancement factor in entrainment rates for momentum.
+    # Calculate the cloud properties as a parcel ascends, modified by entrainment and
+    # detrainment. Discretization follows Appendix B of Grell (1993) \cite grell_1993.
+    # Following Han and Pan (2006) \cite han_and_pan_2006, the convective momentum
+    # transport is reduced by the convection-induced pressure gradient force by the
+    # constant "pgcon", currently set to 0.55 after Zhang and Wu (2003) 
+    # \cite zhang_and_wu_2003.
+    # pass
+    from __externals__ import pgcon
     with computation(FORWARD), interval(1, -1):
         dz = 0.0
         tem = 0.0
@@ -708,7 +678,7 @@ def stencil_static7(
         factor = 0.0
 
         if cnvflg:
-            if k_idx > kb and k_idx < kmax:
+            if k_mask > kb and k_mask < kmax:
                 dz = zi[0, 0, 0] - zi[0, 0, -1]
                 tem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, -1]) * dz
                 tem1 = 0.5 * xlamud * dz
@@ -733,14 +703,15 @@ def stencil_static7(
 # for n = 1, ntr:
 # pass
 def stencil_ntrstatic2(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kb: IntField,
-    kmax: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
+    kmax: IntFieldIJ,
     zi: FloatField,
     xlamue: FloatField,
-    ecko: FloatField,
-    ctro: FloatField,
+    ecko: FloatFieldTracer,
+    ctro: FloatFieldTracer,
+    n_tracer: Int,
 ):
     with computation(FORWARD), interval(1, -1):
         tem = 0.0
@@ -748,16 +719,17 @@ def stencil_ntrstatic2(
         factor = 0.0
 
         if cnvflg:
-            if k_idx > kb and k_idx < kmax:
+            if k_mask > kb and k_mask < kmax:
                 dz = zi - zi[0, 0, -1]
                 tem = 0.25 * (xlamue + xlamue[0, 0, -1]) * dz
                 factor = 1.0 + tem
-                ecko = (
-                    (1.0 - tem) * ecko[0, 0, -1] + tem * (ctro + ctro[0, 0, -1])
+                ecko[0, 0, 0][n_tracer] = (
+                    (1.0 - tem) * ecko[0, 0, -1][n_tracer] + tem * (
+                        ctro[0, 0, 0][n_tracer] + ctro[0, 0, -1][n_tracer]
+                    )
                 ) / factor
 
 
-# enddo
 def stencil_update_kbcon1_cnvflg(
     dbyo: FloatField,
     cnvflg: BoolField,
@@ -768,6 +740,14 @@ def stencil_update_kbcon1_cnvflg(
     flg: BoolField,
     k_idx: IntField,
 ):
+    # Taking account into convection inhibition due to existence of
+    # dry layers below cloud base
+    # With entrainment, recalculate the LFC as the first level where buoyancy
+    # is positive. The difference in pressure levels between LFCs calculated
+    # with/without entrainment must be less than a threshold (currently 25 hPa).
+    # Otherwise, convection is inhibited and the scheme returns to the calling
+    # routine without modifying the state variables. This is the subcloud dryness
+    # trigger modification discussed in Han and Pan (2011) \cite han_and_pan_2011.
     with computation(FORWARD), interval(0, 1):
         flg = cnvflg
         kbcon1 = kmax
@@ -2392,6 +2372,13 @@ class ScaleAwareMassFluxShallowConvection:
         self._heso = make_quantity()
         self._hmax = make_quantity_2D()
         self._po = make_quantity()
+        self._pfld_kb = make_quantity_2D()
+        self._pfld_kbcon = make_quantity_2D()
+        self._sumx = make_quantity_2D()
+        self._tkemean = make_quantity_2D()
+        self._clamt = make_quantity_2D()
+        self._xlamue = make_quantity()
+        self._xlamud = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2470,7 +2457,10 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._stencil_static3 = stencil_factory.from_origin_domain(
             func=stencil_static3,
-            externals={"ntk", self._ntk},
+            externals={
+                "ntk", self._ntk,
+                "clam", self._clam,
+            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2491,6 +2481,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._stencil_static7 = stencil_factory.from_origin_domain(
             func=stencil_static7,
+            externals={"pgcon": self._pgcon},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2573,6 +2564,7 @@ class ScaleAwareMassFluxShallowConvection:
         t1: FloatField,
         q1: FloatField,
         qtr: FloatFieldTracer,
+        dot: FloatField,
         hpbl: FloatFieldIJ,
         prslp: FloatField,
         phil: FloatField,
@@ -2718,28 +2710,110 @@ class ScaleAwareMassFluxShallowConvection:
                 self._ctro,
             )
 
-        self._stencil_static1()
+        self._stencil_static1(
+            cnvflg,
+            self._flg,
+            self._kbcon,
+            self._kmax,
+            self._k_mask,
+            self._kbm,
+            self._kb,
+            self._heo_kb,
+            self._heo,
+            self._heso,
+        )
         if exit_routine(cnvflg.view()):
             return
 
-        self._stencil_static2()
+        self._stencil_static2(
+            cnvflg,
+            self._pdot,
+            dot,
+            islimsk,
+            self._k_mask,
+            self._kbcon,
+            self._kb,
+            self._pfld,
+            self._pfld_kb,
+            self._pfld_kbcon,
+        )
         if exit_routine(cnvflg.view()):
             return
 
-        if self._ntk > 0:
-            self._stencil_static3()
+        self._stencil_static3(
+            self._sumx,
+            self._tkemean,
+            cnvflg,
+            self._k_mask,
+            self._kb,
+            self._kbcon,
+            self._zo,
+            qtr,
+            self._clamt,
+        )
 
-        self._stencil_static5()
+        self._stencil_static5(
+            cnvflg,
+            self._xlamue,
+            self._clamt,
+            self._zi,
+            self._xlamud,
+            self._k_mask,
+            self._kbcon,
+            self._kb,
+            self._eta,
+            self._ktconn,
+            self._kmax,
+            self._kbm,
+            self._hcko,
+            self._ucko,
+            self._vcko,
+            self._heo,
+            self._uo,
+            self._vo,
+        )
 
         for n in range(self._ntr):
             n_tracer = n + 2
-            self._stencil_ntrstatic1()
+            self._stencil_ntrstatic1(
+                cnvflg,
+                self._k_mask,
+                self._kb,
+                self._ecko,
+                self._ctro,
+            )
 
-        self._stencil_static7()
+        self._stencil_static7(
+            cnvflg,
+            self._k_mask,
+            self._kb,
+            self._kmax,
+            self._zi,
+            self._xlamue,
+            self._xlamud,
+            self._hcko,
+            self._heo,
+            self._dbyo,
+            self._heso,
+            self._ucko,
+            self._uo,
+            self._vcko,
+            self._vo,
+        )
 
         for n in range(self._ntr):
             n_tracer = n + 2
-            self._stencil_ntrstatic2()
+            self._stencil_ntrstatic2(
+                cnvflg,
+                self._k_mask,
+                self._kb,
+                self._kmax,
+                self._zi,
+                self._xlamue,
+                self._ecko,
+                self._ctro,
+                n_tracer,
+            )
 
         self._stencil_update_kbcon1_cnvflg()
 
