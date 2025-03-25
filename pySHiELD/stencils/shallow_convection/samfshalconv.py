@@ -6,7 +6,7 @@ from gt4py.cartesian.gtscript import (
     exp,
     interval,
     sqrt,
-    log10,
+    log,
 )
 
 import ndsl.constants as constants
@@ -732,13 +732,13 @@ def stencil_ntrstatic2(
 
 def stencil_update_kbcon1_cnvflg(
     dbyo: FloatField,
-    cnvflg: BoolField,
-    kmax: IntField,
-    kbm: IntField,
-    kbcon: IntField,
-    kbcon1: IntField,
-    flg: BoolField,
-    k_idx: IntField,
+    cnvflg: BoolFieldIJ,
+    kmax: IntFieldIJ,
+    kbm: IntFieldIJ,
+    kbcon: IntFieldIJ,
+    kbcon1: IntFieldIJ,
+    flg: BoolFieldIJ,
+    k_mask: IntField,
 ):
     # Taking account into convection inhibition due to existence of
     # dry layers below cloud base
@@ -752,39 +752,31 @@ def stencil_update_kbcon1_cnvflg(
         flg = cnvflg
         kbcon1 = kmax
 
-    with computation(FORWARD), interval(1, None):
-        flg = flg[0, 0, -1]
-        kbcon1 = kbcon1[0, 0, -1]
-
-        if flg and (k_idx < kbm):
-            if (k_idx >= kbcon) and (dbyo > 0.0):
-                kbcon1 = k_idx
+    with computation(FORWARD), interval(1, -1):
+        if flg and (k_mask < kbm):
+            if (k_mask >= kbcon) and (dbyo > 0.0):
+                kbcon1 = k_mask
                 flg = False
 
-    with computation(BACKWARD), interval(0, -1):
-        flg = flg[0, 0, 1]
-        kbcon1 = kbcon1[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD), interval(-1, None):
         if cnvflg:
             if kbcon1 == kmax:
                 cnvflg = False
 
 
-# pass
 def stencil_static9(
-    cnvflg: BoolField,
+    cnvflg: BoolFieldIJ,
     pfld: FloatField,
     pfld_kbcon: FloatFieldIJ,
     pfld_kbcon1: FloatFieldIJ,
     k_mask: IntField,
     kbcon1: IntFieldIJ,
 ):
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD), interval(...):
         if k_mask == kbcon1:
             pfld_kbcon1 = pfld
 
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD), interval(0, 1):
         tem = 0.0
 
         if cnvflg:
@@ -796,34 +788,32 @@ def stencil_static9(
                 cnvflg = False
 
 
-# Judge totflg return
-
-# Calculate convective inhibition
-# pass
 def stencil_static10(
-    cina: FloatField,
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kb: IntField,
-    kbcon1: IntField,
+    cina: FloatFieldIJ,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
+    kbcon1: IntFieldIJ,
     zo: FloatField,
     qeso: FloatField,
     to: FloatField,
     dbyo: FloatField,
     qo: FloatField,
-    pdot: FloatField,
-    islimsk: IntField,
+    pdot: FloatFieldIJ,
+    islimsk: IntFieldIJ,
 ):
+    # calculate convective inhibition
+    # Calculate additional trigger condition of the convective inhibition (CIN)
+    # according to Han et al.'s (2017) \cite han_et_al_2017 equation 13.
     with computation(FORWARD), interval(1, -1):
         dz1 = 0.0
         gamma = 0.0
         rfact = 0.0
-        cina = cina[0, 0, -1]
 
         if cnvflg:
-            if k_idx > kb and k_idx < kbcon1:
+            if k_mask > kb and k_mask < kbcon1:
                 dz1 = zo[0, 0, 1] - zo
-                gamma = physcons.EL2ORC * qeso / (to * to)
+                gamma = physcons.EL2ORC * qeso / to**2
                 rfact = 1.0 + physcons.DELTA * constants.CP_AIR * (
                     gamma * to / constants.HLV
                 )
@@ -831,23 +821,13 @@ def stencil_static10(
                     constants.GRAV / (constants.CP_AIR * to)
                 ) * dbyo / (1.0 + gamma) * rfact
                 # val   = 0.
-                cina = (
-                    (
-                        cina + dz1 * constants.GRAV * physcons.DELTA * (qeso - qo)
-                        # dz1 * eta(i,k_idx) * g * delta *
-                    )
-                    if ((qeso - qo) > 0.0)
-                    else cina
+                cina = cina + dz1 * constants.GRAV * physcons.DELTA * max(
+                    0.0, (qeso - qo)
                 )
 
-    # To make all slices like the final slice
     with computation(FORWARD), interval(-1, None):
-        cina = cina[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        cina = cina[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
+        # Turn off convection if the CIN is less than a critical value (cinacr)
+        # which is inversely proportional to the large-scale vertical velocity.
         w1 = physcons.W1S
         w2 = physcons.W2S
         w3 = physcons.W3S
@@ -870,10 +850,8 @@ def stencil_static10(
             else:
                 tem = 0.0
 
-            # val1   =            -1.
-            tem = tem if (tem > -1.0) else -1.0
-            # val2   =             1.
-            tem = tem if (tem < 1.0) else 1.0
+            tem = max(tem, -1.0)
+            tem = min(tem, 1.0)
             tem = 1.0 - tem
             tem1 = 0.5 * (physcons.CINACRMX - physcons.CINACRMN)
             cinacr = physcons.CINACRMX - tem * tem1
@@ -882,23 +860,18 @@ def stencil_static10(
                 cnvflg = False
 
 
-# totflag and return
-
-#  Determine first guess cloud top as the level of zero buoyancy
-#    limited to the level of P/Ps=0.7
-# pass
 def stencil_static11(
-    flg: BoolField,
-    cnvflg: BoolField,
-    ktcon: IntField,
-    kbm: IntField,
-    kbcon1: IntField,
+    flg: BoolFieldIJ,
+    cnvflg: BoolFieldIJ,
+    ktcon: IntFieldIJ,
+    kbm: IntFieldIJ,
+    kbcon1: IntFieldIJ,
     dbyo: FloatField,
-    kbcon: IntField,
+    kbcon: IntFieldIJ,
     del0: FloatField,
-    xmbmax: FloatField,
-    aa1: FloatField,
-    kb: IntField,
+    xmbmax: FloatFieldIJ,
+    aa1: FloatFieldIJ,
+    kb: IntFieldIJ,
     qcko: FloatField,
     qo: FloatField,
     qrcko: FloatField,
@@ -906,64 +879,53 @@ def stencil_static11(
     qeso: FloatField,
     to: FloatField,
     xlamue: FloatField,
-    xlamud: FloatField,
+    xlamud: FloatFieldIJ,
     eta: FloatField,
     c0t: FloatField,
     dellal: FloatField,
     buo: FloatField,
     drag: FloatField,
     zo: FloatField,
-    k_idx: IntField,
+    k_mask: IntField,
     pwo: FloatField,
     cnvwt: FloatField,
-    c1: Float,
-    dt2: Float,
-    ncloud: Int
 ):
-    with computation(PARALLEL), interval(...):
+    # Determine first guess cloud top as the level of zero buoyancy
+    # limited to the level of P/Ps=0.7
+    # Calculate the cloud top as the first level where parcel buoyancy
+    # becomes negative; the maximum possible value is at \f$p=0.7p_{sfc}\f$.
+    from __externals__ import c1, dt2, ncloud
+    with computation(FORWARD), interval(0, 1):
         flg = cnvflg
         if flg:
             ktcon = kbm
 
     with computation(FORWARD), interval(1, -1):
-        flg = flg[0, 0, -1]
-        ktcon = ktcon[0, 0, -1]
-        if flg and k_idx < kbm:
-            if k_idx > kbcon1 and dbyo < 0.0:
-                ktcon = k_idx
+        if flg and k_mask < kbm:
+            if k_mask > kbcon1 and dbyo < 0.0:
+                ktcon = k_mask
                 flg = False
 
-    # To make all slices like final slice
-    with computation(FORWARD), interval(-1, None):
-        flg = flg[0, 0, -1]
-        ktcon = ktcon[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        flg = flg[0, 0, 1]
-        ktcon = ktcon[0, 0, 1]
-
     # Specify upper limit of mass flux at cloud base
-
+    # Calculate the maximum value of the cloud base mass flux using
+    # the CFL-criterion-based formula of Han and Pan (2011)
+    # \cite han_and_pan_2011, equation 7.
     with computation(FORWARD), interval(...):
         dp = 0.0
 
-        if k_idx != 1:
-            xmbmax = xmbmax[0, 0, -1]
-
         if cnvflg:
-            if k_idx == kbcon:
+            if k_mask == kbcon:
                 dp = 1000.0 * del0
 
                 xmbmax = dp / (2.0 * constants.GRAV * dt2)
 
-    with computation(BACKWARD), interval(0, -1):
-        xmbmax = xmbmax[0, 0, 1]
-
     # Compute cloud moisture property and precipitation
-    with computation(PARALLEL), interval(...):
+    # Set cloud moisture property equal to the enviromental
+    # moisture at updraft starting level (kb).
+    with computation(FORWARD), interval(...):
         if cnvflg:
             aa1 = 0.0
-            if k_idx == kb:
+            if k_mask == kb:
                 qcko = qo
                 qrcko = qo
 
@@ -991,11 +953,10 @@ def stencil_static11(
         rfact = 0.0
 
         if cnvflg:
-            if k_idx > kb and k_idx < ktcon:
+            if k_mask > kb and k_mask < ktcon:
                 dz = zi - zi[0, 0, -1]
                 gamma = physcons.EL2ORC * qeso / (to ** 2)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
-                # j
                 tem = 0.5 * (xlamue + xlamue[0, 0, -1]) * dz
                 tem1 = 0.5 * xlamud * dz
                 factor = 1.0 + tem - tem1
@@ -1003,14 +964,13 @@ def stencil_static11(
                     (1.0 - tem1) * qcko[0, 0, -1] + tem * 0.5 * (qo + qo[0, 0, -1])
                 ) / factor
                 qrcko = qcko
-                # j
                 dq = eta * (qcko - qrch)
 
-                # rhbar(i) = rhbar(i) + qo(i,k_idx) / qeso(i,k_idx)
+                # rhbar(i) = rhbar(i) + qo(i,k_mask) / qeso(i,k_mask)
 
                 # Below lfc check if there is excess moisture to release
                 # latent heat
-                if k_idx >= kbcon and dq > 0.0:
+                if k_mask >= kbcon and dq > 0.0:
                     etah = 0.5 * (eta + eta[0, 0, -1])
                     dp = 1000.0 * del0
 
@@ -1026,7 +986,7 @@ def stencil_static11(
                     pwo = etah * c0t * dz * qlk
                     cnvwt = etah * qlk * constants.GRAV / dp
 
-                if k_idx >= kbcon:
+                if k_mask >= kbcon:
                     rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
                         to / constants.HLV
                     )
@@ -1034,67 +994,56 @@ def stencil_static11(
                         constants.GRAV / (constants.CP_AIR * to)
                     ) * dbyo / (1.0 + gamma) * rfact
 
-                    # val = 0.
-                    buo = (
-                        (
-                            buo + constants.GRAV * physcons.constants.GRAV * (qeso - qo)
-                        ) if ((qeso - qo) > 0.0) else buo
+                    buo = buo + (
+                        constants.GRAV * physcons.constants.GRAV * max(
+                            0.0, (qeso - qo)
+                        )
                     )
-                    drag = xlamue if (xlamue > xlamud) else xlamud
+                    drag = max(xlamue, xlamud)
 
-    # L1064: Calculate the cloud work function according to Pan and Wu (1995) 
-    # \cite pan_and_wu_1995 equation 4
-    with computation(PARALLEL), interval(...):
+    # L1064: Calculate the cloud work function according to Pan and Wu (1995)
+    # \cite pan_and_wu_1995 equation 4:
+    # \f[
+    # A_u=\int_{z_0}^{z_t}\frac{g}{c_pT(z)}\frac{\eta}{1 + \gamma}[h(z)-h^*(z)]dz
+    # \f]
+    # (discretized according to Grell (1993) \cite grell_1993 equation B.10 using
+    # B.2 and B.3 of Arakawa and Schubert (1974) \cite arakawa_and_schubert_1974
+    # and assuming \f$\eta=1\f$) where \f$A_u\f$ is the updraft cloud work function,
+    # \f$z_0\f$ and \f$z_t\f$ are cloud base and cloud top, respectively,
+    # \f$\gamma=\frac{L}{c_p}\left(\frac{\partial\overline{q_s}}{\partial T}\right)_p\f$
+    # and other quantities are previously defined.
+    with computation(FORWARD), interval(0, 1):
         if cnvflg:
             aa1 = 0.0
 
     with computation(FORWARD), interval(1, -1):
-        aa1 = aa1[0, 0, -1]
         dz1 = 0.0
         if cnvflg:
-            if k_idx >= kbcon and k_idx < ktcon:
+            if k_mask >= kbcon and k_mask < ktcon:
                 dz1 = zo[0, 0, 1] - zo
                 aa1 = aa1 + buo * dz1
 
     # To make all slices like final slice
     with computation(FORWARD), interval(-1, None):
-        aa1 = aa1[0, 0, -1]
-    with computation(BACKWARD), interval(0, -1):
-        aa1 = aa1[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
         if cnvflg and aa1 <= 0.0:
             cnvflg = False
 
 
-# totflg and return
-
-# Estimate the onvective overshooting as the level
-#   where the [aafac * cloud work function] becomes zero,
-#   which is the final cloud top
-#   limited to the level of P/Ps=0.7
-
-# Continue calculating the cloud work function past the point of neutral buoyancy to
-# represent overshooting according to Han and Pan (2011) \cite han_and_pan_2011.
-# Convective overshooting stops when \f$ cA_u < 0\f$ where \f$c\f$ is currently 10%,
-# or when 10% of the updraft cloud work function has been consumed by the stable
-# buoyancy force. Overshooting is also limited to the level where \f$p=0.7p_{sfc}\f$.
-# pass
 def stencil_static12(
-    cnvflg: BoolField,
-    aa1: FloatField,
-    flg: BoolField,
-    ktcon1: IntField,
-    kbm: IntField,
-    k_idx: IntField,
-    ktcon: IntField,
+    cnvflg: BoolFieldIJ,
+    aa1: FloatFieldIJ,
+    flg: BoolFieldIJ,
+    ktcon1: IntFieldIJ,
+    kbm: IntFieldIJ,
+    k_mask: IntField,
+    ktcon: IntFieldIJ,
     zo: FloatField,
     qeso: FloatField,
     to: FloatField,
     dbyo: FloatField,
     zi: FloatField,
     xlamue: FloatField,
-    xlamud: FloatField,
+    xlamud: FloatFieldIJ,
     qcko: FloatField,
     qrcko: FloatField,
     qo: FloatField,
@@ -1105,15 +1054,25 @@ def stencil_static12(
     cnvwt: FloatField,
     buo: FloatField,
     wu2: FloatField,
-    wc: FloatField,
-    sumx: FloatField,
-    kbcon1: IntField,
+    wc: FloatFieldIJ,
+    sumx: FloatFieldIJ,
+    kbcon1: IntFieldIJ,
     drag: FloatField,
     dellal: FloatField,
-    c1: Float,
-    ncloud: Int
 ):
-    with computation(PARALLEL), interval(...):
+    # Estimate the onvective overshooting as the level
+    #   where the [aafac * cloud work function] becomes zero,
+    #   which is the final cloud top
+    #   limited to the level of P/Ps=0.7
+
+    # Continue calculating the cloud work function past the point of neutral buoyancy to
+    # represent overshooting according to Han and Pan (2011) \cite han_and_pan_2011.
+    # Convective overshooting stops when \f$ cA_u < 0\f$ where \f$c\f$ is currently 10%,
+    # or when 10% of the updraft cloud work function has been consumed by the stable
+    # buoyancy force.
+    # Overshooting is also limited to the level where \f$p=0.7p_{sfc}\f$.
+    from __externals__ import c1, ncloud
+    with computation(FORWARD), interval(0, 1):
         if cnvflg:
             aa1 = physcons.AAFAC * aa1
 
@@ -1124,12 +1083,9 @@ def stencil_static12(
         dz1 = 0.0
         gamma = 0.0
         rfact = 0.0
-        aa1 = aa1[0, 0, -1]
-        ktcon1 = ktcon1[0, 0, -1]
-        flg = flg[0, 0, -1]
 
         if flg:
-            if k_idx >= ktcon and k_idx < kbm:
+            if k_mask >= ktcon and k_mask < kbm:
                 dz1 = zo[0, 0, 1] - zo
                 gamma = physcons.EL2ORC * qeso / (to ** 2)
                 rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
@@ -1141,24 +1097,13 @@ def stencil_static12(
 
                 # val = 0.
                 # aa1(i) = aa1(i) +
-                #         dz1 * eta(i,k_idx) * g * delta *
+                #         dz1 * eta(i,k_mask) * g * delta *
                 #         dz1 * g * delta *
-                #         max(val,(qeso(i,k_idx) - qo(i,k_idx)))
+                #         max(val,(qeso(i,k_mask) - qo(i,k_mask)))
 
                 if aa1 < 0.0:
-                    ktcon1 = k_idx
+                    ktcon1 = k_mask
                     flg = False
-
-    # To make all slice like final slice
-    with computation(FORWARD), interval(-1, None):
-        aa1 = aa1[0, 0, -1]
-        ktcon1 = ktcon1[0, 0, -1]
-        flg = flg[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        aa1 = aa1[0, 0, 1]
-        ktcon1 = ktcon1[0, 0, 1]
-        flg = flg[0, 0, 1]
 
     # Compute cloud moisture property, detraining cloud water
     # and precipitation in overshooting layers
@@ -1180,11 +1125,10 @@ def stencil_static12(
         dp = 0.0
 
         if cnvflg:
-            if k_idx >= ktcon and k_idx < ktcon1:
+            if k_mask >= ktcon and k_mask < ktcon1:
                 dz = zi - zi[0, 0, -1]
                 gamma = physcons.EL2ORC * qeso / (to ** 2)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
-                # j
                 tem = 0.5 * (xlamue + xlamue[0, 0, -1]) * dz
                 tem1 = 0.5 * xlamud * dz
                 factor = 1.0 + tem - tem1
@@ -1192,7 +1136,6 @@ def stencil_static12(
                     (1.0 - tem1) * qcko[0, 0, -1] + tem * 0.5 * (qo + qo[0, 0, -1])
                 ) / factor
                 qrcko = qcko
-                # j
                 dq = eta * (qcko - qrch)
 
                 # Check if there is excess moisture to release latent heat
@@ -1219,47 +1162,35 @@ def stencil_static12(
         tem1 = 0.0
         ptem = 0.0
         ptem1 = 0.0
-        # bb1   = 4.0
-        # bb2   = 0.8
+        bb1 = 4.0
+        bb2 = 0.8
         if cnvflg:
-            if k_idx > kbcon1 and k_idx < ktcon:
+            if k_mask > kbcon1 and k_mask < ktcon:
                 dz = zi - zi[0, 0, -1]
-                tem = 0.25 * 4.0 * (drag + drag[0, 0, -1]) * dz
-                tem1 = 0.5 * 0.8 * (buo + buo[0, 0, -1]) * dz
+                tem = 0.25 * bb1 * (drag + drag[0, 0, -1]) * dz
+                tem1 = 0.5 * bb2 * (buo + buo[0, 0, -1]) * dz
                 ptem = (1.0 - tem) * wu2[0, 0, -1]
                 ptem1 = 1.0 + tem
                 wu2 = (ptem + tem1) / ptem1
-                wu2 = wu2 if (wu2 > 0.0) else 0.0
+                wu2 = max(wu2, 0.0)
 
     # Compute updraft velocity averaged over the whole cumulus
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD), interval(0, 1):
         wc = 0.0
         sumx = 0.0
 
     with computation(FORWARD), interval(1, -1):
         dz = 0.0
         tem = 0.0
-        wc = wc[0, 0, -1]
-        sumx = sumx[0, 0, -1]
 
         if cnvflg:
-            if k_idx > kbcon1 and k_idx < ktcon:
+            if k_mask > kbcon1 and k_mask < ktcon:
                 dz = zi - zi[0, 0, -1]
-                tem = 0.5 * ((wu2) ** 0.5 + (wu2[0, 0, -1]) ** 0.5)
+                tem = 0.5 * (sqrt(wu2) + sqrt(wu2[0, 0, -1]))
                 wc = wc + tem * dz
                 sumx = sumx + dz
 
-    # To make all slices like final slice
     with computation(FORWARD), interval(-1, None):
-        wc = wc[0, 0, -1]
-        sumx = sumx[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-        wc = wc[0, 0, 1]
-        sumx = sumx[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
-
         if cnvflg:
             if sumx == 0.0:
                 cnvflg = False
@@ -1271,101 +1202,92 @@ def stencil_static12(
                 cnvflg = False
 
     # Exchange ktcon with ktcon1
-    with computation(PARALLEL), interval(...):
-        kk = 1
+    with computation(FORWARD), interval(-1, None):
+        kk = 0
         if cnvflg:
             kk = ktcon
             ktcon = ktcon1
             ktcon1 = kk
 
 
-# This section is ready for cloud water
-#  if(ncloud > 0):
-# pass
+# if(ncloud > 0):
 def stencil_static13(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    ktcon: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    ktcon: IntFieldIJ,
     qeso: FloatField,
     to: FloatField,
     dbyo: FloatField,
     qcko: FloatField,
-    qlko_ktcon: FloatField,
+    qlko_ktcon: FloatFieldIJ,
 ):
-    with computation(FORWARD), interval(1, None):
+    # This section is ready for cloud water
+    # compute liquid and vapor separation at cloud top
+    # Separate the total updraft cloud water at cloud top into vapor and condensate.
+    with computation(FORWARD), interval(...):
         gamma = 0.0
         qrch = 0.0
         dq = 0.0
 
         if cnvflg:
-
-            qlko_ktcon = qlko_ktcon[0, 0, -1]
-            if k_idx == ktcon - 1:
-                gamma = physcons.EL2ORC * qeso / (to * to)
+            if k_mask == ktcon - 1:
+                gamma = physcons.EL2ORC * qeso / (to**2.0)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
                 dq = qcko - qrch
                 # Check if there is excess moisture to release latent heat
                 if dq > 0.0:
                     qlko_ktcon = dq
                     qcko = qrch
-
-    with computation(BACKWARD), interval(0, -1):
-        qlko_ktcon = qlko_ktcon[0, 0, 1]
-
-
 # endif
 
-# Compute precipitation efficiency in terms of windshear
-# pass
+
 def stencil_static14(
-    cnvflg: BoolField,
-    vshear: FloatField,
-    k_idx: IntField,
-    kb: IntField,
-    ktcon: IntField,
+    cnvflg: BoolFieldIJ,
+    vshear: FloatFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
+    ktcon: IntFieldIJ,
     uo: FloatField,
     vo: FloatField,
     zi: FloatField,
-    edt: FloatField,
+    zi_kb: FloatFieldIJ,
+    zi_ktcon: FloatFieldIJ,
+    edt: FloatFieldIJ,
 ):
-    with computation(PARALLEL), interval(...):
+    # Compute precipitation efficiency in terms of windshear
+    # Calculate the wind shear and precipitation efficiency according to equation 58
+    # in Fritsch and Chappell (1980) \cite fritsch_and_chappell_1980 :
+    # \f[
+    # E = 1.591 - 0.639\frac{\Delta V}{\Delta z} +
+    # 0.0953\left(\frac{\Delta V}{\Delta z}\right)^2
+    # - 0.00496\left(\frac{\Delta V}{\Delta z}\right)^3
+    # \f]
+    # where \f$\Delta V\f$ is the integrated horizontal shear over the cloud depth, 
+    # \f$\Delta z\f$, (the ratio is converted to units of \f$10^{-3} s^{-1}\f$). 
+    # The variable "edt" is \f$1-E\f$ and is constrained to the range \f$[0,0.9]\f$.
+    with computation(FORWARD), interval(0, 1):
+        zi_kb = 0.0
+        zi_ktcon = 0.0
         if cnvflg:
             vshear = 0.0
 
     with computation(FORWARD), interval(1, None):
-        vshear = vshear[0, 0, -1]
         if cnvflg:
-            if k_idx > kb and k_idx <= ktcon:
+            if k_mask > kb and k_mask <= ktcon:
                 # shear = ((uo-uo[0,0,-1]) ** 2 \
                 #      + (vo-vo[0,0,-1]) ** 2)**0.5
                 vshear = (
                     vshear
-                    + ((uo - uo[0, 0, -1]) ** 2 + (vo - vo[0, 0, -1]) ** 2) ** 0.5
+                    + sqrt((uo - uo[0, 0, -1]) ** 2 + (vo - vo[0, 0, -1]) ** 2)
                 )
 
-    # To make all slice like final slice
-    with computation(BACKWARD), interval(0, -1):
-        vshear = vshear[0, 0, 1]
-
     with computation(FORWARD), interval(...):
-        zi_kb = zi
-        zi_ktcon = zi
-
-        if k_idx != 1:
-            zi_kb = zi_kb[0, 0, -1]
-            zi_ktcon = zi_ktcon[0, 0, -1]
-
-        if k_idx == kb:
+        if k_mask == kb:
             zi_kb = zi
-
-        if k_idx == ktcon:
+        if k_mask == ktcon:
             zi_ktcon = zi
 
-    with computation(BACKWARD), interval(0, -1):
-        zi_kb = zi_kb[0, 0, 1]
-        zi_ktcon = zi_ktcon[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD), interval(0, 1):
         if cnvflg:
             # Use ziktcon and zikb to represent zi(ktcon) and zi(kb)
             vshear = 1.0e3 * vshear / (zi_ktcon - zi_kb)
@@ -1380,32 +1302,32 @@ def stencil_static14(
                 - 0.00496 * (vshear ** 3)
             )
             # val = .9
-            edt = edt if (edt < 0.9) else 0.9
+            edt = min(edt, 0.9)
             # val = .0
-            edt = edt if (edt > 0.0) else 0.0
+            edt = max(edt, 0.0)
 
 
 def comp_tendencies(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kmax: IntField,
-    kb: IntField,
-    ktcon: IntField,
-    ktcon1: IntField,
-    kbcon1: IntField,
-    kbcon: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kmax: IntFieldIJ,
+    kb: IntFieldIJ,
+    ktcon: IntFieldIJ,
+    ktcon1: IntFieldIJ,
+    kbcon1: IntFieldIJ,
+    kbcon: IntFieldIJ,
     dellah: FloatField,
     dellaq: FloatField,
     dellau: FloatField,
     dellav: FloatField,
     del0: FloatField,
     zi: FloatField,
-    zi_ktcon1: FloatField,
-    zi_kbcon1: FloatField,
+    zi_ktcon: FloatFieldIJ,
+    zi_kbcon: FloatFieldIJ,
     heo: FloatField,
     qo: FloatField,
     xlamue: FloatField,
-    xlamud: FloatField,
+    xlamud: FloatFieldIJ,
     eta: FloatField,
     hcko: FloatField,
     qrcko: FloatField,
@@ -1415,58 +1337,53 @@ def comp_tendencies(
     vcko: FloatField,
     qcko: FloatField,
     dellal: FloatField,
-    qlko_ktcon: FloatField,
-    wc: FloatField,
-    gdx: FloatField,
-    dtconv: FloatField,
+    qlko_ktcon: FloatFieldIJ,
+    wc: FloatFieldIJ,
+    gdx: FloatFieldIJ,
+    dtconv: FloatFieldIJ,
     u1: FloatField,
     v1: FloatField,
     po: FloatField,
     to: FloatField,
-    tauadv: FloatField,
-    xmb: FloatField,
-    sigmagfm: FloatField,
-    garea: FloatField,
-    scaldfunc: FloatField,
-    xmbmax: FloatField,
-    sumx: FloatField,
-    umean: FloatField,
-    dt2: Float,
+    tauadv: FloatFieldIJ,
+    xmb: FloatFieldIJ,
+    sigmagfm: FloatFieldIJ,
+    garea: FloatFieldIJ,
+    scaldfunc: FloatFieldIJ,
+    xmbmax: FloatFieldIJ,
+    sumx: FloatFieldIJ,
+    umean: FloatFieldIJ,
 ):
+    # what would the change be, that a cloud with unit mass
+    # will do to the environment?
     # Calculate the change in moist static energy, moisture
     # mixing ratio, and horizontal winds per unit cloud base mass
     # flux for all layers below cloud top from equations B.14
     # and B.15 from Grell (1993) \cite grell_1993, and for the
     # cloud top from B.16 and B.17
+    from __externals__ import dt2
 
-    # Initialize zi_ktcon1 and zi_kbcon1 fields (propagate forward)
+    # Initialize zi_ktcon and zi_kbcon fields (propagate forward)
+    with computation(FORWARD), interval(0, 1):
+        zi_ktcon = 0.0
+        zi_kbcon = 0.0
+        tauadv = 0.0
+
     with computation(FORWARD), interval(...):
-
-        if k_idx == ktcon1:
-            zi_ktcon1 = zi
-        elif k_idx > 0:
-            zi_ktcon1 = zi_ktcon1[0, 0, -1]
-
-        if k_idx == kbcon1:
-            zi_kbcon1 = zi
-        elif k_idx > 0:
-            zi_kbcon1 = zi_kbcon1[0, 0, -1]
-
-    # Initialize zi_ktcon1 and zi_kbcon1 fields (propagate backward)
-    with computation(BACKWARD), interval(0, -1):
-
-        zi_ktcon1 = zi_ktcon1[0, 0, 1]
-        zi_kbcon1 = zi_kbcon1[0, 0, 1]
+        if k_mask == ktcon1:
+            zi_ktcon = zi
+        if k_mask == kbcon1:
+            zi_kbcon = zi
 
     with computation(PARALLEL), interval(...):
-
-        if cnvflg and k_idx <= kmax:
+        if cnvflg and k_mask <= kmax:
             dellah = 0.0
             dellaq = 0.0
             dellau = 0.0
             dellav = 0.0
 
     with computation(PARALLEL), interval(1, -1):
+        # changed due to subsidence and entrainment
 
         dp = 0.0
         dz = 0.0
@@ -1482,14 +1399,10 @@ def comp_tendencies(
 
         tem = 0.0
         tem1 = 0.0
-
-        eta_curr = 0.0
-        eta_prev = 0.0
-
         tem2 = 0.0
 
         # Changes due to subsidence and entrainment
-        if cnvflg and k_idx > kb and k_idx < ktcon:
+        if cnvflg and k_mask > kb and k_mask < ktcon:
 
             dp = 1000.0 * del0
             dz = zi[0, 0, 0] - zi[0, 0, -1]
@@ -1506,72 +1419,68 @@ def comp_tendencies(
             tem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, -1])
             tem1 = xlamud
 
-            eta_curr = eta[0, 0, 0]
-            eta_prev = eta[0, 0, -1]
-
             dellah = (
                 dellah
                 + (
-                    eta_curr * dv1h
-                    - eta_prev * dv3h
-                    - eta_prev * dv2h * tem * dz
-                    + eta_prev * tem1 * 0.5 * dz * (hcko[0, 0, 0] + hcko[0, 0, -1])
+                    eta * dv1h
+                    - eta[0, 0, -1] * dv3h
+                    - tem * eta[0, 0, -1] * dv2h * dz
+                    + tem1 * eta[0, 0, -1] * 0.5 * (hcko + hcko[0, 0, -1]) * dz
                 )
-                * gdp
+                * constants.GRAV / dp
             )
 
             dellaq = (
                 dellaq
                 + (
-                    eta_curr * dv1q
-                    - eta_prev * dv3q
-                    - eta_prev * dv2q * tem * dz
-                    + eta_prev * tem1 * 0.5 * dz * (qrcko[0, 0, 0] + qcko[0, 0, -1])
+                    eta * dv1q
+                    - eta[0, 0, -1] * dv3q
+                    - tem * eta[0, 0, -1] * dv2q * dz
+                    + tem1 * eta[0, 0, -1] * 0.5 * (qrcko + qcko[0, 0, -1]) * dz
                 )
-                * gdp
+                * constants.GRAV / dp
             )
 
-            tem1 = eta_curr * (uo[0, 0, 0] - ucko[0, 0, 0])
-            tem2 = eta_prev * (uo[0, 0, -1] - ucko[0, 0, -1])
-            dellau = dellau + (tem1 - tem2) * gdp
+            tem1 = eta * (uo - ucko)
+            tem2 = eta[0, 0, -1] * (uo[0, 0, -1] - ucko[0, 0, -1])
+            dellau = dellau + (tem1 - tem2) * constants.GRAV / dp
 
-            tem1 = eta_curr * (vo[0, 0, 0] - vcko[0, 0, 0])
-            tem2 = eta_prev * (vo[0, 0, -1] - vcko[0, 0, -1])
-            dellav = dellav + (tem1 - tem2) * gdp
+            tem1 = eta * (vo - vcko)
+            tem2 = eta[0, 0, -1] * (vo[0, 0, -1] - vcko[0, 0, -1])
+            dellav = dellav + (tem1 - tem2) * constants.GRAV / dp
 
     with computation(PARALLEL), interval(1, None):
-
         tfac = 0.0
 
         # Cloud top
         if cnvflg:
-
-            if ktcon == k_idx:
-
+            if k_mask == ktcon:
                 dp = 1000.0 * del0
-                gdp = constants.GRAV / dp
 
                 dv1h = heo[0, 0, -1]
-                dellah = eta[0, 0, -1] * (hcko[0, 0, -1] - dv1h) * gdp
+                dellah = eta[0, 0, -1] * (hcko[0, 0, -1] - dv1h) * constants.GRAV / dp
 
                 dv1q = qo[0, 0, -1]
-                dellaq = eta[0, 0, -1] * (qcko[0, 0, -1] - dv1q) * gdp
+                dellaq = eta[0, 0, -1] * (qcko[0, 0, -1] - dv1q) * constants.GRAV / dp
 
-                dellau = eta[0, 0, -1] * (ucko[0, 0, -1] - uo[0, 0, -1]) * gdp
-                dellav = eta[0, 0, -1] * (vcko[0, 0, -1] - vo[0, 0, -1]) * gdp
+                dellau = eta[0, 0, -1] * (
+                    ucko[0, 0, -1] - uo[0, 0, -1]
+                ) * constants.GRAV / dp
+                dellav = eta[0, 0, -1] * (
+                    vcko[0, 0, -1] - vo[0, 0, -1]
+                ) * constants.GRAV / dp
 
                 # Cloud water
-                dellal = eta[0, 0, -1] * qlko_ktcon * gdp
+                dellal = eta[0, 0, -1] * qlko_ktcon * constants.GRAV / dp
 
-    with computation(PARALLEL), interval(...):
-
+    with computation(FORWARD), interval(0, 1):
+        # compute convective turn-over time
         # Following Bechtold et al. (2008) \cite
         # bechtold_et_al_2008, calculate the convective turnover
         # time using the mean updraft velocity (wc) and the cloud
         # depth. It is also proportional to the grid size (gdx).
         if cnvflg:
-
-            tem = zi_ktcon1 - zi_kbcon1
+            tem = zi_ktcon - zi_kbcon
             tfac = 1.0 + gdx / 75000.0
             dtconv = tfac * tem / wc
             dtconv = max(dtconv, physcons.DTMIN)
@@ -1583,114 +1492,50 @@ def comp_tendencies(
             umean = 0.0
 
     # Calculate advective time scale (tauadv) using a mean cloud layer
-    # wind speed (propagate forward)
+    # wind speed
     with computation(FORWARD), interval(1, -1):
-
         if cnvflg:
-            if k_idx >= kbcon1 and k_idx < ktcon1:
+            if k_mask >= kbcon1 and k_mask < ktcon1:
                 dz = zi[0, 0, 0] - zi[0, 0, -1]
-                tem = (u1 * u1 + v1 * v1) ** 0.5  # sqrt(u1*u1 + v1*v1)
+                tem = sqrt(u1 * u1 + v1 * v1)
                 umean = umean[0, 0, -1] + tem * dz
                 sumx = sumx[0, 0, -1] + dz
-            else:
-                umean = umean[0, 0, -1]
-                sumx = sumx[0, 0, -1]
-
-    # Calculate advective time scale (tauadv) using a mean cloud layer
-    # wind speed (propagate backward)
-    with computation(BACKWARD), interval(1, -2):
-        if cnvflg:
-            umean = umean[0, 0, 1]
-            sumx = sumx[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
-
-        rho = 0.0
-        val = 1.0
-        val1 = 2.0e-4
-        val2 = 6.0e-4
-        val3 = 0.001
-        val4 = 0.999
-        val5 = 0.0
-
+    with computation(FORWARD), interval(-1, None):
         if cnvflg:
             umean = umean / sumx
-            umean = max(
-                umean, val
-            )  # Passing literals (e.g. 1.0) to functions might cause errors
-            # in conditional statements
+            umean = max(umean, 1.0)
             tauadv = gdx / umean
 
-    with computation(FORWARD):
+    with computation(FORWARD), interval(...):
+        # compute cloud base mass flux as a function of the mean
+        # updraft velcoity
+        # From Han et al.'s (2017) \cite han_et_al_2017 equation
+        # 6, calculate cloud base mass flux as a function of the
+        # mean updraft velocity
+        if cnvflg and k_mask == kbcon:
+            rho = po * 100.0 / (constants.RDGAS * to)
+            tfac = tauadv / dtconv
+            tfac = min(tfac, 1.0)
+            xmb = tfac * physcons.BETAW * rho * wc
 
-        with interval(0, 1):
+            # For scale-aware parameterization, the updraft fraction
+            # (sigmagfm) is first computed as a function of the
+            # lateral entrainment rate at cloud base (see Han et
+            # al.'s (2017) \cite han_et_al_2017 equation 4 and 5),
+            # following the study by Grell and Freitas (2014) \cite
+            # grell_and_freitus_2014
+            tem = max(xlamue, 2.e-4)
+            tem = min(tem, 6.e-4)
+            tem = 0.2 / tem
+            tem1 = 3.14 * tem * tem
 
-            if cnvflg and k_idx == kbcon:
+            sigmagfm = tem1 / garea
+            sigmagfm = max(sigmagfm, 0.002)
+            sigmagfm = min(sigmagfm, 0.999)
 
-                # From Han et al.'s (2017) \cite han_et_al_2017 equation
-                # 6, calculate cloud base mass flux as a function of the
-                # mean updraft velocity
-                rho = po * 100.0 / (constants.RDGAS * to)
-                tfac = tauadv / dtconv
-                tfac = min(tfac, val)  # Same as above: literals
-                xmb = tfac * physcons.BETAW * rho * wc
-
-                # For scale-aware parameterization, the updraft fraction
-                # (sigmagfm) is first computed as a function of the
-                # lateral entrainment rate at cloud base (see Han et
-                # al.'s (2017) \cite han_et_al_2017 equation 4 and 5),
-                # following the study by Grell and Freitas (2014) \cite
-                # grell_and_freitus_2014
-                tem = max(xlamue, val1)
-                tem = min(tem, val2)
-                tem = 0.2 / tem
-                tem1 = 3.14 * tem * tem
-
-                sigmagfm = tem1 / garea
-                sigmagfm = max(sigmagfm, val3)
-                sigmagfm = min(sigmagfm, val4)
-
-        with interval(1, None):
-
-            if cnvflg and k_idx == kbcon:
-
-                # From Han et al.'s (2017) \cite han_et_al_2017 equation
-                # 6, calculate cloud base mass flux as a function of the
-                # mean updraft velocity
-                rho = po * 100.0 / (constants.RDGAS * to)
-                tfac = tauadv / dtconv
-                tfac = min(tfac, val)  # Same as above: literals
-                xmb = tfac * physcons.BETAW * rho * wc
-
-                # For scale-aware parameterization, the updraft fraction
-                # (sigmagfm) is first computed as a function of the
-                # lateral entrainment rate at cloud base (see Han et
-                # al.'s (2017) \cite han_et_al_2017 equation 4 and 5),
-                # following the study by Grell and Freitas (2014) \cite
-                # grell_and_freitus_2014
-                tem = max(xlamue, val1)
-                tem = min(tem, val2)
-                tem = 0.2 / tem
-                tem1 = 3.14 * tem * tem
-
-                sigmagfm = tem1 / garea
-                sigmagfm = max(sigmagfm, val3)
-                sigmagfm = min(sigmagfm, val4)
-
-            else:
-
-                xmb = xmb[0, 0, -1]
-                sigmagfm = sigmagfm[0, 0, -1]
-
-    with computation(BACKWARD), interval(0, -1):
-
-        if cnvflg:
-            xmb = xmb[0, 0, 1]
-            sigmagfm = sigmagfm[0, 0, 1]
-
-    with computation(PARALLEL), interval(...):
-
-        # Vertical convective eddy transport of mass flux as a
+    with computation(FORWARD), interval(0, 1):
+        # Then, calculate the reduction factor (scaldfunc) of the
+        # vertical convective eddy transport of mass flux as a
         # function of updraft fraction from the studies by Arakawa
         # and Wu (2013) \cite arakawa_and_wu_2013 (also see Han et
         # al.'s (2017) \cite han_et_al_2017 equation 1 and 2). The
@@ -1701,8 +1546,8 @@ def comp_tendencies(
         if cnvflg:
             if gdx < physcons.DXCRT:
                 scaldfunc = (1.0 - sigmagfm) * (1.0 - sigmagfm)
-                scaldfunc = min(scaldfunc, val)
-                scaldfunc = max(scaldfunc, val5)
+                scaldfunc = min(scaldfunc, 1.0)
+                scaldfunc = max(scaldfunc, 0.0)
             else:
                 scaldfunc = 1.0
 
@@ -1711,22 +1556,21 @@ def comp_tendencies(
 
 
 def comp_tendencies_tr(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kmax: IntField,
-    kb: IntField,
-    ktcon: IntField,
-    dellae: FloatField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kmax: IntFieldIJ,
+    kb: IntFieldIJ,
+    ktcon: IntFieldIJ,
+    dellae: FloatFieldTracer,
     del0: FloatField,
     eta: FloatField,
-    ctro: FloatField,
-    ecko: FloatField,
+    ctro: FloatFieldTracer,
+    ecko: FloatFieldTracer,
+    n_tracer: Int,
 ):
     with computation(PARALLEL), interval(...):
-
-        if cnvflg and k_idx <= kmax:
-
-            dellae = 0.0
+        if cnvflg and k_mask <= kmax:
+            dellae[0, 0, 0][n_tracer] = 0.0
 
     with computation(PARALLEL), interval(1, -1):
 
@@ -1734,52 +1578,51 @@ def comp_tendencies_tr(
         tem2 = 0.0
         dp = 0.0
 
-        if cnvflg and k_idx > kb and k_idx < ktcon:
-
+        if cnvflg and k_mask > kb and k_mask < ktcon:
             # Changes due to subsidence and entrainment
             dp = 1000.0 * del0
 
-            tem1 = eta[0, 0, 0] * (ctro[0, 0, 0] - ecko[0, 0, 0])
-            tem2 = eta[0, 0, -1] * (ctro[0, 0, -1] - ecko[0, 0, -1])
+            tem1 = eta[0, 0, 0] * (ctro[0, 0, 0][n_tracer] - ecko[0, 0, 0][n_tracer])
+            tem2 = eta[0, 0, -1] * (ctro[0, 0, -1][n_tracer] - ecko[0, 0, -1][n_tracer])
 
-            dellae = dellae + (tem1 - tem2) * constants.GRAV / dp
+            dellae[0, 0, 0][n_tracer] = dellae[0, 0, 0][n_tracer] + (
+                tem1 - tem2
+            ) * constants.GRAV / dp
 
     with computation(PARALLEL), interval(1, None):
 
         # Cloud top
-        if cnvflg and ktcon == k_idx:
-
+        if cnvflg and ktcon == k_mask:
             dp = 1000.0 * del0
-
-            dellae = eta[0, 0, -1] * (
-                ecko[0, 0, -1] - ctro[0, 0, -1]
+            dellae[0, 0, 0][n_tracer] = eta[0, 0, -1] * (
+                ecko[0, 0, -1][n_tracer] - ctro[0, 0, -1][n_tracer]
             ) * constants.GRAV / dp
 
 
-def feedback_control_update(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kmax: IntField,
-    kb: IntField,
-    ktcon: IntField,
-    flg: BoolField,
-    islimsk: IntField,
-    ktop: IntField,
-    kbot: IntField,
-    kbcon: IntField,
-    kcnv: IntField,
+def feedback_control_update_mass_flux(
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kmax: IntFieldIJ,
+    kb: IntFieldIJ,
+    ktcon: IntFieldIJ,
+    flg: BoolFieldIJ,
+    islimsk: IntFieldIJ,
+    ktop: IntFieldIJ,
+    kbot: IntFieldIJ,
+    kbcon: IntFieldIJ,
+    kcnv: IntFieldIJ,
     qeso: FloatField,
     pfld: FloatField,
-    delhbar: FloatField,
-    delqbar: FloatField,
-    deltbar: FloatField,
-    delubar: FloatField,
-    delvbar: FloatField,
-    qcond: FloatField,
+    delhbar: FloatFieldIJ,
+    delqbar: FloatFieldIJ,
+    deltbar: FloatFieldIJ,
+    delubar: FloatFieldIJ,
+    delvbar: FloatFieldIJ,
+    qcond: FloatFieldIJ,
     dellah: FloatField,
     dellaq: FloatField,
     t1: FloatField,
-    xmb: FloatField,
+    xmb: FloatFieldIJ,
     q1: FloatField,
     u1: FloatField,
     dellau: FloatField,
@@ -1787,12 +1630,12 @@ def feedback_control_update(
     dellav: FloatField,
     del0: FloatField,
     rntot: FloatField,
-    delqev: FloatField,
+    delqev: FloatFieldIJ,
     delq2: FloatField,
     pwo: FloatField,
-    deltv: FloatField,
-    delq: FloatField,
-    qevap: FloatField,
+    deltv: FloatFieldIJ,
+    delq: FloatFieldIJ,
+    qevap: FloatFieldIJ,
     rn: FloatField,
     edt: FloatField,
     cnvw: FloatField,
@@ -1801,16 +1644,28 @@ def feedback_control_update(
     ud_mf: FloatField,
     dt_mf: FloatField,
     eta: FloatField,
-    dt2: Float,
-    evfact: Float,
-    evfactl: Float,
 ):
-    with computation(PARALLEL), interval(...):
+    # For the "feedback control", calculate updated values of
+    # the state variables by multiplying the cloud base mass
+    # flux and the tendencies calculated per unit cloud base
+    # mass flux from the static control.
+    # Recalculate saturation specific humidity.
+    from __externals__ import dt2
+    with computation(FORWARD), interval(0, 1):
 
         # Initialize flg
         flg = cnvflg
+        rntot = 0.
+        delqev = 0.
+        delq2 = 0.
+        delhbar = 0.0
+        delqbar = 0.0
+        deltbar = 0.0
+        delubar = 0.0
+        delvbar = 0.0
+        qcond = 0.0
 
-        # Recalculate saturation specific humidity
+    with computation(FORWARD), interval(...):
         qeso = 0.01 * fpvs(t1)  # fpvs is in Pa
         qeso = constants.EPS * qeso / (pfld + (constants.EPS - 1) * qeso)
         val = 1.0e-8
@@ -1826,167 +1681,88 @@ def feedback_control_update(
         #   cloud base mass flux-normalized tendencies by the
         #   cloud base mass flux
         if cnvflg:
-            if k_idx > kb and k_idx <= ktcon:
+            if k_mask > kb and k_mask <= ktcon:
                 dellat = (dellah - constants.HLV * dellaq) / constants.CP_AIR
                 t1 = t1 + dellat * xmb * dt2
-
-        fpvst1 = 0.01 * fpvs(t1)  # fpvs is in Pa
-
-        if cnvflg:
-            if k_idx > kb and k_idx <= ktcon:
-
                 q1 = q1 + dellaq * xmb * dt2
                 u1 = u1 + dellau * xmb * dt2
                 v1 = v1 + dellav * xmb * dt2
 
+                dp = 1000.0 * del0
+                delhbar = delhbar + dellah * xmb * dp / constants.GRAV
+                delqbar = delqbar + dellaq * xmb * dp / constants.GRAV
+                deltbar = deltbar + dellat * xmb * dp / constants.GRAV
+                delubar = delubar + dellau * xmb * dp / constants.GRAV
+                delvbar = delvbar + dellav * xmb * dp / constants.GRAV
+
+        fpvst1 = 0.01 * fpvs(t1)  # fpvs is in Pa
+        if cnvflg:
+            if k_mask > kb and k_mask <= ktcon:
                 # Recalculate saturation specific humidity using the
                 # updated temperature
                 qeso = fpvst1
                 qeso = constants.EPS * qeso / (pfld + (constants.EPS - 1) * qeso)
                 qeso = max(qeso, val)
 
-    # Accumulate column-integrated tendencies (propagate forward)
-    with computation(FORWARD):
-
-        # To avoid conditionals in the full interval
-        with interval(0, 1):
-
-            dp = 0.0
-            dpg = 0.0
-
-            if cnvflg and k_idx > kb and k_idx <= ktcon:
-
-                dp = 1000.0 * del0
-                dpg = dp / constants.GRAV
-
-                delhbar = delhbar + dellah * xmb * dpg
-                delqbar = delqbar + dellaq * xmb * dpg
-                deltbar = deltbar + dellat * xmb * dpg
-                delubar = delubar + dellau * xmb * dpg
-                delvbar = delvbar + dellav * xmb * dpg
-
-        with interval(1, None):
-
-            if cnvflg:
-                if k_idx > kb and k_idx <= ktcon:
-
-                    dp = 1000.0 * del0
-                    dpg = dp / constants.GRAV
-
-                    delhbar = delhbar[0, 0, -1] + dellah * xmb * dpg
-                    delqbar = delqbar[0, 0, -1] + dellaq * xmb * dpg
-                    deltbar = deltbar[0, 0, -1] + dellat * xmb * dpg
-                    delubar = delubar[0, 0, -1] + dellau * xmb * dpg
-                    delvbar = delvbar[0, 0, -1] + dellav * xmb * dpg
-
-                else:
-
-                    delhbar = delhbar[0, 0, -1]
-                    delqbar = delqbar[0, 0, -1]
-                    deltbar = deltbar[0, 0, -1]
-                    delubar = delubar[0, 0, -1]
-                    delvbar = delvbar[0, 0, -1]
-
-    with computation(BACKWARD):
-
-        # To avoid conditionals in the full interval
-        with interval(-1, None):
-
-            if cnvflg:
-                if k_idx > kb and k_idx < ktcon:
-                    rntot = rntot + pwo * xmb * 0.001 * dt2
-
-        with interval(0, -1):
-            if cnvflg:
-
-                # Accumulate column-integrated tendencies (propagate backward)
-                delhbar = delhbar[0, 0, 1]
-                delqbar = delqbar[0, 0, 1]
-                deltbar = deltbar[0, 0, 1]
-                delubar = delubar[0, 0, 1]
-                delvbar = delvbar[0, 0, 1]
-
-                # Add up column-integrated convective precipitation by
-                # multiplying the normalized value by the cloud base
-                # mass flux (propagate backward)
-                if k_idx > kb and k_idx < ktcon:
-
-                    rntot = rntot[0, 0, 1] + pwo * xmb * 0.001 * dt2
-
-                else:
-
-                    rntot = rntot[0, 0, 1]
-
-    # Add up column-integrated convective precipitation by
-    # multiplying the normalized value by the cloud base
-    # mass flux (propagate forward)
-    with computation(FORWARD), interval(1, None):
+    with computation(FORWARD), interval(1, -1):
+        # Add up column-integrated convective precipitation by
+        # multiplying the normalized value by the cloud base
+        # mass flux (propagate forward)
 
         if cnvflg:
-            rntot = rntot[0, 0, -1]
+            if (k_mask < ktcon) and (k_mask > kb):
+                rntot = rntot + pwo * xmb * .001 * dt2
 
-    # - Determine the evaporation of the convective precipitation
-    #   and update the integrated convective precipitation
-    # - Update state temperature and moisture to account for
-    #   evaporation of convective precipitation
-    # - Update column-integrated tendencies to account for
-    #   evaporation of convective precipitation
+    # evaporating rain
+    # Determine the evaporation of the convective precipitation
+    # and update the integrated convective precipitation
+    # Update state temperature and moisture to account for
+    # evaporation of convective precipitation
+    # Update column-integrated tendencies to account for
+    # evaporation of convective precipitation
     with computation(BACKWARD):
-
-        with interval(-1, None):
+        with interval(...):
 
             evef = 0.0
             dp = 0.0
             tem = 0.0
             tem1 = 0.0
 
-            if k_idx <= kmax:
+            if k_mask <= kmax:
 
                 deltv = 0.0
                 delq = 0.0
                 qevap = 0.0
 
                 if cnvflg:
-                    if k_idx > kb and k_idx < ktcon:
+                    if k_mask > kb and k_mask < ktcon:
                         rn = rn + pwo * xmb * 0.001 * dt2
 
-                if flg and k_idx < ktcon:
-
+                if flg and k_mask < ktcon:
                     if islimsk == 1:
-                        evef = edt * evfactl
+                        evef = edt * physcons.EVFACTL
                     else:
-                        evef = edt * evfact
-
+                        evef = edt * physcons.EVFACT
                     qcond = evef * (q1 - qeso) / (
                         1.0 + physcons.EL2ORC * qeso / (t1 ** 2)
                     )
 
                     dp = 1000.0 * del0
-
                     if rn > 0.0 and qcond < 0.0:
-
-                        tem = dt2 * rn
-                        tem = sqrt(tem)
-                        tem = -0.32 * tem
+                        tem = -0.32 * sqrt(dt2 * rn)
                         tem = exp(tem)
                         qevap = -qcond * (1.0 - tem)
-                        tem = 1000.0 * constants.GRAV / dp
+                        tem = rn * 1000.0 * constants.GRAV / dp
                         qevap = min(qevap, tem)
                         delq2 = delqev + 0.001 * qevap * dp / constants.GRAV
 
                     if rn > 0.0 and qcond < 0.0 and delq2 > rntot:
-
                         qevap = 1000.0 * constants.GRAV * (rntot - delqev) / dp
                         flg = False
 
-                    else:
-                        flg = flg
-
                     if rn > 0.0 and qevap > 0.0:
-
                         tem = 0.001 * dp / constants.GRAV
                         tem1 = qevap * tem
-
                         if tem1 > rn:
                             qevap = rn / tem
                             rn = 0.0
@@ -2000,267 +1776,163 @@ def feedback_control_update(
 
                         delqev = delqev + 0.001 * dp * qevap / constants.GRAV
 
-                    else:
-                        delqev = delqev
-
                     delqbar = delqbar + delq * dp / constants.GRAV
                     deltbar = deltbar + deltv * dp / constants.GRAV
 
-        with interval(0, -1):
+    with computation(BACKWARD), interval(0, 1):
+        if (rn < 0.0) or (not flg):
+            rn = 0.0
+        ktop = ktcon
+        kbot = kbcon
+        kcnv = 1
 
-            rn = rn[0, 0, 1]
-            flg = flg[0, 0, 1]
-            delqev = delqev[0, 0, 1]
-            delqbar = delqbar[0, 0, 1]
-            deltbar = deltbar[0, 0, 1]
-
-            if k_idx <= kmax:
-
-                deltv = 0.0
-                delq = 0.0
-                qevap = 0.0
-
-                if cnvflg:
-                    if k_idx > kb and k_idx < ktcon:
-                        rn = rn + pwo * xmb * 0.001 * dt2
-
-                if flg and k_idx < ktcon:
-
-                    if islimsk == 1:
-                        evef = edt * evfactl
-                    else:
-                        evef = edt * evfact
-
-                    qcond = evef * (q1 - qeso) / (
-                        1.0 + physcons.EL2ORC * qeso / (t1 ** 2)
-                    )
-
-                    dp = 1000.0 * del0
-
-                    if rn > 0.0 and qcond < 0.0:
-
-                        tem = dt2 * rn
-                        tem = sqrt(tem)
-                        tem = -0.32 * tem
-                        tem = exp(tem)
-                        qevap = -qcond * (1.0 - tem)
-                        tem = 1000.0 * constants.GRAV / dp
-                        qevap = min(qevap, tem)
-                        delq2 = delqev + 0.001 * qevap * dp / constants.GRAV
-
-                    if rn > 0.0 and qcond < 0.0 and delq2 > rntot:
-
-                        qevap = 1000.0 * constants.GRAV * (rntot - delqev) / dp
-                        flg = False
-
-                    else:
-                        flg = flg
-
-                    if rn > 0.0 and qevap > 0.0:
-
-                        tem = 0.001 * dp / constants.GRAV
-                        tem1 = qevap * tem
-
-                        if tem1 > rn:
-                            qevap = rn / tem
-                            rn = 0.0
-                        else:
-                            rn = rn - tem1
-
-                        q1 = q1 + qevap
-                        t1 = t1 - physcons.ELOCP * qevap
-                        deltv = -physcons.ELOCP * qevap / dt2
-                        delq = qevap / dt2
-
-                        delqev = delqev + 0.001 * dp * qevap / constants.GRAV
-
-                    else:
-                        delqev = delqev
-
-                    delqbar = delqbar + delq * dp / constants.GRAV
-                    deltbar = deltbar + deltv * dp / constants.GRAV
-
-    with computation(FORWARD), interval(1, None):
-
-        rn = rn[0, 0, -1]
-        flg = flg[0, 0, -1]
-
-    with computation(PARALLEL), interval(...):
-
+    with computation(FORWARD), interval(...):
+        # convective cloud water
         val1 = 0.0
-        if cnvflg and k_idx >= kbcon and k_idx < ktcon:
-            val1 = 1.0 + 675.0 * eta * xmb
+        if cnvflg and k_mask >= kbcon and k_mask < ktcon:
+            # Calculate shallow convective cloud water
+            cnvw = cnvwt * xmb * dt2
+            # convective cloud cover
+            # Calculate convective cloud cover, which is used when pdf-based
+            # cloud fraction is used (i.e., pdfcld=.true.).
+            cnvc = 0.04 * log(1. + 675. * eta * xmb)
+            cnvc = min(cnvc, 0.2)
+            cnvc = max(cnvc, 0.0)
 
-        val2 = 0.2
-        val3 = 0.0
-        val4 = 1.0e6
-        cnvc_log = 0.0
-
-        cnvc_log = 0.04 * log10(
-            val1, val4
-        )  # 1.0e6 seems to get reasonable results, since val1 is on average ~50
-
+        # hchuang code change
+        # Calculate and retain the updraft mass flux for dust transport
+        # by cumulus convection.
+        # Calculate the updraft convective mass flux.
         if cnvflg:
-
-            if rn < 0.0 or flg == 0:
-                rn = 0.0
-
-            ktop = ktcon
-            kbot = kbcon
-            kcnv = 2
-
-            if k_idx >= kbcon and k_idx < ktcon:
-
-                # Calculate shallow convective cloud water
-                cnvw = cnvwt * xmb * dt2
-
-                # Calculate convective cloud cover, which is used when
-                # pdf-based cloud fraction is used
-                cnvc = min(cnvc_log, val2)
-                cnvc = max(cnvc, val3)
-
             # Calculate the updraft convective mass flux
-            if k_idx >= kb and k_idx < ktop:
+            if k_mask >= kb and k_mask < ktop:
                 ud_mf = eta * xmb * dt2
 
             # Save the updraft convective mass flux at cloud top
-            if k_idx == ktop - 1:
+            if k_mask == ktop - 1:
                 dt_mf = ud_mf
 
 
 def feedback_control_upd_trr(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kmax: IntField,
-    ktcon: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kmax: IntFieldIJ,
+    ktcon: IntFieldIJ,
     del0: FloatField,
-    delebar: FloatField,
-    ctr: FloatField,
-    dellae: FloatField,
-    xmb: FloatField,
-    qtr: FloatField,
-    dt2: Float,
+    delebar: FloatFieldTracer,
+    ctr: FloatFieldTracer,
+    dellae: FloatFieldTracer,
+    xmb: FloatFieldIJ,
+    qtr: FloatFieldTracer,
+    n_tracer: Int,
 ):
-    with computation(PARALLEL), interval(...):
-        delebar = 0.0
+    from __externals__ import dt2
+    with computation(FORWARD), interval(0, 1):
+        delebar[0, 0, 0][n_tracer] = 0.0
+    with computation(FORWARD), interval(...):
+        delebar[0, 0, 0][n_tracer] = delebar[0, 0, -1][n_tracer] = 0.0
 
-        if cnvflg and k_idx <= kmax and k_idx <= ktcon:
+        if cnvflg and k_mask <= kmax and k_mask <= ktcon:
+            ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
+                dellae[0, 0, 0][n_tracer] * xmb * dt2
+            )
+            delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] + (
+                dellae[0, 0, 0][n_tracer] * xmb
+            )
+            qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
 
-            ctr = ctr + dellae * xmb * dt2
-            qtr = ctr
-
-    # Propagate forward delebar values
     with computation(FORWARD):
-
-        with interval(0, 1):
-
-            dp = 0.0
-
-            if cnvflg and k_idx <= kmax and k_idx <= ktcon:
+        with interval(-1, None):
+            if cnvflg and k_mask <= kmax and k_mask <= ktcon:
                 dp = 1000.0 * del0
 
-                delebar = (
-                    delebar + dellae * xmb * dp / constants.GRAV
+                delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] * (
+                    dp / constants.GRAV
                 )  # Where does dp come from? Is it correct to use the last value at
                 # line 1559 of samfshalcnv.F?
 
-        with interval(1, None):
-
-            if cnvflg:
-
-                dp = 1000.0 * del0
-
-                if k_idx <= kmax and k_idx <= ktcon:
-                    delebar = delebar[0, 0, -1] + dellae * xmb * dp / constants.GRAV
-                else:
-                    delebar = delebar[0, 0, -1] + dellae * xmb * dp / constants.GRAV
-
     # Propagate backward delebar values
     with computation(BACKWARD), interval(0, -1):
-
         if cnvflg:
             delebar = delebar[0, 0, 1]
 
 
 def store_aero_conc(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kmax: IntField,
-    rn: FloatField,
-    qtr: FloatField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kmax: IntFieldIJ,
+    rn: FloatFieldIJ,
+    qtr: FloatFieldTracer,
     qaero: FloatField,
+    n_tracer: Int,
+    k_aerosol: Int,
 ):
     with computation(PARALLEL), interval(...):
 
         # Store aerosol concentrations if present
-        if cnvflg and rn > 0.0 and k_idx <= kmax:
-            qtr = qaero
+        if cnvflg and rn > 0.0 and k_mask <= kmax:
+            qtr[0, 0, 0][n_tracer] = qaero[0, 0, 0][k_aerosol]
 
 
 def separate_detrained_cw(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kbcon: IntField,
-    ktcon: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kbcon: IntFieldIJ,
+    ktcon: IntFieldIJ,
     dellal: FloatField,
-    xmb: FloatField,
+    xmb: FloatFieldIJ,
     t1: FloatField,
-    qtr_1: FloatField,
-    qtr_0: FloatField,
-    dt2: Float,
-    tcr: Float,
-    tcrf: Float
+    qtr: FloatFieldTracer,
 ):
-    with computation(PARALLEL), interval(...):
-
+    from __externals__ import dt2
+    with computation(FORWARD), interval(0, -1):
+        # cloud water
         # Separate detrained cloud water into liquid and ice species as
         # a function of temperature only
 
         tem = 0.0
-        val1 = 1.0
-        val2 = 0.0
         tem1 = 0.0
 
-        if cnvflg and k_idx >= kbcon and k_idx <= ktcon:
+        if cnvflg and k_mask >= kbcon and k_mask <= ktcon:
 
             tem = dellal * xmb * dt2
-            tem1 = (tcr - t1) * tcrf
-            tem1 = min(val1, tem1)
-            tem1 = max(val2, tem1)
+            tem1 = (physcons.SHAL_TCR - t1) * physcons.SHAL_TCRF
+            tem1 = min(1.0, tem1)
+            tem1 = max(0.0, tem1)
 
-            if qtr_1 > -999.0:
-                qtr_0 = qtr_0 + tem * tem1
-                qtr_1 = qtr_1 + tem * (1.0 - tem1)
+            if qtr[0, 0, 0][1] > -999.0:
+                qtr[0, 0, 0][0] = qtr[0, 0, 0][0] + tem * tem1  # ice
+                qtr[0, 0, 0][1] = qtr[0, 0, 0][1] + tem * (1.0 - tem1)  # water
             else:
-                qtr_0 = qtr_0 + tem
+                qtr[0, 0, 0][0] = qtr[0, 0, 0][0] + tem
 
 
 def tke_contribution(
-    cnvflg: BoolField,
-    k_idx: IntField,
-    kb: IntField,
-    ktop: IntField,
+    cnvflg: BoolFieldIJ,
+    k_mask: IntField,
+    kb: IntFieldIJ,
+    ktop: IntFieldIJ,
     eta: FloatField,
-    xmb: FloatField,
+    xmb: FloatFieldIJ,
     pfld: FloatField,
     t1: FloatField,
     sigmagfm: FloatField,
-    qtr_ntk: FloatField,
+    qtr: FloatFieldTracer,
 ):
+    # Include TKE contribution from shallow convection
+    from __externals__ import ntk
     with computation(PARALLEL), interval(1, -1):
 
         tem = 0.0
         tem1 = 0.0
         ptem = 0.0
 
-        # Include TKE contribution from shallow convection
-        if cnvflg and k_idx > kb and k_idx < ktop:
-
+        if cnvflg and k_mask > kb and k_mask < ktop:
             tem = 0.5 * (eta[0, 0, -1] + eta[0, 0, 0]) * xmb
             tem1 = pfld * 100.0 / (constants.RDGAS * t1)
             sigmagfm = max(sigmagfm, physcons.BETAW)
             ptem = tem / (sigmagfm * tem1)
-            qtr_ntk = qtr_ntk + 0.5 * sigmagfm * ptem * ptem
+            qtr[0, 0, 0][ntk] = qtr[0, 0, 0][ntk] + 0.5 * sigmagfm * ptem * ptem
 
 
 class ScaleAwareMassFluxShallowConvection:
@@ -2279,6 +1951,7 @@ class ScaleAwareMassFluxShallowConvection:
         self._ntk = config.ntke
         self._ntr = config.ntr
         self._ncloud = config.ncloud
+        self._dt2 = config.dt_atmos
         self._do_aerosols = (config.itc > 0) and (config.ntc > 0) and (config.ntr > 0)
         if self._do_aerosols:
             self._do_aerosols = config.ntr >= config.itc
@@ -2327,14 +2000,12 @@ class ScaleAwareMassFluxShallowConvection:
         self._ps = make_quantity_2D()
         self._prsl = make_quantity()
         self._del0 = make_quantity()
-        self._kbot = make_quantity_2D(Int)
-        self._ktop = make_quantity_2D(Int)
         self._kbcon = make_quantity_2D(Int)
+        self._kbcon1 = make_quantity_2D(Int)
         self._kb = make_quantity_2D(Int)
         self._ktcon = make_quantity_2D(Int)
         self._ktconn = make_quantity_2D(Int)
         self._pdot = make_quantity_2D()
-        self._rn = make_quantity_2D()
         self._qlko_ktcon = make_quantity_2D()
         self._edt = make_quantity_2D()
         self._aa1 = make_quantity_2D()
@@ -2374,11 +2045,40 @@ class ScaleAwareMassFluxShallowConvection:
         self._po = make_quantity()
         self._pfld_kb = make_quantity_2D()
         self._pfld_kbcon = make_quantity_2D()
+        self._pfld_kbcon1 = make_quantity_2D()
         self._sumx = make_quantity_2D()
+        self._wc = make_quantity_2D()
         self._tkemean = make_quantity_2D()
         self._clamt = make_quantity_2D()
         self._xlamue = make_quantity()
         self._xlamud = make_quantity_2D()
+        self._xmbmax = make_quantity_2D()
+        self._ktcon1 = make_quantity_2D(Int)
+        self._zi_kb = make_quantity_2D()
+        self._zi_ktcon = make_quantity_2D()
+        self._zi_kbcon = make_quantity_2D()
+        self._dellah = make_quantity()
+        self._dellaq = make_quantity()
+        self._dellau = make_quantity()
+        self._dellav = make_quantity()
+        self._dtconv = make_quantity_2D()
+        self._tauadv = make_quantity_2D()
+        self._xmb = make_quantity_2D()
+        self._sigmagfm = make_quantity_2D()
+        self._scaldfunc = make_quantity_2D()
+        self._umean = make_quantity_2D()
+        self._delhbar = make_quantity_2D()
+        self._delqbar = make_quantity_2D()
+        self._deltbar = make_quantity_2D()
+        self._delubar = make_quantity_2D()
+        self._delvbar = make_quantity_2D()
+        self._qcond = make_quantity_2D()
+        self._rntot = make_quantity_2D()
+        self._delqev = make_quantity_2D()
+        self._delq2 = make_quantity_2D()
+        self._deltv = make_quantity_2D()
+        self._delq = make_quantity_2D()
+        self._qevap = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2393,6 +2093,18 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         self._ecko = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._dellae = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._delebar = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
@@ -2507,19 +2219,29 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._stencil_static11 = stencil_factory.from_origin_domain(
             func=stencil_static11,
+            externals={
+                "c1": self._c1,
+                "dt2": self._dt2,
+                "ncloud": self._ncloud
+            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
         self._stencil_static12 = stencil_factory.from_origin_domain(
             func=stencil_static12,
+            externals={
+                "c1": self._c1,
+                "ncloud": self._ncloud
+            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-        self._stencil_static13 = stencil_factory.from_origin_domain(
-            func=stencil_static13,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
+        if self._ncloud > 0:
+            self._stencil_static13 = stencil_factory.from_origin_domain(
+                func=stencil_static13,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
         self._stencil_static14 = stencil_factory.from_origin_domain(
             func=stencil_static14,
             origin=grid_indexing.origin_compute(),
@@ -2527,6 +2249,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._comp_tendencies = stencil_factory.from_origin_domain(
             func=comp_tendencies,
+            externals={"dt2": self._dt2},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2535,26 +2258,46 @@ class ScaleAwareMassFluxShallowConvection:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-        self._feedback_control_update = stencil_factory.from_origin_domain(
-            func=feedback_control_update,
+        self._feedback_control_update_mass_flux = stencil_factory.from_origin_domain(
+            func=feedback_control_update_mass_flux,
+            externals={
+                "dt2": self._dt2
+            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
         self._feedback_control_upd_trr = stencil_factory.from_origin_domain(
             func=feedback_control_upd_trr,
+            externals={
+                "dt2": self._dt2
+            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-        self._separate_detrained_cw = stencil_factory.from_origin_domain(
-            func=separate_detrained_cw,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
-        self._tke_contribution = stencil_factory.from_origin_domain(
-            func=tke_contribution,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
+        if self._ncloud > 0:
+            self._separate_detrained_cw = stencil_factory.from_origin_domain(
+                func=separate_detrained_cw,
+                externals={
+                    "dt2": self._dt2,
+                },
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+        if self._ntk > 0:
+            self._tke_contribution = stencil_factory.from_origin_domain(
+                func=tke_contribution,
+                externals={
+                    "ntk": self._ntk,
+                },
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+        if self._do_aerosols:
+            self._store_aero_conc = stencil_factory.from_origin_domain(
+                func=store_aero_conc,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
         pass
 
     def __call__(
@@ -2574,8 +2317,11 @@ class ScaleAwareMassFluxShallowConvection:
         ud_mf: FloatField,
         dt_mf: FloatField,
         psp: FloatFieldIJ,
+        rn: FloatFieldIJ,
         cnvflg: BoolFieldIJ,
         kcnv: IntFieldIJ,
+        kbot: IntFieldIJ,
+        ktop: IntFieldIJ,
         islimsk: IntFieldIJ,
         garea: FloatFieldIJ,
     ):
@@ -2592,14 +2338,14 @@ class ScaleAwareMassFluxShallowConvection:
         self._init_col_arr(
             kcnv,
             cnvflg,
-            self._kbot,
-            self._ktop,
+            kbot,
+            ktop,
             self._kbcon,
             self._kb,
             self._ktcon,
             self._ktconn,
             self._pdot,
-            self._rn,
+            rn,
             self._qlko_ktcon,
             self._edt,
             self._aa1,
@@ -2815,38 +2561,292 @@ class ScaleAwareMassFluxShallowConvection:
                 n_tracer,
             )
 
-        self._stencil_update_kbcon1_cnvflg()
+        self._stencil_update_kbcon1_cnvflg(
+            self._dbyo,
+            cnvflg,
+            self._kmax,
+            self._kbm,
+            self._kbcon,
+            self._kbcon1,
+            self._flg,
+            self._k_mask,
+        )
 
-        self._stencil_static9()
+        self._stencil_static9(
+            cnvflg,
+            self._pfld,
+            self._pfld_kbcon,
+            self._pfld_kbcon1,
+            self._k_mask,
+            self._kbcon1,
+        )
         if exit_routine(cnvflg.view()):
             return
 
-        self._stencil_static11()
+        self._stencil_static10(
+            self._cina,
+            cnvflg,
+            self._k_mask,
+            self._kb,
+            self._kbcon1,
+            self._zo,
+            self._qeso,
+            self._to,
+            self._dbyo,
+            self._qo,
+            self._pdot,
+            islimsk,
+        )
         if exit_routine(cnvflg.view()):
             return
 
-        self._stencil_static12()
+        self._stencil_static11(
+            self._flg,
+            cnvflg,
+            self._ktcon,
+            self._kbm,
+            self._kbcon1,
+            self._dbyo,
+            self._kbcon,
+            self._del0,
+            self._xmbmax,
+            self._aa1,
+            self._kb,
+            self._qcko,
+            self._qo,
+            self._qrcko,
+            self._zi,
+            self._qeso,
+            self._to,
+            self._xlamue,
+            self._xlamud,
+            self._eta,
+            self._c0t,
+            self._dellal,
+            self._buo,
+            self._drag,
+            self._zo,
+            self._k_mask,
+            self._pwo,
+            self._cnvwt,
+        )
+        if exit_routine(cnvflg.view()):
+            return
+
+        self._stencil_static12(
+            cnvflg,
+            self._aa1,
+            self._flg,
+            self._ktcon1,
+            self._kbm,
+            self._k_mask,
+            self._ktcon,
+            self._zo,
+            self._qeso,
+            self._to,
+            self._dbyo,
+            self._zi,
+            self._xlamue,
+            self._xlamud,
+            self._qcko,
+            self._qrcko,
+            self._qo,
+            self._eta,
+            self._del0,
+            self._c0t,
+            self._pwo,
+            self._cnvwt,
+            self._buo,
+            self._wu2,
+            self._wc,
+            self._sumx,
+            self._kbcon1,
+            self._drag,
+            self._dellal,
+        )
 
         if self._ncloud > 0:
-            self._stencil_static13()
+            self._stencil_static13(
+                cnvflg,
+                self._k_mask,
+                self._ktcon,
+                self._qeso,
+                self._to,
+                self._dbyo,
+                self._qcko,
+                self._qlko_ktcon,
+            )
 
-        self._stencil_static14()
+        self._stencil_static14(
+            cnvflg,
+            self._vshear,
+            self._k_mask,
+            self._kb,
+            self._ktcon,
+            self._uo,
+            self._vo,
+            self._zi,
+            self._zi_kb,
+            self._zi_ktcon,
+            self._edt,
+        )
 
-        self._comp_tendencies()
+        self._comp_tendencies(
+            cnvflg,
+            self._k_mask,
+            self._kmax,
+            self._kb,
+            self._ktcon,
+            self._ktcon1,
+            self._kbcon1,
+            self._kbcon,
+            self._dellah,
+            self._dellaq,
+            self._dellau,
+            self._dellav,
+            self._del0,
+            self._zi,
+            self._zi_ktcon,
+            self._zi_kbcon,
+            self._heo,
+            self._qo,
+            self._xlamue,
+            self._xlamud,
+            self._eta,
+            self._hcko,
+            self._qrcko,
+            self._uo,
+            self._ucko,
+            self._vo,
+            self._vcko,
+            self._qcko,
+            self._dellal,
+            self._qlko_ktcon,
+            self._wc,
+            self._gdx,
+            self._dtconv,
+            u1,
+            v1,
+            self._po,
+            self._to,
+            self._tauadv,
+            self._xmb,
+            self._sigmagfm,
+            garea,
+            self._scaldfunc,
+            self._xmbmax,
+            self._sumx,
+            self._umean,
+        )
 
         for n in range(self._ntr):
             n_tracer = n + 2
-            self._comp_tendencies_tr()
+            self._comp_tendencies_tr(
+                cnvflg,
+                self._k_mask,
+                self._kmax,
+                self._kb,
+                self._ktcon,
+                self._dellae,
+                self._del0,
+                self._eta,
+                self._ctro,
+                self._ecko,
+                n_tracer,
+            )
 
-        self._feedback_control_update()
+        # if self._do_aerosols:
+        #     samfshalcnv_aerosols()
+
+        self._feedback_control_update_mass_flux(
+            cnvflg,
+            self._k_mask,
+            self._kmax,
+            self._kb,
+            self._ktcon,
+            self._flg,
+            islimsk,
+            ktop,
+            kbot,
+            self._kbcon,
+            kcnv,
+            self._qeso,
+            self._pfld,
+            self._delhbar,
+            self._delqbar,
+            self._deltbar,
+            self._delubar,
+            self._delvbar,
+            self._qcond,
+            self._dellah,
+            self._dellaq,
+            t1,
+            self._xmb,
+            q1,
+            u1,
+            self._dellau,
+            v1,
+            self._dellav,
+            self._del0,
+            self._rntot,
+            self._delqev,
+            self._delq2,
+            self._pwo,
+            self._deltv,
+            self._delq,
+            self._qevap,
+            rn,
+            self._edt,
+            cnvw,
+            self._cnvwt,
+            cnvc,
+            ud_mf,
+            dt_mf,
+            self._eta,
+        )
 
         for n in range(self._ntr):
             n_tracer = n + 2
-            self._feedback_control_upd_trr()
+            self._feedback_control_upd_trr(
+                cnvflg,
+                self._k_mask,
+                self._kmax,
+                self._ktcon,
+                self._del0,
+                self._delebar,
+                self._ctr,
+                self._dellae,
+                self._xmb,
+                qtr,
+                n_tracer,
+            )
 
         if self._ncloud > 0:
-            self._separate_detrained_cw()
+            self._separate_detrained_cw(
+                cnvflg,
+                self._k_mask,
+                self._kbcon,
+                self._ktcon,
+                self._dellal,
+                self._xmb,
+                t1,
+                qtr,
+            )
+
+        # if self._do_aerosols:
+        #     store_aero_conc()
 
         if self._ntk > 0:
-            self._tke_contribution()
+            self._tke_contribution(
+                cnvflg,
+                self._k_mask,
+                self._kb,
+                ktop,
+                self._eta,
+                self._xmb,
+                self._pfld,
+                t1,
+                self._sigmagfm,
+                qtr,
+            )
         pass
