@@ -22,36 +22,34 @@ CONQ = constants.HLV / constants.GRAV
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
 CPH2O2 = 4.2e6
 
-C_LIQ0 = 4.2180e+3  # Specific heat of liquid H2O
+C_LIQ0 = 4.2180e3  # Specific heat of liquid H2O
 
 # Shallow Convection
-ELOCP = constants.HLV / constants.CP_AIR,
-EL2ORC = constants.HLV * constants.HLV / (
-    constants.RVGAS * constants.CP_AIR
-)
+ELOCP = constants.HLV / constants.CP_AIR
+EL2ORC = constants.HLV * constants.HLV / (constants.RVGAS * constants.CP_AIR)
 CM = 1.0
-DELTA = constants.RVGAS / constants.RDGAS - 1.
+DELTA = constants.RVGAS / constants.RDGAS - 1.0
 FACT1 = (constants.CP_VAP - C_LIQ0) / constants.RVGAS
 FACT2 = constants.HLV / constants.RVGAS - FACT1 * constants.TICE0
 CLAMD = 0.1
 TKEMX = 0.65
 TKEMN = 0.05
 DTKE = TKEMX - TKEMN
-DTHK = 25.
+DTHK = 25.0
 D0_SHAL = 0.001
-CINPCRMX = 180.
-CINPCRMN = 120.
-CINACRMX = -120.
-CINACRMN = -80.
-CRTLAMD = 3.e-4
-DTMAX = 10800.
-DTMIN = 600.
+CINPCRMX = 180.0
+CINPCRMN = 120.0
+CINACRMX = -120.0
+CINACRMN = -80.0
+CRTLAMD = 3.0e-4
+DTMAX = 10800.0
+DTMIN = 600.0
 BET1 = 1.875
-CD1 = .506
+CD1 = 0.506
 F1 = 2.0
-GAM1 = .5
-BETAW = .03
-DXCRT = 15.e3
+GAM1 = 0.5
+BETAW = 0.03
+DXCRT = 15.0e3
 H1 = 0.33333333
 SHAL_TF = 233.16
 SHAL_TCR = 263.16

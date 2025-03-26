@@ -23,6 +23,7 @@ TRACER_DIM = "n_tracers"
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
 
+
 @dataclasses.dataclass
 class ShallowConvectionConfig:
     dt_atmos: int = DEFAULT_INT

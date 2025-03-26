@@ -1,37 +1,39 @@
 from gt4py.cartesian.gtscript import (
-    FORWARD,
     BACKWARD,
+    FORWARD,
     PARALLEL,
     computation,
     exp,
     interval,
-    sqrt,
     log,
+    sqrt,
 )
 
 import ndsl.constants as constants
-from ndsl.stencils.basic_operations import select_k
 import pySHiELD.constants as physcons
-from pySHiELD.functions.physics_functions import fpvs
-from pySHiELD._config import ShallowConvectionConfig, FloatFieldTracer, TRACER_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
-from ndsl import StencilFactory, QuantityFactory
+from ndsl import QuantityFactory, StencilFactory
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import (
     Bool,
-    BoolFieldIJ,
     BoolField,
+    BoolFieldIJ,
     Float,
-    FloatFieldIJ,
     FloatField,
+    FloatFieldIJ,
     Int,
-    IntFieldIJ,
     IntField,
+    IntFieldIJ,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.stencils.basic_operations import select_k
+from pySHiELD._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
+from pySHiELD.functions.physics_functions import fpvs
+
 
 def exit_routine(cnvflg):
     return cnvflg.sum() == 0
+
 
 def pa_to_cb(
     psp: FloatFieldIJ,
@@ -72,6 +74,7 @@ def init_col_arr(
     garea: FloatFieldIJ,
 ):
     from __externals__ import km
+
     with computation(FORWARD), interval(0, 1):
         # Initialize column-integrated and other single-value-per-column
         # variable arrays
@@ -88,12 +91,12 @@ def init_col_arr(
         ktcon = 1
         ktconn = 1
         kb = km
-        pdot = 0.
-        qlko_ktcon = 0.
-        edt = 0.
-        aa1 = 0.
-        cina = 0.
-        vshear = 0.
+        pdot = 0.0
+        qlko_ktcon = 0.0
+        edt = 0.0
+        aa1 = 0.0
+        cina = 0.0
+        vshear = 0.0
         gdx = sqrt(garea)
 
 
@@ -108,6 +111,7 @@ def init_par_and_arr(
     dt_mf: FloatField,
 ):
     from __externals__ import asolfac, c0s
+
     with computation(FORWARD), interval(0, 1):
         # Determine aerosol-aware rain conversion parameter over land
         if islimsk == 1:
@@ -143,6 +147,7 @@ def init_kbm_kmax(
     k_mask: IntField,
 ):
     from __externals__ import km
+
     # Determine maximum indices for the parcel starting point (kbm)
     # and cloud top (kmax)
     with computation(FORWARD), interval(0, 1):
@@ -252,9 +257,7 @@ def init_final(
             # Calculate saturation specific humidity and enforce minimum
             # moisture values
             qeso = 0.01 * fpvs(to)
-            qeso = (constants.EPS * qeso) / (
-                pfld + (constants.EPS - 1) * qeso
-            )
+            qeso = (constants.EPS * qeso) / (pfld + (constants.EPS - 1) * qeso)
             val1 = 1.0e-8
             val2 = 1.0e-10
             qeso = max(qeso, val1)
@@ -363,12 +366,10 @@ def stencil_static0(
 
         if cnvflg and k_mask <= kmax - 1:
             qeso = 0.01 * tmp  # fpvs is in pa
-            qeso = constants.EPS * qeso / (
-                po + (constants.EPS - 1) * qeso
-            )
-            val1 = 1.e-8
+            qeso = constants.EPS * qeso / (po + (constants.EPS - 1) * qeso)
+            val1 = 1.0e-8
             qeso = max(qeso, val1)
-            val2 = 1.e-10
+            val2 = 1.0e-10
             qo = max(qo, val2)
             # qo   = min(qo[0,0,0],qeso[0,0,0])
             heo = (
@@ -391,7 +392,7 @@ def stencil_ntrstatic0(
     k_mask: IntField,
     kmax: IntField,
     ctro: FloatFieldTracer,
-    n_tracer: int
+    n_tracer: int,
 ):
     with computation(PARALLEL), interval(0, -1):
         if (cnvflg) and (k_mask <= (kmax - 1)):
@@ -413,7 +414,7 @@ def stencil_static1(
     heso: FloatField,
 ):
     # Search below the index "kbm" for the level of free convection (LFC)
-    # where the condition \f$h_b > h^*\f$ is first met, 
+    # where the condition \f$h_b > h^*\f$ is first met,
     # where \f$h_b, h^*\f$ are the state moist static energy at the parcel's
     # starting level and saturation moist static energy, respectively.
     # Set "kbcon" to the index of the LFC.
@@ -521,6 +522,7 @@ def stencil_static3(
     # turbulent entrainment rate assumed to be proportional
     # to subcloud mean TKE
     from __externals__ import clam, ntk
+
     with computation(FORWARD), interval(0, 1):
         if cnvflg:
             sumx = 0.0
@@ -665,10 +667,11 @@ def stencil_static7(
     # detrainment. Discretization follows Appendix B of Grell (1993) \cite grell_1993.
     # Following Han and Pan (2006) \cite han_and_pan_2006, the convective momentum
     # transport is reduced by the convection-induced pressure gradient force by the
-    # constant "pgcon", currently set to 0.55 after Zhang and Wu (2003) 
+    # constant "pgcon", currently set to 0.55 after Zhang and Wu (2003)
     # \cite zhang_and_wu_2003.
     # pass
     from __externals__ import pgcon
+
     with computation(FORWARD), interval(1, -1):
         dz = 0.0
         tem = 0.0
@@ -724,9 +727,8 @@ def stencil_ntrstatic2(
                 tem = 0.25 * (xlamue + xlamue[0, 0, -1]) * dz
                 factor = 1.0 + tem
                 ecko[0, 0, 0][n_tracer] = (
-                    (1.0 - tem) * ecko[0, 0, -1][n_tracer] + tem * (
-                        ctro[0, 0, 0][n_tracer] + ctro[0, 0, -1][n_tracer]
-                    )
+                    (1.0 - tem) * ecko[0, 0, -1][n_tracer]
+                    + tem * (ctro[0, 0, 0][n_tracer] + ctro[0, 0, -1][n_tracer])
                 ) / factor
 
 
@@ -813,13 +815,18 @@ def stencil_static10(
         if cnvflg:
             if k_mask > kb and k_mask < kbcon1:
                 dz1 = zo[0, 0, 1] - zo
-                gamma = physcons.EL2ORC * qeso / to**2
+                gamma = physcons.EL2ORC * qeso / to ** 2
                 rfact = 1.0 + physcons.DELTA * constants.CP_AIR * (
                     gamma * to / constants.HLV
                 )
-                cina = cina + dz1 * (
-                    constants.GRAV / (constants.CP_AIR * to)
-                ) * dbyo / (1.0 + gamma) * rfact
+                cina = (
+                    cina
+                    + dz1
+                    * (constants.GRAV / (constants.CP_AIR * to))
+                    * dbyo
+                    / (1.0 + gamma)
+                    * rfact
+                )
                 # val   = 0.
                 cina = cina + dz1 * constants.GRAV * physcons.DELTA * max(
                     0.0, (qeso - qo)
@@ -895,6 +902,7 @@ def stencil_static11(
     # Calculate the cloud top as the first level where parcel buoyancy
     # becomes negative; the maximum possible value is at \f$p=0.7p_{sfc}\f$.
     from __externals__ import c1, dt2, ncloud
+
     with computation(FORWARD), interval(0, 1):
         flg = cnvflg
         if flg:
@@ -990,14 +998,16 @@ def stencil_static11(
                     rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
                         to / constants.HLV
                     )
-                    buo = buo + (
-                        constants.GRAV / (constants.CP_AIR * to)
-                    ) * dbyo / (1.0 + gamma) * rfact
+                    buo = (
+                        buo
+                        + (constants.GRAV / (constants.CP_AIR * to))
+                        * dbyo
+                        / (1.0 + gamma)
+                        * rfact
+                    )
 
                     buo = buo + (
-                        constants.GRAV * physcons.constants.GRAV * max(
-                            0.0, (qeso - qo)
-                        )
+                        constants.GRAV * physcons.constants.GRAV * max(0.0, (qeso - qo))
                     )
                     drag = max(xlamue, xlamud)
 
@@ -1072,6 +1082,7 @@ def stencil_static12(
     # buoyancy force.
     # Overshooting is also limited to the level where \f$p=0.7p_{sfc}\f$.
     from __externals__ import c1, ncloud
+
     with computation(FORWARD), interval(0, 1):
         if cnvflg:
             aa1 = physcons.AAFAC * aa1
@@ -1091,9 +1102,14 @@ def stencil_static12(
                 rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
                     to / constants.HLV
                 )
-                aa1 = aa1 + dz1 * (
-                    constants.GRAV / (constants.CP_AIR * to)
-                ) * dbyo / (1.0 + gamma) * rfact
+                aa1 = (
+                    aa1
+                    + dz1
+                    * (constants.GRAV / (constants.CP_AIR * to))
+                    * dbyo
+                    / (1.0 + gamma)
+                    * rfact
+                )
 
                 # val = 0.
                 # aa1(i) = aa1(i) +
@@ -1231,13 +1247,15 @@ def stencil_static13(
 
         if cnvflg:
             if k_mask == ktcon - 1:
-                gamma = physcons.EL2ORC * qeso / (to**2.0)
+                gamma = physcons.EL2ORC * qeso / (to ** 2.0)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
                 dq = qcko - qrch
                 # Check if there is excess moisture to release latent heat
                 if dq > 0.0:
                     qlko_ktcon = dq
                     qcko = qrch
+
+
 # endif
 
 
@@ -1262,8 +1280,8 @@ def stencil_static14(
     # 0.0953\left(\frac{\Delta V}{\Delta z}\right)^2
     # - 0.00496\left(\frac{\Delta V}{\Delta z}\right)^3
     # \f]
-    # where \f$\Delta V\f$ is the integrated horizontal shear over the cloud depth, 
-    # \f$\Delta z\f$, (the ratio is converted to units of \f$10^{-3} s^{-1}\f$). 
+    # where \f$\Delta V\f$ is the integrated horizontal shear over the cloud depth,
+    # \f$\Delta z\f$, (the ratio is converted to units of \f$10^{-3} s^{-1}\f$).
     # The variable "edt" is \f$1-E\f$ and is constrained to the range \f$[0,0.9]\f$.
     with computation(FORWARD), interval(0, 1):
         zi_kb = 0.0
@@ -1276,9 +1294,8 @@ def stencil_static14(
             if k_mask > kb and k_mask <= ktcon:
                 # shear = ((uo-uo[0,0,-1]) ** 2 \
                 #      + (vo-vo[0,0,-1]) ** 2)**0.5
-                vshear = (
-                    vshear
-                    + sqrt((uo - uo[0, 0, -1]) ** 2 + (vo - vo[0, 0, -1]) ** 2)
+                vshear = vshear + sqrt(
+                    (uo - uo[0, 0, -1]) ** 2 + (vo - vo[0, 0, -1]) ** 2
                 )
 
     with computation(FORWARD), interval(...):
@@ -1427,7 +1444,8 @@ def comp_tendencies(
                     - tem * eta[0, 0, -1] * dv2h * dz
                     + tem1 * eta[0, 0, -1] * 0.5 * (hcko + hcko[0, 0, -1]) * dz
                 )
-                * constants.GRAV / dp
+                * constants.GRAV
+                / dp
             )
 
             dellaq = (
@@ -1438,7 +1456,8 @@ def comp_tendencies(
                     - tem * eta[0, 0, -1] * dv2q * dz
                     + tem1 * eta[0, 0, -1] * 0.5 * (qrcko + qcko[0, 0, -1]) * dz
                 )
-                * constants.GRAV / dp
+                * constants.GRAV
+                / dp
             )
 
             tem1 = eta * (uo - ucko)
@@ -1463,12 +1482,18 @@ def comp_tendencies(
                 dv1q = qo[0, 0, -1]
                 dellaq = eta[0, 0, -1] * (qcko[0, 0, -1] - dv1q) * constants.GRAV / dp
 
-                dellau = eta[0, 0, -1] * (
-                    ucko[0, 0, -1] - uo[0, 0, -1]
-                ) * constants.GRAV / dp
-                dellav = eta[0, 0, -1] * (
-                    vcko[0, 0, -1] - vo[0, 0, -1]
-                ) * constants.GRAV / dp
+                dellau = (
+                    eta[0, 0, -1]
+                    * (ucko[0, 0, -1] - uo[0, 0, -1])
+                    * constants.GRAV
+                    / dp
+                )
+                dellav = (
+                    eta[0, 0, -1]
+                    * (vcko[0, 0, -1] - vo[0, 0, -1])
+                    * constants.GRAV
+                    / dp
+                )
 
                 # Cloud water
                 dellal = eta[0, 0, -1] * qlko_ktcon * constants.GRAV / dp
@@ -1524,8 +1549,8 @@ def comp_tendencies(
             # al.'s (2017) \cite han_et_al_2017 equation 4 and 5),
             # following the study by Grell and Freitas (2014) \cite
             # grell_and_freitus_2014
-            tem = max(xlamue, 2.e-4)
-            tem = min(tem, 6.e-4)
+            tem = max(xlamue, 2.0e-4)
+            tem = min(tem, 6.0e-4)
             tem = 0.2 / tem
             tem1 = 3.14 * tem * tem
 
@@ -1585,18 +1610,21 @@ def comp_tendencies_tr(
             tem1 = eta[0, 0, 0] * (ctro[0, 0, 0][n_tracer] - ecko[0, 0, 0][n_tracer])
             tem2 = eta[0, 0, -1] * (ctro[0, 0, -1][n_tracer] - ecko[0, 0, -1][n_tracer])
 
-            dellae[0, 0, 0][n_tracer] = dellae[0, 0, 0][n_tracer] + (
-                tem1 - tem2
-            ) * constants.GRAV / dp
+            dellae[0, 0, 0][n_tracer] = (
+                dellae[0, 0, 0][n_tracer] + (tem1 - tem2) * constants.GRAV / dp
+            )
 
     with computation(PARALLEL), interval(1, None):
 
         # Cloud top
         if cnvflg and ktcon == k_mask:
             dp = 1000.0 * del0
-            dellae[0, 0, 0][n_tracer] = eta[0, 0, -1] * (
-                ecko[0, 0, -1][n_tracer] - ctro[0, 0, -1][n_tracer]
-            ) * constants.GRAV / dp
+            dellae[0, 0, 0][n_tracer] = (
+                eta[0, 0, -1]
+                * (ecko[0, 0, -1][n_tracer] - ctro[0, 0, -1][n_tracer])
+                * constants.GRAV
+                / dp
+            )
 
 
 def feedback_control_update_mass_flux(
@@ -1651,13 +1679,14 @@ def feedback_control_update_mass_flux(
     # mass flux from the static control.
     # Recalculate saturation specific humidity.
     from __externals__ import dt2
+
     with computation(FORWARD), interval(0, 1):
 
         # Initialize flg
         flg = cnvflg
-        rntot = 0.
-        delqev = 0.
-        delq2 = 0.
+        rntot = 0.0
+        delqev = 0.0
+        delq2 = 0.0
         delhbar = 0.0
         delqbar = 0.0
         deltbar = 0.0
@@ -1711,7 +1740,7 @@ def feedback_control_update_mass_flux(
 
         if cnvflg:
             if (k_mask < ktcon) and (k_mask > kb):
-                rntot = rntot + pwo * xmb * .001 * dt2
+                rntot = rntot + pwo * xmb * 0.001 * dt2
 
     # evaporating rain
     # Determine the evaporation of the convective precipitation
@@ -1743,8 +1772,8 @@ def feedback_control_update_mass_flux(
                         evef = edt * physcons.EVFACTL
                     else:
                         evef = edt * physcons.EVFACT
-                    qcond = evef * (q1 - qeso) / (
-                        1.0 + physcons.EL2ORC * qeso / (t1 ** 2)
+                    qcond = (
+                        evef * (q1 - qeso) / (1.0 + physcons.EL2ORC * qeso / (t1 ** 2))
                     )
 
                     dp = 1000.0 * del0
@@ -1795,7 +1824,7 @@ def feedback_control_update_mass_flux(
             # convective cloud cover
             # Calculate convective cloud cover, which is used when pdf-based
             # cloud fraction is used (i.e., pdfcld=.true.).
-            cnvc = 0.04 * log(1. + 675. * eta * xmb)
+            cnvc = 0.04 * log(1.0 + 675.0 * eta * xmb)
             cnvc = min(cnvc, 0.2)
             cnvc = max(cnvc, 0.0)
 
@@ -1827,6 +1856,7 @@ def feedback_control_upd_trr(
     n_tracer: Int,
 ):
     from __externals__ import dt2
+
     with computation(FORWARD), interval(0, 1):
         delebar[0, 0, 0][n_tracer] = 0.0
     with computation(FORWARD), interval(...):
@@ -1885,6 +1915,7 @@ def separate_detrained_cw(
     qtr: FloatFieldTracer,
 ):
     from __externals__ import dt2
+
     with computation(FORWARD), interval(0, -1):
         # cloud water
         # Separate detrained cloud water into liquid and ice species as
@@ -1921,6 +1952,7 @@ def tke_contribution(
 ):
     # Include TKE contribution from shallow convection
     from __externals__ import ntk
+
     with computation(PARALLEL), interval(1, -1):
 
         tem = 0.0
@@ -1939,6 +1971,7 @@ class ScaleAwareMassFluxShallowConvection:
     """
     Fortran name is samfshalconv
     """
+
     def __init__(
         self,
         stencil_factory: StencilFactory,
@@ -1950,9 +1983,9 @@ class ScaleAwareMassFluxShallowConvection:
         # Determine whether to perform aerosol transport #
         self._ntk = config.ntke
         self._ntr = config.ntr
-        self._ncloud = config.ncloud
+        self._ncloud = config.ncld
         self._dt2 = config.dt_atmos
-        self._do_aerosols = (config.itc > 0) and (config.ntc > 0) and (config.ntr > 0)
+        self._do_aerosols = (config.itc > 0) and (config.ntchm > 0) and (config.ntr > 0)
         if self._do_aerosols:
             self._do_aerosols = config.ntr >= config.itc
 
@@ -1966,9 +1999,9 @@ class ScaleAwareMassFluxShallowConvection:
         self._km1 = grid_indexing.domain[2] - 1
         self.TRACER_DIM = TRACER_DIM
 
-        self.quantity_factory.set_extra_dim_lengths(
+        quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: self._ntracers,
+                self.TRACER_DIM: self._ntr,
             }
         )
 
@@ -2170,8 +2203,10 @@ class ScaleAwareMassFluxShallowConvection:
         self._stencil_static3 = stencil_factory.from_origin_domain(
             func=stencil_static3,
             externals={
-                "ntk", self._ntk,
-                "clam", self._clam,
+                "ntk",
+                self._ntk,
+                "clam",
+                self._clam,
             },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
@@ -2219,20 +2254,13 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._stencil_static11 = stencil_factory.from_origin_domain(
             func=stencil_static11,
-            externals={
-                "c1": self._c1,
-                "dt2": self._dt2,
-                "ncloud": self._ncloud
-            },
+            externals={"c1": self._c1, "dt2": self._dt2, "ncloud": self._ncloud},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
         self._stencil_static12 = stencil_factory.from_origin_domain(
             func=stencil_static12,
-            externals={
-                "c1": self._c1,
-                "ncloud": self._ncloud
-            },
+            externals={"c1": self._c1, "ncloud": self._ncloud},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2260,17 +2288,13 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._feedback_control_update_mass_flux = stencil_factory.from_origin_domain(
             func=feedback_control_update_mass_flux,
-            externals={
-                "dt2": self._dt2
-            },
+            externals={"dt2": self._dt2},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
         self._feedback_control_upd_trr = stencil_factory.from_origin_domain(
             func=feedback_control_upd_trr,
-            externals={
-                "dt2": self._dt2
-            },
+            externals={"dt2": self._dt2},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -2454,6 +2478,7 @@ class ScaleAwareMassFluxShallowConvection:
                 self._k_mask,
                 self._kmax,
                 self._ctro,
+                n_tracer,
             )
 
         self._stencil_static1(
