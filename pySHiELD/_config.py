@@ -14,6 +14,7 @@ FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
+DEFAULT_FLOAT = 0.0
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 TRACER_DIM = "n_tracers"
 
@@ -21,6 +22,21 @@ TRACER_DIM = "n_tracers"
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
+
+@dataclasses.dataclass
+class ShallowConvectionConfig:
+    dt_atmos: int = DEFAULT_INT
+    ntke: int = DEFAULT_INT
+    ntr: int = DEFAULT_INT
+    ncld: int = DEFAULT_INT
+    ntchm: int = DEFAULT_INT
+    itc: int = DEFAULT_INT
+    clam_shal: float = DEFAULT_FLOAT
+    c0s_shal: float = DEFAULT_FLOAT
+    c1_shal: float = DEFAULT_FLOAT
+    pgcon_shal: float = DEFAULT_FLOAT
+    asolfac_shal: float = DEFAULT_FLOAT
+    fscav: List = []
 
 
 @dataclasses.dataclass

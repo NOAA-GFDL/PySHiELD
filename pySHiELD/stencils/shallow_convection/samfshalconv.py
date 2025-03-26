@@ -13,7 +13,7 @@ import ndsl.constants as constants
 from ndsl.stencils.basic_operations import select_k
 import pySHiELD.constants as physcons
 from pySHiELD.functions.physics_functions import fpvs
-from pySHiELD._config import PhysicsConfig, FloatFieldTracer, TRACER_DIM
+from pySHiELD._config import ShallowConvectionConfig, FloatFieldTracer, TRACER_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl import StencilFactory, QuantityFactory
@@ -1943,7 +1943,7 @@ class ScaleAwareMassFluxShallowConvection:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        config: PhysicsConfig,
+        config: ShallowConvectionConfig,
     ):
         grid_indexing = stencil_factory.grid_indexing
 
