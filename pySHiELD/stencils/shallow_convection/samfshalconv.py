@@ -1982,10 +1982,10 @@ class ScaleAwareMassFluxShallowConvection:
     follows that of the SAMF deep convection scheme.
 
     The previous version of the shallow convection scheme (shalcnv.f) is described in
-    Han and Pan (2011) \cite han_and_pan_2011 and differences between the shallow and
-    deep convection schemes are presented in Han and Pan (2011) \cite han_and_pan_2011
-    and Han et al. (2017) \cite han_et_al_2017 . Details of scale- and aerosol-aware
-    parameterizations are described in Han et al. (2017) \cite han_et_al_2017 .
+    Han and Pan (2011) cite han_and_pan_2011 and differences between the shallow and
+    deep convection schemes are presented in Han and Pan (2011) cite han_and_pan_2011
+    and Han et al. (2017) cite han_et_al_2017 . Details of scale- and aerosol-aware
+    parameterizations are described in Han et al. (2017) cite han_et_al_2017 .
 
     In further update for FY19 GFS implementation, interaction with turbulent kinetic
     energy (TKE), which is a prognostic variable used in a scale-aware TKE-based moist
@@ -2059,6 +2059,7 @@ class ScaleAwareMassFluxShallowConvection:
         multiplying the cloud base mass flux and the tendencies calculated per unit
         cloud base mass flux from the static control.
     """
+
     # TODO resolve tracers
 
     def __init__(
@@ -2427,12 +2428,12 @@ class ScaleAwareMassFluxShallowConvection:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
-        if self._do_aerosols:
-            self._store_aero_conc = stencil_factory.from_origin_domain(
-                func=store_aero_conc,
-                origin=grid_indexing.origin_compute(),
-                domain=grid_indexing.domain_compute(),
-            )
+        # if self._do_aerosols:
+        #     self._store_aero_conc = stencil_factory.from_origin_domain(
+        #         func=store_aero_conc,
+        #         origin=grid_indexing.origin_compute(),
+        #         domain=grid_indexing.domain_compute(),
+        #     )
 
     def __call__(
         self,

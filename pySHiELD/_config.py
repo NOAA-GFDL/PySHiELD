@@ -52,6 +52,7 @@ class ShallowConvectionConfig:
         self.ntcw = tracer_variables.index("qliquid")
         self.ntke = tracer_variables.index("qsgs_tke")
 
+
 @dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: int = DEFAULT_INT
