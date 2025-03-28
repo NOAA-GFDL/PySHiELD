@@ -60,7 +60,7 @@ class PBLConfig:
                 f"PBL Config: isatmedmf == {self.isatmedmf} not implemented"
             )
         self.ntiw = tracer_variables.index("qice")
-        self.ntiw = tracer_variables.index("qliquid")
+        self.ntcw = tracer_variables.index("qliquid")
         self.ntke = tracer_variables.index("qsgs_tke")
 
 
@@ -186,7 +186,7 @@ class PhysicsConfig:
             package_schemes.append(PHYSICS_PACKAGES[scheme])
         self.schemes = package_schemes
         self.ntiw = tracer_variables.index("qice")
-        self.ntiw = tracer_variables.index("qliquid")
+        self.ntcw = tracer_variables.index("qliquid")
         self.ntke = tracer_variables.index("qsgs_tke")
         if self.namelist_override is not None:
             try:
