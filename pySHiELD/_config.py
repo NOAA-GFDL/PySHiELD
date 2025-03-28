@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 import f90nml
 
 from ndsl import MetaEnumStr
+from ndsl.dsl.gt4py_utils import tracer_variables
 from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.namelist import Namelist, NamelistDefaults
 
@@ -22,15 +23,18 @@ TRACER_DIM = "n_tracers"
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
+    SAMF_SHALCONV = "SAMF_SHALCONV"
 
 
 @dataclasses.dataclass
 class ShallowConvectionConfig:
     dt_atmos: int = DEFAULT_INT
     ntke: int = DEFAULT_INT
-    ntr: int = DEFAULT_INT
+    nsamftrac: int = DEFAULT_INT
     ncld: int = DEFAULT_INT
     ntchm: int = DEFAULT_INT
+    ntcw: int = DEFAULT_INT
+    ntiw: int = DEFAULT_INT
     itc: int = DEFAULT_INT
     clam_shal: float = DEFAULT_FLOAT
     c0s_shal: float = DEFAULT_FLOAT
@@ -39,6 +43,14 @@ class ShallowConvectionConfig:
     asolfac_shal: float = DEFAULT_FLOAT
     fscav: List = []
 
+    def __post_init__(self):
+        if self.isatmedmf != 0:
+            raise NotImplementedError(
+                f"PBL Config: isatmedmf == {self.isatmedmf} not implemented"
+            )
+        self.ntiw = tracer_variables.index("qice")
+        self.ntcw = tracer_variables.index("qliquid")
+        self.ntke = tracer_variables.index("qsgs_tke")
 
 @dataclasses.dataclass
 class PhysicsConfig:
@@ -128,6 +140,19 @@ class PhysicsConfig:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
+    ntke: int = DEFAULT_INT
+    nsamftrac: int = DEFAULT_INT
+    ncld: int = DEFAULT_INT
+    ntchm: int = DEFAULT_INT
+    ntcw: int = DEFAULT_INT
+    ntiw: int = DEFAULT_INT
+    itc: int = DEFAULT_INT
+    clam_shal: float = DEFAULT_FLOAT
+    c0s_shal: float = DEFAULT_FLOAT
+    c1_shal: float = DEFAULT_FLOAT
+    pgcon_shal: float = DEFAULT_FLOAT
+    asolfac_shal: float = DEFAULT_FLOAT
+    fscav: List = []
     namelist_override: Optional[str] = None
 
     def __post_init__(self):
@@ -139,6 +164,9 @@ class PhysicsConfig:
                 raise NotImplementedError(f"{scheme} physics scheme not implemented")
             package_schemes.append(PHYSICS_PACKAGES[scheme])
         self.schemes = package_schemes
+        self.ntiw = tracer_variables.index("qice")
+        self.ntcw = tracer_variables.index("qliquid")
+        self.ntke = tracer_variables.index("qsgs_tke")
         if self.namelist_override is not None:
             try:
                 f90_nml = f90nml.read(self.namelist_override)
@@ -219,4 +247,29 @@ class PhysicsConfig:
             tice=namelist.tice,
             alin=namelist.alin,
             clin=namelist.clin,
+            c0s_shal=namelist.c0s_shal,
+            c1_shal=namelist.c1_shal,
+            clam_shal=namelist.clam_shal,
+            pgcon_shal=namelist.pgcon_shal,
+            asolfac_shal=namelist.asolfac_shal,
+            ncld=namelist.ncld,
+        )
+
+    @property
+    def shalconv(self) -> ShallowConvectionConfig:
+        return ShallowConvectionConfig(
+            dt_atmos=self.dt_atmos,
+            ntke=self.ntke,
+            nsamftrac=self.nsamftrac,
+            ncld=self.ncld,
+            ntchm=self.ntchm,
+            ntcw=self.ntcw,
+            ntiw=self.ntiw,
+            itc=self.itc,
+            clam_shal=self.clam_shal,
+            c0s_shal=self.c0s_shal,
+            c1_shal=self.c1_shal,
+            pgcon_shal=self.pgcon_shal,
+            asolfac_shal=self.asolfac_shal,
+            fscav=self.fscav,
         )

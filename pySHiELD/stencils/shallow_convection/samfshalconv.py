@@ -1914,7 +1914,7 @@ def separate_detrained_cw(
     t1: FloatField,
     qtr: FloatFieldTracer,
 ):
-    from __externals__ import dt2
+    from __externals__ import dt2, ntcw, ntiw
 
     with computation(FORWARD), interval(0, -1):
         # cloud water
@@ -1932,10 +1932,10 @@ def separate_detrained_cw(
             tem1 = max(0.0, tem1)
 
             if qtr[0, 0, 0][1] > -999.0:
-                qtr[0, 0, 0][0] = qtr[0, 0, 0][0] + tem * tem1  # ice
-                qtr[0, 0, 0][1] = qtr[0, 0, 0][1] + tem * (1.0 - tem1)  # water
+                qtr[0, 0, 0][ntiw] = qtr[0, 0, 0][ntiw] + tem * tem1  # ice
+                qtr[0, 0, 0][ntcw] = qtr[0, 0, 0][ntcw] + tem * (1.0 - tem1)  # water
             else:
-                qtr[0, 0, 0][0] = qtr[0, 0, 0][0] + tem
+                qtr[0, 0, 0][ntiw] = qtr[0, 0, 0][ntiw] + tem
 
 
 def tke_contribution(
@@ -1969,8 +1969,97 @@ def tke_contribution(
 
 class ScaleAwareMassFluxShallowConvection:
     """
-    Fortran name is samfshalconv
+    Fortran name is samfshalconv, original docstring follows:
+    The scale-aware mass-flux shallow (SAMF_shal) convection scheme is an updated
+    version of the previous mass-flux shallow convection scheme with scale and aerosol
+    awareness and parameterizes the effect of shallow convection on the environment.
+    The SAMF_shal scheme is similar to the SAMF deep convection scheme but with a few
+    key differences. First, no quasi-equilibrium assumption is used for any grid size
+    and the shallow cloud base mass flux is parameterized using a mean updraft velocity.
+    Further, there are no convective downdrafts, the entrainment rate is greater than
+    for deep convection, and the shallow convection is limited to not extend over the
+    level where \f$p=0.7p_{sfc}\f$. The paramerization of scale and aerosol awareness
+    follows that of the SAMF deep convection scheme.
+
+    The previous version of the shallow convection scheme (shalcnv.f) is described in
+    Han and Pan (2011) \cite han_and_pan_2011 and differences between the shallow and
+    deep convection schemes are presented in Han and Pan (2011) \cite han_and_pan_2011
+    and Han et al. (2017) \cite han_et_al_2017 . Details of scale- and aerosol-aware
+    parameterizations are described in Han et al. (2017) \cite han_et_al_2017 .
+
+    In further update for FY19 GFS implementation, interaction with turbulent kinetic
+    energy (TKE), which is a prognostic variable used in a scale-aware TKE-based moist
+    EDMF vertical turbulent mixing scheme, is included. Entrainment rates in updrafts
+    are proportional to sub-cloud mean TKE. TKE is transported by cumulus convection.
+    TKE contribution from cumulus convection is deduced from cumulus mass flux. On the
+    other hand, tracers such as ozone and aerosol are also transported by cumulus
+    convection.
+
+    To reduce too much convective cooling at the cloud top, the convection schemes have
+    been modified for the rain conversion rate, entrainment and detrainment rates,
+    overshooting layers, and maximum allowable cloudbase mass flux (as of June 2018).
+    section intraphysics Intraphysics Communication
+
+    This routine follows the \ref SAMF deep scheme quite closely, although it can be
+    interpreted as only having the "static" and "feedback" control portions, since the
+    "dynamic" control is not necessary to find the cloud base mass flux. The algorithm
+    is simplified from SAMF deep convection by excluding convective downdrafts and
+    being confined to operate below \f$p=0.7p_{sfc}\f$. Also, entrainment is both
+    simpler and stronger in magnitude compared to the deep scheme.
+
+    param[in] im number of used points
+    param[in] ix horizontal dimension
+    param[in] km vertical layer dimension
+    param[in] delt physics time step in seconds
+    param[in] ntk index for TKE
+    param[in] ntr total number of tracers including TKE
+    param[in] delp pressure difference between level k and k+1 (Pa)
+    param[in] prslp mean layer presure (Pa)
+    param[in] psp surface pressure (Pa)
+    param[in] phil layer geopotential (\f$m^s/s^2\f$)
+    param[in] qtr tracer array including cloud condensate (\f$kg/kg\f$)
+    param[inout] ql cloud water or ice (kg/kg)
+    param[inout] q1 updated tracers (kg/kg)
+    param[inout] t1 updated temperature (K)
+    param[inout] u1 updated zonal wind (\f$m s^{-1}\f$)
+    param[inout] v1 updated meridional wind (\f$m s^{-1}\f$)
+    param[out] rn convective rain (m)
+    param[out] kbot index for cloud base
+    param[out] ktop index for cloud top
+    param[out] kcnv flag to denote deep convection (0=no, 1=yes)
+    param[in] islimsk sea/land/ice mask (=0/1/2)
+    param[in] dot layer mean vertical velocity (Pa/s)
+    param[in] ncloud number of cloud species
+    param[in] hpbl PBL height (m)
+    param[in] heat surface sensible heat flux (K m/s)
+    param[in] evap surface latent heat flux (kg/kg m/s)
+    param[out] ud_mf updraft mass flux multiplied by time step (\f$kg/m^2\f$)
+    param[out] dt_mf ud_mf at cloud top (\f$kg/m^2\f$)
+    param[out] cnvw convective cloud water (kg/kg)
+    param[out] cnvc convective cloud cover (unitless)
+    param[in] clam coefficient for entrainment rate
+    param[in] c0s convective rain conversion parameter (1/m)
+    param[in] c1 conversion parameter of detrainment from liquid water into grid-scale
+        cloud water (1/m)
+    param[in] pgcon reduction factor in momentum transport due to convection induced
+        pressure gradient force
+    param[in] asolfac aerosol-aware parameter inversely proportional to CCN number
+        concentraion
+
+    General Algorithm
+    Compute preliminary quantities needed for the static and feedback control portions
+        of the algorithm.
+    Perform calculations related to the updraft of the entraining/detraining cloud
+        model ("static control").
+    The cloud base mass flux is obtained using the cumulus updraft velocity averaged
+        over the whole cloud depth.
+    Calculate the tendencies of the state variables (per unit cloud base mass flux) and
+        the cloud base mass flux.
+    For the "feedback control", calculate updated values of the state variables by
+        multiplying the cloud base mass flux and the tendencies calculated per unit
+        cloud base mass flux from the static control.
     """
+    # TODO resolve tracers
 
     def __init__(
         self,
@@ -1980,14 +2069,21 @@ class ScaleAwareMassFluxShallowConvection:
     ):
         grid_indexing = stencil_factory.grid_indexing
 
-        # Determine whether to perform aerosol transport #
         self._ntk = config.ntke
-        self._ntr = config.ntr
+        self._ntiw = config.ntiw
+        self._ntcw = config.ntcw
+        self._ntr = config.nsamftrac
         self._ncloud = config.ncld
         self._dt2 = config.dt_atmos
-        self._do_aerosols = (config.itc > 0) and (config.ntchm > 0) and (config.ntr > 0)
+
+        # Determine whether to perform aerosol transport #
+        self._do_aerosols = (config.itc > 0) and (config.ntchm > 0) and (self._ntr > 0)
         if self._do_aerosols:
-            self._do_aerosols = config.ntr >= config.itc
+            self._do_aerosols = self._ntr >= config.itc
+        if self._do_aerosols:
+            raise NotImplementedError(
+                "Shallow convection of aerosols is not implemented yet"
+            )
 
         self._clam = config.clam_shal
         self._c0s = config.c0s_shal
@@ -2001,9 +2097,22 @@ class ScaleAwareMassFluxShallowConvection:
 
         quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: self._ntr,
+                self.TRACER_DIM: self._ntr + 2,
             }
         )
+
+        # Tracers are kind of borked right now. In Fortran the water vapor is passed in
+        # separately, while all others come in via the variable "qtr" which has
+        # dimensions (i, j, k, n_tracers - 1), ice and liquid water are stored in
+        # qtr[:, :, :, 0] and qtr[:, :, :, 1] and everything is reorganized to
+        # accomodate that. Aerosols live in qtr[:, :, :, itc:].
+        # If we're being straightforward about it we'd have our 4D tracer array with
+        # special handling for ntvapor, ntiw, and ntcw (like we do for TKE), have an
+        # `if n not in [ntvap, ntiw, ntcw]:` around the other tracer calls, and then
+        # do something similar with the aerosols.
+        # A better solution would be to have the attributes we want accessible easily
+        # so we can send the aerosols into the aerosol calculations by attribute, and
+        # similarly except (or invoke) vapor etc. from the other calculations.
 
         def make_quantity():
             return quantity_factory.zeros(
@@ -2303,6 +2412,8 @@ class ScaleAwareMassFluxShallowConvection:
                 func=separate_detrained_cw,
                 externals={
                     "dt2": self._dt2,
+                    "ntiw": self._ntiw,
+                    "ntcw": self._ntcw,
                 },
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
@@ -2322,7 +2433,6 @@ class ScaleAwareMassFluxShallowConvection:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
-        pass
 
     def __call__(
         self,
@@ -2440,18 +2550,18 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         # Init tracers
-        for n in range(self._ntr):
-            n_tracer = n + 2
-            self._init_tracers(
-                cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._ctr,
-                self._ctro,
-                self._ecko,
-                qtr,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._init_tracers(
+                    cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ctr,
+                    self._ctro,
+                    self._ecko,
+                    qtr,
+                    n_tracer,
+                )
 
         self._stencil_static0(
             cnvflg,
@@ -2471,15 +2581,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._heso,
             self._pfld,
         )
-        for n in range(self._ntr):
-            n_tracer = n + 2
-            stencil_ntrstatic0(
-                cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._ctro,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic0(
+                    cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ctro,
+                    n_tracer,
+                )
 
         self._stencil_static1(
             cnvflg,
@@ -2544,15 +2654,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._vo,
         )
 
-        for n in range(self._ntr):
-            n_tracer = n + 2
-            self._stencil_ntrstatic1(
-                cnvflg,
-                self._k_mask,
-                self._kb,
-                self._ecko,
-                self._ctro,
-            )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic1(
+                    cnvflg,
+                    self._k_mask,
+                    self._kb,
+                    self._ecko,
+                    self._ctro,
+                )
 
         self._stencil_static7(
             cnvflg,
@@ -2572,19 +2682,19 @@ class ScaleAwareMassFluxShallowConvection:
             self._vo,
         )
 
-        for n in range(self._ntr):
-            n_tracer = n + 2
-            self._stencil_ntrstatic2(
-                cnvflg,
-                self._k_mask,
-                self._kb,
-                self._kmax,
-                self._zi,
-                self._xlamue,
-                self._ecko,
-                self._ctro,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic2(
+                    cnvflg,
+                    self._k_mask,
+                    self._kb,
+                    self._kmax,
+                    self._zi,
+                    self._xlamue,
+                    self._ecko,
+                    self._ctro,
+                    n_tracer,
+                )
 
         self._stencil_update_kbcon1_cnvflg(
             self._dbyo,
@@ -2764,21 +2874,21 @@ class ScaleAwareMassFluxShallowConvection:
             self._umean,
         )
 
-        for n in range(self._ntr):
-            n_tracer = n + 2
-            self._comp_tendencies_tr(
-                cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._kb,
-                self._ktcon,
-                self._dellae,
-                self._del0,
-                self._eta,
-                self._ctro,
-                self._ecko,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._comp_tendencies_tr(
+                    cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._kb,
+                    self._ktcon,
+                    self._dellae,
+                    self._del0,
+                    self._eta,
+                    self._ctro,
+                    self._ecko,
+                    n_tracer,
+                )
 
         # if self._do_aerosols:
         #     samfshalcnv_aerosols()
@@ -2830,21 +2940,21 @@ class ScaleAwareMassFluxShallowConvection:
             self._eta,
         )
 
-        for n in range(self._ntr):
-            n_tracer = n + 2
-            self._feedback_control_upd_trr(
-                cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._ktcon,
-                self._del0,
-                self._delebar,
-                self._ctr,
-                self._dellae,
-                self._xmb,
-                qtr,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._feedback_control_upd_trr(
+                    cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ktcon,
+                    self._del0,
+                    self._delebar,
+                    self._ctr,
+                    self._dellae,
+                    self._xmb,
+                    qtr,
+                    n_tracer,
+                )
 
         if self._ncloud > 0:
             self._separate_detrained_cw(
@@ -2874,4 +2984,3 @@ class ScaleAwareMassFluxShallowConvection:
                 self._sigmagfm,
                 qtr,
             )
-        pass
