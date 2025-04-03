@@ -26,14 +26,21 @@ from ndsl.dsl.typing import (
     IntField,
     IntFieldIJ,
 )
-from ndsl.stencils.basic_operations import select_k
 from pySHiELD._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
 from pySHiELD.functions.physics_functions import fpvs
 
+import copy
+import numpy as np
 
 def exit_routine(cnvflg):
     return cnvflg.sum() == 0
 
+def col_diffs(conv1, conv2):
+    cols = []
+    for i, j in np.ndindex(conv1.shape):
+        if np.logical_xor(conv1[i, j], conv2[i, j]):
+            cols.append((i, j))
+    return cols
 
 def pa_to_cb(
     psp: FloatFieldIJ,
@@ -164,8 +171,8 @@ def init_kbm_kmax(
 
 
 def init_final(
-    kbm: IntField,
-    kmax: IntField,
+    kbm: IntFieldIJ,
+    kmax: IntFieldIJ,
     flg: BoolFieldIJ,
     cnvflg: BoolFieldIJ,
     kpbl: IntFieldIJ,
@@ -271,9 +278,9 @@ def init_final(
 
 
 def init_tracers(
-    cnvflg: BoolField,
+    cnvflg: BoolFieldIJ,
     k_mask: IntField,
-    kmax: IntField,
+    kmax: IntFieldIJ,
     ctr: FloatFieldTracer,
     ctro: FloatFieldTracer,
     ecko: FloatFieldTracer,
@@ -388,9 +395,9 @@ def stencil_static0(
 
 # ntr stencil put at last
 def stencil_ntrstatic0(
-    cnvflg: BoolField,
+    cnvflg: BoolFieldIJ,
     k_mask: IntField,
-    kmax: IntField,
+    kmax: IntFieldIJ,
     ctro: FloatFieldTracer,
     n_tracer: int,
 ):
@@ -442,10 +449,10 @@ def stencil_static1(
 
 
 def stencil_static2(
-    cnvflg: BoolField,
+    cnvflg: BoolFieldIJ,
     pdot: FloatFieldIJ,
     dot: FloatField,
-    islimsk: IntField,
+    islimsk: IntFieldIJ,
     k_mask: IntField,
     kbcon: IntFieldIJ,
     kb: IntFieldIJ,
@@ -637,12 +644,13 @@ def stencil_ntrstatic1(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kb: IntFieldIJ,
-    ecko: FloatField,
-    ctro: FloatField,
+    ecko: FloatFieldTracer,
+    ctro: FloatFieldTracer,
+    n_tracer: Int,
 ):
     with computation(PARALLEL), interval(...):
         if (cnvflg) and (k_mask == kb):
-            ecko = ctro
+            ecko[0, 0, 0][n_tracer] = ctro[0, 0, 0][n_tracer]
 
 
 def stencil_static7(
@@ -1289,6 +1297,11 @@ def stencil_static14(
         if cnvflg:
             vshear = 0.0
 
+        if k_mask == kb:
+            zi_kb = zi
+        if k_mask == ktcon:
+            zi_ktcon = zi
+
     with computation(FORWARD), interval(1, None):
         if cnvflg:
             if k_mask > kb and k_mask <= ktcon:
@@ -1298,7 +1311,6 @@ def stencil_static14(
                     (uo - uo[0, 0, -1]) ** 2 + (vo - vo[0, 0, -1]) ** 2
                 )
 
-    with computation(FORWARD), interval(...):
         if k_mask == kb:
             zi_kb = zi
         if k_mask == ktcon:
@@ -1309,15 +1321,9 @@ def stencil_static14(
             # Use ziktcon and zikb to represent zi(ktcon) and zi(kb)
             vshear = 1.0e3 * vshear / (zi_ktcon - zi_kb)
 
-            # e1 = 1.591-.639*vshear \
-            #   + .0953*(vshear**2)-.00496*(vshear**3)
+            e1 = 1.591-.639*vshear + .0953*(vshear**2)-.00496*(vshear**3)
 
-            edt = 1.0 - (
-                1.591
-                - 0.639 * vshear
-                + 0.0953 * (vshear ** 2)
-                - 0.00496 * (vshear ** 3)
-            )
+            edt = 1.0 - e1
             # val = .9
             edt = min(edt, 0.9)
             # val = .0
@@ -1523,8 +1529,8 @@ def comp_tendencies(
             if k_mask >= kbcon1 and k_mask < ktcon1:
                 dz = zi[0, 0, 0] - zi[0, 0, -1]
                 tem = sqrt(u1 * u1 + v1 * v1)
-                umean = umean[0, 0, -1] + tem * dz
-                sumx = sumx[0, 0, -1] + dz
+                umean = umean + tem * dz
+                sumx = sumx + dz
     with computation(FORWARD), interval(-1, None):
         if cnvflg:
             umean = umean / sumx
@@ -1657,15 +1663,15 @@ def feedback_control_update_mass_flux(
     v1: FloatField,
     dellav: FloatField,
     del0: FloatField,
-    rntot: FloatField,
+    rntot: FloatFieldIJ,
     delqev: FloatFieldIJ,
-    delq2: FloatField,
+    delq2: FloatFieldIJ,
     pwo: FloatField,
     deltv: FloatFieldIJ,
     delq: FloatFieldIJ,
     qevap: FloatFieldIJ,
-    rn: FloatField,
-    edt: FloatField,
+    rn: FloatFieldIJ,
+    edt: FloatFieldIJ,
     cnvw: FloatField,
     cnvwt: FloatField,
     cnvc: FloatField,
@@ -1858,9 +1864,17 @@ def feedback_control_upd_trr(
     from __externals__ import dt2
 
     with computation(FORWARD), interval(0, 1):
-        delebar[0, 0, 0][n_tracer] = 0.0
-    with computation(FORWARD), interval(...):
-        delebar[0, 0, 0][n_tracer] = delebar[0, 0, -1][n_tracer] = 0.0
+        delebar[0, 0, 0][n_tracer] = 0.0  # Should be an [i, j, n_tracer] field
+        if cnvflg and k_mask <= kmax and k_mask <= ktcon:
+            ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
+                dellae[0, 0, 0][n_tracer] * xmb * dt2
+            )
+            delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] + (
+                dellae[0, 0, 0][n_tracer] * xmb
+            )
+            qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
+    with computation(FORWARD), interval(1, None):
+        delebar[0, 0, 0][n_tracer] = delebar[0, 0, -1][n_tracer]
 
         if cnvflg and k_mask <= kmax and k_mask <= ktcon:
             ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
@@ -1871,7 +1885,7 @@ def feedback_control_upd_trr(
             )
             qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
 
-    with computation(FORWARD):
+    with computation(BACKWARD):
         with interval(-1, None):
             if cnvflg and k_mask <= kmax and k_mask <= ktcon:
                 dp = 1000.0 * del0
@@ -1881,9 +1895,8 @@ def feedback_control_upd_trr(
                 )  # Where does dp come from? Is it correct to use the last value at
                 # line 1559 of samfshalcnv.F?
 
-    # Propagate backward delebar values
-    with computation(BACKWARD), interval(0, -1):
-        if cnvflg:
+        # Propagate backward delebar values
+        with interval(0, -1):
             delebar = delebar[0, 0, 1]
 
 
@@ -1947,13 +1960,13 @@ def tke_contribution(
     xmb: FloatFieldIJ,
     pfld: FloatField,
     t1: FloatField,
-    sigmagfm: FloatField,
+    sigmagfm: FloatFieldIJ,
     qtr: FloatFieldTracer,
 ):
     # Include TKE contribution from shallow convection
     from __externals__ import ntk
 
-    with computation(PARALLEL), interval(1, -1):
+    with computation(FORWARD), interval(1, -1):
 
         tem = 0.0
         tem1 = 0.0
@@ -2096,9 +2109,10 @@ class ScaleAwareMassFluxShallowConvection:
         self._km1 = grid_indexing.domain[2] - 1
         self.TRACER_DIM = TRACER_DIM
 
-        quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory = quantity_factory
+        self.quantity_factory.set_extra_dim_lengths(
             **{
-                self.TRACER_DIM: self._ntr + 2,
+                self.TRACER_DIM: int(self._ntr + 2),
             }
         )
 
@@ -2137,6 +2151,7 @@ class ScaleAwareMassFluxShallowConvection:
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
 
+        self._cnvflg = make_quantity_2D(Bool)
         self._kbm = make_quantity_2D(Int)
         self._heo_kb = make_quantity_2D()
         self._drag = make_quantity()
@@ -2254,11 +2269,6 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         # Configure stencils
-        self._select_k = stencil_factory.from_origin_domain(
-            func=select_k,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
         self._pa_to_cb = stencil_factory.from_origin_domain(
             func=pa_to_cb,
             origin=grid_indexing.origin_compute(),
@@ -2313,10 +2323,8 @@ class ScaleAwareMassFluxShallowConvection:
         self._stencil_static3 = stencil_factory.from_origin_domain(
             func=stencil_static3,
             externals={
-                "ntk",
-                self._ntk,
-                "clam",
-                self._clam,
+                "ntk": self._ntk,
+                "clam": self._clam,
             },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
@@ -2453,7 +2461,6 @@ class ScaleAwareMassFluxShallowConvection:
         dt_mf: FloatField,
         psp: FloatFieldIJ,
         rn: FloatFieldIJ,
-        cnvflg: BoolFieldIJ,
         kcnv: IntFieldIJ,
         kbot: IntFieldIJ,
         ktop: IntFieldIJ,
@@ -2472,7 +2479,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         self._init_col_arr(
             kcnv,
-            cnvflg,
+            self._cnvflg,
             kbot,
             ktop,
             self._kbcon,
@@ -2488,10 +2495,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._vshear,
             self._gdx,
             garea,
-            self._km,
         )
-        if exit_routine(cnvflg.view()):
+        if exit_routine(self._cnvflg.view[:]):
             return
+
+        conv_a = copy.deepcopy(self._cnvflg.view[:])
+        conv_b = np.ones_like(conv_a)
+
+        cols = col_diffs(conv_a, conv_b)
+        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -2515,7 +2527,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._kbm,
             self._kmax,
             self._flg,
-            cnvflg,
+            self._cnvflg,
             self._kpbl,
             self._prsl,
             self._zo,
@@ -2554,7 +2566,7 @@ class ScaleAwareMassFluxShallowConvection:
         for n_tracer in range(self._ntr):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
-                    cnvflg,
+                    self._cnvflg,
                     self._k_mask,
                     self._kmax,
                     self._ctr,
@@ -2565,7 +2577,7 @@ class ScaleAwareMassFluxShallowConvection:
                 )
 
         self._stencil_static0(
-            cnvflg,
+            self._cnvflg,
             self._hmax,
             self._heo,
             self._kb,
@@ -2585,7 +2597,7 @@ class ScaleAwareMassFluxShallowConvection:
         for n_tracer in range(self._ntr):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
-                    cnvflg,
+                    self._cnvflg,
                     self._k_mask,
                     self._kmax,
                     self._ctro,
@@ -2593,7 +2605,7 @@ class ScaleAwareMassFluxShallowConvection:
                 )
 
         self._stencil_static1(
-            cnvflg,
+            self._cnvflg,
             self._flg,
             self._kbcon,
             self._kmax,
@@ -2604,11 +2616,16 @@ class ScaleAwareMassFluxShallowConvection:
             self._heo,
             self._heso,
         )
-        if exit_routine(cnvflg.view()):
+        if exit_routine(self._cnvflg.view[:]):
             return
 
+        conv_b = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static1: ", columns)
+
         self._stencil_static2(
-            cnvflg,
+            self._cnvflg,
             self._pdot,
             dot,
             islimsk,
@@ -2619,13 +2636,18 @@ class ScaleAwareMassFluxShallowConvection:
             self._pfld_kb,
             self._pfld_kbcon,
         )
-        if exit_routine(cnvflg.view()):
+        if exit_routine(self._cnvflg.view[:]):
             return
+
+        conv_a = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static2: ", columns)
 
         self._stencil_static3(
             self._sumx,
             self._tkemean,
-            cnvflg,
+            self._cnvflg,
             self._k_mask,
             self._kb,
             self._kbcon,
@@ -2635,7 +2657,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         self._stencil_static5(
-            cnvflg,
+            self._cnvflg,
             self._xlamue,
             self._clamt,
             self._zi,
@@ -2658,15 +2680,16 @@ class ScaleAwareMassFluxShallowConvection:
         for n_tracer in range(self._ntr):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic1(
-                    cnvflg,
+                    self._cnvflg,
                     self._k_mask,
                     self._kb,
                     self._ecko,
                     self._ctro,
+                    n_tracer,
                 )
 
         self._stencil_static7(
-            cnvflg,
+            self._cnvflg,
             self._k_mask,
             self._kb,
             self._kmax,
@@ -2686,7 +2709,7 @@ class ScaleAwareMassFluxShallowConvection:
         for n_tracer in range(self._ntr):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic2(
-                    cnvflg,
+                    self._cnvflg,
                     self._k_mask,
                     self._kb,
                     self._kmax,
@@ -2699,7 +2722,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         self._stencil_update_kbcon1_cnvflg(
             self._dbyo,
-            cnvflg,
+            self._cnvflg,
             self._kmax,
             self._kbm,
             self._kbcon,
@@ -2709,19 +2732,24 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         self._stencil_static9(
-            cnvflg,
+            self._cnvflg,
             self._pfld,
             self._pfld_kbcon,
             self._pfld_kbcon1,
             self._k_mask,
             self._kbcon1,
         )
-        if exit_routine(cnvflg.view()):
+        if exit_routine(self._cnvflg.view[:]):
             return
+
+        conv_b = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static9: ", columns)
 
         self._stencil_static10(
             self._cina,
-            cnvflg,
+            self._cnvflg,
             self._k_mask,
             self._kb,
             self._kbcon1,
@@ -2733,12 +2761,17 @@ class ScaleAwareMassFluxShallowConvection:
             self._pdot,
             islimsk,
         )
-        if exit_routine(cnvflg.view()):
+        if exit_routine(self._cnvflg.view[:]):
             return
+
+        conv_a = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static10: ", columns)
 
         self._stencil_static11(
             self._flg,
-            cnvflg,
+            self._cnvflg,
             self._ktcon,
             self._kbm,
             self._kbcon1,
@@ -2766,11 +2799,16 @@ class ScaleAwareMassFluxShallowConvection:
             self._pwo,
             self._cnvwt,
         )
-        if exit_routine(cnvflg.view()):
+        if exit_routine(self._cnvflg.view[:]):
             return
 
+        conv_b = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static11: ", columns)
+
         self._stencil_static12(
-            cnvflg,
+            self._cnvflg,
             self._aa1,
             self._flg,
             self._ktcon1,
@@ -2803,7 +2841,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         if self._ncloud > 0:
             self._stencil_static13(
-                cnvflg,
+                self._cnvflg,
                 self._k_mask,
                 self._ktcon,
                 self._qeso,
@@ -2814,7 +2852,7 @@ class ScaleAwareMassFluxShallowConvection:
             )
 
         self._stencil_static14(
-            cnvflg,
+            self._cnvflg,
             self._vshear,
             self._k_mask,
             self._kb,
@@ -2828,7 +2866,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         self._comp_tendencies(
-            cnvflg,
+            self._cnvflg,
             self._k_mask,
             self._kmax,
             self._kb,
@@ -2878,7 +2916,7 @@ class ScaleAwareMassFluxShallowConvection:
         for n_tracer in range(self._ntr):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._comp_tendencies_tr(
-                    cnvflg,
+                    self._cnvflg,
                     self._k_mask,
                     self._kmax,
                     self._kb,
@@ -2895,7 +2933,7 @@ class ScaleAwareMassFluxShallowConvection:
         #     samfshalcnv_aerosols()
 
         self._feedback_control_update_mass_flux(
-            cnvflg,
+            self._cnvflg,
             self._k_mask,
             self._kmax,
             self._kb,
@@ -2944,7 +2982,7 @@ class ScaleAwareMassFluxShallowConvection:
         for n_tracer in range(self._ntr):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._feedback_control_upd_trr(
-                    cnvflg,
+                    self._cnvflg,
                     self._k_mask,
                     self._kmax,
                     self._ktcon,
@@ -2959,7 +2997,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         if self._ncloud > 0:
             self._separate_detrained_cw(
-                cnvflg,
+                self._cnvflg,
                 self._k_mask,
                 self._kbcon,
                 self._ktcon,
@@ -2974,7 +3012,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         if self._ntk > 0:
             self._tke_contribution(
-                cnvflg,
+                self._cnvflg,
                 self._k_mask,
                 self._kb,
                 ktop,

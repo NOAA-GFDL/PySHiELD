@@ -11,7 +11,7 @@ from ndsl.namelist import Namelist, NamelistDefaults
 
 
 # TODO: This is a hack
-FloatFieldTracer = set_4d_field_size(9, Float)
+FloatFieldTracer = set_4d_field_size(7, Float)
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
@@ -41,16 +41,13 @@ class ShallowConvectionConfig:
     c1_shal: float = DEFAULT_FLOAT
     pgcon_shal: float = DEFAULT_FLOAT
     asolfac_shal: float = DEFAULT_FLOAT
-    fscav: List = []
+    isatmedmf: int = DEFAULT_INT
+    fscav: list = dataclasses.field(default_factory=list)
 
-    def __post_init__(self):
-        if self.isatmedmf != 0:
-            raise NotImplementedError(
-                f"PBL Config: isatmedmf == {self.isatmedmf} not implemented"
-            )
-        self.ntiw = tracer_variables.index("qice")
-        self.ntcw = tracer_variables.index("qliquid")
-        self.ntke = tracer_variables.index("qsgs_tke")
+    # def __post_init__(self):
+    #     self.ntiw = tracer_variables.index("qice")
+    #     self.ntcw = tracer_variables.index("qliquid")
+    #     self.ntke = tracer_variables.index("qsgs_tke")
 
 
 @dataclasses.dataclass
@@ -153,7 +150,8 @@ class PhysicsConfig:
     c1_shal: float = DEFAULT_FLOAT
     pgcon_shal: float = DEFAULT_FLOAT
     asolfac_shal: float = DEFAULT_FLOAT
-    fscav: List = []
+    isatmedmf: int = DEFAULT_INT
+    fscav: list = dataclasses.field(default_factory=list)
     namelist_override: Optional[str] = None
 
     def __post_init__(self):
@@ -273,4 +271,5 @@ class PhysicsConfig:
             pgcon_shal=self.pgcon_shal,
             asolfac_shal=self.asolfac_shal,
             fscav=self.fscav,
+            isatmedmf=self.isatmedmf,
         )
