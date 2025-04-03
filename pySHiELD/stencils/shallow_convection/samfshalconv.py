@@ -1078,7 +1078,7 @@ def stencil_static12(
     drag: FloatField,
     dellal: FloatField,
 ):
-    # Estimate the onvective overshooting as the level
+    # Estimate the convective overshooting as the level
     #   where the [aafac * cloud work function] becomes zero,
     #   which is the final cloud top
     #   limited to the level of P/Ps=0.7
@@ -1091,43 +1091,41 @@ def stencil_static12(
     # Overshooting is also limited to the level where \f$p=0.7p_{sfc}\f$.
     from __externals__ import c1, ncloud
 
-    with computation(FORWARD), interval(0, 1):
-        if cnvflg:
-            aa1 = physcons.AAFAC * aa1
+    with computation(FORWARD):
+        with interval(0, 1):
+            if cnvflg:
+                aa1 = physcons.AAFAC * aa1
 
-        flg = cnvflg
-        ktcon1 = kbm
+            flg = cnvflg
+            ktcon1 = kbm
 
-    with computation(FORWARD), interval(1, -1):
-        dz1 = 0.0
-        gamma = 0.0
-        rfact = 0.0
+        with interval(1, -1):
+            dz1 = 0.0
+            gamma = 0.0
+            rfact = 0.0
 
-        if flg:
-            if k_mask >= ktcon and k_mask < kbm:
-                dz1 = zo[0, 0, 1] - zo
-                gamma = physcons.EL2ORC * qeso / (to ** 2)
-                rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
-                    to / constants.HLV
-                )
-                aa1 = (
-                    aa1
-                    + dz1
-                    * (constants.GRAV / (constants.CP_AIR * to))
-                    * dbyo
-                    / (1.0 + gamma)
-                    * rfact
-                )
+            if flg:
+                if k_mask >= ktcon and k_mask < kbm:
+                    dz1 = zo[0, 0, 1] - zo
+                    gamma = physcons.EL2ORC * qeso / (to ** 2)
+                    rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
+                        to / constants.HLV
+                    )
+                    aa1 = (
+                        aa1
+                        + dz1 * (constants.GRAV / (constants.CP_AIR * to))
+                        * dbyo / (1.0 + gamma) * rfact
+                    )
 
-                # val = 0.
-                # aa1(i) = aa1(i) +
-                #         dz1 * eta(i,k_mask) * g * delta *
-                #         dz1 * g * delta *
-                #         max(val,(qeso(i,k_mask) - qo(i,k_mask)))
+                    # val = 0.
+                    # aa1(i) = aa1(i) +
+                    #         dz1 * eta(i,k_mask) * g * delta *
+                    #         dz1 * g * delta *
+                    #         max(val,(qeso(i,k_mask) - qo(i,k_mask)))
 
-                if aa1 < 0.0:
-                    ktcon1 = k_mask
-                    flg = False
+                    if aa1 < 0.0:
+                        ktcon1 = k_mask
+                        flg = False
 
     # Compute cloud moisture property, detraining cloud water
     # and precipitation in overshooting layers
@@ -1186,6 +1184,16 @@ def stencil_static12(
         tem1 = 0.0
         ptem = 0.0
         ptem1 = 0.0
+
+        # bb1 = 2. * (1.+bet1*cd1)
+        # bb2 = 2. / (f1*(1.+gam1))
+
+        # bb1 = 3.9
+        # bb2 = 0.67
+
+        # bb1 = 2.0
+        # bb2 = 4.0
+
         bb1 = 4.0
         bb2 = 0.8
         if cnvflg:
@@ -1199,31 +1207,33 @@ def stencil_static12(
                 wu2 = max(wu2, 0.0)
 
     # Compute updraft velocity averaged over the whole cumulus
-    with computation(FORWARD), interval(0, 1):
-        wc = 0.0
-        sumx = 0.0
+    # Calculate the mean updraft velocity within the cloud (wc).
+    with computation(FORWARD):
+        with interval(0, 1):
+            wc = 0.0
+            sumx = 0.0
 
-    with computation(FORWARD), interval(1, -1):
-        dz = 0.0
-        tem = 0.0
+        with interval(1, -1):
+            dz = 0.0
+            tem = 0.0
 
-        if cnvflg:
-            if k_mask > kbcon1 and k_mask < ktcon:
-                dz = zi - zi[0, 0, -1]
-                tem = 0.5 * (sqrt(wu2) + sqrt(wu2[0, 0, -1]))
-                wc = wc + tem * dz
-                sumx = sumx + dz
+            if cnvflg:
+                if k_mask > kbcon1 and k_mask < ktcon:
+                    dz = zi - zi[0, 0, -1]
+                    tem = 0.5 * (sqrt(wu2) + sqrt(wu2[0, 0, -1]))
+                    wc = wc + tem * dz
+                    sumx = sumx + dz
 
-    with computation(FORWARD), interval(-1, None):
-        if cnvflg:
-            if sumx == 0.0:
-                cnvflg = False
-            else:
-                wc = wc / sumx
+        with interval(-1, None):
+            if cnvflg:
+                if sumx == 0.0:
+                    cnvflg = False
+                else:
+                    wc = wc / sumx
 
-            # val = 1.e-4
-            if wc < 1.0e-4:
-                cnvflg = False
+                # val = 1.e-4
+                if wc < 1.0e-4:
+                    cnvflg = False
 
     # Exchange ktcon with ktcon1
     with computation(FORWARD), interval(-1, None):
@@ -2838,6 +2848,10 @@ class ScaleAwareMassFluxShallowConvection:
             self._drag,
             self._dellal,
         )
+        conv_a = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static12: ", columns)
 
         if self._ncloud > 0:
             self._stencil_static13(
