@@ -1459,9 +1459,7 @@ def comp_tendencies(
                     - eta[0, 0, -1] * dv3h
                     - tem * eta[0, 0, -1] * dv2h * dz
                     + tem1 * eta[0, 0, -1] * 0.5 * (hcko + hcko[0, 0, -1]) * dz
-                )
-                * constants.GRAV
-                / dp
+                ) * constants.GRAV / dp
             )
 
             dellaq = (
@@ -1471,9 +1469,7 @@ def comp_tendencies(
                     - eta[0, 0, -1] * dv3q
                     - tem * eta[0, 0, -1] * dv2q * dz
                     + tem1 * eta[0, 0, -1] * 0.5 * (qrcko + qcko[0, 0, -1]) * dz
-                )
-                * constants.GRAV
-                / dp
+                ) * constants.GRAV / dp
             )
 
             tem1 = eta * (uo - ucko)
@@ -1501,14 +1497,12 @@ def comp_tendencies(
                 dellau = (
                     eta[0, 0, -1]
                     * (ucko[0, 0, -1] - uo[0, 0, -1])
-                    * constants.GRAV
-                    / dp
+                    * constants.GRAV / dp
                 )
                 dellav = (
                     eta[0, 0, -1]
                     * (vcko[0, 0, -1] - vo[0, 0, -1])
-                    * constants.GRAV
-                    / dp
+                    * constants.GRAV / dp
                 )
 
                 # Cloud water
@@ -1523,7 +1517,8 @@ def comp_tendencies(
         if cnvflg:
             tem = zi_ktcon - zi_kbcon
             tfac = 1.0 + gdx / 75000.0
-            dtconv = tfac * tem / wc
+            dtconv = tem / wc
+            dtconv = tfac * dtconv
             dtconv = max(dtconv, physcons.DTMIN)
             dtconv = max(dtconv, dt2)
             dtconv = min(dtconv, physcons.DTMAX)
@@ -1571,7 +1566,7 @@ def comp_tendencies(
             tem1 = 3.14 * tem * tem
 
             sigmagfm = tem1 / garea
-            sigmagfm = max(sigmagfm, 0.002)
+            sigmagfm = max(sigmagfm, 0.001)
             sigmagfm = min(sigmagfm, 0.999)
 
     with computation(FORWARD), interval(0, 1):
