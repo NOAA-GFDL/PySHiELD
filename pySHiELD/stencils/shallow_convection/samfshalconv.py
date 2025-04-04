@@ -1825,11 +1825,12 @@ def feedback_control_update_mass_flux(
                     deltbar = deltbar + deltv * dp / constants.GRAV
 
     with computation(BACKWARD), interval(0, 1):
-        if (rn < 0.0) or (not flg):
-            rn = 0.0
-        ktop = ktcon
-        kbot = kbcon
-        kcnv = 1
+        if cnvflg:
+            if (rn < 0.0) or (not flg):
+                rn = 0.0
+            ktop = ktcon
+            kbot = kbcon
+            kcnv = 1
 
     with computation(FORWARD), interval(...):
         # convective cloud water
