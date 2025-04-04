@@ -90,14 +90,14 @@ def init_col_arr(
             cnvflg = False
 
         if cnvflg:
-            kbot = km + 1
+            kbot = km
             ktop = 0
 
         rn = 0.0
-        kbcon = km
-        ktcon = 1
-        ktconn = 1
-        kb = km
+        kbcon = km - 1
+        ktcon = 0
+        ktconn = 0
+        kb = km - 1
         pdot = 0.0
         qlko_ktcon = 0.0
         edt = 0.0
@@ -158,8 +158,8 @@ def init_kbm_kmax(
     # Determine maximum indices for the parcel starting point (kbm)
     # and cloud top (kmax)
     with computation(FORWARD), interval(0, 1):
-        kbm = km
-        kmax = km
+        kbm = km - 1
+        kmax = km - 1
         tx1 = 1.0 / ps
     with computation(FORWARD), interval(...):
         if prsl * tx1 > 0.7:
