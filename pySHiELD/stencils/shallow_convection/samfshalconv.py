@@ -1828,7 +1828,7 @@ def feedback_control_update_mass_flux(
                 rn = 0.0
             ktop = ktcon
             kbot = kbcon
-            kcnv = 1
+            kcnv = 2
 
     with computation(FORWARD), interval(...):
         # convective cloud water
