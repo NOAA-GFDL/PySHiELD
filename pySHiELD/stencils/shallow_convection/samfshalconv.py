@@ -1706,13 +1706,13 @@ def feedback_control_update_mass_flux(
         qcond = 0.0
 
     with computation(FORWARD), interval(...):
-        qeso = 0.01 * fpvs(t1)  # fpvs is in Pa
-        qeso = constants.EPS * qeso / (pfld + (constants.EPS - 1) * qeso)
-        val = 1.0e-8
-        qeso = max(qeso, val)
-
         dellat = 0.0
         fpvst1 = 0.0
+        if cnvflg and (k_mask <= kmax):
+            qeso = 0.01 * fpvs(t1)  # fpvs is in Pa
+            qeso = constants.EPS * qeso / (pfld + (constants.EPS - 1) * qeso)
+            val = 1.0e-8
+            qeso = max(qeso, val)
 
         # - Calculate the temperature tendency from the moist
         #   static energy and specific humidity tendencies
@@ -1720,6 +1720,7 @@ def feedback_control_update_mass_flux(
         #   horizontal wind state variables by multiplying the
         #   cloud base mass flux-normalized tendencies by the
         #   cloud base mass flux
+        # Accumulate column-integrated tendencies:
         if cnvflg:
             if k_mask > kb and k_mask <= ktcon:
                 dellat = (dellah - constants.HLV * dellaq) / constants.CP_AIR
@@ -1735,6 +1736,7 @@ def feedback_control_update_mass_flux(
                 delubar = delubar + dellau * xmb * dp / constants.GRAV
                 delvbar = delvbar + dellav * xmb * dp / constants.GRAV
 
+    with computation(FORWARD), interval(...):
         fpvst1 = 0.01 * fpvs(t1)  # fpvs is in Pa
         if cnvflg:
             if k_mask > kb and k_mask <= ktcon:
@@ -1742,6 +1744,7 @@ def feedback_control_update_mass_flux(
                 # updated temperature
                 qeso = fpvst1
                 qeso = constants.EPS * qeso / (pfld + (constants.EPS - 1) * qeso)
+                val = 1.e-8
                 qeso = max(qeso, val)
 
     with computation(FORWARD), interval(1, -1):
@@ -1871,39 +1874,33 @@ def feedback_control_upd_trr(
 
     with computation(FORWARD), interval(0, 1):
         delebar[0, 0, 0][n_tracer] = 0.0  # Should be an [i, j, n_tracer] field
-        if cnvflg and k_mask <= kmax and k_mask <= ktcon:
-            ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
-                dellae[0, 0, 0][n_tracer] * xmb * dt2
-            )
-            delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] + (
-                dellae[0, 0, 0][n_tracer] * xmb
-            )
-            qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
+        dp = 1000.0 * del0
+        if cnvflg and k_mask <= kmax:
+            if k_mask <= ktcon:
+                ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
+                    dellae[0, 0, 0][n_tracer] * xmb * dt2
+                )
+                delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] + (
+                    dellae[0, 0, 0][n_tracer] * xmb * dp / constants.GRAV
+                )
+                qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
     with computation(FORWARD), interval(1, None):
         delebar[0, 0, 0][n_tracer] = delebar[0, 0, -1][n_tracer]
+        dp = 1000.0 * del0
 
-        if cnvflg and k_mask <= kmax and k_mask <= ktcon:
-            ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
-                dellae[0, 0, 0][n_tracer] * xmb * dt2
-            )
-            delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] + (
-                dellae[0, 0, 0][n_tracer] * xmb
-            )
-            qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
+        if cnvflg and k_mask <= kmax:
+            if k_mask <= ktcon:
+                ctr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer] + (
+                    dellae[0, 0, 0][n_tracer] * xmb * dt2
+                )
+                delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] + (
+                    dellae[0, 0, 0][n_tracer] * xmb * dp / constants.GRAV
+                )
+                qtr[0, 0, 0][n_tracer] = ctr[0, 0, 0][n_tracer]
 
-    with computation(BACKWARD):
-        with interval(-1, None):
-            if cnvflg and k_mask <= kmax and k_mask <= ktcon:
-                dp = 1000.0 * del0
-
-                delebar[0, 0, 0][n_tracer] = delebar[0, 0, 0][n_tracer] * (
-                    dp / constants.GRAV
-                )  # Where does dp come from? Is it correct to use the last value at
-                # line 1559 of samfshalcnv.F?
-
+    with computation(BACKWARD), interval(...):
         # Propagate backward delebar values
-        with interval(0, -1):
-            delebar = delebar[0, 0, 1]
+        delebar = delebar[0, 0, 1]
 
 
 def store_aero_conc(
