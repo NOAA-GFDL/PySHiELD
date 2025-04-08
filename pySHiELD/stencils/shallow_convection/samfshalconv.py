@@ -1130,9 +1130,6 @@ def stencil_static12(
     # Compute cloud moisture property, detraining cloud water
     # and precipitation in overshooting layers
 
-    # For the overshooting convection, calculate the moisture content of the
-    # entraining/detraining parcel as before. Partition convective cloud water and
-    # precipitation and detrain convective cloud water in the overshooting layers.
     with computation(FORWARD), interval(1, -1):
         dz = 0.0
         gamma = 0.0
@@ -1148,6 +1145,10 @@ def stencil_static12(
 
         if cnvflg:
             if k_mask >= ktcon and k_mask < ktcon1:
+                # For the overshooting convection, calculate the moisture content of
+                # the entraining/detraining parcel as before. Partition convective
+                # cloud water and precipitation and detrain convective cloud water in
+                # the overshooting layers.
                 dz = zi - zi[0, 0, -1]
                 gamma = physcons.EL2ORC * qeso / (to ** 2)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
@@ -2733,6 +2734,10 @@ class ScaleAwareMassFluxShallowConvection:
             self._flg,
             self._k_mask,
         )
+        conv_b = copy.deepcopy(self._cnvflg.view[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after update kbcon1: ", columns)
 
         self._stencil_static9(
             self._cnvflg,
@@ -2745,7 +2750,7 @@ class ScaleAwareMassFluxShallowConvection:
         if exit_routine(self._cnvflg.view[:]):
             return
 
-        conv_b = copy.deepcopy(self._cnvflg.view[:])
+        conv_a = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static9: ", columns)
@@ -2767,7 +2772,7 @@ class ScaleAwareMassFluxShallowConvection:
         if exit_routine(self._cnvflg.view[:]):
             return
 
-        conv_a = copy.deepcopy(self._cnvflg.view[:])
+        conv_b = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static10: ", columns)
@@ -2805,7 +2810,7 @@ class ScaleAwareMassFluxShallowConvection:
         if exit_routine(self._cnvflg.view[:]):
             return
 
-        conv_b = copy.deepcopy(self._cnvflg.view[:])
+        conv_a = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static11: ", columns)
@@ -2841,7 +2846,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._drag,
             self._dellal,
         )
-        conv_a = copy.deepcopy(self._cnvflg.view[:])
+        conv_b = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static12: ", columns)
