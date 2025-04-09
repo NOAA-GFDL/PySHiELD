@@ -13,3 +13,4 @@ from .translate_update_pressure_sfc_winds_phys import (
 )
 from .translate_update_tracers_phys import TranslatePhysUpdateTracers
 from .translate_samfshalconv import TranslateShalConv
+from .translate_shalconv_subtests import TranslateStatic1, TranslateUpdateKb9, TranslateStatic12, TranslateFeedbackCtrl
