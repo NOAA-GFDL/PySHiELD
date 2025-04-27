@@ -1,9 +1,9 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import (
+from ndsl.dsl.gt4py import (
     BACKWARD,
     FORWARD,
     PARALLEL,
     computation,
+    function,
     cos,
     exp,
     interval,
@@ -294,7 +294,7 @@ def prepare_microphysics(
         qa_dt = 0.0
 
 
-@gtscript.function
+@function
 def forward_euler(q_t0, q_dt, dt):
     return q_t0 + q_dt * dt
 

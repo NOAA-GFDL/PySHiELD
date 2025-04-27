@@ -1,5 +1,4 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, exp, interval, log
+from ndsl.dsl.gt4py import FORWARD, function, PARALLEL, computation, exp, interval, log
 
 import ndsl.constants as constants
 import pyFV3
@@ -19,7 +18,7 @@ from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
 
 
 # TODO: This is the same as moist_cv.py in pyFV3, should move to integration dir
-@gtscript.function
+@function
 def moist_cvm(qvapor, gz, ql, qs):
     cvm = (
         (1.0 - (qvapor + gz)) * constants.CV_AIR

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 
 import pyFV3
 from ndsl import QuantityFactory, StencilFactory, orchestrate

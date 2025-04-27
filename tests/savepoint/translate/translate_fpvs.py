@@ -1,5 +1,5 @@
 import numpy as np
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
 
 from ndsl import Namelist, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM

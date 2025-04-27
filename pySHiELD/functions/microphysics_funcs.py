@@ -1,5 +1,4 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import exp, log, sqrt
+from ndsl.dsl.gt4py import function, exp, log, sqrt
 
 import ndsl.constants as constants
 
@@ -42,7 +41,7 @@ QRMIN = 1.0e-8  # Minimum value for rain water
 QVMIN = 1.0e-20  # Minimum value for water vapor (treated as zero)
 
 
-@gtscript.function
+@function
 def dim(x, y):
     diff = x - y
 
@@ -50,7 +49,7 @@ def dim(x, y):
 
 
 # Compute the saturated specific humidity
-@gtscript.function
+@function
 def wqs1(ta, den):
     return (
         constants.E00
@@ -65,7 +64,7 @@ def wqs1(ta, den):
 
 
 # Compute saturated specific humidity and its gradient
-@gtscript.function
+@function
 def wqs2(ta, den):
     tmp = wqs1(ta, den)
 
@@ -73,7 +72,7 @@ def wqs2(ta, den):
 
 
 # Compute the saturated specific humidity
-@gtscript.function
+@function
 def iqs1(ta, den):
     if ta < constants.TICE:
         # Over ice between -160 degrees Celsius and 0 degrees Celsius
@@ -112,7 +111,7 @@ def iqs1(ta, den):
 
 
 # Compute the gradient of saturated specific humidity
-@gtscript.function
+@function
 def iqs2(ta, den):
     tmp = iqs1(ta, den)
 
@@ -146,7 +145,7 @@ def iqs2(ta, den):
 
 
 # Accretion function
-@gtscript.function
+@function
 def acr3d(v1, v2, q1, q2, c, cac_ik, cac_i1k, cac_i2k, rho):
     t1 = sqrt(q1 * rho)
     s1 = sqrt(q2 * rho)
@@ -163,24 +162,24 @@ def acr3d(v1, v2, q1, q2, c, cac_ik, cac_i1k, cac_i2k, rho):
 
 # Melting of snow function (psacw and psacr must be calc before smlt is
 # called)
-@gtscript.function
+@function
 def smlt(tc, dqs, qsrho, psacw, psacr, c_0, c_1, c_2, c_3, c_4, rho, rhofac):
     return (c_0 * tc / rho - c_1 * dqs) * (
-        c_2 * sqrt(qsrho) + c_3 * qsrho ** 0.65625 * sqrt(rhofac)
+        c_2 * sqrt(qsrho) + c_3 * qsrho**0.65625 * sqrt(rhofac)
     ) + c_4 * tc * (psacw + psacr)
 
 
 # Melting of graupel function (pgacw and pgacr must be calc before gmlt
 # is called)
-@gtscript.function
+@function
 def gmlt(tc, dqs, qgrho, pgacw, pgacr, c_0, c_1, c_2, c_3, c_4, rho):
     return (c_0 * tc / rho - c_1 * dqs) * (
-        c_2 * sqrt(qgrho) + c_3 * qgrho ** 0.6875 / rho ** 0.25
+        c_2 * sqrt(qgrho) + c_3 * qgrho**0.6875 / rho**0.25
     ) + c_4 * tc * (pgacw + pgacr)
 
 
 # Evaporation of rain
-@gtscript.function
+@function
 def revap_racc(
     dt,
     c_air,
@@ -266,7 +265,7 @@ def revap_racc(
 
 
 # Calculate the vertical fall speed
-@gtscript.function
+@function
 def fall_speed(log_10, qg, qi, ql, qs, tk, den):
     from __externals__ import (
         const_vg,
@@ -341,7 +340,7 @@ def fall_speed(log_10, qg, qi, ql, qs, tk, den):
     return vtg, vti, vts
 
 
-@gtscript.function
+@function
 def compute_rain_fspeed(no_fall, qrz, den):
     from __externals__ import const_vr, vr_fac, vr_max
 
@@ -372,7 +371,7 @@ def compute_rain_fspeed(no_fall, qrz, den):
     return vtrz, r1
 
 
-@gtscript.function
+@function
 def autoconv_no_subgrid_var(
     use_ccn, fac_rc, t_wfr, so3, dt_rain, qlz, qrz, tz, den, ccn, c_praut
 ):
@@ -397,7 +396,7 @@ def autoconv_no_subgrid_var(
     return qlz, qrz
 
 
-@gtscript.function
+@function
 def autoconv_subgrid_var(
     use_ccn, fac_rc, t_wfr, so3, dt_rain, qlz, qrz, tz, den, ccn, c_praut, dl
 ):
@@ -428,7 +427,7 @@ def autoconv_subgrid_var(
     return qlz, qrz
 
 
-@gtscript.function
+@function
 def subgrid_z_proc(
     c_air,
     c_vap,
@@ -630,7 +629,7 @@ def subgrid_z_proc(
                                 qsi
                                 * den
                                 * constants.LAT2
-                                / (0.0243 * constants.RVGAS * tz ** 2)
+                                / (0.0243 * constants.RVGAS * tz**2)
                                 + 4.42478e4
                             )
                         )
@@ -850,7 +849,7 @@ def subgrid_z_proc(
     return qaz, qgz, qiz, qlz, qrz, qsz, qvz, tz
 
 
-@gtscript.function
+@function
 def icloud_main(
     c_air,
     c_vap,
