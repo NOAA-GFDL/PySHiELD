@@ -279,5 +279,5 @@ class PhysicsConfig:
             wind_th_hwrf=self.wind_th_hwrf,
             ivegsrc=self.ivegsrc,
             nstf_name=self.nstf_name,
-            sfc_data=self.sfc_data
+            sfc_data=self.sfc_data,
         )
