@@ -121,7 +121,7 @@ def mfpblt_s1(
                 tlu = thlu[0, 0, 0] / pix[0, 0, 0]
                 es = 0.01 * fpvs(tlu)
                 qs = max(
-                    physcons.QMIN,
+                    physcons.PBL_QMIN,
                     constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
                 )
                 dq = qtu[0, 0, 0] - qs
@@ -309,7 +309,7 @@ def mfpblt_s2(
                 tlu = thlu[0, 0, 0] / pix[0, 0, 0]
                 es = 0.01 * fpvs(tlu)  # fpvs in pa
                 qs = max(
-                    physcons.QMIN,
+                    physcons.PBL_QMIN,
                     constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
                 )
                 dq = qtu[0, 0, 0] - qs

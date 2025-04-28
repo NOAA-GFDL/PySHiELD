@@ -178,7 +178,7 @@ def mfscu_s3(
         tld = thld[0, 0, 0] / pix[0, 0, 0]
         es = 0.01 * fpvs(tld)
         qs = max(
-            physcons.QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
+            physcons.PBL_QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
         )
         dq = qtd[0, 0, 0] - qs
         gamma = physcons.EL2ORC * qs / (tld ** 2)
@@ -406,7 +406,7 @@ def mfscu_s9(
             tld = thld[0, 0, 0] / pix[0, 0, 0]
             es = 0.01 * fpvs(tld)
             qs = max(
-                physcons.QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
+                physcons.PBL_QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
             )
             dq = qtd[0, 0, 0] - qs
             gamma = physcons.EL2ORC * qs / (tld ** 2)

@@ -255,15 +255,15 @@ def init_turbulence(
                 - constants.HLV * qlx[0, 0, 0]
             )
 
-        tem2 = 1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.QMIN) - qlx[0, 0, 0]
+        tem2 = 1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.PBL_QMIN) - qlx[0, 0, 0]
         thvx = theta[0, 0, 0] * tem2
         tvx = t1 * tem2
-        qtx = max(q1[0, 0, 0][0], physcons.QMIN) + qlx[0, 0, 0]
+        qtx = max(q1[0, 0, 0][0], physcons.PBL_QMIN) + qlx[0, 0, 0]
         thlx = theta[0, 0, 0] - pix[0, 0, 0] * physcons.ELOCP * qlx[0, 0, 0]
         thlvx = thlx[0, 0, 0] * (1.0 + constants.ZVIR * qtx[0, 0, 0])
         svx = constants.CP_AIR * tvx
         thetae = theta[0, 0, 0] + physcons.ELOCP * pix[0, 0, 0] * max(
-            q1[0, 0, 0][0], physcons.QMIN
+            q1[0, 0, 0][0], physcons.PBL_QMIN
         )
         gotvx = constants.GRAV / (tvx)
 
@@ -287,10 +287,10 @@ def init_turbulence(
         plyr = 0.01 * prsl[0, 0, 0]
         es = 0.01 * fpvs(t1)
         qs = max(
-            physcons.QMIN,
+            physcons.PBL_QMIN,
             constants.EPS * es / (plyr[0, 0, 0] + (constants.EPS - 1) * es),
         )
-        rhly = max(0.0, min(1.0, max(physcons.QMIN, q1[0, 0, 0][0]) / qs))
+        rhly = max(0.0, min(1.0, max(physcons.PBL_QMIN, q1[0, 0, 0][0]) / qs))
         qstl = qs
 
     with computation(FORWARD), interval(0, -1):
@@ -337,7 +337,7 @@ def init_turbulence(
                     / (physcons.F0 * 0.01 * zorl[0, 0])
                 )
                 thermal = tsea[0, 0] * (
-                    1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.QMIN)
+                    1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.PBL_QMIN)
                 )
                 crb = max(
                     min(0.16 * (tem1 ** (-0.18)), physcons.CRBMAX), physcons.CRBMIN
@@ -757,7 +757,7 @@ def compute_asymptotic_mixing_length(
                 if k_mask[0, 0, 0] + lev == 0:
                     dz = zl[0, 0, lev]
                     tem1 = tsea * (1. + constants.ZVIR * max(
-                        q1_0[0, 0, lev], physcons.QMIN
+                        q1_0[0, 0, lev], physcons.PBL_QMIN
                     ))
                 else:
                     dz = zl[0, 0, lev] - zl[0, 0, lev - 1]

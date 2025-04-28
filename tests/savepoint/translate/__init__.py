@@ -1,6 +1,7 @@
 # flake8: noqa: F401
 from .translate_atmos_phy_statein import TranslateAtmosPhysDriverStatein
 from .translate_fillgfs import TranslateFillGFS
+from .translate_fpvs import TranslateFPVS
 from .translate_fv_update_phys import DycoreState, TranslateFVUpdatePhys
 from .translate_mfpblt import TranslateMFPBLT
 from .translate_mfscu import TranslateMFSCU
