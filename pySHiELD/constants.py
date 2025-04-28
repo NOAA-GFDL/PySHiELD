@@ -21,6 +21,9 @@ TCRF = 1.0 / (constants.TICE - TF)
 CONT = constants.CP_AIR / constants.GRAV
 CONQ = constants.HLV / constants.GRAV
 
+# Constants used in interpolating radiation onto physics timestep:
+F_EPS = 0.0001
+
 # Constants used for turbulence schemes
 A1 = 0.12
 A2 = 0.5
