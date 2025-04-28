@@ -45,6 +45,11 @@ class SurfaceConfig:
     nstf_name(5) : zsea2 in mm
     TODO: implement via namelist?
     """
+    sfc_data: str = "~/INPUT/sfc_data.nc"
+    """
+    path to surface data files
+    TODO: implement per-tile
+    """
 
 
 @dataclasses.dataclass
@@ -160,6 +165,11 @@ class PhysicsConfig:
     nstf_name(5) : zsea2 in mm
     TODO: implement via namelist?
     """
+    sfc_data: str = "~/INPUT/sfc_data.nc"
+    """
+    path to surface data files
+    TODO: implement per-tile
+    """
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
@@ -269,4 +279,5 @@ class PhysicsConfig:
             wind_th_hwrf=self.wind_th_hwrf,
             ivegsrc=self.ivegsrc,
             nstf_name=self.nstf_name,
+            sfc_data=self.sfc_data
         )
