@@ -594,7 +594,6 @@ class SurfaceExchange:
         do_z0_moon: Bool,
         redrag: Bool,
         wind_th_hwrf: Float,
-        z0s_max: Float,
     ):
         """
         Calculates surface exchanges and near-surface winds.
@@ -623,7 +622,7 @@ class SurfaceExchange:
                 "ivegsrc": ivegsrc,
                 "redrag": redrag,
                 "wind_th_hwrf": wind_th_hwrf,
-                "z0s_max": z0s_max,
+                "z0s_max": physcons.Z0S_MAX,
             },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),

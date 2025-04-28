@@ -104,3 +104,4 @@ REFKDT = 3.0
 CZIL = 0.075
 CSOIL = 2.00e6
 PSAT = 6.1078e2  # Pressure at H20 3pt (Pa)
+Z0S_MAX = .317e-2  # a limiting value for z0 under high winds

@@ -31,9 +31,11 @@ class SurfaceConfig:
     do_z0_moon: bool = DEFAULT_BOOL
     dt_atmos: Float = DEFAULT_FLOAT
     mom4ice: bool = DEFAULT_BOOL
+    ivegsrc: int = DEFAULT_INT
     lsm: Int = DEFAULT_INT
     redrag: bool = DEFAULT_BOOL
     wind_th_hwrf: Float = DEFAULT_FLOAT
+    z0s_max: Float = DEFAULT_FLOAT
 
 
 @dataclasses.dataclass
@@ -132,6 +134,13 @@ class PhysicsConfig:
     lsm: Int = NamelistDefaults.lsm
     redrag: bool = NamelistDefaults.redrag
     wind_th_hwrf: Float = DEFAULT_FLOAT
+    ivegsrc: int = 2
+    """
+    Source for veg and soil categories:
+    ivegsrc = 0 => USGS
+    ivegsrc = 1 => IGBP (20 category)
+    ivegsrc = 2 => UMD (13 category)
+    """
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
@@ -239,4 +248,5 @@ class PhysicsConfig:
             lsm=self.lsm,
             redrag=self.redrag,
             wind_th_hwrf=self.wind_th_hwrf,
+            ivegsrc=self.ivegsrc
         )
