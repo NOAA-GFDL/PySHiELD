@@ -16,8 +16,8 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import (
     Bool,
-    BoolFieldIJ,
     BoolField,
+    BoolFieldIJ,
     Float,
     FloatField,
     FloatFieldIJ,
@@ -135,7 +135,7 @@ def init_turbulence(
         xkzm_mi,
         xkzm_ml,
         xkzm_mo,
-        xkzm_s
+        xkzm_s,
     )
 
     with computation(FORWARD), interval(0, 1):
@@ -255,7 +255,9 @@ def init_turbulence(
                 - constants.HLV * qlx[0, 0, 0]
             )
 
-        tem2 = 1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.PBL_QMIN) - qlx[0, 0, 0]
+        tem2 = (
+            1.0 + constants.ZVIR * max(q1[0, 0, 0][0], physcons.PBL_QMIN) - qlx[0, 0, 0]
+        )
         thvx = theta[0, 0, 0] * tem2
         tvx = t1 * tem2
         qtx = max(q1[0, 0, 0][0], physcons.PBL_QMIN) + qlx[0, 0, 0]
@@ -681,9 +683,11 @@ def compute_prandtl_num_exchange_coeff(
     with computation(PARALLEL), interval(...):
         ptem = 0.0
         if k_mask[0, 0, 0] < kpbl[0, 0]:
-            ptem = -3.0 * (
-                max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0) ** 2.0
-            ) / (hpbl[0, 0] ** 2.0)
+            ptem = (
+                -3.0
+                * (max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0) ** 2.0)
+                / (hpbl[0, 0] ** 2.0)
+            )
             if pcnvflg[0, 0]:
                 prn = 1.0 + ((phih[0, 0] / phim[0, 0]) - 1.0) * exp(ptem)
             else:
@@ -692,15 +696,16 @@ def compute_prandtl_num_exchange_coeff(
             prn = min(prn, physcons.PRMAX)
             prn = max(prn, physcons.PRMIN)
             ckz = min(
-                physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem),
-                physcons.CK0
+                physcons.CK1 + (physcons.CK0 - physcons.CK1) * exp(ptem), physcons.CK0
             )
             ckz = max(ckz, physcons.CK1)
             chz = min(
-                physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem),
-                physcons.CH0
+                physcons.CH1 + (physcons.CH0 - physcons.CH1) * exp(ptem), physcons.CH0
             )
-            chz = max(chz, physcons.CH1,)
+            chz = max(
+                chz,
+                physcons.CH1,
+            )
 
 
 def compute_asymptotic_mixing_length(
@@ -724,6 +729,7 @@ def compute_asymptotic_mixing_length(
     mlenflg: BoolField,
 ):
     from __externals__ import km1
+
     with computation(FORWARD), interval(...):
         q1_0 = q1[0, 0, 0][0]
     with computation(FORWARD), interval(0, -1):
@@ -756,9 +762,9 @@ def compute_asymptotic_mixing_length(
             if mlenflg:
                 if k_mask[0, 0, 0] + lev == 0:
                     dz = zl[0, 0, lev]
-                    tem1 = tsea * (1. + constants.ZVIR * max(
-                        q1_0[0, 0, lev], physcons.PBL_QMIN
-                    ))
+                    tem1 = tsea * (
+                        1.0 + constants.ZVIR * max(q1_0[0, 0, lev], physcons.PBL_QMIN)
+                    )
                 else:
                     dz = zl[0, 0, lev] - zl[0, 0, lev - 1]
                     tem1 = thvx[0, 0, lev - 1]
@@ -897,36 +903,34 @@ def compute_eddy_diffusivity_buoy_shear(
                 dkq = dkq[0, 0, 0] + ptem
         dkt_out = dkt
     with computation(PARALLEL):
-        # Compute buoyancy and shear productions of tke 
+        # Compute buoyancy and shear productions of tke
         with interval(0, 1):
             tem = -dkt[0, 0, 0] * bf[0, 0, 0]
             if scuflg[0, 0] and mrad[0, 0] == 0:
                 ptem = xmfd[0, 0, 0] * buod[0, 0, 0]
                 ptem1 = ucdo[0, 0, 0] + ucdo[0, 0, 1] - u1[0, 0, 0] - u1[0, 0, 1]
-                ptem1 = (0.5 * (
-                    (u1[0, 0, 1] - u1[0, 0, 0]) * rdzt[0, 0, 0]
-                ) * xmfd[0, 0, 0] * ptem1)
+                ptem1 = (
+                    0.5
+                    * ((u1[0, 0, 1] - u1[0, 0, 0]) * rdzt[0, 0, 0])
+                    * xmfd[0, 0, 0]
+                    * ptem1
+                )
                 ptem2 = vcdo[0, 0, 0] + vcdo[0, 0, 1] - v1[0, 0, 0] - v1[0, 0, 1]
                 ptem2 = (
-                    0.5 * ((v1[0, 0, 1] - v1[0, 0, 0]) * rdzt[0, 0, 0])
-                    * xmfd[0, 0, 0] * ptem2
+                    0.5
+                    * ((v1[0, 0, 1] - v1[0, 0, 0]) * rdzt[0, 0, 0])
+                    * xmfd[0, 0, 0]
+                    * ptem2
                 )
             else:
                 ptem = 0.0
                 ptem1 = 0.0
                 ptem2 = 0.0
 
-            buop = 0.5 * (
-                gotvx[0, 0, 0] * sflux[0, 0] + (tem + ptem)
-            )
+            buop = 0.5 * (gotvx[0, 0, 0] * sflux[0, 0] + (tem + ptem))
 
             tem2 = stress * ustar * phim / (physcons.VK * zl)
-            shrp = 0.5 * (
-                dku[0, 0, 0] * shr2[0, 0, 0]
-                + ptem1
-                + ptem2
-                + tem2
-            )
+            shrp = 0.5 * (dku[0, 0, 0] * shr2[0, 0, 0] + ptem1 + ptem2 + tem2)
 
             prod = buop + shrp
 
@@ -1020,9 +1024,9 @@ def predict_tke(
                 ),
                 0.0,
             )
-            tke = max(tke[0, 0, 0] + dtn * (
-                prod[0, 0, 0] - diss[0, 0, 0]
-            ), physcons.TKMIN)
+            tke = max(
+                tke[0, 0, 0] + dtn * (prod[0, 0, 0] - diss[0, 0, 0]), physcons.TKMIN
+            )
             n = n + 1
 
 
@@ -1041,6 +1045,7 @@ def tke_up_down_prop(
     xlamde: FloatField,
 ):
     from __externals__ import ntke
+
     with computation(PARALLEL), interval(...):
         if pcnvflg[0, 0]:
             qcko[0, 0, 0][ntke] = tke[0, 0, 0]
@@ -1061,9 +1066,8 @@ def tke_up_down_prop(
             if scuflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 if k_mask[0, 0, 0] >= mrad[0, 0]:
                     qcdo[0, 0, 0][ntke] = (
-                        (1.0 - tem) * qcdo[0, 0, 1][ntke] + tem * (
-                            tke[0, 0, 0] + tke[0, 0, 1]
-                        )
+                        (1.0 - tem) * qcdo[0, 0, 1][ntke]
+                        + tem * (tke[0, 0, 0] + tke[0, 0, 1])
                     ) / (1.0 + tem)
 
 
@@ -1097,8 +1101,8 @@ def tke_tridiag_matrix_ele_comp(
     with computation(FORWARD), interval(0, 1):
         ad = 1.0
         f1 = tke[0, 0, 0]
-        ad_p1 = 0.
-        f1_p1 = 0.
+        ad_p1 = 0.0
+        f1_p1 = 0.0
 
     with computation(FORWARD):
         with interval(0, -1):
@@ -1126,9 +1130,11 @@ def tke_tridiag_matrix_ele_comp(
             else:
                 f1_p1 = tke[0, 0, 1]
 
-            if scuflg[0, 0] and (
-                k_mask[0, 0, 0] >= mrad[0, 0]
-            ) and (k_mask[0, 0, 0] < krad[0, 0]):
+            if (
+                scuflg[0, 0]
+                and (k_mask[0, 0, 0] >= mrad[0, 0])
+                and (k_mask[0, 0, 0] < krad[0, 0])
+            ):
                 ptem = 0.5 * tem2 * xmfd
                 ptem2 = qcdo[0, 0, 0][ntke] + qcdo[0, 0, 1][ntke]
                 tem = tke[0, 0, 0] + tke[0, 0, 1]
@@ -1196,9 +1202,9 @@ def heat_moist_tridiag_mat_ele_comp(
         ad = 1.0
         f1 = t1[0, 0, 0] + dtdz1[0, 0] * heat[0, 0]
         f2[0, 0, 0][0] = q1[0, 0, 0][0] + dtdz1[0, 0] * evap[0, 0]
-        ad_p1 = 0.
-        f1_p1 = 0.
-        f2_p1 = 0.
+        ad_p1 = 0.0
+        f1_p1 = 0.0
+        f2_p1 = 0.0
 
     with computation(FORWARD):
         with interval(0, -1):
@@ -1236,9 +1242,11 @@ def heat_moist_tridiag_mat_ele_comp(
                 f1_p1 = t1[0, 0, 1] - dtodsu * dsdzt
                 f2_p1 = q1[0, 0, 1][0]
 
-            if scuflg[0, 0] and (
-                k_mask[0, 0, 0] >= mrad[0, 0]
-            ) and (k_mask[0, 0, 0] < krad[0, 0]):
+            if (
+                scuflg[0, 0]
+                and (k_mask[0, 0, 0] >= mrad[0, 0])
+                and (k_mask[0, 0, 0] < krad[0, 0])
+            ):
                 ptem = 0.5 * (dsig * rdz) * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
                 ptem2 = dtodsu * ptem
@@ -1308,9 +1316,11 @@ def setup_multi_tracer_tridiag(
             else:
                 f2_p1 = q1[0, 0, 1][n_index]
 
-            if scuflg[0, 0] and (
-                k_mask[0, 0, 0] >= mrad[0, 0]
-            ) and (k_mask[0, 0, 0] < krad[0, 0]):
+            if (
+                scuflg[0, 0]
+                and (k_mask[0, 0, 0] >= mrad[0, 0])
+                and (k_mask[0, 0, 0] < krad[0, 0])
+            ):
                 dtodsd = dt2 / delta[0, 0, 0]
                 dtodsu = dt2 / delta[0, 0, 1]
                 dsig = prsl[0, 0, 0] - prsl[0, 0, 1]
@@ -1362,12 +1372,10 @@ def recover_heat_tendency_add_diss_heat(
         qtend = (f2[0, 0, 0][0] - q1[0, 0, 0][0]) * rdt
         tdt = tdt[0, 0, 0] + ttend
         rtg[0, 0, 0][0] = rtg[0, 0, 0][0] + qtend
-        dtsfc = dtsfc[0, 0] + (
-            constants.CP_AIR / constants.GRAV
-        ) * delta[0, 0, 0] * ttend
-        dqsfc = dqsfc[0, 0] + (
-            constants.HLV / constants.GRAV
-        ) * delta[0, 0, 0] * qtend
+        dtsfc = (
+            dtsfc[0, 0] + (constants.CP_AIR / constants.GRAV) * delta[0, 0, 0] * ttend
+        )
+        dqsfc = dqsfc[0, 0] + (constants.HLV / constants.GRAV) * delta[0, 0, 0] * qtend
 
 
 def moment_tridiag_mat_ele_comp(
@@ -1416,9 +1424,9 @@ def moment_tridiag_mat_ele_comp(
         ad = 1.0 + dtdz1[0, 0] * stress[0, 0] / spd1[0, 0]
         f1 = u1[0, 0, 0]
         f2[0, 0, 0][0] = v1[0, 0, 0]
-        ad_p1 = 0.
-        f1_p1 = 0.
-        f2_p1 = 0.
+        ad_p1 = 0.0
+        f1_p1 = 0.0
+        f2_p1 = 0.0
 
     with computation(FORWARD):
         with interval(0, -1):
@@ -1453,8 +1461,10 @@ def moment_tridiag_mat_ele_comp(
                 f1_p1 = u1[0, 0, 1]
                 f2_p1 = v1[0, 0, 1]
 
-            if (scuflg[0, 0]) and (k_mask[0, 0, 0] >= mrad[0, 0]) and (
-                k_mask[0, 0, 0] < krad[0, 0]
+            if (
+                (scuflg[0, 0])
+                and (k_mask[0, 0, 0] >= mrad[0, 0])
+                and (k_mask[0, 0, 0] < krad[0, 0])
             ):
                 ptem = 0.5 * (dsig * rdz) * xmfd[0, 0, 0]
                 ptem1 = dtodsd * ptem
@@ -2420,8 +2430,8 @@ class ScaleAwareTKEMoistEDMF:
 
         for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if (dim_n != self._ntke):
-                if (dim_n > 0):
+            if dim_n != self._ntke:
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._setup_multi_tracer_tridiag(
                             self._pcnvflg,
@@ -2456,7 +2466,7 @@ class ScaleAwareTKEMoistEDMF:
                     dim_n,
                 )
 
-                if (dim_n > 0):
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._recover_moisture_tendency(
                             self._f2,

@@ -20,8 +20,8 @@ from ndsl.dsl.typing import (
     FloatField,
     FloatFieldIJ,
     Int,
-    IntFieldIJ,
     IntField,
+    IntFieldIJ,
 )
 from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD._config import FloatFieldTracer
@@ -178,7 +178,8 @@ def mfscu_s3(
         tld = thld[0, 0, 0] / pix[0, 0, 0]
         es = 0.01 * fpvs(tld)
         qs = max(
-            physcons.PBL_QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
+            physcons.PBL_QMIN,
+            constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
         )
         dq = qtd[0, 0, 0] - qs
         gamma = physcons.EL2ORC * qs / (tld ** 2)
@@ -313,11 +314,19 @@ def mfscu_s7(
         sumx = 0.0
 
     with computation(BACKWARD), interval(-1, None):
-        if cnvflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+        ):
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             xlamavg = xlamavg[0, 0] + xlamde[0, 0, 0] * dz
             sumx = sumx[0, 0] + dz
-        if cnvflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+        ):
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             xlamavg = xlamavg[0, 0] + xlamde[0, 0, 0] * dz
             sumx = sumx[0, 0] + dz
@@ -327,7 +336,11 @@ def mfscu_s7(
             xlamavg = xlamavg[0, 0] / sumx[0, 0]
 
     with computation(BACKWARD), interval(...):
-        if cnvflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+        ):
             if wd2[0, 0, 0] > 0:
                 xmfd = ra1[0, 0] * sqrt(wd2[0, 0, 0])
             else:
@@ -349,7 +362,11 @@ def mfscu_s7(
                     scaldfunc = 1.0
 
     with computation(BACKWARD), interval(...):
-        if cnvflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+        ):
             xmfd = scaldfunc[0, 0] * xmfd[0, 0, 0]
             xmmx = (zl[0, 0, 1] - zl[0, 0, 0]) / dt2
             xmfd = min(xmfd[0, 0, 0], xmmx)
@@ -393,7 +410,11 @@ def mfscu_s9(
 
     with computation(BACKWARD), interval(...):
         dz = zl[0, 0, 1] - zl[0, 0, 0]
-        if cnvflg[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+        ):
             tem = 0.5 * xlamde[0, 0, 0] * dz
             factor = 1.0 + tem
             thld = (
@@ -406,7 +427,8 @@ def mfscu_s9(
             tld = thld[0, 0, 0] / pix[0, 0, 0]
             es = 0.01 * fpvs(tld)
             qs = max(
-                physcons.PBL_QMIN, constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es)
+                physcons.PBL_QMIN,
+                constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
             )
             dq = qtd[0, 0, 0] - qs
             gamma = physcons.EL2ORC * qs / (tld ** 2)
@@ -422,7 +444,11 @@ def mfscu_s9(
                 qcdo[0, 0, 0][ntcw] = 0.0
                 tcdo = tld
 
-        if cnvflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+        ):
             tem = 0.5 * xlamdem[0, 0, 0] * dz
             factor = 1.0 + tem
             ptem = tem - physcons.PGCON
@@ -447,7 +473,11 @@ def mfscu_10(
     n_tracer: int,
 ):
     with computation(BACKWARD), interval(...):
-        if cnvflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0] and k_mask[0, 0, 0] >= mrad[0, 0]:
+        if (
+            cnvflg[0, 0]
+            and k_mask[0, 0, 0] < krad[0, 0]
+            and k_mask[0, 0, 0] >= mrad[0, 0]
+        ):
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             tem = 0.5 * xlamde[0, 0, 0] * dz
             factor = 1.0 + tem
@@ -455,6 +485,7 @@ def mfscu_10(
                 (1.0 - tem) * qcdo[0, 0, 1][n_tracer]
                 + tem * (q1[0, 0, 0][n_tracer] + q1[0, 0, 1][n_tracer])
             ) / factor
+
 
 def set_zm_mrad(
     zm_mrad: FloatFieldIJ,
@@ -465,6 +496,7 @@ def set_zm_mrad(
     with computation(FORWARD), interval(...):
         if k_mask[0, 0, 0] == mrad[0, 0] - 1:
             zm_mrad = zm
+
 
 class StratocumulusMassFlux:
     """
@@ -542,19 +574,19 @@ class StratocumulusMassFlux:
         self._mfscu_s1 = stencil_factory.from_origin_domain(
             func=mfscu_s1,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._mfscu_s2 = stencil_factory.from_origin_domain(
             func=mfscu_s2,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._mfscu_s3 = stencil_factory.from_origin_domain(
             func=mfscu_s3,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._mfscu_s4 = stencil_factory.from_origin_domain(
@@ -570,13 +602,13 @@ class StratocumulusMassFlux:
         self._mfscu_s5 = stencil_factory.from_origin_domain(
             func=mfscu_s5,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._mfscu_s6 = stencil_factory.from_origin_domain(
             func=mfscu_s6,
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._mfscu_s7 = stencil_factory.from_origin_domain(
@@ -585,7 +617,7 @@ class StratocumulusMassFlux:
                 "dt2": self._dt2,
             },
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._mfscu_s8 = stencil_factory.from_origin_domain(
@@ -600,7 +632,7 @@ class StratocumulusMassFlux:
                 "ntcw": self._ntcw,
             },
             origin=idx.origin_compute(),
-            domain=(idx.iec, idx.jec, kmscu+1),
+            domain=(idx.iec, idx.jec, kmscu + 1),
         )
 
         self._set_zm_mrad = stencil_factory.from_origin_domain(
@@ -613,7 +645,7 @@ class StratocumulusMassFlux:
             self._mfscu_10 = stencil_factory.from_origin_domain(
                 func=mfscu_10,
                 origin=idx.origin_compute(),
-                domain=(idx.iec, idx.jec, kmscu+1),
+                domain=(idx.iec, idx.jec, kmscu + 1),
             )
 
     def __call__(
@@ -698,7 +730,7 @@ class StratocumulusMassFlux:
 
         if totflg:
             return
-        
+
         self._set_zm_mrad(self._zm_mrad, zm, mrad, k_mask)
 
         # for i in range(self._im):
@@ -835,7 +867,6 @@ class StratocumulusMassFlux:
             zl,
         )
 
-        
         for n in range(1, self._ntracers):
             if (n != self._ntcw) and (n != self._ntke):
                 self._mfscu_10(

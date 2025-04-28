@@ -3,7 +3,6 @@ from gt4py.cartesian.gtscript import FORWARD, computation, interval
 import pySHiELD.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.stencils.basic_operations import copy_defn
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -15,33 +14,34 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.stencils.basic_operations import copy_defn
 from pySHiELD._config import TRACER_DIM, FloatFieldTracer, PBLConfig
+from pySHiELD.stencils.pbl.mfpblt import PBLMassFlux
+from pySHiELD.stencils.pbl.mfscu import StratocumulusMassFlux
 from pySHiELD.stencils.pbl.satmedmfvdiff import (
     compute_asymptotic_mixing_length,
+    compute_eddy_diffusivity_buoy_shear,
+    compute_prandtl_num_exchange_coeff,
     enhance_pbl_height_thermal,
+    heat_moist_tridiag_mat_ele_comp,
     init_turbulence,
+    moment_tridiag_mat_ele_comp,
     mrf_pbl_2_thermal_excess,
     mrf_pbl_scheme_part1,
+    predict_tke,
+    recover_heat_tendency_add_diss_heat,
+    recover_moisture_tendency,
+    recover_momentum_tendency_and_finish,
+    recover_tke_tendency,
+    setup_multi_tracer_tridiag,
     stratocumulus,
     thermal_pbl_calc,
     tke_tridiag_matrix_ele_comp,
-    compute_prandtl_num_exchange_coeff,
-    compute_eddy_diffusivity_buoy_shear,
-    predict_tke,
     tke_up_down_prop,
-    tridit,
-    recover_tke_tendency,
-    heat_moist_tridiag_mat_ele_comp,
-    setup_multi_tracer_tridiag,
-    tridin,
-    recover_moisture_tendency,
-    recover_heat_tendency_add_diss_heat,
-    moment_tridiag_mat_ele_comp,
     tridi2,
-    recover_momentum_tendency_and_finish,
+    tridin,
+    tridit,
 )
-from pySHiELD.stencils.pbl.mfpblt import PBLMassFlux
-from pySHiELD.stencils.pbl.mfscu import StratocumulusMassFlux
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -749,6 +749,7 @@ class TKETridiag:
             self._rt,
         )
 
+
 class Prandtl:
     def __init__(
         self,
@@ -797,6 +798,7 @@ class Prandtl:
             zi,
         )
 
+
 class TKEPredict:
     def __init__(
         self,
@@ -833,6 +835,7 @@ class TKEPredict:
             tke,
             ele,
         )
+
 
 class EdDiffShear:
     def __init__(
@@ -943,6 +946,7 @@ class EdDiffShear:
             self._dkt_out,
         )
 
+
 class UpDownTKE:
     def __init__(
         self,
@@ -999,6 +1003,7 @@ class UpDownTKE:
             mrad,
             xlamde,
         )
+
 
 class MomentTridiagComp:
     def __init__(
@@ -1127,6 +1132,7 @@ class MomentTridiagComp:
             self._rt,
             self._a2,
         )
+
 
 class HeatTracerTridiag:
     def __init__(
@@ -1263,8 +1269,8 @@ class HeatTracerTridiag:
 
         for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if (dim_n != self._ntke):
-                if (dim_n > 0):
+            if dim_n != self._ntke:
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._setup_multi_tracer_tridiag(
                             pcnvflg,
@@ -1286,6 +1292,7 @@ class HeatTracerTridiag:
                             self._a2,
                             dim_n,
                         )
+
 
 class TKETendencyCalc:
     def __init__(
@@ -1424,6 +1431,7 @@ class TKETendencyCalc:
             q1,
         )
 
+
 class HeatTracerTendencyCalc:
     def __init__(
         self,
@@ -1500,7 +1508,7 @@ class HeatTracerTendencyCalc:
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
-        
+
         self._recover_moisture_tendency = stencil_factory.from_origin_domain(
             func=recover_moisture_tendency,
             externals={
@@ -1588,8 +1596,8 @@ class HeatTracerTendencyCalc:
 
         for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if (dim_n != self._ntke):
-                if (dim_n > 0):
+            if dim_n != self._ntke:
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._setup_multi_tracer_tridiag(
                             pcnvflg,
@@ -1624,7 +1632,7 @@ class HeatTracerTendencyCalc:
                     dim_n,
                 )
 
-                if (dim_n > 0):
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._recover_moisture_tendency(
                             f2,
@@ -1644,6 +1652,7 @@ class HeatTracerTendencyCalc:
             delta,
             dqsfc,
         )
+
 
 class MomentTendencyCalc:
     def __init__(
@@ -1733,7 +1742,6 @@ class MomentTendencyCalc:
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
-
 
     def __call__(
         self,
@@ -1836,6 +1844,7 @@ class MomentTendencyCalc:
             u1,
             v1,
         )
+
 
 class Half2:
     def __init__(
@@ -2382,8 +2391,8 @@ class Half2:
 
         for n in range(self._ntracers):
             dim_n = n  # if n < self._ntke else n + 1
-            if (dim_n != self._ntke):
-                if (dim_n > 0):
+            if dim_n != self._ntke:
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._setup_multi_tracer_tridiag(
                             pcnvflg,
@@ -2418,7 +2427,7 @@ class Half2:
                     dim_n,
                 )
 
-                if (dim_n > 0):
+                if dim_n > 0:
                     if self._ntrac1 >= 2:
                         self._recover_moisture_tendency(
                             f2,
@@ -2503,6 +2512,7 @@ class Half2:
             u1,
             v1,
         )
+
 
 class TranslatePBLInit(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3152,6 +3162,7 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
 
         return self.slice_output(inputs)
 
+
 class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3187,6 +3198,7 @@ class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
         compute_func(**inputs)
 
         return self.slice_output(inputs)
+
 
 class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3302,6 +3314,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
 
         return self.slice_output(inputs)
 
+
 class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3365,6 +3378,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
         compute_func(**inputs)
 
         return self.slice_output(inputs)
+
 
 class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3451,15 +3465,12 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["mrad"] = inputs["mrad"].astype(int)
 
-        compute_func = MomentTridiagComp(
-            self.stencil_factory,
-            quantity_factory,
-            config
-        )
+        compute_func = MomentTridiagComp(self.stencil_factory, quantity_factory, config)
 
         compute_func(**inputs)
 
         return self.slice_output(inputs)
+
 
 class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3538,15 +3549,12 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["mrad"] = inputs["mrad"].astype(int)
 
-        compute_func = HeatTracerTridiag(
-            self.stencil_factory,
-            quantity_factory,
-            config
-        )
+        compute_func = HeatTracerTridiag(self.stencil_factory, quantity_factory, config)
 
         compute_func(**inputs)
 
         return self.slice_output(inputs)
+
 
 class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3624,6 +3632,7 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
 
         return self.slice_output(inputs)
 
+
 class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3652,7 +3661,6 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
             "t1": {"shield": True},
             "q1": {"shield": True},
             "dtdz1": {"shield": True},
-            "evap": {"shield": True},
             "heat": {"shield": True},
             "rtg": {"shield": True},
             "tdt": {"shield": True},
@@ -3705,7 +3713,8 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
         compute_func(**inputs)
 
         return self.slice_output(inputs)
-    
+
+
 class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3745,9 +3754,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             "hpblx": {"shield": True},
             "kpblx": {"shield": True, "index_variable": True},
         }
-        self.in_vars["parameters"] = [
-            "delt"
-        ]
+        self.in_vars["parameters"] = ["delt"]
         self.out_vars = {
             "dusfc": {"shield": True},
             "dvsfc": {"shield": True},
@@ -3798,6 +3805,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
         compute_func(**inputs)
 
         return self.slice_output(inputs)
+
 
 class TranslateHalf2(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):

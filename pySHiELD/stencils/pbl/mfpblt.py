@@ -20,7 +20,9 @@ from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD._config import FloatFieldTracer
 from pySHiELD.functions.physics_functions import fpvs
 
+
 A1 = 0.13
+
 
 def init_mfpbl(
     buo: FloatField,

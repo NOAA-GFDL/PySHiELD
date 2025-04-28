@@ -1,5 +1,6 @@
 from ndsl import constants
 
+
 # Alternative Units and Precision in Physics:
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
 CPH2O2 = 4.2e6

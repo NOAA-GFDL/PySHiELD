@@ -17,7 +17,12 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.stencils.basic_operations import copy_defn
-from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig, TRACER_DIM, FloatFieldTracer
+from pySHiELD._config import (
+    PHYSICS_PACKAGES,
+    TRACER_DIM,
+    FloatFieldTracer,
+    PhysicsConfig,
+)
 from pySHiELD.physics_state import PhysicsState
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
@@ -275,6 +280,7 @@ def start_physics(
         dtdt = 0.0
         dqdt = 0.0
 
+
 def pack_tracers(
     qgrs: FloatFieldTracer,
     qvapor: FloatField,
@@ -287,7 +293,17 @@ def pack_tracers(
     qsgs_tke: FloatField,
     qcld: FloatField,
 ):
-    from __externals__ import ntcw, ntiw, ntke, ntliquid, ntrain, ntsnow, ntgraupel, nto3, ntvap
+    from __externals__ import (
+        ntcw,
+        ntgraupel,
+        ntiw,
+        ntke,
+        ntliquid,
+        nto3,
+        ntrain,
+        ntsnow,
+        ntvap,
+    )
 
     with computation(PARALLEL), interval(...):
         qgrs[0, 0, 0][ntvap] = qvapor
@@ -299,6 +315,7 @@ def pack_tracers(
         qgrs[0, 0, 0][nto3] = qo3mr
         qgrs[0, 0, 0][ntke] = qsgs_tke
         qgrs[0, 0, 0][ntcw] = qcld
+
 
 def prepare_microphysics(
     dz: FloatField,
@@ -440,7 +457,9 @@ class Physics:
         self._pre_radiation = pre_radiation
 
         def make_quantity():
-            return self.quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return self.quantity_factory.zeros(
+                dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+            )
 
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
@@ -618,45 +637,45 @@ class Physics:
             physics_state.phii,
             physics_state.phil,
         )
-        if self._satm_edmf:
-            self._pbl(
-                physics_state.kpbl,
-                physics_state.kinver,
-                self._dvdt,
-                self._dudt,
-                self._dtdt,
-                self._dqdt,  # FloatField with extra data dimension
-                physics_state.hpbl,
-                physics_state.ua,
-                physics_state.va,
-                physics_state.pt,
-                self._qgrs,  # FloatField with extra data dimension
-                physics_state.hsw,
-                physics_state.hlw,
-                xmu,
-                psk,
-                rbsoil,
-                zorl,
-                tsea,
-                u10m,
-                v10m,
-                fm,
-                fh,
-                evap,
-                heat,
-                stress,
-                spd1,
-                prsi,
-                delta,
-                prsl,
-                prslk,
-                physics_state.phii,
-                physics_state.phil,
-                self._dusfc,
-                self._dvsfc,
-                self._dtsfc,
-                self._dqsfc,
-            )
+        # if self._satm_edmf:
+        #     self._pbl(
+        #         physics_state.kpbl,
+        #         physics_state.kinver,
+        #         self._dvdt,
+        #         self._dudt,
+        #         self._dtdt,
+        #         self._dqdt,  # FloatField with extra data dimension
+        #         physics_state.hpbl,
+        #         physics_state.ua,
+        #         physics_state.va,
+        #         physics_state.pt,
+        #         self._qgrs,  # FloatField with extra data dimension
+        #         physics_state.hsw,
+        #         physics_state.hlw,
+        #         xmu,
+        #         psk,
+        #         rbsoil,
+        #         zorl,
+        #         tsea,
+        #         u10m,
+        #         v10m,
+        #         fm,
+        #         fh,
+        #         evap,
+        #         heat,
+        #         stress,
+        #         spd1,
+        #         prsi,
+        #         delta,
+        #         prsl,
+        #         prslk,
+        #         physics_state.phii,
+        #         physics_state.phil,
+        #         self._dusfc,
+        #         self._dvsfc,
+        #         self._dtsfc,
+        #         self._dqsfc,
+        #     )
 
             self._update_physics_state_with_tendencies(
                 physics_state.qvapor,
