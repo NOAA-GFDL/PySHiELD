@@ -1,8 +1,8 @@
+from gt4py.cartesian import gtscript
+from gt4py.cartesian.gtscript import exp, floor, max, min
+
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
-
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import exp, min, max, floor
 
 
 @gtscript.function

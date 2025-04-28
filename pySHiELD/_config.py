@@ -132,6 +132,7 @@ class PhysicsConfig:
     redrag: bool = NamelistDefaults.redrag
     wind_th_hwrf: Float = DEFAULT_FLOAT
     namelist_override: Optional[str] = None
+    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
     def __post_init__(self):
         if self.schemes is None:
@@ -222,6 +223,7 @@ class PhysicsConfig:
             tice=namelist.tice,
             alin=namelist.alin,
             clin=namelist.clin,
+            daily_mean=namelist.daily_mean,
         )
 
     @property

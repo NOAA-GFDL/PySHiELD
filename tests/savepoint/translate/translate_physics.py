@@ -180,9 +180,14 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
             self.update_info(info, inputs)
             manual = info["manual"] if "manual" in info else False
             serialname = info["serialname"] if "serialname" in info else var
+            index_variable = (
+                info["index_variable"] if "index_variable" in info else False
+            )
             compute_domain = info["compute"] if "compute" in info else True
             if not manual:
                 data_result = as_numpy(out_data[var])
+                if index_variable:
+                    data_result += 1
                 n_dim = len(data_result.shape)
                 cn2 = int(data_result.shape[0] - self.grid.halo * 2 - 1) ** 2
                 roll_zero = info["out_roll_zero"] if "out_roll_zero" in info else False
@@ -237,7 +242,9 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
                         npz = data_result.shape[-2] - 1
                         n_data = data_result.shape[-1]
                         k_length = info["kend"] if "kend" in info else npz
-                        data_compute = data_result[ij_slice[0], ij_slice[1], :k_length, :]
+                        data_compute = data_result[
+                            ij_slice[0], ij_slice[1], :k_length, :
+                        ]
                         out[serialname] = data_compute
                     elif n_dim == 2:
                         if compute_domain:
