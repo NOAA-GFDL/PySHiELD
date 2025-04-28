@@ -5,8 +5,9 @@ from typing import List, Optional, Tuple
 import f90nml
 
 from ndsl import MetaEnumStr
+from ndsl.dsl.typing import Float, Int, set_4d_field_size
 from ndsl.namelist import Namelist, NamelistDefaults
-from ndsl.dsl.typing import Int, Float, set_4d_field_size
+
 
 # TODO: This is a hack
 FloatFieldTracer = set_4d_field_size(9, Float)

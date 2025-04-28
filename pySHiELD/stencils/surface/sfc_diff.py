@@ -16,8 +16,8 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.stencils.basic_operations import sign
-from pySHiELD.functions.physics_functions import fpvsx
 from pySHiELD._config import FloatFieldTracer
+from pySHiELD.functions.physics_functions import fpvsx
 
 
 @gtscript.function

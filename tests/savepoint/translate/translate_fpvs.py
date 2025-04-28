@@ -22,6 +22,7 @@ def test_fpvs(
         fp = fpvs(temp)
         fpx = fpvsx(temp)
 
+
 def test_table(
     xval: FloatField,
     tab_fpvs: FloatField,
@@ -30,6 +31,7 @@ def test_table(
     with computation(PARALLEL), interval(...):
         tab_fpvs = fpvs(xval)
         tab_fpvsx = fpvsx(xval)
+
 
 class FPVS:
     def __init__(

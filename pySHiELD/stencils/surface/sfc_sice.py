@@ -10,13 +10,13 @@ from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
     Float,
-    FloatFieldIJ,
     FloatField,
+    FloatFieldIJ,
     Int,
     IntFieldIJ,
 )
-from pySHiELD.functions.physics_functions import fpvs
 from pySHiELD._config import FloatFieldTracer
+from pySHiELD.functions.physics_functions import fpvs
 
 
 @gtscript.function
@@ -35,24 +35,25 @@ def ice3lay(
     snowmt,
     gflux,
 ):
-    """three-layer sea ice vertical thermodynamics
+    """
+    three-layer sea ice vertical thermodynamics
                                                                            *
     based on:  m. winton, "a reformulated three-layer sea ice model",      *
     journal of atmospheric and oceanic technology, 2000                    *
                                                                            *
                                                                            *
           -> +---------+ <- tice - diagnostic surface temperature ( <= 0c )*
-         /   |         |                                                   *
+         //  |         |                                                   *
      snowd   |  snow   | <- 0-heat capacity snow layer                     *
-         \   |         |                                                   *
+         \\  |         |                                                   *
           => +---------+                                                   *
-         /   |         |                                                   *
-        /    |         | <- t1 - upper 1/2 ice temperature; this layer has *
-       /     |         |         a variable (t/s dependent) heat capacity  *
+         //  |         |                                                   *
+        //   |         | <- t1 - upper 1/2 ice temperature; this layer has *
+       //    |         |         a variable (t/s dependent) heat capacity  *
      hice    |...ice...|                                                   *
-       \     |         |                                                   *
-        \    |         | <- t2 - lower 1/2 ice temp. (fixed heat capacity) *
-         \   |         |                                                   *
+       \\    |         |                                                   *
+        \\   |         | <- t2 - lower 1/2 ice temp. (fixed heat capacity) *
+         \\  |         |                                                   *
           -> +---------+ <- base of ice fixed at seawater freezing temp.   *
                                                                            *
     =====================  definition of variables  =====================  *
@@ -84,6 +85,7 @@ def ice3lay(
     ====================================================================== *
     """
     from __externals__ import delt
+
     # constants
     TFI0 = physcons.TFI - 0.0001
 
@@ -114,21 +116,25 @@ def ice3lay(
 
     bi = hfd
     ai = hfi - sneti + ip - tice * bi  # +v sol input here
-    k12 = (physcons.KI * 4.0) * physcons.KS / (
-        physcons.KS * hice + (physcons.KI * 4.0) * snowd
+    k12 = (
+        (physcons.KI * 4.0)
+        * physcons.KS
+        / (physcons.KS * hice + (physcons.KI * 4.0) * snowd)
     )
     k32 = (physcons.KI + physcons.KI) / hice
 
     wrk = 1.0 / (6.0 * delt * k32 + physcons.DICI * hice)
-    a10 = physcons.DICI * hice * (0.5 / delt) + k32 * (
-        4.0 * delt * k32 + physcons.DICI * hice
-    ) * wrk
+    a10 = (
+        physcons.DICI * hice * (0.5 / delt)
+        + k32 * (4.0 * delt * k32 + physcons.DICI * hice) * wrk
+    )
     b10 = (
-        -physcons.RHO_ICE * hice * (
-            physcons.CI * stc0 + physcons.LI * physcons.TFI / stc0
-        ) * (0.5 / delt) - ip - k32 * ((
-            4.0 * delt * k32 * physcons.TFW
-        ) + physcons.DICI * hice * stc1) * wrk
+        -physcons.RHO_ICE
+        * hice
+        * (physcons.CI * stc0 + physcons.LI * physcons.TFI / stc0)
+        * (0.5 / delt)
+        - ip
+        - k32 * ((4.0 * delt * k32 * physcons.TFW) + physcons.DICI * hice * stc1) * wrk
     )
 
     wrk1 = k12 / (k12 + bi)
@@ -149,9 +155,10 @@ def ice3lay(
         tmelt = 0.0
         snowd = snowd + snof * delt
 
-    stc1 = (2.0 * delt * k32 * (
-        stc0 + physcons.TFW + physcons.TFW
-    ) + physcons.DICI * hice * stc1) * wrk
+    stc1 = (
+        2.0 * delt * k32 * (stc0 + physcons.TFW + physcons.TFW)
+        + physcons.DICI * hice * stc1
+    ) * wrk
     bmelt = (focn + (physcons.KI * 4.0) * (stc1 - physcons.TFW) / hice) * delt
 
     # resize the ice ...
@@ -166,26 +173,20 @@ def ice3lay(
     else:
         snowmt = snowd
         h1 = h1 - (tmelt - snowd * physcons.DSLI) / (
-            physcons.RHO_ICE * (physcons.CI - physcons.LI / stc0) * (physcons.TFI - stc0)
+            physcons.RHO_ICE
+            * (physcons.CI - physcons.LI / stc0)
+            * (physcons.TFI - stc0)
         )
         snowd = 0.0
 
     # and bottom
 
     if bmelt < 0.0:
-        dh = -bmelt / (
-            physcons.DILI + physcons.DICI * (
-                physcons.TFI - physcons.TFW
-            )
-        )
+        dh = -bmelt / (physcons.DILI + physcons.DICI * (physcons.TFI - physcons.TFW))
         stc1 = (h2 * stc1 + dh * physcons.TFW) / (h2 + dh)
         h2 = h2 + dh
     else:
-        h2 = h2 - bmelt / (
-            physcons.DILI + physcons.DICI * (
-                physcons.TFI - stc1
-            )
-        )
+        h2 = h2 - bmelt / (physcons.DILI + physcons.DICI * (physcons.TFI - stc1))
 
     # if ice remains, even up 2 layers, else, pass negative energy back in snow
 
@@ -195,25 +196,32 @@ def ice3lay(
     if hice > 0.0:
         if h1 > 0.5 * hice:
             f1 = 1.0 - 2.0 * h2 / hice
-            stc1 = f1 * (
-                stc0 + physcons.LI * physcons.TFI / (physcons.CI * stc0)
-            ) + (1.0 - f1) * stc1
+            stc1 = (
+                f1 * (stc0 + physcons.LI * physcons.TFI / (physcons.CI * stc0))
+                + (1.0 - f1) * stc1
+            )
 
             if stc1 > physcons.TFI:
-                hice = hice - h2 * physcons.CI * (stc1 - physcons.TFI) / (physcons.LI * delt)
+                hice = hice - h2 * physcons.CI * (stc1 - physcons.TFI) / (
+                    physcons.LI * delt
+                )
                 stc1 = physcons.TFI
 
         else:
             f1 = 2.0 * h1 / hice
-            stc0 = f1 * (
-                stc0 + physcons.LI * physcons.TFI / (physcons.CI * stc0)
-            ) + (1.0 - f1) * stc1
             stc0 = (
-                stc0 - (stc0 * stc0 - 4.0 * physcons.TFI * physcons.LI / physcons.CI) ** 0.5
+                f1 * (stc0 + physcons.LI * physcons.TFI / (physcons.CI * stc0))
+                + (1.0 - f1) * stc1
+            )
+            stc0 = (
+                stc0
+                - (stc0 * stc0 - 4.0 * physcons.TFI * physcons.LI / physcons.CI) ** 0.5
             ) * 0.5
 
-        k12 = (physcons.KI * 4.0) * physcons.KS / (
-            physcons.KS * hice + (physcons.KI * 4.0) * snowd
+        k12 = (
+            (physcons.KI * 4.0)
+            * physcons.KS
+            / (physcons.KS * hice + (physcons.KI * 4.0) * snowd)
         )
         gflux = k12 * (stc0 - tice)
 
@@ -221,7 +229,11 @@ def ice3lay(
         snowd = (
             snowd
             + (
-                h1 * (physcons.CI * (stc0 - physcons.TFI) - physcons.LI * (1.0 - physcons.TFI / stc0))
+                h1
+                * (
+                    physcons.CI * (stc0 - physcons.TFI)
+                    - physcons.LI * (1.0 - physcons.TFI / stc0)
+                )
                 + h2 * (physcons.CI * (stc1 - physcons.TFI) - physcons.LI)
             )
             / physcons.LI
@@ -276,7 +288,8 @@ def sfc_sice(
     gflux: FloatFieldIJ,
     snowmt: FloatFieldIJ,
 ):
-    from __externals__ import mom4ice, lsm
+    from __externals__ import lsm, mom4ice
+
     with computation(FORWARD), interval(0, 1):
         # set flag for sea-ice
         flag = (islimsk == 2) and flag_iter
@@ -291,8 +304,8 @@ def sfc_sice(
                 hs_save = weasd * 0.001
             elif lsm > 0:
                 if srflag == 1.0:
-                    ep = 0.
-                    weasd = weasd + 1.e3 * tprcp
+                    ep = 0.0
+                    weasd = weasd + 1.0e3 * tprcp
                     tprcp = 0.0
 
             #     initialize variables. all units are supposedly m.k.s. unless specified
@@ -308,9 +321,10 @@ def sfc_sice(
             theta1 = t1 * prslki
             rho = prsl1 / (constants.RDGAS * t1 * (1.0 + constants.ZVIR * q0))
             qs1 = fpvs(t1)
-            qs1 = max(constants.EPS * qs1 / (
-                prsl1 + constants.EPSM1 * qs1
-            ), physcons.FLOAT_EPS)
+            qs1 = max(
+                constants.EPS * qs1 / (prsl1 + constants.EPSM1 * qs1),
+                physcons.FLOAT_EPS,
+            )
             q0 = min(qs1, q0)
 
             ffw = 1.0 - fice
@@ -357,14 +371,20 @@ def sfc_sice(
 
             # hfi = net non-solar and upir heat flux @ ice surface
 
-            hfi = -dlwflx + sfcemis * constants.SBC * t14 + evapi + rch * (
-                tice - theta1
+            hfi = (
+                -dlwflx + sfcemis * constants.SBC * t14 + evapi + rch * (tice - theta1)
             )
             hfd = (
                 4.0 * sfcemis * constants.SBC * tice * t12
-                + (1.0 + physcons.HOCP * constants.EPS * constants.HLV * qs1 / (
-                    constants.RDGAS * t12
-                )) * rch
+                + (
+                    1.0
+                    + physcons.HOCP
+                    * constants.EPS
+                    * constants.HLV
+                    * qs1
+                    / (constants.RDGAS * t12)
+                )
+                * rch
             )
 
             t12 = physcons.TSICE * physcons.TSICE

@@ -1,12 +1,7 @@
-from gt4py.cartesian.gtscript import (
-    PARALLEL,
-    computation,
-    interval,
-)
+from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 import ndsl.constants as constants
 from ndsl.constants import X_DIM, Y_DIM
-from ndsl.quantity import Quantity
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -20,6 +15,7 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.allocator import QuantityFactory
+from ndsl.quantity import Quantity
 from pySHiELD._config import SurfaceConfig
 from pySHiELD.functions.set_sfc_params import set_sfc_arrays
 from pySHiELD.stencils.surface.sfc_diff import SurfaceExchange
@@ -72,6 +68,7 @@ def init_step_vars(
         smcwlt2 = 0.0
         smcref2 = 0.0
 
+
 def update_guess_0(
     wind: FloatFieldIJ,
     iteration: Int,
@@ -81,12 +78,13 @@ def update_guess_0(
         if (iteration == 0) and (wind < 2.0):
             flag_guess[0, 0] = True
 
+
 def update_guess_1(
     wind: FloatFieldIJ,
     iteration: Int,
     flag_guess: BoolFieldIJ,
     flag_iter: BoolFieldIJ,
-    islmsk: IntFieldIJ
+    islmsk: IntFieldIJ,
 ):
     from __externals__ import nsstm_coupling
 
@@ -160,9 +158,7 @@ class SurfaceLayer:
         )
         self._update_guess_1 = stencil_factory.from_origin_domain(
             update_guess_1,
-            externals={
-                "nsstm_coupling": config.nstf_name[0]
-            },
+            externals={"nsstm_coupling": config.nstf_name[0]},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -171,11 +167,7 @@ class SurfaceLayer:
         for iteration in range(2):
             self._exchange()
 
-            self._update_guess_0(
-                state.wind,
-                iteration,
-                self._flag_guess
-            )
+            self._update_guess_0(state.wind, iteration, self._flag_guess)
 
             self._sfc_ocean()
 
