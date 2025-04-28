@@ -35,7 +35,16 @@ class SurfaceConfig:
     lsm: Int = DEFAULT_INT
     redrag: bool = DEFAULT_BOOL
     wind_th_hwrf: Float = DEFAULT_FLOAT
-    z0s_max: Float = DEFAULT_FLOAT
+    nstf_name: tuple[int, int, int, int, int] = (0, 0, 1, 0, 5)
+    """
+    nstf_name contains the NSSTM related parameters:
+    nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
+    nstf_name(2) : 1 = NSSTM spin up on, 0 = NSSTM spin up off
+    nstf_name(3) : 1 = NSSTM analysis on, 0 = NSSTM analysis off
+    nstf_name(4) : zsea1 in mm
+    nstf_name(5) : zsea2 in mm
+    TODO: implement via namelist?
+    """
 
 
 @dataclasses.dataclass
@@ -140,6 +149,16 @@ class PhysicsConfig:
     ivegsrc = 0 => USGS
     ivegsrc = 1 => IGBP (20 category)
     ivegsrc = 2 => UMD (13 category)
+    """
+    nstf_name: tuple[int, int, int, int, int] = (0, 0, 1, 0, 5)
+    """
+    nstf_name contains the NSSTM related parameters:
+    nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
+    nstf_name(2) : 1 = NSSTM spin up on, 0 = NSSTM spin up off
+    nstf_name(3) : 1 = NSSTM analysis on, 0 = NSSTM analysis off
+    nstf_name(4) : zsea1 in mm
+    nstf_name(5) : zsea2 in mm
+    TODO: implement via namelist?
     """
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
@@ -248,5 +267,6 @@ class PhysicsConfig:
             lsm=self.lsm,
             redrag=self.redrag,
             wind_th_hwrf=self.wind_th_hwrf,
-            ivegsrc=self.ivegsrc
+            ivegsrc=self.ivegsrc,
+            nstf_name=self.nstf_name,
         )

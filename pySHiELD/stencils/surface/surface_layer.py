@@ -143,7 +143,7 @@ class SurfaceLayer:
             do_z0_hwrf17_hwonly=config.do_z0_hwrf17_hwonly,
             do_z0_moon=config.do_z0_moon,
             redrag=config.redrag,
-            wind_th_hwrf=config.wind_th_hwrf
+            wind_th_hwrf=config.wind_th_hwrf,
         )
         self._update_guess_0 = stencil_factory.from_origin_domain(
             update_guess_0,
@@ -168,15 +168,15 @@ class SurfaceLayer:
 
     def __call__(self, state: SurfaceState):
         for iteration in range(2):
-            self._exchange()
+            # self._exchange()
 
-            self._update_guess_0(state.wind, iteration, self._flag_guess)
+            # self._update_guess_0(state.wind, iteration, self._flag_guess)
 
-            self._sfc_ocean()
+            # self._sfc_ocean()
 
-            #  TODO: LSM here
+            # TODO: LSM here
 
-            self._sfc_sice()
+            # self._sfc_sice()
 
             self._update_guess_1(
                 state.wind,
