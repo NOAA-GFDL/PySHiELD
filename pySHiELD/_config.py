@@ -24,7 +24,7 @@ TRACER_DIM = "n_tracers"
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
-    SATMED_EDMF = "SATM_EDMF"
+    SATM_EDMF = "SATM_EDMF"
 
 
 @dataclasses.dataclass
