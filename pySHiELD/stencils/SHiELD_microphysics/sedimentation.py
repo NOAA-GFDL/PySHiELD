@@ -16,7 +16,7 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField
 from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD.stencils.SHiELD_microphysics.terminal_fall import TerminalFall
 
@@ -235,22 +235,6 @@ def sedi_melt(
                                 c1_liq,
                                 c1_vap,
                             )
-                            # cvm[i, j, k] = physfun.moist_heat_capacity(
-                            #     qvapor[i, j, k],
-                            #     qliquid[i, j, k],
-                            #     qrain[i, j, k],
-                            #     qice[i, j, k],
-                            #     qsnow[i, j, k],
-                            #     qgraupel[i, j, k],
-                            # )
-                            # cvm[i, j, m] = physfun.moist_heat_capacity(
-                            #     qvapor[i, j, m],
-                            #     qliquid[i, j, m],
-                            #     qrain[i, j, m],
-                            #     qice[i, j, m],
-                            #     qsnow[i, j, m],
-                            #     qgraupel[i, j, m],
-                            # )
                             dtime = min(
                                 timestep,
                                 (z_edge[i, j, m] - z_edge[i, j, m + 1])
@@ -288,14 +272,6 @@ def sedi_melt(
                                 c1_liq,
                                 c1_vap,
                             )
-                            # physfun.moist_heat_capacity(
-                            #     qvapor[i, j, k],
-                            #     qliquid[i, j, k],
-                            #     qrain[i, j, k],
-                            #     qice[i, j, k],
-                            #     qsnow[i, j, k],
-                            #     qgraupel[i, j, k],
-                            # )
                             temperature[i, j, k] = (
                                 temperature[i, j, k] * cvm[i, j, k]
                                 - li00 * sink * delp[i, j, m] / delp[i, j, k]
@@ -311,20 +287,121 @@ def sedi_melt(
                                 c1_liq,
                                 c1_vap,
                             )
-                            # physfun.moist_heat_capacity(
-                            #     qvapor[i, j, m],
-                            #     qliquid[i, j, m],
-                            #     qrain[i, j, m],
-                            #     qice[i, j, m],
-                            #     qsnow[i, j, m],
-                            #     qgraupel[i, j, m],
-                            # )
                             temperature[i, j, m] = (
                                 temperature[i, j, m] * cvm[i, j, m]
                             ) / cvm_tmp
                         if q_melt[i, j, k] < constants.QCMIN:
                             break
 
+def sedi_melt_stencil(
+    qvapor: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    cvm: FloatField,
+    temperature: FloatField,
+    delp: FloatField,
+    z_edge: FloatField,
+    z_terminal: FloatField,
+    z_surface: FloatFieldIJ,
+    v_terminal: FloatField,
+    r1: FloatFieldIJ,
+    tau_mlt: Float,
+    icpk: FloatField,
+    k_mask: IntField,
+    mode: str,
+):
+    from __externals__ import c1_ice, c1_liq, c1_vap, k_end, li00, timestep
+    if mode == "ice":
+        q_melt = qice
+    elif mode == "snow":
+        q_melt = qsnow
+    elif mode == "graupel":
+        q_melt = qgraupel
+    else:
+        raise ValueError(f"sedi_melt mode {mode} not ice, snow, or graupel")
+    with computation(BACKWARD):
+        with interval(1, -1):
+            lev = 1
+            if v_terminal >= 1.0e-10:
+                if q_melt > constants.QCMIN:
+                    while k_mask[0, 0, 1] <= k_end:
+                        if q_melt[0, 0, 0] >= constants.QCMIN:
+                            if z_terminal[0, 0, 1] >= z_edge[0, 0, lev]:
+                                break
+                            if (z_terminal[0, 0, 0] < z_edge[0, 0, lev + 1]) and (
+                                temperature[0, 0, lev] > constants.TICE0
+                            ):
+                                cvm[0, 0, 0] = physfun.moist_heat_capacity(
+                                    qvapor,
+                                    qliquid,
+                                    qrain,
+                                    qice,
+                                    qsnow,
+                                    qgraupel,
+                                )
+                                cvm[0, 0, lev] = physfun.moist_heat_capacity(
+                                    qvapor[0, 0, lev],
+                                    qliquid[0, 0, lev],
+                                    qrain[0, 0, lev],
+                                    qice[0, 0, lev],
+                                    qsnow[0, 0, lev],
+                                    qgraupel[0, 0, lev],
+                                )
+                                dtime = min(
+                                    timestep,
+                                    (z_edge[0, 0, lev] - z_edge[0, 0, lev + 1])
+                                    / v_terminal[0, 0, 0],
+                                )
+                                dtime = min(1.0, dtime / tau_mlt)
+                                sink = min(
+                                    q_melt[0, 0, 0] * delp[0, 0, 0] / delp[0, 0, lev],
+                                    dtime
+                                    * (temperature[0, 0, lev] - constants.TICE0)
+                                    / icpk[0, 0, lev],
+                                )
+                                q_melt[0, 0, 0] = q_melt[0, 0, 0] - (
+                                    sink * delp[0, 0, lev] / delp[0, 0, 0]
+                                )
+                                if z_terminal[0, 0, 0] < z_surface:
+                                    r1 += sink * delp[0, 0, lev]
+                                else:
+                                    qrain[0, 0, lev] += sink
+
+                                # these may be redundant depending on how dace copies
+                                if mode == "ice":
+                                    qice[0, 0, 0] = q_melt[0, 0, 0]
+                                elif mode == "snow":
+                                    qsnow[0, 0, 0] = q_melt[0, 0, 0]
+                                else:
+                                    qgraupel[0, 0, 0] = q_melt[0, 0, 0]
+
+                                cvm_tmp = physfun.moist_heat_capacity(
+                                    qvapor[0, 0, 0],
+                                    qliquid[0, 0, 0],
+                                    qrain[0, 0, 0],
+                                    qice[0, 0, 0],
+                                    qsnow[0, 0, 0],
+                                    qgraupel[0, 0, 0],
+                                )
+                                temperature[0, 0, 0] = (
+                                    temperature[0, 0, 0] * cvm[0, 0, 0]
+                                    - li00 * sink * delp[0, 0, 0] / delp[0, 0, 0]
+                                ) / cvm_tmp
+                                cvm_tmp = physfun.moist_heat_capacity(
+                                    qvapor[0, 0, 0],
+                                    qliquid[0, 0, 0],
+                                    qrain[0, 0, 0],
+                                    qice[0, 0, 0],
+                                    qsnow[0, 0, 0],
+                                    qgraupel[0, 0, 0],
+                                )
+                                temperature[0, 0, 0] = (
+                                    temperature[0, 0, 0] * cvm[0, 0, 0]
+                                ) / cvm_tmp
+                            lev += 1
 
 def calc_edge_and_terminal_height(
     z_surface: FloatFieldIJ,
@@ -490,6 +567,20 @@ class Sedimentation:
         self._terminal_fall = TerminalFall(
             stencil_factory, quantity_factory, config, timestep
         )
+
+        if self.config.do_sedi_melt:
+            self._sedi_melt_stencil = stencil_factory.from_origin_domain(
+                func=sedi_melt_stencil,
+                externals={
+                    "c1_vap": config.c1_vap,
+                    "c1_liq": config.c1_liq,
+                    "c1_ice": config.c1_ice,
+                    "li00": config.li00,
+                    "timestep": self._timestep,
+                },
+                origin=self._idx.origin_compute(),
+                domain=self._idx.domain_compute(),
+            )
 
         self._adjust_fluxes = stencil_factory.from_origin_domain(
             func=adjust_fluxes,
