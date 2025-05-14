@@ -1,10 +1,11 @@
-from ndsl.dsl.gt4py import exp, floor, max, min, function
-
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
+from ndsl.dsl.gt4py import exp, floor
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import max, min
 
 
-@function
+@gtfunction
 def fpvsx(t):
     """
     Computes saturation water vapor pressure, adapted from Fortran:
@@ -57,19 +58,19 @@ def fpvsx(t):
 
     fpvsx = 0.0
     if t >= tliq:
-        fpvsx = constants.PSAT * (tr**xponal) * exp(xponbl * (1.0 - tr))
+        fpvsx = constants.PSAT * (tr ** xponal) * exp(xponbl * (1.0 - tr))
     elif t < tice:
-        fpvsx = constants.PSAT * (tr**xponai) * exp(xponbi * (1.0 - tr))
+        fpvsx = constants.PSAT * (tr ** xponai) * exp(xponbi * (1.0 - tr))
     else:
         w = (t - tice) / (tliq - tice)
-        pvl = constants.PSAT * (tr**xponal) * exp(xponbl * (1.0 - tr))
-        pvi = constants.PSAT * (tr**xponai) * exp(xponbi * (1.0 - tr))
+        pvl = constants.PSAT * (tr ** xponal) * exp(xponbl * (1.0 - tr))
+        pvi = constants.PSAT * (tr ** xponai) * exp(xponbi * (1.0 - tr))
         fpvsx = w * pvl + (1.0 - w) * pvi
 
     return fpvsx
 
 
-@function
+@gtfunction
 def fpvs(t):
     xmin = 180.0
     xmax = 330.0

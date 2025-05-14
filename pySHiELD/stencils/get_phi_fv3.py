@@ -1,6 +1,5 @@
-from ndsl.dsl.gt4py import BACKWARD, PARALLEL, computation, interval
-
 from ndsl.constants import ZVIR
+from ndsl.dsl.gt4py import BACKWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
