@@ -1255,6 +1255,7 @@ def stencil_static13(
     dbyo: FloatField,
     qcko: FloatField,
     qlko_ktcon: FloatFieldIJ,
+    dq: FloatFieldIJ,
 ):
     # This section is ready for cloud water
     # compute liquid and vapor separation at cloud top
@@ -1273,8 +1274,6 @@ def stencil_static13(
                 if dq > 0.0:
                     qlko_ktcon = dq
                     qcko = qrch
-
-
 # endif
 
 
@@ -1829,7 +1828,7 @@ def feedback_control_update_mass_flux(
                 rn = 0.0
             ktop = ktcon
             kbot = kbcon
-            kcnv = 2
+            kcnv = 1
 
     with computation(FORWARD), interval(...):
         # convective cloud water
@@ -2241,6 +2240,7 @@ class ScaleAwareMassFluxShallowConvection:
         self._deltv = make_quantity_2D()
         self._delq = make_quantity_2D()
         self._qevap = make_quantity_2D()
+        self._dq = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2861,6 +2861,7 @@ class ScaleAwareMassFluxShallowConvection:
                 self._dbyo,
                 self._qcko,
                 self._qlko_ktcon,
+                self._dq,
             )
 
         self._stencil_static14(
