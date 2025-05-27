@@ -1,8 +1,8 @@
 import numpy as np
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval
 
 from ndsl import Namelist, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pySHiELD.functions.physics_functions import fpvs, fpvsx
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

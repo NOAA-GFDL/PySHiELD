@@ -1,19 +1,10 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import (
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    cos,
-    exp,
-    interval,
-    log,
-)
-
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
@@ -294,7 +285,7 @@ def prepare_microphysics(
         qa_dt = 0.0
 
 
-@gtscript.function
+@gtfunction
 def forward_euler(q_t0, q_dt, dt):
     return q_t0 + q_dt * dt
 
