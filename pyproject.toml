@@ -26,9 +26,9 @@ classifiers = [
 
 [project.optional-dependencies]
 test = [
-    "pytest", 
-    "pytest-subtests", 
-    "serialbox", 
+    "pytest",
+    "pytest-subtests",
+    "serialbox",
     "coverage"
 ]
 ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
