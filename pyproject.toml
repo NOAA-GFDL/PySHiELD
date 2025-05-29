@@ -32,11 +32,11 @@ test = [
     "coverage"
 ]
 ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
-pyfv3 = ["pyFV3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@develop"]
+pyFV3 = ["pyFV3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@develop"]
 dev = [
     "pySHiELD[test]",
     "pySHIELD[ndsl]",
-    "pySHiELD[pyfv3]",
+    "pySHiELD[pyFV3]",
     "pre-commit",
 ]
 extras = [
