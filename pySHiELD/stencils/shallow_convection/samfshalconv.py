@@ -42,6 +42,13 @@ def col_diffs(conv1, conv2):
             cols.append((i, j))
     return cols
 
+def true_cols(conv):
+    cols = []
+    for i, j in np.ndindex(conv.shape):
+        if conv[i, j]:
+            cols.append((i, j))
+    return cols
+
 def pa_to_cb(
     psp: FloatFieldIJ,
     prslp: FloatField,
@@ -86,7 +93,7 @@ def init_col_arr(
         # Initialize column-integrated and other single-value-per-column
         # variable arrays
         cnvflg = True
-        if kcnv == 1:
+        if kcnv == 0:
             cnvflg = False
 
         if cnvflg:
@@ -1255,7 +1262,6 @@ def stencil_static13(
     dbyo: FloatField,
     qcko: FloatField,
     qlko_ktcon: FloatFieldIJ,
-    dq: FloatFieldIJ,
 ):
     # This section is ready for cloud water
     # compute liquid and vapor separation at cloud top
@@ -1400,7 +1406,6 @@ def comp_tendencies(
     with computation(FORWARD), interval(0, 1):
         zi_ktcon = 0.0
         zi_kbcon = 0.0
-        tauadv = 0.0
 
     with computation(FORWARD), interval(...):
         if k_mask == ktcon1:
@@ -1515,6 +1520,7 @@ def comp_tendencies(
         # time using the mean updraft velocity (wc) and the cloud
         # depth. It is also proportional to the grid size (gdx).
         if cnvflg:
+            tauadv = 0.0
             tem = zi_ktcon - zi_kbcon
             tfac = 1.0 + gdx / 75000.0
             dtconv = tem / wc
@@ -2155,7 +2161,6 @@ class ScaleAwareMassFluxShallowConvection:
             self._k_mask.data[:, :, k] = k
 
         self._cnvflg = make_quantity_2D(Bool)
-        self._kbm = make_quantity_2D(Int)
         self._heo_kb = make_quantity_2D()
         self._drag = make_quantity()
         self._ps = make_quantity_2D()
@@ -2240,7 +2245,6 @@ class ScaleAwareMassFluxShallowConvection:
         self._deltv = make_quantity_2D()
         self._delq = make_quantity_2D()
         self._qevap = make_quantity_2D()
-        self._dq = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2850,6 +2854,8 @@ class ScaleAwareMassFluxShallowConvection:
 
         columns = col_diffs(conv_a, conv_b)
         print("after static12: ", columns)
+        columns = true_cols(self._cnvflg.view[:])
+        print(f"{len(columns)} Final columns: ", columns)
 
         if self._ncloud > 0:
             self._stencil_static13(
@@ -2861,7 +2867,6 @@ class ScaleAwareMassFluxShallowConvection:
                 self._dbyo,
                 self._qcko,
                 self._qlko_ktcon,
-                self._dq,
             )
 
         self._stencil_static14(

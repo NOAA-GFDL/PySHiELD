@@ -14,12 +14,16 @@ from ndsl.dsl.typing import (
 from ndsl.initialization.sizer import SubtileGridSizer
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 from pySHiELD.stencils.shallow_convection.samfshalconv import (
-    stencil_static1,
+    stencil_static1, stencil_static0
     stencil_update_kbcon1_cnvflg,
     stencil_static9, stencil_static12,
     feedback_control_update_mass_flux,
     comp_tendencies, stencil_static13,
+    stencil_ntrstatic0, init_col_arr,
+    init_final, init_kbm_kmax, init_par_and_arr,
+    init_tracers, pa_to_cb
 )
+from pySHiELD._config import ShallowConvectionConfig
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 import numpy as np
 
@@ -38,35 +42,407 @@ class Static1:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
+        config: ShallowConvectionConfig,
     ):
         grid_indexing = stencil_factory.grid_indexing
 
-        self._heo_kb = quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=Float)
+        self._ntk = config.ntke
+        self._ntiw = config.ntiw
+        self._ntcw = config.ntcw
+        self._ntr = config.nsamftrac
+        self._ncloud = config.ncld
+        self._dt2 = config.dt_atmos
+
+        # Determine whether to perform aerosol transport #
+        self._do_aerosols = (config.itc > 0) and (config.ntchm > 0) and (self._ntr > 0)
+        if self._do_aerosols:
+            self._do_aerosols = self._ntr >= config.itc
+        if self._do_aerosols:
+            raise NotImplementedError(
+                "Shallow convection of aerosols is not implemented yet"
+            )
+
+        self._clam = config.clam_shal
+        self._c0s = config.c0s_shal
+        self._c1 = config.c1_shal
+        self._pgcon = config.pgcon_shal
+        self._asolfac = config.asolfac_shal
+
+        self._km = grid_indexing.domain[2]
+        self._km1 = grid_indexing.domain[2] - 1
+        self.TRACER_DIM = TRACER_DIM
+
+        self.quantity_factory = quantity_factory
+        self.quantity_factory.set_extra_dim_lengths(
+            **{
+                self.TRACER_DIM: int(self._ntr + 2),
+            }
+        )
+
+        # Tracers are kind of borked right now. In Fortran the water vapor is passed in
+        # separately, while all others come in via the variable "qtr" which has
+        # dimensions (i, j, k, n_tracers - 1), ice and liquid water are stored in
+        # qtr[:, :, :, 0] and qtr[:, :, :, 1] and everything is reorganized to
+        # accomodate that. Aerosols live in qtr[:, :, :, itc:].
+        # If we're being straightforward about it we'd have our 4D tracer array with
+        # special handling for ntvapor, ntiw, and ntcw (like we do for TKE), have an
+        # `if n not in [ntvap, ntiw, ntcw]:` around the other tracer calls, and then
+        # do something similar with the aerosols.
+        # A better solution would be to have the attributes we want accessible easily
+        # so we can send the aerosols into the aerosol calculations by attribute, and
+        # similarly except (or invoke) vapor etc. from the other calculations.
+
+        def make_quantity():
+            return quantity_factory.zeros(
+                [X_DIM, Y_DIM, Z_DIM],
+                units="unknown",
+                dtype=Float,
+            )
+
+        def make_quantity_2D(type=Float):
+            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+
+        # Allocate arrays
+
+        # Layer mask:
         self._k_mask = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
             dtype=Int,
         )
+
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
-        
-        self._static1 = stencil_factory.from_origin_domain(
+
+        self._heo_kb = make_quantity_2D()
+        self._drag = make_quantity()
+        self._ps = make_quantity_2D()
+        self._prsl = make_quantity()
+        self._del0 = make_quantity()
+        self._ktcon = make_quantity_2D(Int)
+        self._ktconn = make_quantity_2D(Int)
+        self._pdot = make_quantity_2D()
+        self._qlko_ktcon = make_quantity_2D()
+        self._edt = make_quantity_2D()
+        self._aa1 = make_quantity_2D()
+        self._cina = make_quantity_2D()
+        self._vshear = make_quantity_2D()
+        self._gdx = make_quantity_2D()
+        self._c0 = make_quantity_2D()
+        self._c0t = make_quantity()
+        self._tx1 = make_quantity_2D()
+        self._kpbl = make_quantity_2D(Int)
+        self._zo = make_quantity()
+        self._zi = make_quantity()
+        self._pfld = make_quantity()
+        self._eta = make_quantity()
+        self._hcko = make_quantity()
+        self._qcko = make_quantity()
+        self._qrcko = make_quantity()
+        self._ucko = make_quantity()
+        self._vcko = make_quantity()
+        self._dbyo = make_quantity()
+        self._pwo = make_quantity()
+        self._dellal = make_quantity()
+        self._to = make_quantity()
+        self._qo = make_quantity()
+        self._uo = make_quantity()
+        self._vo = make_quantity()
+        self._wu2 = make_quantity()
+        self._buo = make_quantity()
+        self._cnvwt = make_quantity()
+        self._qeso = make_quantity()
+        self._hmax = make_quantity_2D()
+        self._po = make_quantity()
+        self._pfld_kb = make_quantity_2D()
+        self._pfld_kbcon = make_quantity_2D()
+        self._pfld_kbcon1 = make_quantity_2D()
+        self._sumx = make_quantity_2D()
+        self._wc = make_quantity_2D()
+        self._tkemean = make_quantity_2D()
+        self._clamt = make_quantity_2D()
+        self._xlamue = make_quantity()
+        self._xlamud = make_quantity_2D()
+        self._xmbmax = make_quantity_2D()
+        self._ktcon1 = make_quantity_2D(Int)
+        self._zi_kb = make_quantity_2D()
+        self._zi_ktcon = make_quantity_2D()
+        self._zi_kbcon = make_quantity_2D()
+        self._dellah = make_quantity()
+        self._dellaq = make_quantity()
+        self._dellau = make_quantity()
+        self._dellav = make_quantity()
+        self._dtconv = make_quantity_2D()
+        self._tauadv = make_quantity_2D()
+        self._xmb = make_quantity_2D()
+        self._sigmagfm = make_quantity_2D()
+        self._scaldfunc = make_quantity_2D()
+        self._umean = make_quantity_2D()
+        self._delhbar = make_quantity_2D()
+        self._delqbar = make_quantity_2D()
+        self._deltbar = make_quantity_2D()
+        self._delubar = make_quantity_2D()
+        self._delvbar = make_quantity_2D()
+        self._qcond = make_quantity_2D()
+        self._rntot = make_quantity_2D()
+        self._delqev = make_quantity_2D()
+        self._delq2 = make_quantity_2D()
+        self._deltv = make_quantity_2D()
+        self._delq = make_quantity_2D()
+        self._qevap = make_quantity_2D()
+
+        self._ctr = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._ctro = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._ecko = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._dellae = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        self._delebar = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            units="unknown",
+            dtype=Float,
+        )
+
+        # Configure stencils
+        self._pa_to_cb = stencil_factory.from_origin_domain(
+            func=pa_to_cb,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_col_arr = stencil_factory.from_origin_domain(
+            func=init_col_arr,
+            externals={"km": self._km},
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_par_and_arr = stencil_factory.from_origin_domain(
+            func=init_par_and_arr,
+            externals={
+                "asolfac": self._asolfac,
+                "c0s": self._c0s,
+            },
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_kbm_kmax = stencil_factory.from_origin_domain(
+            func=init_kbm_kmax,
+            externals={"km": self._km},
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_final = stencil_factory.from_origin_domain(
+            func=init_final,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._init_tracers = stencil_factory.from_origin_domain(
+            func=init_tracers,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static0 = stencil_factory.from_origin_domain(
+            func=stencil_static0,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_static1 = stencil_factory.from_origin_domain(
             func=stencil_static1,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._stencil_ntrstatic0 = stencil_factory.from_origin_domain(
+            func=stencil_ntrstatic0,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
     
     def __call__(
         self,
-        cnvflg: BoolFieldIJ,
-        flg: BoolFieldIJ,
-        kbcon: IntFieldIJ,
-        kmax: IntFieldIJ,
-        kbm: IntFieldIJ,
-        kb: IntFieldIJ,
-        heo: FloatField,
-        heso: FloatField,
+        delp,
+        prslp,
+        psp,
+        phil,
+        qtr,
+        q1,
+        t1,
+        rn,
+        kbot,
+        ktop,
+        kcnv,
+        islimsk,
+        dot,
+        hpbl,
+        ud_mf,
+        dt_mf,
+        u1,
+        v1,
+        garea,
+        cnvw,
+        cnvc,
+        cnvflg,
+        flg,
+        kbcon,
+        kmax,
+        kbm,
+        kb,
+        heo,
+        heso,
     ):
+        # Convert input Pa terms to Cb terms
+        self._pa_to_cb(
+            psp,
+            prslp,
+            delp,
+            self._ps,
+            self._prsl,
+            self._del0,
+        )
+
+        self._init_col_arr(
+            kcnv,
+            cnvflg,
+            kbot,
+            ktop,
+            kbcon,
+            kb,
+            self._ktcon,
+            self._ktconn,
+            self._pdot,
+            rn,
+            self._qlko_ktcon,
+            self._edt,
+            self._aa1,
+            self._cina,
+            self._vshear,
+            self._gdx,
+            garea,
+        )
+        if exit_routine(cnvflg.view[:]):
+            return
+
+        conv_a = copy.deepcopy(cnvflg.view[:])
+        conv_b = np.ones_like(conv_a)
+
+        cols = col_diffs(conv_a, conv_b)
+        print("Post-init: ", cols)
+
+        self._init_par_and_arr(
+            islimsk,
+            self._c0,
+            t1,
+            self._c0t,
+            cnvw,
+            cnvc,
+            ud_mf,
+            dt_mf,
+        )
+        self._init_kbm_kmax(
+            kbm,
+            kmax,
+            self._tx1,
+            self._ps,
+            self._prsl,
+            self._k_mask,
+        )
+        self._init_final(
+            kbm,
+            kmax,
+            flg,
+            cnvflg,
+            self._kpbl,
+            self._prsl,
+            self._zo,
+            phil,
+            self._zi,
+            self._pfld,
+            self._eta,
+            self._hcko,
+            self._qcko,
+            self._qrcko,
+            self._ucko,
+            self._vcko,
+            self._dbyo,
+            self._pwo,
+            self._dellal,
+            self._to,
+            self._qo,
+            self._uo,
+            self._vo,
+            self._wu2,
+            self._buo,
+            self._drag,
+            self._cnvwt,
+            self._qeso,
+            heo,
+            heso,
+            hpbl,
+            t1,
+            q1,
+            u1,
+            v1,
+            self._k_mask,
+        )
+
+        # Init tracers
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._init_tracers(
+                    cnvflg,
+                    self._k_mask,
+                    kmax,
+                    self._ctr,
+                    self._ctro,
+                    self._ecko,
+                    qtr,
+                    n_tracer,
+                )
+
+        self._stencil_static0(
+            cnvflg,
+            self._hmax,
+            heo,
+            kb,
+            self._k_mask,
+            self._kpbl,
+            kmax,
+            self._zo,
+            self._to,
+            self._qeso,
+            self._qo,
+            self._po,
+            self._uo,
+            self._vo,
+            heso,
+            self._pfld,
+        )
+        for n_tracer in range(self._ntr):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic0(
+                    cnvflg,
+                    self._k_mask,
+                    kmax,
+                    self._ctro,
+                    n_tracer,
+                )
+
         self._static1(
             cnvflg,
             flg,
@@ -540,7 +916,42 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
             "kb": {"serialname": "sc1_kb", "shield": True, "index_variable": True},
             "heo": {"serialname": "sc1_heo", "shield": True},
             "heso": {"serialname": "sc1_heso", "shield": True},
+            "delp": {"serialname": "sc1_delta", "shield": True},
+            "prslp": {"serialname": "sc1_prsl", "shield": True},
+            "psp": {"serialname": "sc1_pgr", "shield": True},
+            "phil": {"serialname": "sc1_phil", "shield": True},
+            "qtr": {"serialname": "sc1_clw", "shield": True},
+            "q1": {"serialname": "sc1_gq0", "shield": True},
+            "t1": {"serialname": "sc1_gt0", "shield": True},
+            "u1": {"serialname": "sc1_gu0", "shield": True},
+            "v1": {"serialname": "sc1_gv0", "shield": True},
+            "rn": {"serialname": "sc1_rain1", "shield": True},
+            "kbot": {"serialname": "sc1_kbot", "shield": True, "index_variable": True},
+            "ktop": {"serialname": "sc1_ktop", "shield": True, "index_variable": True},
+            "kcnv": {"serialname": "sc1_kcnv", "shield": True, "index_variable": True},
+            "islimsk": {"serialname": "sc1_islmsk", "shield": True},
+            "garea": {"serialname": "sc1_garea", "shield": True},
+            "dot": {"serialname": "sc1_vvl", "shield": True},
+            "hpbl": {"serialname": "sc1_hpbl", "shield": True},
+            "ud_mf": {"serialname": "sc1_ud_mf", "shield": True},
+            "dt_mf": {"serialname": "sc1_dt_mf", "shield": True},
+            "cnvw": {"serialname": "sc1_cnvw", "shield": True},
+            "cnvc": {"serialname": "sc1_cnvc", "shield": True},
         }
+        self.in_vars["parameters"] = [
+            "sc1_clam_shal",
+            "sc1_c0s_shal",
+            "sc1_c1_shal",
+            "sc1_ncld",
+            "sc1_pgcon_shal",
+            "sc1_asolfac_shal",
+            "sc1_dtp",
+            "sc1_itc",
+            "sc1_ntchm",
+            "sc1_ntk",
+            "sc1_nsamftrac",
+            "sc1_ser_fscav",
+        ]
         self.out_vars = {
             "cnvflg": {"serialname": "sc1_cnvflg", "shield": True},
             "flg": {"serialname": "sc1_flg", "shield": True},
@@ -570,9 +981,26 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
+        config = ShallowConvectionConfig(
+            dt_atmos=inputs.pop("sc_dtp"),
+            ntke=int(inputs.pop("sc_ntk") - 1),
+            nsamftrac=int(inputs.pop("sc_nsamftrac")),
+            ncld=int(inputs.pop("sc_ncld")),
+            ntchm=int(inputs.pop("sc_ntchm")),
+            ntiw=0,
+            ntcw=1,
+            itc=int(inputs.pop("sc_itc") - 1),
+            clam_shal=inputs.pop("sc_clam_shal"),
+            c0s_shal=inputs.pop("sc_c0s_shal"),
+            c1_shal=inputs.pop("sc_c1_shal"),
+            pgcon_shal=inputs.pop("sc_pgcon_shal"),
+            asolfac_shal=inputs.pop("sc_asolfac_shal"),
+            fscav=inputs.pop("sc_ser_fscav"),
+        )
         self.compute_func = Static1(
             self.stencil_factory,
             self.quantity_factory,
+            config,
         )
         self.compute_func(**inputs)
         return self.slice_output(inputs)
