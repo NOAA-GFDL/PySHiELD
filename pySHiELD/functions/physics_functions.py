@@ -1,11 +1,11 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import exp, floor, max, min
-
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
+from ndsl.dsl.gt4py import exp, floor
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import max, min
 
 
-@gtscript.function
+@gtfunction
 def fpvsx(t):
     """
     Computes saturation water vapor pressure, adapted from Fortran:
@@ -70,7 +70,7 @@ def fpvsx(t):
     return fpvsx
 
 
-@gtscript.function
+@gtfunction
 def fpvs(t):
     xmin = 180.0
     xmax = 330.0
