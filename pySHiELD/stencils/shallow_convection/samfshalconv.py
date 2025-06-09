@@ -93,7 +93,8 @@ def init_col_arr(
         # Initialize column-integrated and other single-value-per-column
         # variable arrays
         cnvflg = True
-        if kcnv == 0:
+        # If there is deep convection turn off shallow convection
+        if kcnv == 1:
             cnvflg = False
 
         if cnvflg:
@@ -226,7 +227,7 @@ def init_final(
 
     with computation(FORWARD), interval(0, 1):
         flg = cnvflg
-        kpbl = 1
+        kpbl = 0
 
     with computation(FORWARD), interval(1, -1):
         # Find the index for the PBL top using the PBL height; enforce
@@ -328,7 +329,7 @@ def stencil_static0(
     with computation(FORWARD), interval(0, 1):
         if cnvflg:
             hmax = heo
-            kb = 1
+            kb = 0
 
     with computation(FORWARD), interval(1, None):
         if (cnvflg) and (k_mask <= kpbl):
@@ -448,7 +449,6 @@ def stencil_static1(
                     kbcon = k_mask
                     flg = False
 
-        # To make all slices like the final slice
         with interval(-1, None):
             if cnvflg:
                 if kbcon == kmax:
@@ -1834,7 +1834,7 @@ def feedback_control_update_mass_flux(
                 rn = 0.0
             ktop = ktcon
             kbot = kbcon
-            kcnv = 1
+            kcnv = 2
 
     with computation(FORWARD), interval(...):
         # convective cloud water
