@@ -18,8 +18,13 @@ RUN apt-get update -y && \
     libopenmpi-dev \
     libhdf5-serial-dev \
     libffi-dev \
+    libssl-dev \
     netcdf-bin \
     libnetcdf-dev
+
+RUN wget -O - https://www.openssl.org/source/openssl-1.1.1u.tar.gz | tar zxf - && \
+    cd openssl-1.1.1u && \
+    ./config --prefix=/usr/local
 
 # RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh -O ~/miniforge.sh && \
 #     mkdir -p /root/.conda && \
@@ -30,15 +35,20 @@ COPY --from=continuumio/miniconda3:4.12.0 /opt/conda /opt/conda
 
 ENV PATH=/opt/conda/bin:$PATH
 
-# Usage examples
+# Use conda to unstall RTE-RRTMGP
 RUN set -ex && \
     conda config --set always_yes yes --set changeps1 no && \
+    conda config --set ssl_verify false && \
+    conda config --env --set subdir linux-64 && \
     conda info -a && \
     conda config --append channels conda-forge && \
-    conda install --quiet --freeze-installed -c main conda-pack
+    conda install --quiet --freeze-installed -c main conda-pack && \
+    conda install -c conda-forge ninja && \
+    conda install -vv -c conda-forge rte_rrtmgp
 
-# # Add channels to get pyrte-rrtmgp
-# RUN conda config --add channels conda-forge
+# Install pyrte_rrtmgp via conda
+# RUN conda install -vv -c conda-forge pyrte_rrtmgp
+# RUN conda install conda-forgwe::pyrte_rrtmgp
 
 RUN python3 -m pip install --upgrade setuptools pip wheel
 
@@ -50,11 +60,12 @@ RUN which pip
 
 COPY ./ /pySHiELD/
 
-# Install pyrte_rrtmgp via conda
-RUN conda install -vvv -c conda-forge pyrte_rrtmgp
-
 # Install pySHiELD and the full dependencies
 RUN pip install -e pySHiELD[develop]
+
+RUN git clone -b versions https://github.com/oelbert/pyRTE-RRTMGP.git && \
+    cd pyRTE-RRTMGP && \ 
+    pip install -e .
 
 RUN pip install \
     matplotlib \
