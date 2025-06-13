@@ -2,7 +2,7 @@ import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp, log, log10
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
@@ -13,6 +13,56 @@ from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
 from pySHiELD.stencils.microphysics import Microphysics
 
+
+def calc_p_lay_hydro(
+    p_level: FloatField,
+    p_layer: FloatField,
+):
+    """
+    stencil to calculate hydrostatic layer mean pressure
+    from level (interface) pressure
+    """
+    with computation(PARALLEL), interval(0, -1):
+        p_layer = (p_level - p_level[0, 0, -1]) / log10(p_level / p_level[0, 0, -1])
+
+def calc_p_lay_nonhydro(
+    delp: FloatField,
+    delz: FloatField,
+    t_layer: FloatField,
+    qvapor: FloatField,
+    p_layer: FloatField,
+):
+    """
+    stencil to calculate nonhydrostatic layer mean pressure
+    """
+    with computation(PARALLEL), interval(0, -1):
+        tmp = constants.RDGAS * t_layer * (1 + constants.ZVIR * qvapor)
+        p_layer = delp / (constants.GRAV * delz) * tmp
+
+def calc_tlvl(
+    t_layer: FloatField,
+    t_skin: FloatFieldIJ,
+    p_level: FloatField,
+    p_layer: FloatField,
+    t_level: FloatField,
+):
+    """
+    Stencil to calculate level (interface) temperatures from
+    level temperatures, level pressures, and layer pressures
+    """
+    with computation(PARALLEL):
+        with interval(0, 1):
+            t_level = t_skin
+        with interval(1, None):
+            t_level = t_layer[0, 0, -1] + (
+                t_layer - t_layer[0, 0, -1]
+            ) * (
+                log(p_level) - log(p_layer[0, 0, -1])
+            ) / (
+                log(p_layer) - log(p_layer[0, 0, -1])
+            )
+        # with interval(-1, None):
+        #     t_level = t_layer[0, 0, -1]
 
 def interpolate_radiation(
     sinlat: FloatFieldIJ,
