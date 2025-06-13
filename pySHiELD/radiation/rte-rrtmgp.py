@@ -21,10 +21,17 @@ class RadiationDriver:
 
     def _accumulate_radiation_inputs(state: PhysicsState):
         """
-        For RTE-RRTMGP we need profiles of temperature, pressure, and the species used
-        for the spectral calculations (humidity, C02, etc.).
-        Here we extract that info from the model state.
+        For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
+        the species used for the spectral calculations:
+            humidity, cloud water (and size), cloud ice (and size),
+            CO2, O3, N2O, N2, O2, CH4, CO
+        albedo and surface emissivities, the solar zenith angle, and what points are
+        in daylight (to determine if the SW solver is called for them)
+        Here we extract that info from the model state and time.
         """
+        pass
+
+    def _prep_outputs(self):
         pass
 
     def step_radiation(self, state: PhysicsState):
