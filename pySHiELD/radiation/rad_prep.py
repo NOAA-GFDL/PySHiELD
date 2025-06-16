@@ -5,10 +5,12 @@ import numpy as np
 
 import ndsl.constants as constants
 import pySHiELD.functions.microphysics_funcs as functions
+from pathlib import Path
 from ndsl import Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval, sin, cos, acos, min, max
 from ndsl.dsl.typing import Float, FloatFieldIJ, BoolFieldIJ
+from ndsl.logging import ndsl_log
 
 CCR = 1.3e-6  # iteration limit
 CYEAR = 365.25  # days of year
@@ -18,7 +20,137 @@ CZLIMT = 0.0001  # ~ cos(89.99427)
 JDOR  = 2415020  # jd of epoch which is january 0, 1900 at 12 hours ut
 
 CON_SOLR = 1.3608e+3
+CON_SOLR_OLD =1.3660e+3
 SMON_SAV = [CON_SOLR for i in range(12)]
+
+
+def read_NOAA_solar_file(solar_fname: Path) -> dict:
+    """
+    function to read in a file of solar constants structured as:
+        first_year last_year first_cycle last_cycle mean_value info_string
+        year solar_constant
+        year solar_constant
+        . . .
+        . .
+        .  .
+        *******************************************************************
+        data_arrangement_info
+    and parses the data into a dict of the format:
+        iyr1: first_year
+        iyr2: last_year
+        icy1: first_cycle
+        icy2: last_cycle
+        smean: mean_value
+        constants:
+            year: solar_constant
+    """
+    solar_constant_data = {}
+    solar_constant_data["constants"] = {}
+    sol_file = open(solar_fname)
+    for i, line in enumerate(sol_file):
+        if line.split():  # skip blank lines
+            table_dat = line.split()
+            if i == 0:
+                solar_constant_data["iyr1"] = int(table_dat[0])
+                solar_constant_data["iyr2"] = int(table_dat[1])
+                solar_constant_data["icy1"] = int(table_dat[2])
+                solar_constant_data["icy2"] = int(table_dat[3])
+                solar_constant_data["smean"] = float(table_dat[4])
+            elif line[0][:4] == "****":
+                break  # end at the asterisks
+            else:
+                year = int(table_dat[0])
+                solar_constant = float(table_dat[1])
+                solar_constant_data["constants"][year] = solar_constant
+
+    return solar_constant_data
+
+def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolflg: int):
+    if not solar_constant_data:
+        raise RuntimeError("assign_solar_constant_from_data received an empty data dictionary!")
+    icy1 = solar_constant_data["icy1"]
+    icy2 = solar_constant_data["icy2"]
+    iyr1 = solar_constant_data["iyr1"]
+    iyr2 = solar_constant_data["iyr2"]
+    
+    iyr = year
+    # Check cycle range
+    if iyr < iyr1:
+        icy = icy1 - iyr1 + 1  # range of the earlest cycle in data table
+        while iyr < iyr1:
+            iyr += icy
+        ndsl_log.info(f"year {year} out of table range, using closest cycle year {iyr}")
+    elif iyr > iyr2:
+        icy = iyr2 - icy2 + 1  # range of the latest cycle in data table
+        while iyr > iyr2:
+            iyr -= icy
+        ndsl_log.info(f"year {year} out of table range, using closest cycle year {iyr}")
+    if isolflg < 4:
+        solc1 = solar_constant_data["constants"][iyr]
+        solc0 = solc1 + solar_constant_data['smean']
+    else:
+        raise NotImplementedError(f"isol {isolflg} solar constant data assignment has not been implemented yet")
+
+
+def sol_init(
+    isolar: int,
+    solar_file_path: str,
+    year: int,
+):
+    """
+    !  ===================================================================  !
+    !                                                                       !
+    !  initialize astronomy process, set up module constants.               !
+    !                                                                       !
+    !  inputs:                                                              !
+    !     me      - print message control flag                              !
+    !                                                                       !
+    !  outputs:  (to module variable)                                       !
+    !     ( none )                                                          !
+    !                                                                       !
+    !  external module variable: (in physparam)                             !
+    !   isolar    - = 0: use the old fixed solar constant in "physcon"      !
+    !               =10: use the new fixed solar constant in "physcon"      !
+    !               = 1: use noaa ann-mean tsi tbl abs-scale with cyc apprx !
+    !               = 2: use noaa ann-mean tsi tbl tim-scale with cyc apprx !
+    !               = 3: use cmip5 ann-mean tsi tbl tim-scale with cyc apprx!
+    !               = 4: use cmip5 mon-mean tsi tbl tim-scale with cyc apprx!
+    !   solar_file- external solar constant data table                      !
+    !                                                                       !
+    !  internal module variable:                                            !
+    !   isolflg   - internal solar constant scheme control flag             !
+    !   solc0     - solar constant  (w/m**2)                                !
+    !   solar_fname-file name for solar constant table assigned based on    !
+    !               the scheme control flag, isolflg.                       !
+    !                                                                       !
+    !  usage:    call sol_init                                              !
+    !                                                                       !
+    !  subprograms called:  none                                            !
+    !                                                                       !
+    !  ===================================================================  !
+    """
+    isolflg = isolar
+    sol_const_data = {}
+    if isolar == 0:
+        solc0 = CON_SOLR_OLD
+        ndsl_log.info(f" - Using old fixed solar constant ={solc0}")
+    elif isolar == 10:
+        solc0 = CON_SOLR
+        ndsl_log.info(f" - Using new fixed solar constant ={solc0}")
+    elif isolar == 2:  # noaa ann-mean tsi in tim scale
+        ndsl_log.info(f" - Using NOAA annual mean TSI table in TIM scale with cycle approximation (new values)!")
+        sol_file = Path(solar_file_path)
+        if not sol_file.is_file():
+            ndsl_log.warning(f"Requested solar data file {solar_file_path} not found! Using the default solar constant value {CON_SOLR}")
+            isolflg = 10
+            solc0 = CON_SOLR
+        else:
+            sol_const_data = read_NOAA_solar_file(sol_file)
+            solc0 = assign_solar_constant_from_data(sol_const_data, year)
+    else:
+        raise NotImplementedError(f"isolar {isolar} not implemented. Current options are 0, 2, and 10")
+
+    return isolflg, solc0, sol_const_data
 
 def solar(
     jd: int,
@@ -146,6 +278,7 @@ def solar_update(
     lsol_chg: bool,
     iyr_sav: int,
     isolflg: bool,
+    solar_constant_data: dict = None,
 ):
     """
     !  ===================================================================  !
