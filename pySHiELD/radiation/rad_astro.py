@@ -18,6 +18,9 @@ SVT6  = 78.035  # days between perihelion passage and march equinox of 1900
 TPP = 1.55  # days between epoch and perihelion passage of 1900
 CZLIMT = 0.0001  # ~ cos(89.99427)
 JDOR  = 2415020  # jd of epoch which is january 0, 1900 at 12 hours ut
+HRDAY = 1.0/24.0  # 1 hour in days
+MINDAY= 1.0/1440.0  # 1 minute in days
+SECDAY= 1.0/86400.0  # 1 second in days
 
 CON_SOLR = 1.3608e+3
 CON_SOLR_OLD =1.3660e+3
@@ -90,6 +93,7 @@ def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolfl
         solc0 = solc1 + solar_constant_data['smean']
     else:
         raise NotImplementedError(f"isol {isolflg} solar constant data assignment has not been implemented yet")
+    return solc0
 
 
 def sol_init(
@@ -150,7 +154,7 @@ def sol_init(
     else:
         raise NotImplementedError(f"isolar {isolar} not implemented. Current options are 0, 2, and 10")
 
-    return isolflg, solc0, sol_const_data
+    return isolflg, sol_const_data, solc0
 
 def solar(
     jd: int,
@@ -337,17 +341,48 @@ def solar_update(
     isec  = sdate[6]
     if lsol_chg:  # get solar constant from data table
         if iyear == iyr_sav: # same year, no new reading necessary
-            if isolflg:
-                solc0 = SMON_SAV[imon]
+            if isolflg == 4:
+                raise NotImplementedError("isolflg = 4 not implemented")
         else:  # need to read in new data
             iyr_sav = iyear
             # TODO finish all of this
+        solc0 = assign_solar_constant_from_data(solar_constant_data, iyear, isolflg)
+
     
     # calculate forecast julian day and fraction of julian day
     jd1 = iw3jdn(iyear, imon, iday) # TODO!!!!
 
-    pass
-    return slag, sdec, cdec, solcon
+    # unlike in normal applications, where day starts from 0 hr,
+    # in astronomy applications, day stats from noon.
+    if ihr < 12:
+        jd1 -= 1
+        fjd1= 0.5 + float(ihr)*HRDAY + float(imin)*MINDAY + float(isec)*SECDAY
+    else:
+        fjd1= float(ihr - 12)*HRDAY + float(imin)*MINDAY + float(isec)*SECDAY
+    fjd1  = fjd1 + jd1
+    jd  = int(fjd1)
+    fjd = fjd1 - jd
+
+    r1, dlt, alp, slag, sdec, cdec = solar(jd, fjd)
+    #calculate sun-earth distance adjustment factor appropriate to date
+    solcon = solc0 / (r1*r1)
+
+    # TODO: Print out solar info and time here
+
+    # setting up calculation parameters used by subr coszmn
+
+    nswr  = round(deltsw / deltim)         # number of mdl t-step per sw call
+    dtswh = deltsw / 3600.0                # time length in hours
+
+    if deltsw >= 3600.0:  # for longer sw call interval
+        nn   = max(6, min(12, round(3600.0/deltim) ))  # num of calc per hour
+        nstp = round(dtswh) * nn + 1  # num of calc per sw call
+    else:  # for shorter sw sw call interval
+        nstp = max(2, min(20, nswr)) + 1
+
+    anginc = (constants.PI / 12.0) * dtswh / float(nstp-1)          # solar angle inc during each calc step
+
+    return slag, sdec, cdec, anginc, solcon, solc0, nstp, iyr_sav
 
 
 def coszmn(
