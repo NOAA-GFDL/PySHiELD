@@ -64,7 +64,7 @@ COPY ./ /pySHiELD/
 RUN pip install -e pySHiELD[develop]
 
 RUN git clone -b versions https://github.com/oelbert/pyRTE-RRTMGP.git && \
-    cd pyRTE-RRTMGP && \ 
+    cd pyRTE-RRTMGP && \
     pip install -e .
 
 RUN pip install \

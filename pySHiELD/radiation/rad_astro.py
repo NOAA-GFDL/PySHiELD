@@ -1,30 +1,63 @@
-import copy
-import typing
+from pathlib import Path
 
 import numpy as np
 
 import ndsl.constants as constants
-import pySHiELD.functions.microphysics_funcs as functions
-from pathlib import Path
-from ndsl import Quantity, QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval, sin, cos, acos, min, max
-from ndsl.dsl.typing import Float, FloatFieldIJ, BoolFieldIJ
+from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval, max, min, sin
+from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ
 from ndsl.logging import ndsl_log
+
 
 CCR = 1.3e-6  # iteration limit
 CYEAR = 365.25  # days of year
-SVT6  = 78.035  # days between perihelion passage and march equinox of 1900
+SVT6 = 78.035  # days between perihelion passage and march equinox of 1900
 TPP = 1.55  # days between epoch and perihelion passage of 1900
 CZLIMT = 0.0001  # ~ cos(89.99427)
-JDOR  = 2415020  # jd of epoch which is january 0, 1900 at 12 hours ut
-HRDAY = 1.0/24.0  # 1 hour in days
-MINDAY= 1.0/1440.0  # 1 minute in days
-SECDAY= 1.0/86400.0  # 1 second in days
+JDOR = 2415020  # jd of epoch which is january 0, 1900 at 12 hours ut
+HRDAY = 1.0 / 24.0  # 1 hour in days
+MINDAY = 1.0 / 1440.0  # 1 minute in days
+SECDAY = 1.0 / 86400.0  # 1 second in days
 
-CON_SOLR = 1.3608e+3
-CON_SOLR_OLD =1.3660e+3
+CON_SOLR = 1.3608e3
+CON_SOLR_OLD = 1.3660e3
 SMON_SAV = [CON_SOLR for i in range(12)]
+
+
+def date_to_julian(iyear: int, imonth: int, iday: int) -> int:
+    """
+    Converts integer day, month, and year to julian day number.
+    Fortran name is iw3jdn:
+    Computes julian day number from year (4 digits), month,
+    and day. iw3jdn is valid for years 1583 a.d. to 3300 a.d.
+    Julian day number can be used to compute day of week, day of
+    year, record numbers in an archive, replace day of century,
+    find the number of days between two dates.
+    Program history log:
+    - Ralph Jones 1987-03-29
+    - Ralph Jones 1989-10-25 Convert to cray cft77 fortran.
+    @param[in] IYEAR Integer year (4 Digits)
+    @param[in] MONTH Integer month of year (1 - 12)
+    @param[in] IDAY Integer day of month (1 - 31)
+    @return IW3JDN Integer Julian day number
+    - Jan 1, 1960 is Julian day number 2436935
+    - Jan 1, 1987 is Julian day number 2446797
+
+    Args:
+        iday (int): day of month (1-31)
+        imonth (int): month number (1-12)
+        iyear (int): 4-digit year
+
+    Returns:
+        jdn (int): julian day number, i.e. days since 01/01 4713 BC
+    """
+    jdn = int(
+        iday
+        - 32075
+        + 1461 * (iyear + 4800 + (imonth - 14) / 12) / 4
+        + 367 * (imonth - 2 - (imonth - 14) / 12 * 12) / 12
+        - 3 * ((iyear + 4900 + (imonth - 14) / 12) / 100) / 4
+    )
+    return jdn
 
 
 def read_NOAA_solar_file(solar_fname: Path) -> dict:
@@ -38,6 +71,7 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
         .  .
         *******************************************************************
         data_arrangement_info
+
     and parses the data into a dict of the format:
         iyr1: first_year
         iyr2: last_year
@@ -47,7 +81,7 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
         constants:
             year: solar_constant
     """
-    solar_constant_data = {}
+    solar_constant_data: dict = {}
     solar_constant_data["constants"] = {}
     sol_file = open(solar_fname)
     for i, line in enumerate(sol_file):
@@ -68,14 +102,17 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
 
     return solar_constant_data
 
+
 def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolflg: int):
     if not solar_constant_data:
-        raise RuntimeError("assign_solar_constant_from_data received an empty data dictionary!")
+        raise RuntimeError(
+            "assign_solar_constant_from_data received an empty data dictionary!"
+        )
     icy1 = solar_constant_data["icy1"]
     icy2 = solar_constant_data["icy2"]
     iyr1 = solar_constant_data["iyr1"]
     iyr2 = solar_constant_data["iyr2"]
-    
+
     iyr = year
     # Check cycle range
     if iyr < iyr1:
@@ -90,9 +127,12 @@ def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolfl
         ndsl_log.info(f"year {year} out of table range, using closest cycle year {iyr}")
     if isolflg < 4:
         solc1 = solar_constant_data["constants"][iyr]
-        solc0 = solc1 + solar_constant_data['smean']
+        solc0 = solc1 + solar_constant_data["smean"]
     else:
-        raise NotImplementedError(f"isol {isolflg} solar constant data assignment has not been implemented yet")
+        raise NotImplementedError(
+            f"isol {isolflg} solar constant data assignment "
+            "has not been implemented yet"
+        )
     return solc0
 
 
@@ -142,19 +182,28 @@ def sol_init(
         solc0 = CON_SOLR
         ndsl_log.info(f" - Using new fixed solar constant ={solc0}")
     elif isolar == 2:  # noaa ann-mean tsi in tim scale
-        ndsl_log.info(f" - Using NOAA annual mean TSI table in TIM scale with cycle approximation (new values)!")
+        ndsl_log.info(
+            " - Using NOAA annual mean TSI table in TIM scale "
+            "with cycle approximation (new values)!"
+        )
         sol_file = Path(solar_file_path)
         if not sol_file.is_file():
-            ndsl_log.warning(f"Requested solar data file {solar_file_path} not found! Using the default solar constant value {CON_SOLR}")
+            ndsl_log.warning(
+                f"Requested solar data file {solar_file_path} not found! "
+                f"Using the default solar constant value {CON_SOLR}"
+            )
             isolflg = 10
             solc0 = CON_SOLR
         else:
             sol_const_data = read_NOAA_solar_file(sol_file)
-            solc0 = assign_solar_constant_from_data(sol_const_data, year)
+            solc0 = assign_solar_constant_from_data(sol_const_data, year, isolflg)
     else:
-        raise NotImplementedError(f"isolar {isolar} not implemented. Current options are 0, 2, and 10")
+        raise NotImplementedError(
+            f"isolar {isolar} not implemented. Current options are 0, 2, and 10"
+        )
 
     return isolflg, sol_const_data, solc0
+
 
 def solar(
     jd: int,
@@ -193,24 +242,24 @@ def solar(
     # computes length of anomalistic and tropical years (minus 365 days)
 
     year = 0.25964134e0 + 0.304e-5 * t1
-    tyear= 0.24219879E0 - 0.614e-5 * t1
+    tyear = 0.24219879e0 - 0.614e-5 * t1
 
     # computes orbit eccentricity and angle of earth's inclination from t
 
-    ec   = 0.01675104e0 - (0.418e-4 + 0.126e-6 * t1) * t1
-    angin= 23.452294e0 - (0.0130125e0 + 0.164e-5 * t1) * t1
+    ec = 0.01675104e0 - (0.418e-4 + 0.126e-6 * t1) * t1
+    angin = 23.452294e0 - (0.0130125e0 + 0.164e-5 * t1) * t1
 
     ador = JDOR
     jdoe = ador + (SVT6 * CYEAR) / (year - tyear)
 
     # deleqn is updated svt6 for current date
 
-    deleqn= float(jdoe - jd) * (year - tyear) / CYEAR
-    year  = year + 365.0
-    sni   = np.sin( angin / (180. / constants.PI) )
-    tini  = 1.0 / np.tan( angin / (180. / constants.PI) )
-    er    = np.sqrt( (1.0 + ec) / (1.0 - ec) )
-    qq    = deleqn * 2. * constants.PI / year
+    deleqn = float(jdoe - jd) * (year - tyear) / CYEAR
+    year = year + 365.0
+    sni = np.sin(angin / (180.0 / constants.PI))
+    tini = 1.0 / np.tan(angin / (180.0 / constants.PI))
+    er = np.sqrt((1.0 + ec) / (1.0 - ec))
+    qq = deleqn * 2.0 * constants.PI / year
 
     # determine true anomaly at equinox
     e1 = 1.0
@@ -218,7 +267,7 @@ def solar(
     iter = 0
 
     while cd > CCR:
-        ep = e1 - (e1 - ec*np.sin(e1) - qq) / (1.0 - ec*np.cos(e1))
+        ep = e1 - (e1 - ec * np.sin(e1) - qq) / (1.0 - ec * np.cos(e1))
         cd = abs(e1 - ep)
         e1 = ep
         iter = iter + 1
@@ -227,51 +276,52 @@ def solar(
             print(f"E, EP, CD =', {e1}, {ep}, {cd}")
             break
 
-    eq   = 2.0 * np.atan( er * np.tan( 0.5*e1 ) )
+    eq = 2.0 * np.atan(er * np.tan(0.5 * e1))
 
     # date is days since last perihelion passage
 
-    dat  = float(jd - JDOR) - TPP + fjd
+    dat = float(jd - JDOR) - TPP + fjd
     date = dat % year
 
     # solve orbit equations by newton's method
 
-    em   = 2. * constants.PI * date / year
-    e1   = 1.0
-    cr   = 1.0
+    em = 2.0 * constants.PI * date / year
+    e1 = 1.0
+    cr = 1.0
     iter = 0
 
     while cr > CCR:
-        ep   = e1 - (e1 - ec*np.sin(e1) - em) / (1.0 - ec*np.cos(e1))
-        cr   = abs(e1 - ep)
-        e1   = ep
+        ep = e1 - (e1 - ec * np.sin(e1) - em) / (1.0 - ec * np.cos(e1))
+        cr = abs(e1 - ep)
+        e1 = ep
         iter = iter + 1
 
         if iter > 10:
             print(f"ITERATION COUNT FOR LOOP 31 = {iter}")
             break
 
-    w1   = 2.0 * np.atan( er * np.tan( 0.5*e1 ) )
+    w1 = 2.0 * np.atan(er * np.tan(0.5 * e1))
 
-    r1   = 1.0 - ec*np.cos(e1)
+    r1 = 1.0 - ec * np.cos(e1)
 
     sindec = sni * sin(w1 - eq)
-    cosdec = np.sqrt( 1.0 - sindec*sindec )
+    cosdec = np.sqrt(1.0 - sindec * sindec)
 
-    dlt  = np.asin( sindec )
-    alp  = np.asin( np.tan(dlt)*tini )
+    dlt = np.asin(sindec)
+    alp = np.asin(np.tan(dlt) * tini)
 
-    tst  = cos( w1 - eq )
+    tst = cos(w1 - eq)
     if tst < 0.0:
         alp = constants.PI - alp
     if alp < 0.0:
-        alp = alp + 2. * constants.PI
+        alp = alp + 2.0 * constants.PI
 
-    sun  = 2. * constants.PI * (date - deleqn) / year
+    sun = 2.0 * constants.PI * (date - deleqn) / year
     if sun < 0.0:
-        sun = sun + 2. * constants.PI
+        sun = sun + 2.0 * constants.PI
     sollag = sun - alp - 0.03255e0
     return r1, dlt, alp, sollag, sindec, cosdec
+
 
 def solar_update(
     jdate: list[int],
@@ -334,13 +384,13 @@ def solar_update(
     !  ===================================================================  !
     """
     iyear = sdate[0]
-    imon  = sdate[1]
-    iday  = sdate[2]
-    ihr   = sdate[4]
-    imin  = sdate[5]
-    isec  = sdate[6]
+    imon = sdate[1]
+    iday = sdate[2]
+    ihr = sdate[4]
+    imin = sdate[5]
+    isec = sdate[6]
     if lsol_chg:  # get solar constant from data table
-        if iyear == iyr_sav: # same year, no new reading necessary
+        if iyear == iyr_sav:  # same year, no new reading necessary
             if isolflg == 4:
                 raise NotImplementedError("isolflg = 4 not implemented")
         else:  # need to read in new data
@@ -348,39 +398,40 @@ def solar_update(
             # TODO finish all of this
         solc0 = assign_solar_constant_from_data(solar_constant_data, iyear, isolflg)
 
-    
     # calculate forecast julian day and fraction of julian day
-    jd1 = iw3jdn(iyear, imon, iday) # TODO!!!!
+    jd1 = date_to_julian(iyear, imon, iday)
 
     # unlike in normal applications, where day starts from 0 hr,
-    # in astronomy applications, day stats from noon.
+    # julian day numbers, day stats from noon.
     if ihr < 12:
         jd1 -= 1
-        fjd1= 0.5 + float(ihr)*HRDAY + float(imin)*MINDAY + float(isec)*SECDAY
+        fjd1 = 0.5 + float(ihr) * HRDAY + float(imin) * MINDAY + float(isec) * SECDAY
     else:
-        fjd1= float(ihr - 12)*HRDAY + float(imin)*MINDAY + float(isec)*SECDAY
-    fjd1  = fjd1 + jd1
-    jd  = int(fjd1)
+        fjd1 = float(ihr - 12) * HRDAY + float(imin) * MINDAY + float(isec) * SECDAY
+    fjd1 = fjd1 + jd1
+    jd = int(fjd1)
     fjd = fjd1 - jd
 
     r1, dlt, alp, slag, sdec, cdec = solar(jd, fjd)
-    #calculate sun-earth distance adjustment factor appropriate to date
-    solcon = solc0 / (r1*r1)
+    # calculate sun-earth distance adjustment factor appropriate to date
+    solcon = solc0 / (r1 * r1)
 
     # TODO: Print out solar info and time here
 
     # setting up calculation parameters used by subr coszmn
 
-    nswr  = round(deltsw / deltim)         # number of mdl t-step per sw call
-    dtswh = deltsw / 3600.0                # time length in hours
+    nswr = round(deltsw / deltim)  # number of mdl t-step per sw call
+    dtswh = deltsw / 3600.0  # time length in hours
 
     if deltsw >= 3600.0:  # for longer sw call interval
-        nn   = max(6, min(12, round(3600.0/deltim) ))  # num of calc per hour
+        nn = max(6, min(12, round(3600.0 / deltim)))  # num of calc per hour
         nstp = round(dtswh) * nn + 1  # num of calc per sw call
     else:  # for shorter sw sw call interval
         nstp = max(2, min(20, nswr)) + 1
 
-    anginc = (constants.PI / 12.0) * dtswh / float(nstp-1)          # solar angle inc during each calc step
+    anginc = (
+        (constants.PI / 12.0) * dtswh / float(nstp - 1)
+    )  # solar angle inc during each calc step
 
     return slag, sdec, cdec, anginc, solcon, solc0, nstp, iyr_sav
 
@@ -397,7 +448,7 @@ def coszmn(
     anginc: Float,
     coszen: FloatFieldIJ,
     coszdg: FloatFieldIJ,
-    daymask: BoolFieldIJ
+    daymask: BoolFieldIJ,
 ):
     """
     !  ===================================================================  !
@@ -437,16 +488,18 @@ def coszmn(
 
     with computation(PARALLEL), interval(0, 1):
         daymask = False
-        
-        solar_angle = (constants.PI / 12.0) * (solhr - 12.0) #  solar angle at present time
-        rstp = 1. / nstp
+
+        solar_angle = (constants.PI / 12.0) * (
+            solhr - 12.0
+        )  # solar angle at present time
+        rstp = 1.0 / nstp
 
         coszen = 0.0
         istsun = 0
 
         iter = 0
         while iter > nstp:
-            cns = solar_angle + (iter-1.0)* anginc + sollag
+            cns = solar_angle + (iter - 1.0) * anginc + sollag
             if fixed_sollat:
                 ss = sin(sollat * constants.PI / 180.0) * sindec
                 cc = cos(sollat * constants.PI / 180.0) * cosdec
@@ -455,23 +508,22 @@ def coszmn(
                 cc = coslat * cosdec
 
             if iter == 0:
-                h = acos(min(max(-ss/cc, -1.), 1.))
-                coszenm = ss * h / constants.PI + cc * (
-                    sin(h) - sin(-h)
-                ) / (2 * constants.PI)
+                h = acos(min(max(-ss / cc, -1.0), 1.0))
+                coszenm = ss * h / constants.PI + cc * (sin(h) - sin(-h)) / (
+                    2 * constants.PI
+                )
             coszn = ss + cc * cos(cns + xlon)
             coszen = coszen + max(0.0, coszn)
-            if (coszn > CZLIMT):
+            if coszn > CZLIMT:
                 istsun = istsun + 1
             iter += 1
 
         coszdg = coszen * rstp
         if istsun > 0:
             coszen = coszen / istsun
-        
+
         if daily_mean:
             coszdg = coszenm
             coszen = coszenm
         if coszen >= 0.0001:
             daymask = True
-

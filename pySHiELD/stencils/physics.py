@@ -2,9 +2,9 @@ import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp, log, log10
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import interval, log
+from ndsl.dsl.gt4py import interval, log, log10
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
@@ -25,6 +25,7 @@ def calc_p_lay_hydro(
     with computation(PARALLEL), interval(0, -1):
         p_layer = (p_level - p_level[0, 0, -1]) / log10(p_level / p_level[0, 0, -1])
 
+
 def calc_p_lay_nonhydro(
     delp: FloatField,
     delz: FloatField,
@@ -38,6 +39,7 @@ def calc_p_lay_nonhydro(
     with computation(PARALLEL), interval(0, -1):
         tmp = constants.RDGAS * t_layer * (1 + constants.ZVIR * qvapor)
         p_layer = delp / (constants.GRAV * delz) * tmp
+
 
 def calc_tlvl(
     t_layer: FloatField,
@@ -54,15 +56,12 @@ def calc_tlvl(
         with interval(0, 1):
             t_level = t_skin
         with interval(1, None):
-            t_level = t_layer[0, 0, -1] + (
-                t_layer - t_layer[0, 0, -1]
-            ) * (
+            t_level = t_layer[0, 0, -1] + (t_layer - t_layer[0, 0, -1]) * (
                 log(p_level) - log(p_layer[0, 0, -1])
-            ) / (
-                log(p_layer) - log(p_layer[0, 0, -1])
-            )
+            ) / (log(p_layer) - log(p_layer[0, 0, -1]))
         # with interval(-1, None):
         #     t_level = t_layer[0, 0, -1]
+
 
 def interpolate_radiation(
     sinlat: FloatFieldIJ,

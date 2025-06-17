@@ -19,7 +19,7 @@ class RadiationDriver:
     def __init__(self, config: RadiationConfig):
         pass
 
-    def _accumulate_radiation_inputs(state: PhysicsState):
+    def _accumulate_radiation_inputs(self, state: PhysicsState):
         """
         For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
         the species used for the spectral calculations:
