@@ -104,6 +104,17 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
 
 
 def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolflg: int):
+    """Gets solar constant for a year based on a dict of observed constants
+
+    Args:
+        solar_constant_data (dict): dictionary mapping years to
+            the solar constants of those years
+        year (int): Year to find the solar constant for
+        isolflg (int): flag determining the type of data
+
+    Returns:
+        solc0: the solar constant for the given year
+    """
     if not solar_constant_data:
         raise RuntimeError(
             "assign_solar_constant_from_data received an empty data dictionary!"
@@ -127,7 +138,7 @@ def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolfl
         ndsl_log.info(f"year {year} out of table range, using closest cycle year {iyr}")
     if isolflg < 4:
         solc1 = solar_constant_data["constants"][iyr]
-        solc0 = solc1 + solar_constant_data["smean"]
+        solc0: float = solc1 + solar_constant_data["smean"]
     else:
         raise NotImplementedError(
             f"isol {isolflg} solar constant data assignment "
@@ -138,10 +149,13 @@ def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolfl
 
 def sol_init(
     isolar: int,
-    solar_file_path: str,
+    solar_constant_file: Path,
     year: int,
 ):
     """
+    Initializes solar constant data and sol flag used at runtime
+    based on requested sol flag, external solar data, and starting year
+    Original fortran docstring follows:
     !  ===================================================================  !
     !                                                                       !
     !  initialize astronomy process, set up module constants.               !
@@ -186,16 +200,15 @@ def sol_init(
             " - Using NOAA annual mean TSI table in TIM scale "
             "with cycle approximation (new values)!"
         )
-        sol_file = Path(solar_file_path)
-        if not sol_file.is_file():
+        if not solar_constant_file.is_file():
             ndsl_log.warning(
-                f"Requested solar data file {solar_file_path} not found! "
+                f"Requested solar data file {solar_constant_file} not found! "
                 f"Using the default solar constant value {CON_SOLR}"
             )
             isolflg = 10
             solc0 = CON_SOLR
         else:
-            sol_const_data = read_NOAA_solar_file(sol_file)
+            sol_const_data = read_NOAA_solar_file(solar_constant_file)
             solc0 = assign_solar_constant_from_data(sol_const_data, year, isolflg)
     else:
         raise NotImplementedError(
@@ -335,6 +348,8 @@ def solar_update(
     solar_constant_data: dict = None,
 ):
     """
+    Updates solar parameters during model steps, including solar constant
+    and incident angle data. Original Fortran docstring follows:
     !  ===================================================================  !
     !                                                                       !
     !  sol_update computes solar parameters at forecast time                !
