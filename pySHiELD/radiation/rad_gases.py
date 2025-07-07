@@ -4,7 +4,7 @@ import numpy as np
 
 import ndsl.constants as constants
 from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval, max, min, sin
-from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int
+from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int, Float
 from ndsl.logging import ndsl_log
 
 NDAYS_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 30]
@@ -15,7 +15,114 @@ JMXCO2  = 12  # input co2 data lat points
 RESCO2=15.0  # horizontal resolution in degree
 PRSCO2=788.0  # pressure limitation for 2-d co2 (mb)
 
-def gas_update(iyear, imon, iday, ihour, ioznflg, loz1st, ldoco2, ictmflg, co2dat_file, co2gbl_file):
+
+def read_global_annual_co2(co2gbl_file: Path):
+    """
+    Function to read a text file of CO2 global half-yearly means
+    and growth rates into a model.
+    Assumes a format of:
+    HEADER
+    yyyy     co2  co2   growth_rate   growth_rate
+    Returns a dictionary containing start and end years and mapping year to data
+    """
+    global_annual_co2_data = {}
+    co2_file = open(co2gbl_file)
+    for i, line in enumerate(co2_file):
+        if line.split():  # skip blank lines
+            table_dat = line.split()
+            if i == 0:
+                global_annual_co2_data["start_year"] = Int(table_dat[0])
+                global_annual_co2_data["end_year"] = Int(table_dat[2])
+            elif table_dat[0] == "---":
+                break  # end at the dashes
+            else:
+                year = Int(table_dat[0])
+                global_annual_co2_data[year] = [Float(data) for data in table_dat[1:]]
+    co2_file.close()
+    return global_annual_co2_data
+
+def read_monthly_resolved_co2(co2dat_file: Path):
+    """
+    Function to read a text file of 15-degree CO2 monthly means into a model.
+    Assumes a format of:
+    HEADER
+    24 values (15 degree resolution longitudinally)
+    There should be 144 lines (12 months, resolved 15 degrees latitudinally)
+    Assuming here that it's grouped by month, so 12 lines of January,
+    12 of February, and so on?
+
+    Returns a dictionary mapping month to 2D data
+    """
+    resolved_monthly_co2_data = {}
+    co2_file = open(co2dat_file)
+    imonth = 1
+    for i, line in enumerate(co2_file):
+        if line.split():  # skip blank lines
+            table_dat = line.split()
+            if i == 0:
+                year = Int(table_dat[0])
+                resolved_monthly_co2_data["mean"] = Float(table_dat[16])
+                resolved_monthly_co2_data["growth_rate"] = Float(table_dat[20])
+                resolved_monthly_co2_data["missing"] = Float(table_dat[-1])
+            else:
+                ilat = (i - 1) % 12
+                if ilat == 0:
+                    co2_data = []
+                co2_data.append([Float(data) for data in table_dat])
+                if ilat == 11:
+                    resolved_monthly_co2_data[imonth] = co2_data
+                    imonth += 1
+    co2_file.close()
+    return year, resolved_monthly_co2_data
+
+def read_monthly_cycle_co2(co2cyc_file: Path):
+    """
+    Function to read a text file of 15-degree CO2 monthly deviations into a model.
+    Assumes a format of:
+    HEADER
+    MONTH
+    12 lines of 24 values (15 degree resolution longitudinally)
+    repeated for each month of the year
+
+    Returns a dictionary mapping month to the global mean and 2D data
+    """
+    resolved_monthly_co2_cycle = {}
+    co2_file = open(co2cyc_file)
+    for i, line in enumerate(co2_file):
+        if line.split():  # skip blank lines
+            table_dat = line.split()
+            if i == 0:
+                resolved_monthly_co2_cycle['start_year'] = Int(table_dat[0].split('-')[0])
+                resolved_monthly_co2_cycle['end_year'] = Int(table_dat[0].split('-')[1])
+                resolved_monthly_co2_cycle['annual_mean'] = Float(table_dat[15])
+                resolved_monthly_co2_cycle['growth_rate'] = Float(table_dat[9])
+                resolved_monthly_co2_cycle["missing"] = Float(table_dat[-1])
+                resolved_monthly_co2_cycle['mean'] = []
+            elif i < 13:
+                resolved_monthly_co2_cycle['mean'].append([Float(data) for data in table_dat])
+            else:
+                if table_dat[0] == "MONTH":
+                    imonth = Int(table_dat[2])
+                    resolved_monthly_co2_cycle[imonth] = {}
+                    resolved_monthly_co2_cycle[imonth]["mean"] = Float(table_dat[-1])
+                    resolved_monthly_co2_cycle[imonth]["data"] = []
+                else:
+                    resolved_monthly_co2_cycle[imonth]["data"].append([Float(data) for data in table_dat])
+    co2_file.close()
+    return resolved_monthly_co2_cycle
+
+def gas_update(
+    iyear: Int,
+    imon: Int,
+    iday: Int,
+    ihour: Int,
+    ioznflg,
+    loz1st,
+    ldoco2,
+    ictmflg,
+    co2_annual_means: dict = None,
+    co2_monthly_means: dict = None,
+):
     """
     !  ===================================================================  !
     !                                                                       !
@@ -74,32 +181,32 @@ def gas_update(iyear, imon, iday, ihour, ioznflg, loz1st, ldoco2, ictmflg, co2da
     !  ===================================================================  !
     """
     if not ioznflg:
-        midmon = NDAYS_MONTH[imon] // 2 + 1
+        midmon = NDAYS_MONTH[imon - 1] // 2 + 1
         change = loz1st or ((iday==midmon) and (ihour==0))
 
         if change:
             if iday < midmon:
-                k1oz = ((imon+10) % 12) + 1
+                k1oz = ((imon+10) % 12)
                 midm = NDAYS_MONTH[k1oz]/2 + 1
-                k2oz = imon
+                k2oz = imon - 1
                 midp = NDAYS_MONTH[k1oz] + midmon
             else:
-                k1oz = imon
+                k1oz = imon - 1
                 midm = midmon
-                k2oz = (imon % 12) + 1
+                k2oz = (imon % 12)
                 midp = NDAYS_MONTH[k2oz]/2 + 1 + NDAYS_MONTH[k1oz]
         if (iday < midmon):
             id = iday + NDAYS_MONTH[k1oz]
         else:
             id = iday
-        facoz = float(id - midm) / float(midp - midm)
+        facoz = Float(id - midm) / Float(midp - midm)
 
     if ictmflg < 0:  # use user provided external data
         lextpl = False  # no time extrapolation
         idyr = iyear  # use the model year
     else:  # use historically observed data
         lextpl = ( ictmflg%10) == 1  # flag for data extrapolation
-        idyr   = ictmflg / 10  # year of data source used
+        idyr   = ictmflg // 10  # year of data source used
         if idyr == 0:  # not specified, use model year
             idyr = iyear 
 
@@ -107,90 +214,16 @@ def gas_update(iyear, imon, iday, ihour, ioznflg, loz1st, ldoco2, ictmflg, co2da
     # the form of semi-yearly global mean values.  otherwise,
     # data are monthly mean in horizontal 2-d map.
     if idyr < MINYEAR and ictmflg > 0:
-        raise NotImplementedError(f"")
+        iyr = idyr
+        assert co2_annual_means, f"For CO2 concentrations before {MINYEAR} annual mean data must be provided"
+        if idyr < co2_annual_means["start_year"]:
+            ndsl_log.info(f"{idyr} before data range, using first year: {co2_annual_means["start_year"]}")
+            iyr = co2_annual_means["start_year"]
+        co2_glb = co2_annual_means[iyr][0] + co2_annual_means[iyr][1] * 0.5e-6
+    else:
+        assert co2_monthly_means, f"for {idyr} monthly mean data must be provided"
+        
 
-def read_global_annual_co2(co2gbl_file: Path):
-    """
-    Function to read a text file of CO2 global half-yearly means and growth rates into a model.
-    Assumes a format of:
-    HEADER
-    yyyy     co2  co2   growth_rate   growth_rate
-    Returns a dictionary mapping year to data
-    """
-    global_annual_co2_data = {}
-    co2_file = open(co2gbl_file)
-    for i, line in enumerate(co2_file):
-        if line.split():  # skip blank lines
-            table_dat = line.split()
-            if i == 0:
-                continue  # skip the header
-            elif table_dat[0] == "---":
-                break  # end at the dashes
-            else:
-                year = int(table_dat[0])
-                global_annual_co2_data[year] = [float(data) for data in table_dat[1:]]
-    co2_file.close()
-    return global_annual_co2_data
-
-def read_monthly_resolved_co2(co2dat_file: Path):
-    """
-    Function to read a text file of 15-degree CO2 monthly means into a model.
-    Assumes a format of:
-    HEADER
-    24 values (15 degree resolution longitudinally)
-    There should be 144 lines (12 months, resolved 15 degrees latitudinally)
-    Assuming here that it's grouped by month, so 12 lines of January,
-    12 of February, and so on?
-
-    Returns a dictionary mapping month to 2D data
-    """
-    resolved_monthly_co2_data = {}
-    co2_file = open(co2dat_file)
-    imonth = 1
-    for i, line in enumerate(co2_file):
-        if line.split():  # skip blank lines
-            table_dat = line.split()
-            if i == 0:
-                continue  # skip the header
-            else:
-                ilat = (i - 1) % 12
-                if ilat == 0:
-                    co2_data = []
-                co2_data.append([float(data) for data in table_dat])
-                if ilat == 11:
-                    resolved_monthly_co2_data[imonth] = co2_data
-                    imonth += 1
-    co2_file.close()
-    return resolved_monthly_co2_data
-
-def read_monthly_cycle_co2(co2cyc_file: Path):
-    """
-    Function to read a text file of 15-degree CO2 monthly deviations into a model.
-    Assumes a format of:
-    HEADER
-    MONTH
-    12 lines of 24 values (15 degree resolution longitudinally)
-    repeated for each month of the year
-
-    Returns a dictionary mapping month to the global mean and 2D data
-    """
-    resolved_monthly_co2_cycle = {}
-    co2_file = open(co2cyc_file)
-    for i, line in enumerate(co2_file):
-        if line.split():  # skip blank lines
-            table_dat = line.split()
-            if i < 13:
-                continue  # skip the header and mean values
-            else:
-                if table_dat[0] == "MONTH":
-                    imonth = int(table_dat[2])
-                    resolved_monthly_co2_cycle[imonth] = {}
-                    resolved_monthly_co2_cycle[imonth]["mean"] = float(table_dat[-1])
-                    resolved_monthly_co2_cycle[imonth]["data"] = []
-                else:
-                    resolved_monthly_co2_cycle[imonth]["data"].append([float(data) for data in table_dat])
-    co2_file.close()
-    return resolved_monthly_co2_cycle
 
 def get_co2(iyear, imon, iday):
     if imon < 7 or (imon == 7 and iday  <= 2):  # Assumes July 2 is the yearly midpoint
