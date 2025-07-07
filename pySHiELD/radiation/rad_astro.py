@@ -99,7 +99,7 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
                 year = int(table_dat[0])
                 solar_constant = float(table_dat[1])
                 solar_constant_data["constants"][year] = solar_constant
-
+    sol_file.close()
     return solar_constant_data
 
 

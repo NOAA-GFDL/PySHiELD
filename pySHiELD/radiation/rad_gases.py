@@ -129,10 +129,10 @@ def read_global_annual_co2(co2gbl_file: Path):
             else:
                 year = int(table_dat[0])
                 global_annual_co2_data[year] = [float(data) for data in table_dat[1:]]
-
+    co2_file.close()
     return global_annual_co2_data
 
-def get_monthly_resolved_co2(co2dat_file: Path):
+def read_monthly_resolved_co2(co2dat_file: Path):
     """
     Function to read a text file of 15-degree CO2 monthly means into a model.
     Assumes a format of:
@@ -160,8 +160,37 @@ def get_monthly_resolved_co2(co2dat_file: Path):
                 if ilat == 11:
                     resolved_monthly_co2_data[imonth] = co2_data
                     imonth += 1
-
+    co2_file.close()
     return resolved_monthly_co2_data
+
+def read_monthly_cycle_co2(co2cyc_file: Path):
+    """
+    Function to read a text file of 15-degree CO2 monthly deviations into a model.
+    Assumes a format of:
+    HEADER
+    MONTH
+    12 lines of 24 values (15 degree resolution longitudinally)
+    repeated for each month of the year
+
+    Returns a dictionary mapping month to the global mean and 2D data
+    """
+    resolved_monthly_co2_cycle = {}
+    co2_file = open(co2cyc_file)
+    for i, line in enumerate(co2_file):
+        if line.split():  # skip blank lines
+            table_dat = line.split()
+            if i < 13:
+                continue  # skip the header and mean values
+            else:
+                if table_dat[0] == "MONTH":
+                    imonth = int(table_dat[2])
+                    resolved_monthly_co2_cycle[imonth] = {}
+                    resolved_monthly_co2_cycle[imonth]["mean"] = float(table_dat[-1])
+                    resolved_monthly_co2_cycle[imonth]["data"] = []
+                else:
+                    resolved_monthly_co2_cycle[imonth]["data"].append([float(data) for data in table_dat])
+    co2_file.close()
+    return resolved_monthly_co2_cycle
 
 def get_co2(iyear, imon, iday):
     if imon < 7 or (imon == 7 and iday  <= 2):  # Assumes July 2 is the yearly midpoint
