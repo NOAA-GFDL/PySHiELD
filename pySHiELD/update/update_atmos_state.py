@@ -1,10 +1,9 @@
 from typing import Optional
 
-from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
-
 import pyFV3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField
 from ndsl.grid import DriverGridData, GridData
 from ndsl.typing import Communicator
