@@ -4,7 +4,7 @@ import numpy as np
 
 import ndsl.constants as constants
 from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval, max, min, sin
-from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int, Float
+from ndsl.dsl.typing import BoolFieldIJ, Float, FloatField, FloatFieldIJ, Int, Float
 from ndsl.logging import ndsl_log
 
 NDAYS_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 30]
@@ -14,6 +14,18 @@ IMXCO2  = 24  # input co2 dat lon points
 JMXCO2  = 12  # input co2 data lat points
 RESCO2=15.0  # horizontal resolution in degree
 PRSCO2=788.0  # pressure limitation for 2-d co2 (mb)
+
+CO2VMR_DEF = 350.0e-6
+N2OVMR_DEF = 0.31e-6
+CH4VMR_DEF = 1.50e-6
+O2VMR_DEF = 0.209
+N2VMR_DEF = 0.7808
+COVMR_DEF = 1.50e-8
+F11VMR_DEF = 3.520e-10  # aer 2003 value
+F12VMR_DEF = 6.358e-10  # aer 2003 value
+F22VMR_DEF = 1.500e-10  # aer 2003 value
+CL4VMR_DEF = 1.397e-10  # aer 2003 value
+F113VMR_DEF = 8.2000e-11  # gfdl 1999 value
 
 
 def read_global_annual_co2(co2gbl_file: Path):
@@ -222,7 +234,7 @@ def gas_update(
         co2_glb = co2_annual_means[iyr][0] + co2_annual_means[iyr][1] * 0.5e-6
     else:
         assert co2_monthly_means, f"for {idyr} monthly mean data must be provided"
-        
+
 
 
 def get_co2(iyear, imon, iday):
@@ -231,4 +243,131 @@ def get_co2(iyear, imon, iday):
     else:
         midyear = True
 
-    
+
+def broadcast_co2_to_grid(
+    co2dat,
+    gridlon,
+    gridlat,
+):
+    """
+    Function to take input CO2 data assumed to be at 15-degree resolution and
+    broadcast it to a model-resolution cubed-sphere grid by assigning values from
+    the coarse grid directly to the relevant fine-grid elements.
+
+    Inputs:
+        co2dat: CO2 concentration data at RESCO2 resolution in list format as
+                from read_monthly_resolved_co2 above
+        gridlon: Grid longitudes, ndarray-like
+        gridlat: Grid latitudes, ndarray-like
+    Outputs:
+        gridded_data: CO2 concentration data in the same array shape as lat and lon
+    """
+    gridded_data = np.zeros_like(gridlon)
+
+    nx = gridlon.shape(0)
+    ny = gridlon.shape(1)
+    tmp = (180.0 / constants.PI) / RESCO2
+    for i in range(nx):
+        for j in range(ny):
+            jres = (constants.PI - gridlat[i, j]) * tmp
+            jres = min(JMXCO2, int(jres))
+            ires = (gridlon[i, j] * tmp) if gridlon[i, j] >= 0. else ((gridlon[i, j] + 2. * constants.PI) * tmp)
+            ires = min(IMXCO2, int(ires))
+            gridded_data[i, j] = co2dat[jres][ires]
+    return gridded_data
+
+
+def get_gases_topdown(
+    co2: FloatField,
+    n2o: Float,
+    ch4: Float,
+    o2: Float,
+    co: Float,
+    n2: Float,
+    ccl4: Float,
+    cfc11: Float,
+    cfc12: Float,
+    cfc22: Float,
+    plvl: FloatField,
+    co2_glb: Float,
+    gco2cyc: FloatFieldIJ,
+    co2vmr_sav: FloatFieldIJ,
+):
+    """
+    ivflip = 0
+    """
+    from __externals__ import ico2flg, prsco2
+    with computation(PARALLEL), interval(...):
+        co2 = CO2VMR_DEF
+        n2o = N2OVMR_DEF
+        ch4 = CH4VMR_DEF
+        o2 = O2VMR_DEF
+        co = N2VMR_DEF
+        n2 = COVMR_DEF
+        cfc11 = F11VMR_DEF
+        cfc12 = F12VMR_DEF
+        cfc22 = F22VMR_DEF
+        ccl4 = CL4VMR_DEF
+
+        if ico2flg == 1:
+            co2 = co2_glb + gco2cyc
+        elif ico2flg == 2:
+            if ivflip == 0:
+                if plvl >= prsco2:
+                    co2 = co2vmr_sav
+                else:
+                    co2 = co2_glb + gco2cyc
+
+def get_gases_bottomup(
+    co2: FloatField,
+    n2o: Float,
+    ch4: Float,
+    o2: Float,
+    co: Float,
+    n2: Float,
+    ccl4: Float,
+    cfc11: Float,
+    cfc12: Float,
+    cfc22: Float,
+    plvl: FloatField,
+    co2_glb: Float,
+    gco2cyc: FloatFieldIJ,
+    co2vmr_sav: FloatFieldIJ,
+):
+    """
+    ivflip = 1
+    """
+    from __externals__ import ico2flg, prsco2
+    with computation(FORWARD):
+        with interval(0, -1):
+            co2 = CO2VMR_DEF
+            n2o = N2OVMR_DEF
+            ch4 = CH4VMR_DEF
+            o2 = O2VMR_DEF
+            co = N2VMR_DEF
+            n2 = COVMR_DEF
+            cfc11 = F11VMR_DEF
+            cfc12 = F12VMR_DEF
+            cfc22 = F22VMR_DEF
+            ccl4 = CL4VMR_DEF
+
+            if ico2flg == 1:
+                co2 = co2_glb + gco2cyc
+            elif ico2flg == 2:
+                if ivflip == 0:
+                    if plvl >= prsco2:
+                        co2 = co2vmr_sav
+                    else:
+                        co2 = co2_glb + gco2cyc
+        with interval(-1, None):
+            co2 = CO2VMR_DEF
+            n2o = N2OVMR_DEF
+            ch4 = CH4VMR_DEF
+            o2 = O2VMR_DEF
+            co = N2VMR_DEF
+            n2 = COVMR_DEF
+            cfc11 = F11VMR_DEF
+            cfc12 = F12VMR_DEF
+            cfc22 = F22VMR_DEF
+            ccl4 = CL4VMR_DEF
+            co2 = co2_glb + gco2cyc
