@@ -7,7 +7,7 @@ from ndsl import Namelist, Quantity, StencilFactory
 from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.utils import safe_assign_array
-from pySHiELD.update import ApplyPhysicsToDycore
+from pyshield.update import ApplyPhysicsToDycore
 from tests.savepoint.translate.translate_physics import (
     ParallelPhysicsTranslate2Py,
     transform_dwind_serialized_data,

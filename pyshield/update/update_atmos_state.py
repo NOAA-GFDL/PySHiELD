@@ -1,14 +1,14 @@
 from typing import Optional
 
-import pyFV3
+import pyfv3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField
 from ndsl.grid import DriverGridData, GridData
 from ndsl.typing import Communicator
-from pyFV3.stencils import fv_subgridz
-from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
+from pyfv3.stencils import fv_subgridz
+from pyshield.update.fv_update_phys import ApplyPhysicsToDycore
 
 
 # TODO: when this file is not importable from physics or pyFV3, import
@@ -147,7 +147,7 @@ class DycoreToPhysics:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        dycore_config: pyFV3.DynamicalCoreConfig,
+        dycore_config: pyfv3.DynamicalCoreConfig,
         do_dry_convective_adjust: bool,
         dycore_only: bool,
     ):
@@ -241,7 +241,7 @@ class UpdateAtmosphereState:
         namelist,
         comm: Communicator,
         grid_info: DriverGridData,
-        state: pyFV3.DycoreState,
+        state: pyfv3.DycoreState,
         quantity_factory: QuantityFactory,
         dycore_only: bool,
         apply_tendencies: bool,

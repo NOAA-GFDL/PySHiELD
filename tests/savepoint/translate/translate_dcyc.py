@@ -1,4 +1,4 @@
-from pySHiELD.stencils.physics import interpolate_radiation
+from pyshield.stencils.physics import interpolate_radiation
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

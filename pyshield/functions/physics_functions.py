@@ -1,5 +1,5 @@
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl.dsl.gt4py import exp, floor
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import max, min

@@ -1,5 +1,5 @@
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
@@ -7,11 +7,11 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
-from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
-from pySHiELD.physics_state import PhysicsState
-from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
-from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
-from pySHiELD.stencils.microphysics import Microphysics
+from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
+from pyshield.physics_state import PhysicsState
+from pyshield.stencils.get_phi_fv3 import get_phi_fv3
+from pyshield.stencils.get_prs_fv3 import get_prs_fv3
+from pyshield.stencils.microphysics import Microphysics
 
 
 def interpolate_radiation(
