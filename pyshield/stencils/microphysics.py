@@ -4,7 +4,7 @@ import typing
 import numpy as np
 
 import ndsl.constants as constants
-import pySHiELD.functions.microphysics_funcs as functions
+import pyshield.functions.microphysics_funcs as functions
 from ndsl import Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.dace.orchestration import dace_inhibitor

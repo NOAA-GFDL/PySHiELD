@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools >= 64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyshield"
+version = "0.2.0"
+dependencies = [
+    "f90nml>=1.1.0",
+    "numpy==1.26.4",
+    "xarray",
+]
+requires-python = ">=3.11.7"
+authors = [{name = "NOAA - Geophysical Fluid Dynamics Laboratory", email = "oliver.elbert@noaa.gov"}]
+description = "pySHiELD is a collection of NDSL-based physical parameterizations"
+readme = "README.md"
+license = {file = "LICENSE.md"}
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-subtests",
+    "serialbox",
+    "coverage"
+]
+ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
+pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@develop"]
+develop = [
+    "pyshield[test]",
+    "pySHIELD[ndsl]",
+    "pyshield[pyfv3]",
+    "pre-commit",
+]
+extras = [
+    "pyshield[test]",
+    "pyshield[ndsl]",
+    "pyshield[pyfv3]",
+    "pyshield[develop]",
+]
+
+[project.urls]
+Repository = "https://github.com/NOAA-GFDL/PySHiELD"
+
+[tool.setuptools.packages.find]
+include = ["pyshield", "pyshield.*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.black]
+line-length = 88
+target_version = ['py38']

@@ -53,14 +53,14 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
-          pip3 install .[pyFV3,test]
+          pip3 install .[pyfv3,test]
 
       - name: Install pySHiELD packages
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
-          pip3 install .[ndsl,pyFV3,test]
+          pip3 install .[ndsl,pyfv3,test]
 
       - name: Download data
         run: |

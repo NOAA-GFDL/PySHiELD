@@ -1,5 +1,5 @@
 import ndsl.constants as constants
-import pyFV3
+import pyfv3
 from ndsl import (
     Quantity,
     QuantityFactory,
@@ -15,10 +15,10 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
 from ndsl.stencils.c2l_ord import CubedToLatLon
 from ndsl.typing import Communicator
-from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
+from pyshield.update.update_dwind_phys import AGrid2DGridPhysics
 
 
-# TODO: This is the same as moist_cv.py in pyFV3, should move to integration dir
+# TODO: This is the same as moist_cv.py in pyfv3, should move to integration dir
 @gtfunction
 def moist_cvm(qvapor, gz, ql, qs):
     cvm = (
@@ -92,7 +92,7 @@ class ApplyPhysicsToDycore:
         namelist,
         comm: Communicator,
         grid_info: DriverGridData,
-        state: pyFV3.DycoreState,
+        state: pyfv3.DycoreState,
         u_dt: Quantity,
         v_dt: Quantity,
     ):
