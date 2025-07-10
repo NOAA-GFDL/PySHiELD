@@ -87,7 +87,67 @@ def sfc_init(
     else:
         raise ValueError(f"iemslw must be 0, 1, or 2, got {iemslw}")
 
-def set_albedo():
+def set_albedo(
+    ialbflg: Int
+):
+    """
+    !  ===================================================================  !
+    !                                                                       !
+    !  this program computes four components of surface albedos (i.e.       !
+    !  vis-nir, direct-diffused) according to controflag ialbflg.           !
+    !   1) climatological surface albedo scheme (briegleb 1992)             !
+    !   2) modis retrieval based scheme from boston univ.                   !
+    !                                                                       !
+    !                                                                       !
+    ! usage:         call setalb                                            !
+    !                                                                       !
+    ! subprograms called:  none                                             !
+    !                                                                       !
+    !  ====================  defination of variables  ====================  !
+    !                                                                       !
+    !  inputs:                                                              !
+    !     slmsk (IMAX)  - sea(0),land(1),ice(2) mask on fcst model grid     !
+    !     snowf (IMAX)  - snow depth water equivalent in mm                 !
+    !     sncovr(IMAX)  - ialgflg=0: not used                               !
+    !                     ialgflg=1: snow cover over land in fraction       !
+    !     snoalb(IMAX)  - ialbflg=0: not used                               !
+    !                     ialgflg=1: max snow albedo over land in fraction  !
+    !     zorlf (IMAX)  - surface roughness in cm                           !
+    !     coszf (IMAX)  - cosin of solar zenith angle                       !
+    !     tsknf (IMAX)  - ground surface temperature in k                   !
+    !     tairf (IMAX)  - lowest model layer air temperature in k           !
+    !     hprif (IMAX)  - topographic sdv in m                              !
+    !           ---  for ialbflg=0 climtological albedo scheme  ---         !
+    !     alvsf (IMAX)  - 60 degree vis albedo with strong cosz dependency  !
+    !     alnsf (IMAX)  - 60 degree nir albedo with strong cosz dependency  !
+    !     alvwf (IMAX)  - 60 degree vis albedo with weak cosz dependency    !
+    !     alnwf (IMAX)  - 60 degree nir albedo with weak cosz dependency    !
+    !           ---  for ialbflg=1 modis based land albedo scheme ---       !
+    !     alvsf (IMAX)  - visible black sky albedo at zenith 60 degree      !
+    !     alnsf (IMAX)  - near-ir black sky albedo at zenith 60 degree      !
+    !     alvwf (IMAX)  - visible white sky albedo                          !
+    !     alnwf (IMAX)  - near-ir white sky albedo                          !
+    !                                                                       !
+    !     facsf (IMAX)  - fractional coverage with strong cosz dependency   !
+    !     facwf (IMAX)  - fractional coverage with weak cosz dependency     !
+    !     fice  (IMAX)  - sea-ice fraction                                  !
+    !     tisfc (IMAX)  - sea-ice surface temperature                       !
+    !     IMAX          - array horizontal dimension                        !
+    !                                                                       !
+    !  outputs:                                                             !
+    !     sfcalb(IMAX,NF_ALBD)                                              !
+    !           ( :, 1) -     near ir direct beam albedo                    !
+    !           ( :, 2) -     near ir diffused albedo                       !
+    !           ( :, 3) -     uv+vis direct beam albedo                     !
+    !           ( :, 4) -     uv+vis diffused albedo                        !
+    !                                                                       !
+    !  module internal control variables:                                   !
+    !     ialbflg       - =0 use the default climatology surface albedo     !
+    !                     =1 use modis retrieved albedo and input snow cover!
+    !                        for land areas                                 !
+    !                                                                       !
+    !  ====================    end of description    =====================  !
+    """
     pass
 
 def set_sfcemis(
