@@ -261,18 +261,18 @@ def gas_init(
     co2_glb_data, co2_mvr_data, co2_cyc_data = read_co2_files(input_dir)
 
     if ico2flg == 1 and not co2_glb_data:
-        raise NameError(
+        raise FileNotFoundError(
             (
                 f"Annual CO2 global data file not found in {input_dir}, "
                 "stopping in gas_init"
             )
         )
     if ico2flg == 2 and not co2_mvr_data:
-        raise NameError(
+        raise FileNotFoundError(
             f"Monthly CO2 data file not found in {input_dir}, stopping in gas_init"
         )
     if ictmflg == -2 and not co2_cyc_data:
-        raise NameError(
+        raise FileNotFoundError(
             f"Monthly CO2 cycle file not found in {input_dir}, stopping in gas_init"
         )
     if ictmflg == -1:
