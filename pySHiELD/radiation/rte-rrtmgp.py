@@ -1,20 +1,18 @@
 import dataclasses
+from pathlib import Path
 
+import numpy as np
 import pyrte_rrtmgp as rad
-from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
-from pyrte_rrtmgp.data_types import (
-    CloudOpticsFiles,
-    GasOpticsFiles,
-    OpticsProblemTypes,
-)
 import xarray as xr
+from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
+from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
 
 from ndsl import Float, Int, Quantity, QuantityFactory, StencilFactory
-from pathlib import Path
-from .rad_astro import sol_init, solar_update, coszmn
+
+from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import progcld4, progcld5
 from .radiation_state import RadiationState
-import numpy as np
+
 
 @dataclasses.dataclass
 class RadiationConfig:
@@ -44,7 +42,9 @@ class RTE_RRTMGPDriver:
         grid_indexing = stencil_factory.grid_indexing
         self._isolar = config.isolar
         self._isolflg, self._solar_constants, self.solc0 = sol_init(
-            self._isolar, config.solar_constant_file, year,
+            self._isolar,
+            config.solar_constant_file,
+            year,
         )
         self._cloud_optics_lw = rad.rrtmgp_cloud_optics.load_cloud_optics(
             cloud_optics_file=rad.data_types.CloudOpticsFiles.LW_BND
@@ -66,7 +66,7 @@ class RTE_RRTMGPDriver:
             "n2o": "n2o",
             "o2": "o2",
             "co2": "co2",
-            "n2": "n2"
+            "n2": "n2",
         }
         self._var_mapping = {
             "pres_layer": "prsl",
@@ -120,7 +120,10 @@ class RTE_RRTMGPDriver:
                 domain=grid_indexing.domain_compute(),
             )
         else:
-            raise NotImplementedError(f"radiation cloud microphysics control flag {config.icmphys} not implemented, please choose 4 or 5")
+            raise NotImplementedError(
+                f"radiation cloud microphysics control flag {config.icmphys} "
+                "not implemented, please choose 4 or 5"
+            )
         pass
 
     def _accumulate_radiation_inputs(self, state: RadiationState):

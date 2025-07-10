@@ -163,7 +163,7 @@ class RadiationState:
             "intent": "inout",
         }
     )
-    cip: Quantity = field(
+    cir: Quantity = field(
         metadata={
             "name": "cloud_ice_radius",
             "dims": [X_DIM, Y_DIM, Z_DIM],
@@ -218,7 +218,9 @@ class RadiationState:
 
     @classmethod
     def init_zeros(
-        cls, quantity_factory, np_like: NumpyModule,
+        cls,
+        quantity_factory,
+        np_like: NumpyModule,
     ) -> "RadiationState":
         initial_arrays = {}
         for _field in fields(cls):
@@ -295,7 +297,7 @@ class RadiationState:
                 if issubclass(field_info.type, Quantity):
                     dims = []
                     slice_list = []
-                    ndims = len(field_info.metadata["dims"])                        
+                    ndims = len(field_info.metadata["dims"])
                     nz = self._nz
                     for dim_name in field_info.metadata["dims"]:
                         # dims.append(f"{dim_name}_{name}")
@@ -315,14 +317,21 @@ class RadiationState:
                         newshape = (-1, nz)
                         dims.insert(0, "column")
                     elif ndims == 2:  # x-y array:
-                        newshape = (-1)
+                        newshape = (-1) # noqa
                         dims.insert(0, "column")
                     elif ndims == 1:  # z-array
                         newshape == (nz)
                     else:
-                        raise NotImplementedError(f"RadiationShape doesn't support more than 3D arrays, {dim_name} has {ndims} axes")
+                        raise NotImplementedError(
+                            (
+                                "RadiationShape doesn't support more than 3D arrays, "
+                                f"{dim_name} has {ndims} axes"
+                            )
+                        )
                     data_vars[name] = xr.DataArray(
-                        gt_utils.asarray(getattr(self, name).data)[tuple(slice_list)].reshape(newshape),
+                        gt_utils.asarray(getattr(self, name).data)[
+                            tuple(slice_list)
+                        ].reshape(newshape),
                         dims=dims,
                         attrs={
                             "long_name": field_info.metadata["name"],

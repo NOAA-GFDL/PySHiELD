@@ -1,11 +1,7 @@
-from pathlib import Path
-
-import numpy as np
-
 import ndsl.constants as constants
-from ndsl.dsl.gt4py import PARALLEL, FORWARD, acos, computation, cos, interval, max, min, sin
-from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, FloatField, IntFieldIJ
-from ndsl.logging import ndsl_log
+from ndsl.dsl.gt4py import PARALLEL, computation, interval, max, min
+from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
+
 
 RE_LIQ = 10.0
 """Default liquid radius in microns"""
@@ -25,22 +21,23 @@ CLIMIT2 = 0.05
 OVCST = 1.0 - 1.0e-8
 GORD = constants.GRAV / constants.RDGAS
 
+
 def cld_init(sigma, ivflip):
     """
     Calculates the top of BL cld (llyr), which is the topmost non-cld(low)
     layer for stratiform (at or above lowest 0.1 of theatmosphere).
     """
     llyr = 0
-    if (ivflip == 0):  # data from toa to sfc
+    if ivflip == 0:  # data from toa to sfc
         for k in range(len(sigma) - 1, 0, -1):
             kl = k
-            if (sigma(k) < 0.9e0):
+            if sigma(k) < 0.9e0:
                 break
         llyr = kl
     else:  # data from sfc to top
         for k in range(1, len(sigma)):
             kl = k
-            if (sigma(k) < 0.9e0):
+            if sigma(k) < 0.9e0:
                 break
         llyr = kl - 1
     return llyr
@@ -155,6 +152,7 @@ def progcld4(
     !  ====================    end of description    =====================  !
     """
     from __externals__ import ivflip, lcnorm, lcrick
+
     with computation(PARALLEL), interval(0, -1):
         # Initialize everything
         cldtot = 0.0
@@ -213,13 +211,13 @@ def progcld4(
 
         # Effective ice cloud droplet radius
         tem2 = tlyr - constants.TTP
-        if (cip > 0.0):
+        if cip > 0.0:
             tem3 = GORD * cip * plyr / (delp * tvly)
-            if (tem2 < -50.0):
+            if tem2 < -50.0:
                 rei = (1250.0 / 9.917) * tem3 ** 0.109
-            elif (tem2 < -40.0):
+            elif tem2 < -40.0:
                 rei = (1250.0 / 9.337) * tem3 ** 0.08
-            elif (tem2 < -30.0):
+            elif tem2 < -30.0:
                 rei = (1250.0 / 9.208) * tem3 ** 0.055
             else:
                 rei = (1250.0 / 9.387) * tem3 ** 0.031
@@ -338,6 +336,7 @@ def progcld5(
     !  ====================    end of description    =====================  !
     """
     from __externals__ import gfs_cloud_overlap, ivflip, lcnorm, lcrick
+
     with computation(PARALLEL), interval(0, -1):
         # Initialize everything
         cldtot = 0.0
@@ -374,8 +373,8 @@ def progcld5(
             cwp = clwt - cip
             if not gfs_cloud_overlap:
                 cldtot = cnvc + (1 - cnvc) * cldtot
-                cldtot = max(cldtot, 0.)
-                cldtot = min(cldtot, 1.)
+                cldtot = max(cldtot, 0.0)
+                cldtot = min(cldtot, 1.0)
         else:
             delp = plvl - plvl[0, 0, 1]
             clwt = max(0.0, clwf) * GFAC * delp
@@ -383,8 +382,8 @@ def progcld5(
             cwp = clwt - cip
             if not gfs_cloud_overlap:
                 cldtot = cnvc + (1 - cnvc) * cldtot
-                cldtot = max(cldtot, 0.)
-                cldtot = min(cldtot, 1.)
+                cldtot = max(cldtot, 0.0)
+                cldtot = min(cldtot, 1.0)
     with computation(PARALLEL), interval(0, -1):
         # Effective liquid cloud droplet radius over land
         if land_mask == 1:
@@ -404,13 +403,13 @@ def progcld5(
 
         # Effective ice cloud droplet radius
         tem2 = tlyr - constants.TTP
-        if (cip > 0.0):
+        if cip > 0.0:
             tem3 = GORD * cip * plyr / (delp * tvly)
-            if (tem2 < -50.0):
+            if tem2 < -50.0:
                 rei = (1250.0 / 9.917) * tem3 ** 0.109
-            elif (tem2 < -40.0):
+            elif tem2 < -40.0:
                 rei = (1250.0 / 9.337) * tem3 ** 0.08
-            elif (tem2 < -30.0):
+            elif tem2 < -30.0:
                 rei = (1250.0 / 9.208) * tem3 ** 0.055
             else:
                 rei = (1250.0 / 9.387) * tem3 ** 0.031
