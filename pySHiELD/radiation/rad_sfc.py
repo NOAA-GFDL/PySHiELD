@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 
 import ndsl.constants as constants
+import pyshield.constants as physcons
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
@@ -88,7 +89,27 @@ def sfc_init(
         raise ValueError(f"iemslw must be 0, 1, or 2, got {iemslw}")
 
 def set_albedo(
-    ialbflg: Int
+    ialbflg: Int,
+    islmsk: np.ndarray,
+    snowf: np.ndarray,
+    sncovr: np.ndarray,
+    snoalb: np.ndarray,
+    zorlf: np.ndarray,
+    coszf: np.ndarray,
+    tsknf: np.ndarray,
+    tairf: np.ndarray,
+    hprif: np.ndarray,
+    alvsf: np.ndarray,
+    alnsf: np.ndarray,
+    alvwf: np.ndarray,
+    alnwf: np.ndarray,
+    facsf: np.ndarray,
+    facwf: np.ndarray,
+    fice: np.ndarray,
+    tisfc: np.ndarray,
+    lsmalbedo: np.ndarray,
+    sfcalb: np.ndarray,
+    ldisable_radiation_quasi_sea_ice: bool,
 ):
     """
     !  ===================================================================  !
@@ -148,7 +169,291 @@ def set_albedo(
     !                                                                       !
     !  ====================    end of description    =====================  !
     """
-    pass
+    if ialbflg == 0 :  # use climatological albedo scheme
+        # Modified snow albedo scheme - units convert to m (originally
+        # snowf in mm; zorlf in cm)
+        for i, j in np.nindex(snowf.shape):
+            asnow = 0.02*snowf[i, j]
+            argh = min(0.50, max(.025, 0.01*zorlf[i, j]))
+            hrgh = min(1.0, max(0.20, 1.0577-1.1538e-3*hprif[i, j]))
+            fsno0 = asnow / (argh + asnow) * hrgh
+            if islmsk == 0 and (
+                tsknf[i, j] > physcons.TICE or ldisable_radiation_quasi_sea_ice
+            ):
+                fsno0 = 0.0
+            
+            fsno1 = 1.0 - fsno0
+            flnd0 = min(1.0, facsf[i, j]+facwf[i, j])
+            fsea0 = max(0.0, 1.0-flnd0)
+            fsno = fsno0
+            fsea = fsea0 * fsno1
+            flnd = flnd0 * fsno1
+
+            # Calculate diffused sea surface albedo
+            if (tsknf[i, j] >= 271.5 or ldisable_radiation_quasi_sea_ice):
+                asevd = 0.06
+                asend = 0.06
+            elif (tsknf[i, j] < 271.1):
+                asevd = 0.70
+                asend = 0.65
+            else:
+                a1 = (tsknf[i, j] - 271.1)**2
+                asevd = 0.7 - 4.0*a1
+                asend = 0.65 - 3.6875*a1
+
+            # Calculate diffused snow albedo.
+            if (islmsk[i, j] == 2):
+                ffw = 1.0 - fice[i, j]
+                if (ffw < 1.0):
+                    dtgd = max(0.0, min(5.0, (constants.TTP-tisfc[i, j])))
+                    b1 = 0.03 * dtgd
+                else:
+                    b1 = 0.0
+
+                b3 = 0.06 * ffw
+                asnvd = (0.70 + b1) * fice[i, j] + b3
+                asnnd = (0.60 + b1) * fice[i, j] + b3
+                asevd = 0.70 * fice[i, j] + b3
+                asend = 0.60 * fice[i, j] + b3
+            else:
+                asnvd = 0.90
+                asnnd = 0.75
+            
+            # Calculate direct snow albedo.
+            if (coszf[i, j] < 0.5):
+                csnow = 0.5 * (3.0 / (1.0+4.0*coszf[i, j]) - 1.0)
+                asnvb = min( 0.98, asnvd+(1.0-asnvd)*csnow )
+                asnnb = min( 0.98, asnnd+(1.0-asnnd)*csnow )
+            else:
+                asnvb = asnvd
+                asnnb = asnnd
+            
+            # Calculate direct sea surface albedo.
+            if (coszf[i, j] > 0.0001):
+                # rfcs = 1.4 / (1.0 + 0.8*coszf[i, j])
+                # rfcw = 1.3 / (1.0 + 0.6*coszf[i, j])
+                rfcs = 2.14 / (1.0 + 1.48*coszf[i, j])
+                rfcw = rfcs
+
+                if tsknf[i, j] >= constants.TICE0 or ldisable_radiation_quasi_sea_ice:
+                    asevb = max(asevd, 0.026 / (
+                        coszf[i, j]**1.7 + 0.065
+                    ) + 0.15 * (
+                        coszf[i, j] - 0.1
+                    ) * (coszf[i, j] - 0.5) * (coszf[i, j] - 1.0))
+                    asenb = asevb
+                else:
+                    asevb = asevd
+                    asenb = asend
+            else:
+                rfcs = 1.0
+                rfcw = 1.0
+                asevb = asevd
+                asenb = asend
+
+            a1 = alvsf[i, j] * facsf[i, j]
+            b1 = alvwf[i, j] * facwf[i, j]
+            a2 = alnsf[i, j] * facsf[i, j]
+            b2 = alnwf[i, j] * facwf[i, j]
+            ab1bm = a1*rfcs + b1*rfcw
+            ab2bm = a2*rfcs + b2*rfcw
+            sfcalb[i, j,0] = min(0.99, ab2bm) *flnd + asenb*fsea + asnnb*fsno
+            sfcalb[i, j,1] = (a2 + b2) * 0.96 *flnd + asend*fsea + asnnd*fsno
+            sfcalb[i, j,2] = min(0.99, ab1bm) *flnd + asevb*fsea + asnvb*fsno
+            sfcalb[i, j,3] = (a1 + b1) * 0.96 *flnd + asevd*fsea + asnvd*fsno
+
+    elif ialbflg == 1:  # If use modis based albedo for land area:
+        for i, j in np.nindex(snowf.shape):
+            # Calculate snow cover input directly for land model, no 
+            # conversion needed.
+            fsno0 = sncovr[i, j]
+
+            if (islmsk[i, j] == 0 and (
+                tsknf[i, j] > physcons.TICE or ldisable_radiation_quasi_sea_ice
+            )):
+                fsno0 = 0.0
+
+            if islmsk[i, j] == 2:
+                asnow = 0.02*snowf[i, j]
+                argh = min(0.50, max(.025, 0.01*zorlf[i, j]))
+                hrgh = min(1.0, max(0.20, 1.0577-1.1538e-3*hprif[i, j] ) )
+                fsno0 = asnow / (argh + asnow) * hrgh
+
+            fsno1 = 1.0 - fsno0
+            flnd0 = min(1.0, facsf[i, j]+facwf[i, j])
+            fsea0 = max(0.0, 1.0-flnd0)
+            fsno = fsno0
+            fsea = fsea0 * fsno1
+            flnd = flnd0 * fsno1
+
+            # Calculate diffused sea surface albedo.
+            if (tsknf[i, j] >= 271.5 or ldisable_radiation_quasi_sea_ice):
+                asevd = 0.06
+                asend = 0.06
+            elif (tsknf[i, j] < 271.1):
+                asevd = 0.70
+                asend = 0.65
+            else:
+                a1 = (tsknf[i, j] - 271.1)**2
+                asevd = 0.7 - 4.0*a1
+                asend = 0.65 - 3.6875*a1
+            
+            # Calculate diffused snow albedo, land area use input max snow albedo
+            if (islmsk[i, j] == 2):
+                ffw = 1.0 - fice[i, j]
+                if (ffw < 1.0):
+                    dtgd = max(0.0, min(5.0, (constants.TTP-tisfc[i, j]) ))
+                    b1 = 0.03 * dtgd
+                else:
+                    b1 = 0.0
+
+                b3   = 0.06 * ffw
+                asnvd = (0.70 + b1) * fice[i, j] + b3
+                asnnd = (0.60 + b1) * fice[i, j] + b3
+                asevd = 0.70 * fice[i, j] + b3
+                asend = 0.60 * fice[i, j] + b3
+            else:
+                asnvd = snoalb[i, j]
+                asnnd = snoalb[i, j]
+            
+            # Calculate direct snow albedo.
+            if (islmsk[i, j] == 2):
+                if (coszf[i, j] < 0.5):
+                    csnow = 0.5 * (3.0 / (1.0+4.0*coszf[i, j]) - 1.0)
+                    asnvb = min( 0.98, asnvd+(1.0-asnvd)*csnow )
+                    asnnb = min( 0.98, asnnd+(1.0-asnnd)*csnow )
+                else:
+                    asnvb = asnvd
+                    asnnb = asnnd
+            else:
+                asnvb = snoalb[i, j]
+                asnnb = snoalb[i, j]
+            
+            # Calculate direct sea surface albedo, use fanglin's zenith angle treatment
+
+            if (coszf[i, j] > 0.0001):
+                # rfcs = 1.89 - 3.34*coszf[i, j] + 4.13*coszf[i, j]*coszf[i, j] - (
+                #     2.02*coszf[i, j]*coszf[i, j]*coszf[i, j]
+                # )
+                rfcs = 1.775/(1.0+1.55*coszf[i, j])
+
+                if (tsknf[i, j] >= constants.TICE0 or ldisable_radiation_quasi_sea_ice):
+                    asevb = max(asevd, 0.026 / (
+                        coszf[i, j]**1.7+0.065
+                    ) + 0.15 * (coszf[i, j]-0.1) * (coszf[i, j]-0.5) * (coszf[i, j]-1.0))
+                    asenb = asevb
+                else:
+                    asevb = asevd
+                    asenb = asend
+            else:
+                rfcs  = 1.0
+                asevb = asevd
+                asenb = asend
+
+            ab1bm = min(0.99, alnsf[i, j]*rfcs)
+            ab2bm = min(0.99, alvsf[i, j]*rfcs)
+            sfcalb[i, j, 0] = ab1bm   *flnd + asenb*fsea + asnnb*fsno
+            sfcalb[i, j, 1] = alnwf[i, j]     *flnd + asend*fsea + asnnd*fsno
+            sfcalb[i, j, 2] = ab2bm   *flnd + asevb*fsea + asnvb*fsno
+            sfcalb[i, j, 3] = alvwf[i, j]     *flnd + asevd*fsea + asnvd*fsno
+
+    else:  # ialbflg == 2
+        for i, j in np.nindex(snowf.shape):
+            # Calculate snow cover input directly for land model, no conversion needed
+            fsno0 = sncovr[i, j]
+
+            if (islmsk[i, j] == 0 and (tsknf[i, j]>physcons.TICE or ldisable_radiation_quasi_sea_ice)):
+                fsno0 = 0.0
+
+            if (islmsk[i, j] == 2):
+                asnow = 0.02*snowf[i, j]
+                argh = min(0.50, max(.025, 0.01*zorlf[i, j]))
+                hrgh = min(1.0, max(0.20, 1.0577-1.1538e-3*hprif[i, j] ) )
+                fsno0 = asnow / (argh + asnow) * hrgh
+
+            fsno1 = 1.0 - fsno0
+            flnd0 = min(1.0, facsf[i, j]+facwf[i, j])
+            fsea0 = max(0.0, 1.0-flnd0)
+            fsno = fsno0
+            fsea = fsea0 * fsno1
+            flnd = flnd0 * fsno1
+
+            # Calculate diffused sea surface albedo.
+            if (tsknf[i, j] >= 271.5 or ldisable_radiation_quasi_sea_ice):
+                asevd = 0.06
+                asend = 0.06
+            elif (tsknf[i, j] < 271.1):
+                asevd = 0.70
+                asend = 0.65
+            else:
+                a1 = (tsknf[i, j] - 271.1)**2
+                asevd = 0.7 - 4.0*a1
+                asend = 0.65 - 3.6875*a1
+            
+            # Calculate diffused snow albedo, land area use input max snow albedo
+            if (islmsk[i, j] == 2):
+                ffw = 1.0 - fice[i, j]
+                if (ffw < 1.0):
+                    dtgd = max(0.0, min(5.0, (constants.TTP-tisfc[i, j]) ))
+                    b1 = 0.03 * dtgd
+                else:
+                    b1 = 0.0
+
+                b3   = 0.06 * ffw
+                asnvd = (0.70 + b1) * fice[i, j] + b3
+                asnnd = (0.60 + b1) * fice[i, j] + b3
+                asevd = 0.70 * fice[i, j] + b3
+                asend = 0.60 * fice[i, j] + b3
+            else:
+                asnvd = snoalb[i, j]
+                asnnd = snoalb[i, j]
+            
+            # Calculate direct snow albedo.
+            if (islmsk[i, j] == 2):
+                if (coszf[i, j] < 0.5):
+                    csnow = 0.5 * (3.0 / (1.0+4.0*coszf[i, j]) - 1.0)
+                    asnvb = min( 0.98, asnvd+(1.0-asnvd)*csnow )
+                    asnnb = min( 0.98, asnnd+(1.0-asnnd)*csnow )
+                else:
+                    asnvb = asnvd
+                    asnnb = asnnd
+            
+            # Calculate direct sea surface albedo, use fanglin's zenith angle treatment
+            if (coszf[i, j] > 0.0001):
+                # rfcs = 1.89 - 3.34*coszf[i, j] + (
+                #     4.13*coszf[i, j]*coszf[i, j]
+                # ) - 2.02*coszf[i, j]*coszf[i, j]*coszf[i, j]
+                rfcs = 1.775 / (1.0 + 1.55*coszf[i, j])      
+
+                if (
+                    tsknf[i, j] >= constants.TICE0 or ldisable_radiation_quasi_sea_ice
+                ):
+                    asevb = max(asevd, 0.026/(
+                        coszf[i, j]**1.7+0.065
+                    ) + 0.15 * (
+                        coszf[i, j]-0.1
+                    ) * (coszf[i, j]-0.5) * (coszf[i, j]-1.0))
+                    asenb = asevb
+                else:
+                    asevb = asevd
+                    asenb = asend
+            else:
+                rfcs  = 1.0
+                asevb = asevd
+                asenb = asend
+            sfcalb[i, j, 0] = min(
+                0.99,max(0.01,lsmalbedo[i, j, 0])
+            )*flnd + asenb*fsea + asnnb*fsno
+            sfcalb[i, j, 1] = min(
+                0.99,max(0.01,lsmalbedo[i, j, 1])
+            )*flnd + asend*fsea + asnnd*fsno
+            sfcalb[i, j, 2] = min(
+                0.99,max(0.01,lsmalbedo[i, j, 2])
+            )*flnd + asevb*fsea + asnvb*fsno
+            sfcalb[i, j, 3] = min(
+                0.99,max(0.01,lsmalbedo[i, j, 3])
+            )*flnd + asevd*fsea + asnvd*fsno
+
 
 def set_sfcemis(
     gridlon: np.ndarray,
