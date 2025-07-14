@@ -303,6 +303,7 @@ def gas_init(
         cfc12,
         cfc22,
         ccl4,
+        co2_glb,
         co2_arr,
         co2_cyc,
         co2_mvr_data,
@@ -310,15 +311,45 @@ def gas_init(
         co2_cyc_data,
     )
 
-
-def gas_update(
-    iyear: Int,
+def ozone_update(
     imon: Int,
     iday: Int,
     ihour: Int,
-    ico2flg: Int,
     ioznflg: Int,
     loz1st: Int,
+):
+    """
+    Ozone portion of gas_update fortran routine. Computes O3 climatology parameters
+    """
+    k1oz = 0
+    k2oz = 0
+    facoz = 0.0
+    if ioznflg == 0:
+        midmon = NDAYS_MONTH[imon - 1] // 2 + 1
+        change = loz1st != 0 or ((iday == midmon) and (ihour == 0))
+
+        if change:
+            if iday < midmon:
+                k1oz = Int((imon + 10) % 12)
+                midm = NDAYS_MONTH[k1oz] / 2 + 1
+                k2oz = Int(imon - 1)
+                midp = NDAYS_MONTH[k1oz] + midmon
+            else:
+                k1oz = Int(imon - 1)
+                midm = midmon
+                k2oz = Int(imon % 12)
+                midp = NDAYS_MONTH[k2oz] / 2 + 1 + NDAYS_MONTH[k1oz]
+        if iday < midmon:
+            id = iday + NDAYS_MONTH[k1oz]
+        else:
+            id = iday
+        facoz = Float(id - midm) / Float(midp - midm)
+    return k1oz, k2oz, facoz
+
+def co2_update(
+    iyear: Int,
+    imon: Int,
+    ico2flg: Int,
     ldoco2: Int,
     ictmflg: Int,
     co2_glb: Float,
@@ -331,6 +362,9 @@ def gas_update(
     co2_monthly_cycle: dict = None,
 ):
     """
+    CO2 portion of gas_update Fortran subroutine.
+
+    Fortran docstring follows
     !  ===================================================================  !
     !                                                                       !
     !  gas_update reads in 2-d monthly co2 data set for a specified year.   !
@@ -387,27 +421,6 @@ def gas_update(
     !                                                                       !
     !  ===================================================================  !
     """
-
-    if ioznflg == 0:
-        midmon = NDAYS_MONTH[imon - 1] // 2 + 1
-        change = loz1st != 0 or ((iday == midmon) and (ihour == 0))
-
-        if change:
-            if iday < midmon:
-                k1oz = (imon + 10) % 12
-                midm = NDAYS_MONTH[k1oz] / 2 + 1
-                k2oz = imon - 1
-                midp = NDAYS_MONTH[k1oz] + midmon
-            else:
-                k1oz = imon - 1
-                midm = midmon
-                k2oz = imon % 12
-                midp = NDAYS_MONTH[k2oz] / 2 + 1 + NDAYS_MONTH[k1oz]
-        if iday < midmon:
-            id = iday + NDAYS_MONTH[k1oz]
-        else:
-            id = iday
-        facoz = Float(id - midm) / Float(midp - midm)
 
     # These need to be respected in the driver:
     # if ( ico2flg == 0 ) return    ! use prescribed global mean co2 data
@@ -535,13 +548,13 @@ def get_gases_topdown(
     """
     ivflip = 0
     """
-    from __externals__ import ico2flg, prsco2
+    from __externals__ import ico2flg
 
     with computation(PARALLEL), interval(...):
         if ico2flg == 1:
             co2 = co2_glb + co2_cyc
         elif ico2flg == 2:
-            if plvl >= prsco2:
+            if plvl >= PRSCO2:
                 co2 = co2vmr_sav
             else:
                 co2 = co2_glb + co2_cyc
@@ -557,14 +570,14 @@ def get_gases_bottomup(
     """
     ivflip = 1
     """
-    from __externals__ import ico2flg, prsco2
+    from __externals__ import ico2flg
 
     with computation(PARALLEL):
         with interval(0, -1):
             if ico2flg == 1:
                 co2 = co2_glb + co2_cyc
             elif ico2flg == 2:
-                if plvl[0, 0, 1] >= prsco2:
+                if plvl[0, 0, 1] >= PRSCO2:
                     co2 = co2vmr_sav
                 else:
                     co2 = co2_glb + co2_cyc

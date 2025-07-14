@@ -14,8 +14,6 @@ EMS_REF = [0.97, 0.95, 0.94, 0.90, 0.93, 0.96, 0.96, 0.99]
 IMXEMS = 360
 JMXEMS = 180
 
-def read_sfcemis_file(datafile: Path):
-    pass
 
 def map_sfc_to_grid(
     sfc_data: np.ndarray,
@@ -45,7 +43,6 @@ def sfc_init(
     iemsflg: Int,
     ldisable_radiation_quasi_sea_ice: bool,
     sfcemis_datafile: Path,
-    sfcemis_data: np.ndarray,
 ):
     # Initialization of surface albedo section
     # physparam::ialbflg 
@@ -75,6 +72,7 @@ def sfc_init(
     # - = 0: fixed SFC emissivity at 1.0
     # - = 1: input SFC emissivity type map from "semis_file"
     # - = 2: using SFC emissivity from land model
+    ext_sfcemis_data = None
     iemslw = iemsflg % 10  # emissivity control
     if iemslw == 0:
         ndsl_log.info("Using Fixed Surface Emissivity = 1.0 for lw")
@@ -82,11 +80,12 @@ def sfc_init(
         ndsl_log.info(f"Using Varying Surface Emissivity for lw from {sfcemis_datafile}")
         if not sfcemis_datafile.is_file():
             raise FileExistsError(f"{sfcemis_datafile} does not exist")
-        sfcemis_data = np.genfromtxt(sfcemis_datafile, dtype=int, delimiter=1, skip_header=1).reshape(IMXEMS, JMXEMS)
+        ext_sfcemis_data = np.genfromtxt(sfcemis_datafile, dtype=int, delimiter=1, skip_header=1).reshape(IMXEMS, JMXEMS)
     elif iemslw == 2:
         ndsl_log.info("Using Surface Emissivity From Land Model")
     else:
         raise ValueError(f"iemslw must be 0, 1, or 2, got {iemslw}")
+    return ext_sfcemis_data
 
 def set_albedo(
     ialbflg: Int,
@@ -97,7 +96,6 @@ def set_albedo(
     zorlf: np.ndarray,
     coszf: np.ndarray,
     tsknf: np.ndarray,
-    tairf: np.ndarray,
     hprif: np.ndarray,
     alvsf: np.ndarray,
     alnsf: np.ndarray,
@@ -257,10 +255,10 @@ def set_albedo(
             b2 = alnwf[i, j] * facwf[i, j]
             ab1bm = a1*rfcs + b1*rfcw
             ab2bm = a2*rfcs + b2*rfcw
-            sfcalb[i, j,0] = min(0.99, ab2bm) *flnd + asenb*fsea + asnnb*fsno
-            sfcalb[i, j,1] = (a2 + b2) * 0.96 *flnd + asend*fsea + asnnd*fsno
-            sfcalb[i, j,2] = min(0.99, ab1bm) *flnd + asevb*fsea + asnvb*fsno
-            sfcalb[i, j,3] = (a1 + b1) * 0.96 *flnd + asevd*fsea + asnvd*fsno
+            sfcalb[i, j, 0] = min(0.99, ab2bm) *flnd + asenb*fsea + asnnb*fsno
+            sfcalb[i, j, 1] = (a2 + b2) * 0.96 *flnd + asend*fsea + asnnd*fsno
+            sfcalb[i, j, 2] = min(0.99, ab1bm) *flnd + asevb*fsea + asnvb*fsno
+            sfcalb[i, j, 3] = (a1 + b1) * 0.96 *flnd + asevd*fsea + asnvd*fsno
 
     elif ialbflg == 1:  # If use modis based albedo for land area:
         for i, j in np.nindex(snowf.shape):
@@ -469,7 +467,7 @@ def set_sfcemis(
     ialbflg: Int,
     ldisable_radiation_quasi_sea_ice: bool,
     sfcemis: np.ndarray,
-    sfcemis_data: np.ndarray,
+    ext_sfcemis_data: np.ndarray,
     sfcemis_lsm: np.ndarray,
 ):
     """
@@ -515,13 +513,13 @@ def set_sfcemis(
     !  ====================    end of description    =====================  !
     """
     if iemslw == 0:
-        sfcemis = Float(1.0)
+        sfcemis[:] = Float(1.0)
         return
     
     sfcemis[islmsk == 0] = Float(EMS_REF[0])  # sea
     sfcemis[islmsk == 2] = Float(EMS_REF[6])  # sea-ice
     if iemslw == 1:
-        sfcemis_grid_data = map_sfc_to_grid(sfcemis_data, gridlon, gridlat)
+        sfcemis_grid_data = map_sfc_to_grid(ext_sfcemis_data, gridlon, gridlat)
         for i, j in np.nindex(sfcemis.shape):
             if islmsk[i, j] == 1:
                 idx = max(1, sfcemis_grid_data[i, j])
@@ -542,4 +540,3 @@ def set_sfcemis(
                     sfcemis[i, j] = Float(sfcemis[i, j] * fsno1) + Float(EMS_REF[7] * fsno0)
     else:  # iemslw == 2
         sfcemis[islmsk == 1] = sfcemis_lsm[islmsk == 1]  # land from LSM
-    pass

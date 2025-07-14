@@ -337,9 +337,7 @@ def solar(
 
 
 def solar_update(
-    jdate: list[int],
     sdate: list[int],
-    kyear: int,
     deltsw: float,
     deltim: float,
     lsol_chg: bool,
@@ -411,7 +409,7 @@ def solar_update(
         else:  # need to read in new data
             iyr_sav = iyear
             # TODO finish all of this
-        solc0 = assign_solar_constant_from_data(solar_constant_data, iyear, isolflg)
+            solc0 = assign_solar_constant_from_data(solar_constant_data, iyear, isolflg)
 
     # calculate forecast julian day and fraction of julian day
     jd1 = date_to_julian(iyear, imon, iday)
@@ -456,7 +454,6 @@ def coszmn(
     sinlat: FloatFieldIJ,
     coslat: FloatFieldIJ,
     solhr: Float,
-    sollat: Float,
     sollag: Float,
     sindec: Float,
     cosdec: Float,
@@ -499,7 +496,7 @@ def coszmn(
     !                                                                       !
     !  ===================================================================  !
     """
-    from __externals__ import daily_mean, fixed_sollat, nstp
+    from __externals__ import daily_mean, fixed_sollat, nstp, sollat
 
     with computation(PARALLEL), interval(0, 1):
         daymask = False

@@ -7,11 +7,28 @@ import xarray as xr
 from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
 from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
 
-from ndsl import Float, Int, Quantity, QuantityFactory, StencilFactory
+from ndsl import Float, Int, FloatField, FloatFieldIJ, IntFieldIJ, Quantity, QuantityFactory, StencilFactory
+from ndsl.dsl.gt4py import PARALLEL, computation, interval, max, min
 
 from .rad_astro import coszmn, sol_init, solar_update
-from .rad_clouds import progcld4, progcld5
+from .rad_clouds import progcld4, progcld5, cld_init
+from .rad_gases import gas_init, co2_update, get_gases_topdown, get_gases_bottomup
+from .rad_sfc import sfc_init, set_albedo, set_sfcemis
 from .radiation_state import RadiationState
+
+GRAV = 9.80665
+CP_DRY = 1004.64
+
+def calc_heating(
+    flux_up: FloatField,
+    flux_down: FloatField,
+    p_lev: FloatField,
+    heating_rate: FloatField,
+):
+    with computation(PARALLEL), interval(0, -1):
+        heating_rate = (
+            flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0]
+        ) * GRAV / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
 
 
 @dataclasses.dataclass
@@ -21,31 +38,99 @@ class RadiationConfig:
     fhlwr: Float
     isolar: Int
     icmphys: Int
+    ico2flg: Int
+    ioznflg: Int
+    ictmflg: Int
+    ialbflg: Int
+    iemsflg: Int
+    lsol_chg: bool
+    isolflg: bool
+    ldisable_radiation_quasi_sea_ice: bool
     solar_constant_file: Path
+    input_dir: Path
     aerosol_file: Path
     daily_mean: bool
     fixed_sollat: bool
+    sollat: Float
     nstp: Int
     ivflip: Int
     lcnorm: bool
     lcrick: bool
     gfs_cloud_overlap: bool
+    deltsw: Float
+    delt_rad: Float
+
+    def __post_init__(self):
+        if self.ioznflg == 0:
+            raise NotImplementedError(
+                "climatological ozone (ioznflg = 0) is not supported"
+            )
 
 
 class RTE_RRTMGPDriver:
     def __init__(
         self,
         config: RadiationConfig,
-        year: Int,
+        iyear: Int,
+        imonth: Int,
+        iday: Int,
+        gridlon,
+        gridlat,
+        sigma: np.ndarray,
         stencil_factory: StencilFactory,
     ):
         grid_indexing = stencil_factory.grid_indexing
+        self.saved_iyear = iyear
+        self.saved_imonth = imonth
+        self.saved_iday = iday
+        self.deltsw = config.deltsw
+        self.delt_rad = config.delt_rad
+        self.lsol_chg = config.lsol_chg
+        self.isolflg = config.isolflg
+        self.ico2flg = config.ico2flg
+        self.ictmflg = config.ictmflg
+        self.ialbflg = config.ialbflg
+        self.ldisable_radiation_quasi_sea_ice = config.ldisable_radiation_quasi_sea_ice
+ 
+        self.gridlon = gridlon
+        self.gridlat = gridlat
+        # Init solar params
         self._isolar = config.isolar
         self._isolflg, self._solar_constants, self.solc0 = sol_init(
             self._isolar,
             config.solar_constant_file,
-            year,
+            iyear,
         )
+        # Here is where we will initialize aerosols once they're supported
+
+        # Init gases
+        (self.n2o, self.ch4, self.o2, self.co, self.n2, self.cfc11, self.cfc12,
+        self.cfc22, self.ccl4, self.co2_glb, self.co2_arr, self.co2_cyc,
+        self.co2_mvr_data, self.co2_glb_data,
+        self.co2_cyc_data) = gas_init(config.input_dir,
+            config.ico2flg,
+            config.ioznflg,
+            config.ictmflg,
+            iyear,
+            imonth,
+            gridlon,
+            gridlat
+        )
+
+        # Init sfc albedo and emissivity
+        self.albedo = np.zeros((gridlon.shape[0], gridlon.shape[1], 4))
+        self.sfcemis = np.zeros((gridlon.shape[0], gridlon.shape[1]))
+        sfcemis_datafile = config.input_dir.joinpath("sfc_emissivity_idx.txt")
+        self._sfcemis_map = sfc_init(
+            config.ialbflg,
+            config.iemsflg,
+            config.ldisable_radiation_quasi_sea_ice,
+            sfcemis_datafile,
+        )
+
+        # Init clouds:
+        self._llyr = cld_init(sigma, config.ivflip)
+
         self._cloud_optics_lw = rad.rrtmgp_cloud_optics.load_cloud_optics(
             cloud_optics_file=rad.data_types.CloudOpticsFiles.LW_BND
         )
@@ -124,9 +209,39 @@ class RTE_RRTMGPDriver:
                 f"radiation cloud microphysics control flag {config.icmphys} "
                 "not implemented, please choose 4 or 5"
             )
+        self._coszmn = stencil_factory.from_origin_domain(
+                func=coszmn,
+                externals={
+                    "daily_mean": config.daily_mean,
+                    "fixed_sollat": config.fixed_sollat,
+                    "nstp": config.nstp,
+                    "sollat": config.sollat
+                },
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+        if config.ictmflg == -2:
+            if config.ivflip == 0:
+                self._get_gases = stencil_factory.from_origin_domain(
+                    func=get_gases_topdown,
+                    externals = {
+                        "ico2flg": config.ico2flg,
+                    },
+                    origin=grid_indexing.origin_compute(),
+                    domain=grid_indexing.domain_compute(),
+                )
+            else:
+                self._get_gases = stencil_factory.from_origin_domain(
+                    func=get_gases_bottomup,
+                    externals = {
+                        "ico2flg": config.ico2flg,
+                    },
+                    origin=grid_indexing.origin_compute(),
+                    domain=grid_indexing.domain_compute(),
+                )
         pass
 
-    def _accumulate_radiation_inputs(self, state: RadiationState):
+    def _accumulate_radiation_inputs(self, state: RadiationState, sfc_state):
         """
         For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
         the species used for the spectral calculations:
@@ -136,7 +251,85 @@ class RTE_RRTMGPDriver:
         Here we extract that info from the model state and time,
         and make sure units are correct.
         """
+        self._coszmn()
+        if self.ictmflg == -2:
+            self._get_gases()
+
+        set_albedo(
+            self.ialbflg,
+            sfc_state.islmsk,
+            sfc_state.snowd,
+            sfc_state.sncovr,
+            sfc_state.snoalb,
+            sfc_state.zorl,
+            state.mu0,
+            sfc_state.tskn,
+            sfc_state.hprim,
+            sfc_state.alvsf,
+            sfc_state.alnsf,
+            sfc_state.alvwf,
+            sfc_state.alnwf,
+            sfc_state.facsf,
+            sfc_state.facwf,
+            sfc_state.fice,
+            sfc_state.tisfc,
+            sfc_state.albedo,
+            self.albedo,
+            self.ldisable_radiation_quasi_sea_ice,
+        )
+        set_sfcemis(
+            gridlon: np.ndarray,
+            gridlat: np.ndarray,
+            islmsk: np.ndarray,
+            snowf: np.ndarray,
+            sncovr: np.ndarray,
+            zorlf: np.ndarray,
+            tskin: np.ndarray,
+            tairf: np.ndarray,
+            hprif: np.ndarray,
+            iemslw: Int,
+            ialbflg: Int,
+            ldisable_radiation_quasi_sea_ice: bool,
+            self.sfcemis: np.ndarray,
+            ext_sfcemis_data: np.ndarray,
+            sfcemis_lsm: np.ndarray,
+        )
         pass
+
+    def _update_inputs_if_needed(self, state: RadiationState, sdate):
+        """
+        Updates input data from external sources when model date differs
+        from the saved date
+        """
+        (self.slag, self.sdec, self.cdec, self.anginc, self.solcon,
+        self.solc0, self.nstp, self.saved_iyear) = solar_update(
+            sdate,
+            self.deltsw,
+            self.delt_rad,
+            self.lsol_chg,
+            self.saved_iyear,
+            self.isolflg,
+            self._solar_constants,
+        )
+
+        # Here is where we update ozone and aerosols when enabled
+
+        update_co2 = sdate[1] == self.saved_imonth
+        co2_update(
+            sdate[0],
+            sdate[1],
+            self.ico2flg,
+            update_co2,
+            self.ictmflg,
+            self.co2_glb,
+            self.co2_arr,
+            self.co2_cyc,
+            self.gridlon,
+            self.gridlat,
+            self.co2_glb_data,
+            self.co2_mvr_data,
+            self.co2_cyc_data,
+        )
 
     def _get_ozone(self):
         """
@@ -173,8 +366,11 @@ class RTE_RRTMGPDriver:
 
     def step_radiation(self, state: RadiationState):
         self._accumulate_radiation_inputs(state)
+        self._update_inputs(state)
         radx = state.to_rterrtmgp_xr()
         is_day = state.mu0.data[:] > 0.0
+
+        self._coszmn()
 
         # Do SW fluxes:
         sw_optics = self._gas_optics_sw.compute_gas_optics(
