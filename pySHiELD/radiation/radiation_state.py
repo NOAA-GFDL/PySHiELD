@@ -17,7 +17,7 @@ class RadiationState:
             "name": "interface_pressure",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
             "units": "Pa",
-            "intent": "inout",
+            "intent": "in",
         }
     )
     prsl: Quantity = field(
@@ -33,7 +33,7 @@ class RadiationState:
             "name": "layer_air_temperature",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "degK",
-            "intent": "inout",
+            "intent": "in",
         }
     )
     tlvl: Quantity = field(
@@ -49,7 +49,7 @@ class RadiationState:
             "name": "surface_air_temperature",
             "dims": [X_DIM, Y_DIM],
             "units": "degK",
-            "intent": "inout",
+            "intent": "in",
         }
     )
     mu0: Quantity = field(
@@ -81,6 +81,7 @@ class RadiationState:
             "name": "specific_humidity",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "kg/kg",
+            "intent": "in",
         }
     )
     qliquid: Quantity = field(
@@ -88,7 +89,7 @@ class RadiationState:
             "name": "cloud_water_mixing_ratio",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "kg/kg",
-            "intent": "inout",
+            "intent": "in",
         }
     )
     qice: Quantity = field(
@@ -96,39 +97,15 @@ class RadiationState:
             "name": "cloud_ice_mixing_ratio",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "kg/kg",
-            "intent": "inout",
+            "intent": "in",
         }
     )
-    # qrain: Quantity = field(
-    #     metadata={
-    #         "name": "rain_mixing_ratio",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "kg/kg",
-    #         "intent": "inout",
-    #     }
-    # )
-    # qsnow: Quantity = field(
-    #     metadata={
-    #         "name": "snow_mixing_ratio",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "kg/kg",
-    #         "intent": "inout",
-    #     }
-    # )
-    # qgraupel: Quantity = field(
-    #     metadata={
-    #         "name": "graupel_mixing_ratio",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "kg/kg",
-    #         "intent": "inout",
-    #     }
-    # )
     qo3mr: Quantity = field(
         metadata={
             "name": "ozone_mixing_ratio",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "kg/kg",
-            "intent": "inout",
+            "intent": "in",
         }
     )
     qcld: Quantity = field(
@@ -136,7 +113,7 @@ class RadiationState:
             "name": "cloud_fraction",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "",
-            "intent": "inout",
+            "intent": "in",
         }
     )
     co2: Quantity = field(
@@ -179,38 +156,54 @@ class RadiationState:
             "intent": "inout",
         }
     )
-    # delp: Quantity = field(
-    #     metadata={
-    #         "name": "pressure_thickness_of_atmospheric_layer",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "Pa",
-    #         "intent": "inout",
-    #     }
-    # )
-    # delz: Quantity = field(
-    #     metadata={
-    #         "name": "vertical_thickness_of_atmospheric_layer",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "m",
-    #         "intent": "inout",
-    #     }
-    # )
-    # delprsi: Quantity = field(
-    #     metadata={
-    #         "name": "model_level_pressure_thickness_in_physics",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "Pa",
-    #         "intent": "inout",
-    #     }
-    # )
-    # dz: Quantity = field(
-    #     metadata={
-    #         "name": "geopotential_height_thickness",
-    #         "dims": [X_DIM, Y_DIM, Z_DIM],
-    #         "units": "m",
-    #         "intent": "inout",
-    #     }
-    # )
+    flwu: Quantity = field(
+        metadata={
+            "name": "longwave_flux_up",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    flwd: Quantity = field(
+        metadata={
+            "name": "longwave_flux_down",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    fswu: Quantity = field(
+        metadata={
+            "name": "shortwave_flux_up",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    fswd: Quantity = field(
+        metadata={
+            "name": "shortwave_flux_down",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    hrtlw: Quantity = field(
+        metadata={
+            "name": "longwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    hrtsw: Quantity = field(
+        metadata={
+            "name": "shortwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
     quantity_factory: InitVar[QuantityFactory]
     np_like: InitVar[NumpyModule]
 
@@ -302,47 +295,48 @@ class RadiationState:
         data_vars = {}
         for name, field_info in self.__dataclass_fields__.items():
             if name not in ["quantity_factory", "np_like"]:
-                if issubclass(field_info.type, Quantity):
-                    dims = []
-                    slice_list = []
-                    ndims = len(field_info.metadata["dims"])
-                    nz = self._nz
-                    for dim_name in field_info.metadata["dims"]:
-                        # dims.append(f"{dim_name}_{name}")
-                        if dim_name == "z_interface":
-                            slice_list.append(self._np.s_[:])
-                            nz = self._nz + 1
-                            dims.append("level")
-                        elif dim_name == "z":
-                            slice_list.append(self._np.s_[:-1])
-                            dims.append("layer")
-                        elif "INTERFACE" in dim_name:
-                            slice_list.append(self._np.s_[3:-3])
+                if field_info.metadata["intent"] != "out":
+                    if issubclass(field_info.type, Quantity):
+                        dims = []
+                        slice_list = []
+                        ndims = len(field_info.metadata["dims"])
+                        nz = self._nz
+                        for dim_name in field_info.metadata["dims"]:
+                            # dims.append(f"{dim_name}_{name}")
+                            if dim_name == "z_interface":
+                                slice_list.append(self._np.s_[:])
+                                nz = self._nz + 1
+                                dims.append("level")
+                            elif dim_name == "z":
+                                slice_list.append(self._np.s_[:-1])
+                                dims.append("layer")
+                            elif "INTERFACE" in dim_name:
+                                slice_list.append(self._np.s_[3:-3])
+                            else:
+                                slice_list.append(self._np.s_[3:-4])
+                        # We have to reshape to get the max 2D shape rterrtmgp expects:
+                        if ndims == 3:  # x-y-z array:
+                            newshape = (-1, nz)
+                            dims.insert(0, "column")
+                        elif ndims == 2:  # x-y array:
+                            newshape = (-1) # noqa
+                            dims.insert(0, "column")
+                        elif ndims == 1:  # z-array
+                            newshape == (nz)
                         else:
-                            slice_list.append(self._np.s_[3:-4])
-                    # We have to reshape to get the max 2D shape rterrtmgp expects:
-                    if ndims == 3:  # x-y-z array:
-                        newshape = (-1, nz)
-                        dims.insert(0, "column")
-                    elif ndims == 2:  # x-y array:
-                        newshape = (-1) # noqa
-                        dims.insert(0, "column")
-                    elif ndims == 1:  # z-array
-                        newshape == (nz)
-                    else:
-                        raise NotImplementedError(
-                            (
-                                "RadiationShape doesn't support more than 3D arrays, "
-                                f"{dim_name} has {ndims} axes"
+                            raise NotImplementedError(
+                                (
+                                    "RadiationShape doesn't support more than 3D "
+                                    f"arrays, {dim_name} has {ndims} axes"
+                                )
                             )
+                        data_vars[name] = xr.DataArray(
+                            gt_utils.asarray(getattr(self, name).data)[
+                                tuple(slice_list)
+                            ].reshape(newshape),
+                            dims=dims,
+                            attrs={
+                                "long_name": field_info.metadata["name"],
+                            },
                         )
-                    data_vars[name] = xr.DataArray(
-                        gt_utils.asarray(getattr(self, name).data)[
-                            tuple(slice_list)
-                        ].reshape(newshape),
-                        dims=dims,
-                        attrs={
-                            "long_name": field_info.metadata["name"],
-                        },
-                    )
         return xr.Dataset(data_vars=data_vars)

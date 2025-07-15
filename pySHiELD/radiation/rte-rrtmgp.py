@@ -3,12 +3,10 @@ from pathlib import Path
 
 import numpy as np
 import pyrte_rrtmgp as rad
-import xarray as xr
-from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
-from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
 
-from ndsl import Bool, Float, Int, FloatField, FloatFieldIJ, IntFieldIJ, Quantity, QuantityFactory, StencilFactory, X_DIM, Y_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval, max, min
+from ndsl import (Bool, Float, Int, FloatField, FloatFieldIJ, QuantityFactory,
+                  StencilFactory, X_DIM, Y_DIM)
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 
 from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import progcld4, progcld5, cld_init
@@ -25,6 +23,16 @@ def calc_heating(
     p_lev: FloatField,
     heating_rate: FloatField,
 ):
+    """
+    Calculates heating rates based on pressures and fluxes,
+    assuming k increases with height
+
+    Args:
+        flux_up: upward flux
+        flux_down: downward flux
+        p_lev: model interface pressure
+        heating_rate: layer heating rate
+    """
     with computation(PARALLEL), interval(0, -1):
         heating_rate = (
             flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0]
@@ -95,7 +103,7 @@ class RTE_RRTMGPDriver:
         self.iemslw = Int(config.iemsflg % 10)
         self.ldisable_radiation_quasi_sea_ice = config.ldisable_radiation_quasi_sea_ice
         self._first_step = True
- 
+
         self.solhr = ihr
         self.slag = 0.0
         self.sdec = 0.0
@@ -139,10 +147,12 @@ class RTE_RRTMGPDriver:
         # Here is where we will initialize aerosols once they're supported
 
         # Init gases
-        (self.n2o, self.ch4, self.o2, self.co, self.n2, self.cfc11, self.cfc12,
-        self.cfc22, self.ccl4, self.co2_glb, co2_arr, co2_cyc,
-        self.co2_mvr_data, self.co2_glb_data,
-        self.co2_cyc_data) = gas_init(config.input_dir,
+        (
+            self.n2o, self.ch4, self.o2, self.co, self.n2, self.cfc11, self.cfc12,
+            self.cfc22, self.ccl4, self.co2_glb, co2_arr, co2_cyc, self.co2_mvr_data,
+            self.co2_glb_data, self.co2_cyc_data
+        ) = gas_init(
+            config.input_dir,
             config.ico2flg,
             config.ioznflg,
             config.ictmflg,
@@ -248,21 +258,21 @@ class RTE_RRTMGPDriver:
                 "not implemented, please choose 4 or 5"
             )
         self._coszmn = stencil_factory.from_origin_domain(
-                func=coszmn,
-                externals={
-                    "daily_mean": config.daily_mean,
-                    "fixed_sollat": config.fixed_sollat,
-                    "nstp": config.nstp,
-                    "sollat": config.sollat
-                },
-                origin=grid_indexing.origin_compute(),
-                domain=grid_indexing.domain_compute(),
-            )
+            func=coszmn,
+            externals={
+                "daily_mean": config.daily_mean,
+                "fixed_sollat": config.fixed_sollat,
+                "nstp": config.nstp,
+                "sollat": config.sollat
+            },
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         if config.ictmflg == -2:
             if config.ivflip == 0:
                 self._get_gases = stencil_factory.from_origin_domain(
                     func=get_gases_topdown,
-                    externals = {
+                    externals={
                         "ico2flg": config.ico2flg,
                     },
                     origin=grid_indexing.origin_compute(),
@@ -271,7 +281,7 @@ class RTE_RRTMGPDriver:
             else:
                 self._get_gases = stencil_factory.from_origin_domain(
                     func=get_gases_bottomup,
-                    externals = {
+                    externals={
                         "ico2flg": config.ico2flg,
                     },
                     origin=grid_indexing.origin_compute(),
@@ -367,8 +377,10 @@ class RTE_RRTMGPDriver:
         Updates input data from external sources when model date differs
         from the saved date
         """
-        (self.slag, self.sdec, self.cdec, self.anginc, self.solcon,
-        self.solc0, self.nstp, self.saved_iyear) = solar_update(
+        (
+            self.slag, self.sdec, self.cdec, self.anginc, self.solcon, self.solc0,
+            self.nstp, self.saved_iyear
+        ) = solar_update(
             sdate,
             self.deltsw,
             self.delt_rad,
@@ -411,7 +423,7 @@ class RTE_RRTMGPDriver:
         # Do SW fluxes:
         sw_optics = self._gas_optics_sw.compute_gas_optics(
             radx,
-            problem_type=OpticsProblemTypes.TWO_STREAM,
+            problem_type=rad.data_types.OpticsProblemTypes.TWO_STREAM,
             add_to_input=False,
             gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
@@ -419,6 +431,16 @@ class RTE_RRTMGPDriver:
         sw_optics["surface_albedo"] = radx["albedo"]
         sw_optics["mu0"] = radx["mu0"]
         clr_fluxes_sw = rad.rte_solver.rte_solve(sw_optics, add_to_input=False)
+
+        sw_cloud_optical_props = self._cloud_optics_sw.compute_cloud_optics(
+            radx,
+            problem_type=rad.data_types.OpticsProblemTypes.ABSORPTION,
+            add_to_input=False,
+            gas_name_map=self._gas_mapping,
+            variable_mapping=self._atm_map,
+        )
+        sw_cloud_optical_props.add_to(sw_optics)
+        fluxes_sw = rad.rte_solver.rte_solve(sw_optics, add_to_input=False)
 
         # And do LW fluxes
         lw_optics = self._gas_optics_lw.compute_gas_optics(
@@ -430,6 +452,40 @@ class RTE_RRTMGPDriver:
         )
         lw_optics["surface_emissivity"] = radx["sfc_emis"]
         clr_fluxes_lw = rad.rte_solver.rte_solve(lw_optics, add_to_input=False)
+        lw_cloud_optical_props = self._cloud_optics_lw.compute_cloud_optics(
+            radx,
+            problem_type=rad.data_types.OpticsProblemTypes.ABSORPTION,
+            add_to_input=False,
+            gas_name_map=self._gas_mapping,
+            variable_mapping=self._atm_map,
+        )
+        lw_cloud_optical_props.add_to(lw_optics)
+        fluxes_lw = rad.rte_solver.rte_solve(lw_optics, add_to_input=False)
+
+        state.flwd.view[:] = fluxes_lw.lw_flux_down.data.reshape(
+            state.flwd.view[:].shape
+        )
+        state.flwu.view[:] = fluxes_lw.lw_flux_up.data.reshape(
+            state.flwu.view[:].shape
+        )
+        state.fswd.view[:] = fluxes_sw.sw_flux_down.data.reshape(
+            state.fswd.view[:].shape
+        )
+        state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(
+            state.fswu.view[:].shape
+        )
+        self._calc_heating(
+            state.fswu,
+            state.fswd,
+            state.prsi,
+            state.hrtsw,
+        )
+        self._calc_heating(
+            state.flwu,
+            state.flwd,
+            state.prsi,
+            state.hrtlw,
+        )
 
         if self._first_step:
             self._first_step = False
