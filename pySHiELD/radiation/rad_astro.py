@@ -451,7 +451,7 @@ def solar_update(
 
 def coszmn(
     xlon: FloatFieldIJ,
-    sinlat: FloatFieldIJ,
+    xlat: FloatFieldIJ,
     coslat: FloatFieldIJ,
     solhr: Float,
     sollag: Float,
@@ -499,6 +499,8 @@ def coszmn(
     from __externals__ import daily_mean, fixed_sollat, nstp, sollat
 
     with computation(PARALLEL), interval(0, 1):
+        sinlat = sin(xlat)
+        coslat = cos(xlat)
         daymask = False
 
         solar_angle = (constants.PI / 12.0) * (

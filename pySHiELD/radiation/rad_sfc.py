@@ -461,7 +461,6 @@ def set_sfcemis(
     sncovr: np.ndarray,
     zorlf: np.ndarray,
     tskin: np.ndarray,
-    tairf: np.ndarray,
     hprif: np.ndarray,
     iemslw: Int,
     ialbflg: Int,

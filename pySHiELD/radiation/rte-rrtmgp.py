@@ -7,7 +7,7 @@ import xarray as xr
 from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
 from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
 
-from ndsl import Float, Int, FloatField, FloatFieldIJ, IntFieldIJ, Quantity, QuantityFactory, StencilFactory
+from ndsl import Bool, Float, Int, FloatField, FloatFieldIJ, IntFieldIJ, Quantity, QuantityFactory, StencilFactory, X_DIM, Y_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval, max, min
 
 from .rad_astro import coszmn, sol_init, solar_update
@@ -74,9 +74,11 @@ class RTE_RRTMGPDriver:
         iyear: Int,
         imonth: Int,
         iday: Int,
-        gridlon,
-        gridlat,
+        ihr: Int,
+        gridlon: FloatFieldIJ,
+        gridlat: FloatFieldIJ,
         sigma: np.ndarray,
+        quantity_factory: QuantityFactory,
         stencil_factory: StencilFactory,
     ):
         grid_indexing = stencil_factory.grid_indexing
@@ -90,8 +92,41 @@ class RTE_RRTMGPDriver:
         self.ico2flg = config.ico2flg
         self.ictmflg = config.ictmflg
         self.ialbflg = config.ialbflg
+        self.iemslw = Int(config.iemsflg % 10)
         self.ldisable_radiation_quasi_sea_ice = config.ldisable_radiation_quasi_sea_ice
+        self._first_step = True
  
+        self.solhr = ihr
+        self.slag = 0.0
+        self.sdec = 0.0
+        self.cdec = 0.0
+        self.anginc = 0.0
+        self.solcon = 0.0
+        self.solc0 = 0.0
+        self.nstp = 0
+        
+        # Allocate quantities
+        self._coszdg = quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            "radians",
+            dtype=Float,
+        )
+        self._daymask = quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            "",
+            dtype=Bool,
+        )
+        self._co2_cyc = quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            "",
+            dtype=Bool,
+        )
+        self._co2_arr = quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            "",
+            dtype=Bool,
+        )
+
         self.gridlon = gridlon
         self.gridlat = gridlat
         # Init solar params
@@ -105,7 +140,7 @@ class RTE_RRTMGPDriver:
 
         # Init gases
         (self.n2o, self.ch4, self.o2, self.co, self.n2, self.cfc11, self.cfc12,
-        self.cfc22, self.ccl4, self.co2_glb, self.co2_arr, self.co2_cyc,
+        self.cfc22, self.ccl4, self.co2_glb, co2_arr, co2_cyc,
         self.co2_mvr_data, self.co2_glb_data,
         self.co2_cyc_data) = gas_init(config.input_dir,
             config.ico2flg,
@@ -117,9 +152,12 @@ class RTE_RRTMGPDriver:
             gridlat
         )
 
+        self._co2_cyc.view[:] = co2_cyc
+        self._co2_arr.view[:] = co2_arr
+
         # Init sfc albedo and emissivity
-        self.albedo = np.zeros((gridlon.shape[0], gridlon.shape[1], 4))
-        self.sfcemis = np.zeros((gridlon.shape[0], gridlon.shape[1]))
+        self.albedo = np.zeros((gridlon.view[:].shape[0], gridlon.view[:].shape[1], 4))
+        self.sfcemis = np.zeros((gridlon.view[:].shape[0], gridlon.view[:].shape[1]))
         sfcemis_datafile = config.input_dir.joinpath("sfc_emissivity_idx.txt")
         self._sfcemis_map = sfc_init(
             config.ialbflg,
@@ -239,9 +277,15 @@ class RTE_RRTMGPDriver:
                     origin=grid_indexing.origin_compute(),
                     domain=grid_indexing.domain_compute(),
                 )
+
+        self._calc_heating = stencil_factory.from_origin_domain(
+            func=calc_heating,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         pass
 
-    def _accumulate_radiation_inputs(self, state: RadiationState, sfc_state):
+    def _accumulate_radiation_inputs(self, state: RadiationState, sfc_state, sdate):
         """
         For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
         the species used for the spectral calculations:
@@ -251,9 +295,30 @@ class RTE_RRTMGPDriver:
         Here we extract that info from the model state and time,
         and make sure units are correct.
         """
-        self._coszmn()
+
+        self._update_inputs_if_needed(state, sdate)
+
+        self._coszmn(
+            self.gridlon.view[:],
+            self.gridlat.view[:],
+            sdate[3],
+            self.slag,
+            self.sdec,
+            self.cdec,
+            self.anginc,
+            state.mu0,
+            self._coszdg,
+            self._daymask,
+        )
+
         if self.ictmflg == -2:
-            self._get_gases()
+            self._get_gases(
+                state.co2,
+                state.prsl,
+                self.co2_glb,
+                self._co2_cyc,
+                self._co2_arr,
+            )
 
         set_albedo(
             self.ialbflg,
@@ -277,23 +342,24 @@ class RTE_RRTMGPDriver:
             self.albedo,
             self.ldisable_radiation_quasi_sea_ice,
         )
+        state.albedo.view[:] = self.albedo
         set_sfcemis(
-            gridlon: np.ndarray,
-            gridlat: np.ndarray,
-            islmsk: np.ndarray,
-            snowf: np.ndarray,
-            sncovr: np.ndarray,
-            zorlf: np.ndarray,
-            tskin: np.ndarray,
-            tairf: np.ndarray,
-            hprif: np.ndarray,
-            iemslw: Int,
-            ialbflg: Int,
-            ldisable_radiation_quasi_sea_ice: bool,
-            self.sfcemis: np.ndarray,
-            ext_sfcemis_data: np.ndarray,
-            sfcemis_lsm: np.ndarray,
+            self.gridlon.view[:],
+            self.gridlat.view[:],
+            sfc_state.islmsk,
+            sfc_state.snowd,
+            sfc_state.sncovr,
+            sfc_state.zorl,
+            sfc_state.tskin,
+            sfc_state.hprim,
+            self.iemslw,
+            self.ialbflg,
+            self.ldisable_radiation_quasi_sea_ice,
+            self.sfcemis,
+            self._sfcemis_map,
+            sfc_state.sfcemis,
         )
+        state.sfc_emis.view[:] = self.sfcemis
         pass
 
     def _update_inputs_if_needed(self, state: RadiationState, sdate):
@@ -314,7 +380,7 @@ class RTE_RRTMGPDriver:
 
         # Here is where we update ozone and aerosols when enabled
 
-        update_co2 = sdate[1] == self.saved_imonth
+        update_co2 = (sdate[1] == self.saved_imonth) or (self._first_step)
         co2_update(
             sdate[0],
             sdate[1],
@@ -322,44 +388,14 @@ class RTE_RRTMGPDriver:
             update_co2,
             self.ictmflg,
             self.co2_glb,
-            self.co2_arr,
-            self.co2_cyc,
-            self.gridlon,
-            self.gridlat,
+            self._co2_arr.view[:],
+            self._co2_cyc.view[:],
+            self.gridlon.view[:],
+            self.gridlat.view[:],
             self.co2_glb_data,
             self.co2_mvr_data,
             self.co2_cyc_data,
         )
-
-    def _get_ozone(self):
-        """
-        sets layer ozone mass-mixing ratio
-        """
-        pass
-
-    def _get_gases(self):
-        """
-        Sets up non-prognostic gas volume mixing
-        """
-        pass
-
-    def _set_aerosols(self):
-        """
-        set aerosol profiles
-        """
-        pass
-
-    def _set_albedo(self):
-        """
-        sets surface albedos for SW calculations
-        """
-        pass
-
-    def _set_sfcemis(self):
-        """
-        sets surface emissivities for LW calculations
-        """
-        pass
 
     def _prep_outputs(self):
         pass
@@ -395,4 +431,6 @@ class RTE_RRTMGPDriver:
         lw_optics["surface_emissivity"] = radx["sfc_emis"]
         clr_fluxes_lw = rad.rte_solver.rte_solve(lw_optics, add_to_input=False)
 
+        if self._first_step:
+            self._first_step = False
         pass

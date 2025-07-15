@@ -139,6 +139,14 @@ class RadiationState:
             "intent": "inout",
         }
     )
+    co2: Quantity = field(
+        metadata={
+            "name": "co2_concentration",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
     clwp: Quantity = field(
         metadata={
             "name": "cloud_liquid_water_path",
