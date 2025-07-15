@@ -1,60 +1,106 @@
 [build-system]
-requires = ["setuptools >= 64"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 77.0.3"]
 
 [project]
-name = "pyshield"
-version = "0.2.0"
-dependencies = [
-    "f90nml>=1.1.0",
-    "numpy==1.26.4",
-    "xarray",
-]
-requires-python = ">=3.11.7"
 authors = [{name = "NOAA - Geophysical Fluid Dynamics Laboratory", email = "oliver.elbert@noaa.gov"}]
-description = "pySHiELD is a collection of NDSL-based physical parameterizations"
-readme = "README.md"
-license = {file = "LICENSE.md"}
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11"
 ]
+dependencies = [
+  "f90nml>=1.1.0",
+  "numpy==1.26.4",
+  "xarray"
+]
+description = "pySHiELD is a collection of NDSL-based physical parameterizations"
+license = {file = "LICENSE.md"}
+name = "pyshield"
+readme = "README.md"
+requires-python = ">=3.11.7, <3.12"
+version = "0.2.0"
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-subtests",
-    "serialbox",
-    "coverage"
+dev = [
+  "pyshield[test]",
+  "pySHIELD[ndsl]",
+  "pyshield[pyfv3]",
+  "pre-commit"
+]
+extras = [
+  "pyshield[test]",
+  "pyshield[ndsl]",
+  "pyshield[pyfv3]",
+  "pyshield[dev]"
 ]
 ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
 pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@develop"]
-develop = [
-    "pyshield[test]",
-    "pySHIELD[ndsl]",
-    "pyshield[pyfv3]",
-    "pre-commit",
-]
-extras = [
-    "pyshield[test]",
-    "pyshield[ndsl]",
-    "pyshield[pyfv3]",
-    "pyshield[develop]",
+test = [
+  "pytest",
+  "pytest-subtests",
+  "serialbox",
+  "coverage"
 ]
 
 [project.urls]
 Repository = "https://github.com/NOAA-GFDL/PySHiELD"
 
-[tool.setuptools.packages.find]
-include = ["pyshield", "pyshield.*"]
+[tool.aliases]
+
+[tool.black]
+line-length = 88
+target_version = ['py311']
+
+[tool.bumpversion]
+commit = "True"
+current_version = "0.2.0"
+
+[tool.coverage.run]
+branch = true
+omit = [
+  "tests/*",
+  "*gt_cache*",
+  ".dacecache*",
+  "external/*",
+  "__init__.py"
+]
+parallel = true
+source_pkgs = ["pyshield"]
+
+[tool.distutils.bdist_wheel]
+universal = 1
+
+[tool.flake8]
+exclude = ["docs"]
+extend-ignore = ["W503", "E302", "E203", "F841"]
+max-line-length = 88
+
+[tool.isort]
+default_section = "THIRDPARTY"
+force_grid_wrap = 0
+include_trailing_comma = true
+known_first_party = "pyfv3,ndsl,pyshield"
+known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py"
+line_length = 88
+lines_after_imports = 2
+multi_line_output = 3
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+use_parentheses = true
+
+[tool.mypy]
+explicit_package_bases = true
+follow_imports = "normal"
+ignore_missing_imports = true
+namespace_packages = true
+strict_optional = false
+warn_unreachable = true
 
 [tool.setuptools]
 include-package-data = true
 
-[tool.black]
-line-length = 88
-target_version = ['py38']
+[tool.setuptools.packages.find]
+include = ["pyshield", "pyshield.*"]
