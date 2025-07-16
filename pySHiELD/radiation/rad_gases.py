@@ -209,13 +209,13 @@ def broadcast_co2_to_grid(
 
 def gas_init(
     input_dir: Path,
-    ico2flg,
-    ioznflg,
-    ictmflg,
-    iyear,
-    imonth,
-    gridlon,
-    gridlat,
+    ico2flg: Int,
+    ioznflg: Int,
+    ictmflg: Int,
+    iyear: Int,
+    imonth: Int,
+    gridlon: np.ndarray,
+    gridlat: np.ndarray,
 ):
     """
     Function to init gases for radiation. Returns a global mean CO2 concentration,
