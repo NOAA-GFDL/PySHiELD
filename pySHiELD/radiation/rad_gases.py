@@ -311,6 +311,7 @@ def gas_init(
         co2_cyc_data,
     )
 
+
 def ozone_update(
     imon: Int,
     iday: Int,
@@ -345,6 +346,7 @@ def ozone_update(
             id = iday
         facoz = Float(id - midm) / Float(midp - midm)
     return k1oz, k2oz, facoz
+
 
 def co2_update(
     iyear: Int,

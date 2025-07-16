@@ -25,5 +25,5 @@ CPH2O2 = 4.2e6
 # Constants used in interpolating radiation onto physics timestep:
 F_EPS = 0.0001
 
-TICE = 2.7120e+2
+TICE = 2.7120e2
 """temp freezing sea (K)"""

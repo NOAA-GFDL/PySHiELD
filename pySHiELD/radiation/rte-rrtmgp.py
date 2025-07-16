@@ -4,18 +4,29 @@ from pathlib import Path
 import numpy as np
 import pyrte_rrtmgp as rad
 
-from ndsl import (Bool, Float, Int, FloatField, FloatFieldIJ, QuantityFactory,
-                  StencilFactory, X_DIM, Y_DIM)
+from ndsl import (
+    X_DIM,
+    Y_DIM,
+    Bool,
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    Int,
+    QuantityFactory,
+    StencilFactory,
+)
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 
 from .rad_astro import coszmn, sol_init, solar_update
-from .rad_clouds import progcld4, progcld5, cld_init
-from .rad_gases import gas_init, co2_update, get_gases_topdown, get_gases_bottomup
-from .rad_sfc import sfc_init, set_albedo, set_sfcemis
+from .rad_clouds import cld_init, progcld4, progcld5
+from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
+from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .radiation_state import RadiationState
+
 
 GRAV = 9.80665
 CP_DRY = 1004.64
+
 
 def calc_heating(
     flux_up: FloatField,
@@ -35,8 +46,10 @@ def calc_heating(
     """
     with computation(PARALLEL), interval(0, -1):
         heating_rate = (
-            flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0]
-        ) * GRAV / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
+            (flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0])
+            * GRAV
+            / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
+        )
 
 
 @dataclasses.dataclass
@@ -112,7 +125,7 @@ class RTE_RRTMGPDriver:
         self.solcon = 0.0
         self.solc0 = 0.0
         self.nstp = 0
-        
+
         # Allocate quantities
         self._coszdg = quantity_factory.zeros(
             [X_DIM, Y_DIM],
@@ -148,9 +161,21 @@ class RTE_RRTMGPDriver:
 
         # Init gases
         (
-            self.n2o, self.ch4, self.o2, self.co, self.n2, self.cfc11, self.cfc12,
-            self.cfc22, self.ccl4, self.co2_glb, co2_arr, co2_cyc, self.co2_mvr_data,
-            self.co2_glb_data, self.co2_cyc_data
+            self.n2o,
+            self.ch4,
+            self.o2,
+            self.co,
+            self.n2,
+            self.cfc11,
+            self.cfc12,
+            self.cfc22,
+            self.ccl4,
+            self.co2_glb,
+            co2_arr,
+            co2_cyc,
+            self.co2_mvr_data,
+            self.co2_glb_data,
+            self.co2_cyc_data,
         ) = gas_init(
             config.input_dir,
             config.ico2flg,
@@ -159,7 +184,7 @@ class RTE_RRTMGPDriver:
             iyear,
             imonth,
             gridlon,
-            gridlat
+            gridlat,
         )
 
         self._co2_cyc.view[:] = co2_cyc
@@ -263,7 +288,7 @@ class RTE_RRTMGPDriver:
                 "daily_mean": config.daily_mean,
                 "fixed_sollat": config.fixed_sollat,
                 "nstp": config.nstp,
-                "sollat": config.sollat
+                "sollat": config.sollat,
             },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
@@ -378,8 +403,14 @@ class RTE_RRTMGPDriver:
         from the saved date
         """
         (
-            self.slag, self.sdec, self.cdec, self.anginc, self.solcon, self.solc0,
-            self.nstp, self.saved_iyear
+            self.slag,
+            self.sdec,
+            self.cdec,
+            self.anginc,
+            self.solcon,
+            self.solc0,
+            self.nstp,
+            self.saved_iyear,
         ) = solar_update(
             sdate,
             self.deltsw,
@@ -412,9 +443,8 @@ class RTE_RRTMGPDriver:
     def _prep_outputs(self):
         pass
 
-    def step_radiation(self, state: RadiationState):
-        self._accumulate_radiation_inputs(state)
-        self._update_inputs(state)
+    def step_radiation(self, state: RadiationState, sfc_state, date):
+        self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
         is_day = state.mu0.data[:] > 0.0
 
@@ -465,15 +495,11 @@ class RTE_RRTMGPDriver:
         state.flwd.view[:] = fluxes_lw.lw_flux_down.data.reshape(
             state.flwd.view[:].shape
         )
-        state.flwu.view[:] = fluxes_lw.lw_flux_up.data.reshape(
-            state.flwu.view[:].shape
-        )
+        state.flwu.view[:] = fluxes_lw.lw_flux_up.data.reshape(state.flwu.view[:].shape)
         state.fswd.view[:] = fluxes_sw.sw_flux_down.data.reshape(
             state.fswd.view[:].shape
         )
-        state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(
-            state.fswu.view[:].shape
-        )
+        state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(state.fswu.view[:].shape)
         self._calc_heating(
             state.fswu,
             state.fswd,
