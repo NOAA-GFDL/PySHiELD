@@ -56,10 +56,6 @@ Repository = "https://github.com/NOAA-GFDL/PySHiELD"
 line-length = 88
 target_version = ['py311']
 
-[tool.bumpversion]
-commit = "True"
-current_version = "0.2.0"
-
 [tool.coverage.run]
 branch = true
 omit = [
@@ -72,13 +68,11 @@ omit = [
 parallel = true
 source_pkgs = ["pyshield"]
 
-[tool.distutils.bdist_wheel]
-universal = 1
-
 [tool.flake8]
 exclude = ["docs"]
-extend-ignore = ["W503", "E302", "E203", "F841", "F401"]
+extend-ignore = ["W503", "E302", "E203", "F841"]
 max-line-length = 88
+per-file-ignores = "__init__.py: F401"
 
 [tool.isort]
 default_section = "THIRDPARTY"
