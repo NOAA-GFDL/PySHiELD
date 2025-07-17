@@ -29,7 +29,8 @@ dev = [
   "pyshield[test]",
   "pySHIELD[ndsl]",
   "pyshield[pyfv3]",
-  "pre-commit"
+  "pre-commit",
+  "flake8-pyproject"
 ]
 extras = [
   "pyshield[test]",
@@ -76,7 +77,7 @@ universal = 1
 
 [tool.flake8]
 exclude = ["docs"]
-extend-ignore = ["W503", "E302", "E203", "F841"]
+extend-ignore = ["W503", "E302", "E203", "F841", "F401"]
 max-line-length = 88
 
 [tool.isort]
