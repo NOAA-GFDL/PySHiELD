@@ -588,6 +588,7 @@ def stencil_static5(
     heo: FloatField,
     uo: FloatField,
     vo: FloatField,
+    ptem: FloatFieldIJ,
 ):
     # Start updraft entrainment rate.
     # assume updraft entrainment rate
@@ -614,7 +615,7 @@ def stencil_static5(
         dz = 0.0
         ptem = 0.0
         if cnvflg:
-            if k_mask < kbcon and k_mask >= kb:
+            if (k_mask < kbcon) and (k_mask >= kb):
                 dz = zi[0, 0, 1] - zi[0, 0, 0]
                 ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, 1]) - xlamud
                 eta = eta[0, 0, 1] / (1.0 + ptem * dz)
@@ -625,7 +626,7 @@ def stencil_static5(
 
     with computation(FORWARD), interval(1, -1):
         if flg:
-            if k_mask > kbcon and k_mask < kmax:
+            if (k_mask > kbcon) and (k_mask < kmax):
                 dz = zi[0, 0, 0] - zi[0, 0, -1]
                 ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, -1]) - xlamud
                 eta = eta[0, 0, -1] * (1 + ptem * dz)
@@ -2245,6 +2246,7 @@ class ScaleAwareMassFluxShallowConvection:
         self._deltv = make_quantity_2D()
         self._delq = make_quantity_2D()
         self._qevap = make_quantity_2D()
+        self._ptem = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2683,6 +2685,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._heo,
             self._uo,
             self._vo,
+            self._ptem,
         )
 
         for n_tracer in range(self._ntr):

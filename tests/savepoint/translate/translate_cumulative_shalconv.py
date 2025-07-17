@@ -1164,6 +1164,7 @@ class UpdateKB9:
         self._deltv = make_quantity_2D()
         self._delq = make_quantity_2D()
         self._qevap = make_quantity_2D()
+        self._ptem = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -1533,6 +1534,7 @@ class UpdateKB9:
             self._heo,
             self._uo,
             self._vo,
+            self._ptem,
         )
 
         for n_tracer in range(self._ntr):
@@ -1754,6 +1756,7 @@ class Static10:
         self._deltv = make_quantity_2D()
         self._delq = make_quantity_2D()
         self._qevap = make_quantity_2D()
+        self._ptem = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2130,6 +2133,7 @@ class Static10:
             self._heo,
             self._uo,
             self._vo,
+            self._ptem,
         )
 
         for n_tracer in range(self._ntr):
@@ -2491,6 +2495,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
             self._heo,
             self._uo,
             self._vo,
+            self._ptem,
         )
 
         for n_tracer in range(self._ntr):
@@ -3558,7 +3563,7 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
             "del0": {"serialname": "sc11_del0", "shield": True},
             "xmbmax": {"serialname": "sc11_xmbmax", "shield": True},
             "aa1": {"serialname": "sc11_aa1", "shield": True},
-            "kb": {"serialname": "sc11_kb", "shield": True},
+            "kb": {"serialname": "sc11_kb", "shield": True, "index_variable": True,},
             "qcko": {"serialname": "sc11_qcko", "shield": True},
             "qo": {"serialname": "sc11_qo", "shield": True},
             "qrcko": {"serialname": "sc11_qrcko", "shield": True},
@@ -3600,7 +3605,7 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
             "del0": {"serialname": "sc11_del0", "shield": True},
             "xmbmax": {"serialname": "sc11_xmbmax", "shield": True},
             "aa1": {"serialname": "sc11_aa1", "shield": True},
-            "kb": {"serialname": "sc11_kb", "shield": True},
+            "kb": {"serialname": "sc11_kb", "shield": True, "index_variable": True},
             "qcko": {"serialname": "sc11_qcko", "shield": True},
             "qo": {"serialname": "sc11_qo", "shield": True},
             "qrcko": {"serialname": "sc11_qrcko", "shield": True},
