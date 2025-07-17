@@ -27,7 +27,7 @@ version = "0.2.0"
 [project.optional-dependencies]
 dev = [
   "pyshield[test]",
-  "pySHIELD[ndsl]",
+  "pyshield[ndsl]",
   "pyshield[pyfv3]",
   "pre-commit",
   "flake8-pyproject"
