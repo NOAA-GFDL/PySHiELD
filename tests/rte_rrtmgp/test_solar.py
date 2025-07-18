@@ -90,6 +90,17 @@ def test_julian_date(date, expected):
         1406.8144765,
         -23.0578509,
         id="test_20200101",
+    ),
+    pytest.param(
+        2,
+        [2020, 1, 1, 0, 0, 0],
+        3600.0,
+        225.0,
+        2020,
+        -0.013631,
+        1406.8144765,
+        -23.0578509,
+        id="test_20200101-noupdate",
     ),]
 )
 def test_solar_update(
@@ -116,6 +127,7 @@ def test_solar_update(
         saved_iyear,
     ) = solar_update(
         sdate,
+        solc0,
         deltsw,
         deltim,
         lsol_chg,

@@ -193,19 +193,19 @@ def broadcast_co2_to_grid(
     """
     gridded_data = np.zeros_like(gridlon)
 
-    nx = gridlon.shape(0)
-    ny = gridlon.shape(1)
+    nx = gridlon.shape[0]
+    ny = gridlon.shape[1]
     tmp = (180.0 / constants.PI) / RESCO2
     for i in range(nx):
         for j in range(ny):
             jres = (constants.PI - gridlat[i, j]) * tmp
-            jres = min(JMXCO2, int(jres))
+            jres = min(JMXCO2 - 1, int(jres))
             ires = (
                 (gridlon[i, j] * tmp)
                 if gridlon[i, j] >= 0.0
                 else ((gridlon[i, j] + 2.0 * constants.PI) * tmp)
             )
-            ires = min(IMXCO2, int(ires))
+            ires = min(IMXCO2 - 1, int(ires))
             gridded_data[i, j] = co2dat[jres][ires]
     return gridded_data
 
@@ -233,8 +233,8 @@ def gas_init(
     n2o = N2OVMR_DEF
     ch4 = CH4VMR_DEF
     o2 = O2VMR_DEF
-    co = N2VMR_DEF
-    n2 = COVMR_DEF
+    co = COVMR_DEF
+    n2 = N2VMR_DEF
     cfc11 = F11VMR_DEF
     cfc12 = F12VMR_DEF
     cfc22 = F22VMR_DEF
@@ -255,7 +255,7 @@ def gas_init(
             cfc12,
             cfc22,
             ccl4,
-            CO2VMR_DEF,
+            co2_glb,
             co2_arr,
             co2_cyc,
             None,

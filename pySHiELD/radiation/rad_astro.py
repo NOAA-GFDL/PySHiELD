@@ -341,6 +341,7 @@ def solar(
 
 def solar_update(
     sdate: list[int],
+    solc0: float,
     deltsw: float,
     deltim: float,
     lsol_chg: bool,

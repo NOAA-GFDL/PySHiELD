@@ -5,8 +5,7 @@ import numpy as np
 import xarray as xr
 import pytest
 
-from pySHiELD.radiation.rad_gases import co2_update, gas_init, read_co2_files
-
+from pySHiELD.radiation.rad_gases import co2_update, gas_init, read_co2_files, CO2VMR_DEF, N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, N2VMR_DEF, COVMR_DEF, F11VMR_DEF, F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF, F113VMR_DEF
 
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
@@ -38,22 +37,42 @@ def test_dataread(datapath, prefix, year, month, expected_glb, expected_mon, exp
 # TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
-    "ico2flg, ioznflg, ictmflg, iyear, imonth",
+    "ico2flg, ioznflg, ictmflg, iyear, imonth, expco2",
     [pytest.param(
         0,
         1,
         0,
         2000,
         1,
+        [CO2VMR_DEF, CO2VMR_DEF, 0,0],
         id="0_1_0_jan_2000",
     ),
     pytest.param(
         1,
         1,
+        -1,
+        1990,
         1,
-        2000,
+        [353.745e-6, 353.745e-6, 0.0],
+        id="1_1_-1_jan_1990",
+    ),
+    pytest.param(
+        2,
         1,
-        id="1_1_1_jan_2000",
+        -1,
+        1990,
+        1,
+        [354.53e-6, 350.89e-6, 0.0],
+        id="2_1_-1_jan_1990",
+    ),
+    pytest.param(
+        1,
+        1,
+        1,
+        1990,
+        1,
+        [CO2VMR_DEF, 0.0, 0.0],
+        id="1_1_1_jan_1990",
     ),
     pytest.param(
         2,
@@ -61,6 +80,7 @@ def test_dataread(datapath, prefix, year, month, expected_glb, expected_mon, exp
         1,
         2000,
         1,
+        [CO2VMR_DEF, 0.0, 0.0],
         id="2_1_1_jan_2000",
     ),
     pytest.param(
@@ -69,6 +89,7 @@ def test_dataread(datapath, prefix, year, month, expected_glb, expected_mon, exp
         1,
         2020,
         1,
+        [CO2VMR_DEF, 0.0, 0.0],
         id="2_1_1_jan_2020",
     ),
     ]
@@ -80,6 +101,7 @@ def test_gas_init(
     ictmflg,
     iyear,
     imonth,
+    expco2,
 ):
     prefix = "global_"
     sdat = xr.open_dataset(Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4")
@@ -99,26 +121,62 @@ def test_gas_init(
     )
     co2arr = arrays[9]
     co2cyc = arrays[10]
-    assert arrays[:9] = (3.1e-07, 1.5e-06, 0.209, 0.7808, 1.5e-08, 3.52e-10, 6.358e-10, 1.5e-10, 1.397e-10)
+    
+    assert arrays[:9] == (N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, COVMR_DEF, N2VMR_DEF, F11VMR_DEF, F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF)
+    assert np.isclose(arrays[9], expco2[0])
     if ico2flg == 0:
-        assert arrays[11:] == (None, None, None)
+        assert arrays[-3:] == (None, None, None)
+        assert np.all(np.isclose(arrays[10], expco2[1]))
+        assert np.all(np.isclose(arrays[11], expco2[2]))
     else:
-        for dat in arrays[11:]:
+        assert np.isclose(arrays[10][0,0], expco2[1])
+        assert np.isclose(arrays[11][0,0], expco2[2])
+        for dat in arrays[-3:]:
             assert dat
     pass
 
 
+# TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2
 # @pytest.mark.parametrize("datapath", ["path/to/data.nc"])
 # @pytest.mark.parametrize(
-#     "ico2flg, ictmflg, iyear, imon, saved_month,",
-#     pytest.param(
+#     "ico2flg, ioznflg, ictmflg, iyear, imonth, expco2",
+#     [pytest.param(
 #         0,
+#         1,
 #         0,
 #         2000,
 #         1,
-#         2,
-#         id="0_0_jan_feb_2000",
+#         [CO2VMR_DEF, CO2VMR_DEF, 0,0],
+#         id="0_1_0_jan_2000",
 #     ),
+#     pytest.param(
+#         1,
+#         1,
+#         1,
+#         2000,
+#         1,
+#         [],
+#         id="1_1_1_jan_2000",
+#     ),
+#     pytest.param(
+#         2,
+#         1,
+#         1,
+#         2000,
+#         1,
+#         [],
+#         id="2_1_1_jan_2000",
+#     ),
+#     pytest.param(
+#         2,
+#         1,
+#         1,
+#         2020,
+#         1,
+#         [],
+#         id="2_1_1_jan_2020",
+#     ),
+#     ]
 # )
 # def test_co2_update(
 #     datapath,

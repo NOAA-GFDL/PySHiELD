@@ -412,6 +412,7 @@ class RTE_RRTMGPDriver:
             self.saved_iyear,
         ) = solar_update(
             sdate,
+            self.solc0,
             self.deltsw,
             self.delt_rad,
             lsol_chg,
