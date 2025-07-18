@@ -5,7 +5,11 @@ import numpy as np
 import xarray as xr
 import pytest
 
-from pySHiELD.radiation.rad_gases import co2_update, broadcast_co2_to_grid, gas_init, read_co2_files, CO2VMR_DEF, N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, N2VMR_DEF, COVMR_DEF, F11VMR_DEF, F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF, F113VMR_DEF
+from pySHiELD.radiation.rad_gases import (
+    co2_update, broadcast_co2_to_grid, gas_init, read_co2_files, CO2VMR_DEF,
+    N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, N2VMR_DEF, COVMR_DEF, F11VMR_DEF, F12VMR_DEF,
+    F22VMR_DEF, CL4VMR_DEF
+)
 
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
@@ -20,7 +24,9 @@ from pySHiELD.radiation.rad_gases import co2_update, broadcast_co2_to_grid, gas_
         id="jan_1977",
     ),]
 )
-def test_dataread(datapath, prefix, year, month, expected_glb, expected_mon, expected_cyc):
+def test_dataread(
+    datapath, prefix, year, month, expected_glb, expected_mon, expected_cyc
+):
     co2_glb_data, co2_mvr_data, co2_cyc_data = read_co2_files(Path(datapath), prefix)
     assert co2_glb_data['start_year'] == expected_glb[0]
     assert co2_glb_data['end_year'] == expected_glb[1]
@@ -34,64 +40,108 @@ def test_dataread(datapath, prefix, year, month, expected_glb, expected_mon, exp
     assert co2_cyc_data[month]['data'][0][0] == expected_cyc[4] * 1.e-6
 
 
-# TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2
+@pytest.mark.parametrize(
+    "year, imonth, expect",
+    [
+        pytest.param(
+            np.array(
+                [[0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,  0.,  0.,  1.,  1.,  1.,  1.],
+                [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],
+                [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],
+                [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],
+                [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.]]
+            ),
+            id="jan_1990",
+        ),
+    ]
+)
+def test_broadcast_co2_to_grid(expect):
+    test_data = []
+    for i in range(12):
+        test_data.append([j + 24. * i for j in range(24)])
+    gridlon = np.ones((20, 20))
+    for i in range(gridlon.shape[0]):
+        gridlon[:, i] = i * constants.PI / 180.0
+    gridlat = np.ones((20, 20))
+    for i in range(gridlon.shape[1]):
+        gridlat[i, :] = i * constants.PI / 180.0
+    griddat = broadcast_co2_to_grid(test_data, gridlon, gridlat)
+    assert griddat == expect
+
+# TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2?
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
     "ico2flg, ioznflg, ictmflg, iyear, imonth, expco2",
-    [pytest.param(
-        0,
-        1,
-        0,
-        2000,
-        1,
-        [CO2VMR_DEF, CO2VMR_DEF, 0,0],
-        id="0_1_0_jan_2000",
-    ),
-    pytest.param(
-        1,
-        1,
-        -1,
-        1990,
-        1,
-        [353.745e-6, 353.745e-6, 0.0],
-        id="1_1_-1_jan_1990",
-    ),
-    pytest.param(
-        2,
-        1,
-        -1,
-        1990,
-        1,
-        [354.53e-6, 350.89e-6, 0.0],
-        id="2_1_-1_jan_1990",
-    ),
-    pytest.param(
-        1,
-        1,
-        1,
-        1990,
-        1,
-        [CO2VMR_DEF, 0.0, 0.0],
-        id="1_1_1_jan_1990",
-    ),
-    pytest.param(
-        2,
-        1,
-        1,
-        2000,
-        1,
-        [CO2VMR_DEF, 0.0, 0.0],
-        id="2_1_1_jan_2000",
-    ),
-    pytest.param(
-        2,
-        1,
-        1,
-        2020,
-        1,
-        [CO2VMR_DEF, 0.0, 0.0],
-        id="2_1_1_jan_2020",
-    ),
+    [
+        pytest.param(
+            0,
+            1,
+            0,
+            2000,
+            1,
+            [CO2VMR_DEF, CO2VMR_DEF, 0.0],
+            id="0_1_0_jan_2000",
+        ),
+        pytest.param(
+            1,
+            1,
+            -1,
+            1990,
+            1,
+            [353.745e-6, 353.745e-6, 0.0],
+            id="1_1_-1_jan_1990",
+        ),
+        pytest.param(
+            2,
+            1,
+            -1,
+            1990,
+            1,
+            [354.53e-6, 350.89e-6, 0.0],
+            id="2_1_-1_jan_1990",
+        ),
+        pytest.param(
+            1,
+            1,
+            1,
+            1990,
+            1,
+            [CO2VMR_DEF, 0.0, 0.0],
+            id="1_1_1_jan_1990",
+        ),
+        pytest.param(
+            2,
+            1,
+            1,
+            2000,
+            1,
+            [CO2VMR_DEF, 0.0, 0.0],
+            id="2_1_1_jan_2000",
+        ),
+        pytest.param(
+            2,
+            1,
+            1,
+            2020,
+            1,
+            [CO2VMR_DEF, 0.0, 0.0],
+            id="2_1_1_jan_2020",
+        ),
     ]
 )
 def test_gas_init(
@@ -104,7 +154,9 @@ def test_gas_init(
     expco2,
 ):
     prefix = "global_"
-    sdat = xr.open_dataset(Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4")
+    sdat = xr.open_dataset(
+        Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4"
+    )
 
     gridlon = sdat.geolon.data * constants.PI / 180.0
     gridlat = sdat.geolat.data * constants.PI / 180.0
@@ -121,16 +173,19 @@ def test_gas_init(
     )
     co2arr = arrays[9]
     co2cyc = arrays[10]
-    
-    assert arrays[:9] == (N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, COVMR_DEF, N2VMR_DEF, F11VMR_DEF, F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF)
+
+    assert arrays[:9] == (
+        N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, COVMR_DEF, N2VMR_DEF, F11VMR_DEF,
+        F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF
+    )
     assert np.isclose(arrays[9], expco2[0])
     if ico2flg == 0:
         assert arrays[-3:] == (None, None, None)
         assert np.all(np.isclose(arrays[10], expco2[1]))
         assert np.all(np.isclose(arrays[11], expco2[2]))
     else:
-        assert np.isclose(arrays[10][0,0], expco2[1])
-        assert np.isclose(arrays[11][0,0], expco2[2])
+        assert np.isclose(arrays[10][0, 0], expco2[1])
+        assert np.isclose(arrays[11][0, 0], expco2[2])
         for dat in arrays[-3:]:
             assert dat
 
@@ -139,53 +194,120 @@ def test_gas_init(
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
     "ico2flg, ioznflg, ictmflg, iyear, imon, saved_year, saved_month, expco2",
-    [pytest.param(
-        0,
-        1,
-        0,
-        2000,
-        1,
-        2000,
-        1,
-        [CO2VMR_DEF, CO2VMR_DEF, 0,0],
-        id="const_jan_2000",
-    ),
-#     pytest.param(
-#         1,
-#         1,
-#         1,
-#         1990,
-#         1,
-#         [],
-#         id="read_ann_jan_1990",
-#     ),
-#     pytest.param(
-#         2,
-#         1,
-#         1,
-#         2000,
-#         1,
-#         [],
-#         id="read_month_jan_2000",
-#     ),
-#     pytest.param(
-#         2,
-#         1,
-#         1,
-#         2020,
-#         1,
-#         [],
-#         id="extrap_month_jan_2020",
-#     ),
-#     pytest.param(
-#         1,
-#         1,
-#         1,
-#         2020,
-#         1,
-#         [],
-#         id="extrap_ann_jan_2020",
-#     ),
+    [
+        pytest.param(
+            0,
+            1,
+            0,
+            2000,
+            1,
+            2000,
+            1,
+            [CO2VMR_DEF, CO2VMR_DEF, 0.0],
+            id="internal_const_jan_2000",
+        ),
+        pytest.param(
+            1,
+            1,
+            -1,
+            1990,
+            1,
+            1990,
+            1,
+            [353.745e-6, 353.745e-6, 0.0],
+            id="external_const_jan_1990",
+        ),
+        pytest.param(
+            2,
+            1,
+            -1,
+            1990,
+            1,
+            1990,
+            1,
+            [0.0e-6, 0.0e-6, 0.0],
+            id="external_monthly_const_jan_1990",
+        ),
+        pytest.param(
+            2,
+            1,
+            0,
+            1990,
+            1,
+            1990,
+            1,
+            [0.0e-6, 0.0e-6, 0.0],
+            id="read2_const_mon_jan_1990",
+        ),
+        pytest.param(
+            1,
+            1,
+            0,
+            1990,
+            1,
+            1990,
+            1,
+            [0.0e-6, 0.0e-6, 0.0],
+            id="read2_const_jan_1990",
+        ),
+        pytest.param(
+            2,
+            1,
+            0,
+            2020,
+            1,
+            2020,
+            1,
+            [0.0e-6, 0.0e-6, 0.0],
+            id="extrap_mon_const_jan_2020",
+        ),
+        pytest.param(
+            1,
+            1,
+            0,
+            2020,
+            1,
+            2020,
+            1,
+            [0.0e-6, 0.0e-6, 0.0],
+            id="extrap_const_jan_2020",
+        ),
+        # pytest.param(
+        #     1,
+        #     1,
+        #     1,
+        #     1990,
+        #     1,
+        #     [],
+        #     id="read_ann_jan_1990",
+        # ),
+        # pytest.param(
+        #     2,
+        #     1,
+        #     1,
+        #     2000,
+        #     1,
+        #     [],
+        #     id="read_month_jan_2000",
+        # ),
+        # pytest.param(
+        #     2,
+        #     1,
+        #     1,
+        #     2020,
+        #     1,
+        #     [],
+        #     id="extrap_month_jan_2020",
+        # ),
+        # pytest.param(
+        #     1,
+        #     1,
+        #     1,
+        #     2020,
+        #     1,
+        #     [],
+        #     id="extrap_ann_jan_2020",
+        # ),
     ]
 )
 def test_co2_update(
@@ -200,7 +322,9 @@ def test_co2_update(
     expco2,
 ):
     prefix = "global_"
-    sdat = xr.open_dataset(Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4")
+    sdat = xr.open_dataset(
+        Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4"
+    )
 
     gridlon = sdat.geolon.data * constants.PI / 180.0
     gridlat = sdat.geolat.data * constants.PI / 180.0
@@ -231,7 +355,22 @@ def test_co2_update(
         gridlat,
         prefix,
     )
-    ldoco2 = imon == saved_month
+    co2_update(
+        saved_year,
+        saved_month,
+        ico2flg,
+        True,
+        ictmflg,
+        co2_glb,
+        co2_arr,
+        co2_cyc,
+        gridlon,
+        gridlat,
+        co2_glb_data,
+        co2_mvr_data,
+        co2_cyc_data,
+    )
+    ldoco2 = imon != saved_month
     co2_update(
         iyear,
         imon,
@@ -247,4 +386,14 @@ def test_co2_update(
         co2_mvr_data,
         co2_cyc_data,
     )
+    assert np.isclose(co2_glb, expco2[0])
+    if ico2flg == 0:
+        assert np.all(np.isclose(co2_arr, expco2[1]))
+        assert np.all(np.isclose(co2_cyc, expco2[2]))
+    elif (ictmflg in [-1, 0]) and (ico2flg == 1):
+        assert np.all(np.isclose(co2_arr, expco2[1]))
+        assert np.all(np.isclose(co2_cyc, expco2[2]))
+    else:
+        assert np.all(np.isclose(co2_arr[0, 0], expco2[1]))
+        assert np.all(np.isclose(co2_cyc[0, 0], expco2[2]))
     pass

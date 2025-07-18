@@ -422,7 +422,7 @@ class RTE_RRTMGPDriver:
         )
 
         # Here is where we update ozone and aerosols when enabled
-        if (sdate[1] == self.saved_imonth) or (self._first_step):
+        if (sdate[1] != self.saved_imonth) or (self._first_step):
             update_co2 = True
             self.saved_imonth = sdate[1]
 
