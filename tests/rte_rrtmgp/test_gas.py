@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 import pytest
 
-from pySHiELD.radiation.rad_gases import co2_update, gas_init, read_co2_files, CO2VMR_DEF, N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, N2VMR_DEF, COVMR_DEF, F11VMR_DEF, F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF, F113VMR_DEF
+from pySHiELD.radiation.rad_gases import co2_update, broadcast_co2_to_grid, gas_init, read_co2_files, CO2VMR_DEF, N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, N2VMR_DEF, COVMR_DEF, F11VMR_DEF, F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF, F113VMR_DEF
 
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
@@ -133,30 +133,31 @@ def test_gas_init(
         assert np.isclose(arrays[11][0,0], expco2[2])
         for dat in arrays[-3:]:
             assert dat
-    pass
 
 
 # TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2
-# @pytest.mark.parametrize("datapath", ["path/to/data.nc"])
-# @pytest.mark.parametrize(
-#     "ico2flg, ioznflg, ictmflg, iyear, imonth, expco2",
-#     [pytest.param(
-#         0,
-#         1,
-#         0,
-#         2000,
-#         1,
-#         [CO2VMR_DEF, CO2VMR_DEF, 0,0],
-#         id="0_1_0_jan_2000",
-#     ),
+@pytest.mark.parametrize("datapath", ["test_data/"])
+@pytest.mark.parametrize(
+    "ico2flg, ioznflg, ictmflg, iyear, imon, saved_year, saved_month, expco2",
+    [pytest.param(
+        0,
+        1,
+        0,
+        2000,
+        1,
+        2000,
+        1,
+        [CO2VMR_DEF, CO2VMR_DEF, 0,0],
+        id="const_jan_2000",
+    ),
 #     pytest.param(
 #         1,
 #         1,
 #         1,
-#         2000,
+#         1990,
 #         1,
 #         [],
-#         id="1_1_1_jan_2000",
+#         id="read_ann_jan_1990",
 #     ),
 #     pytest.param(
 #         2,
@@ -165,7 +166,7 @@ def test_gas_init(
 #         2000,
 #         1,
 #         [],
-#         id="2_1_1_jan_2000",
+#         id="read_month_jan_2000",
 #     ),
 #     pytest.param(
 #         2,
@@ -174,60 +175,76 @@ def test_gas_init(
 #         2020,
 #         1,
 #         [],
-#         id="2_1_1_jan_2020",
+#         id="extrap_month_jan_2020",
 #     ),
-#     ]
-# )
-# def test_co2_update(
-#     datapath,
-#     iyear,
-#     imon,
-#     saved_month,
-#     ico2flg,
-#     ictmflg,
-# ):
-#     gridlon = np.zeros((20, 20))
-#     gridlat = np.zeros((20, 20))
-#     (
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         co2_glb,
-#         co2_arr,
-#         co2_cyc,
-#         co2_mvr_data,
-#         co2_glb_data,
-#         co2_cyc_data,
-#     ) = gas_init(
-#         Path(datapath),
-#         ico2flg,
-#         0,
-#         ictmflg,
-#         iyear,
-#         imon,
-#         gridlon,
-#         gridlat,
-#     )
-#     ldoco2 = imon == saved_month
-#     co2_update(
-#         iyear,
-#         imon,
-#         ico2flg,
-#         ldoco2,
-#         ictmflg,
-#         co2_glb,
-#         co2_arr,
-#         co2_cyc,
-#         gridlon,
-#         gridlat,
-#         co2_glb_data,
-#         co2_mvr_data,
-#         co2_cyc_data,
-#     )
-#     pass
+#     pytest.param(
+#         1,
+#         1,
+#         1,
+#         2020,
+#         1,
+#         [],
+#         id="extrap_ann_jan_2020",
+#     ),
+    ]
+)
+def test_co2_update(
+    datapath,
+    iyear,
+    imon,
+    saved_year,
+    saved_month,
+    ico2flg,
+    ictmflg,
+    ioznflg,
+    expco2,
+):
+    prefix = "global_"
+    sdat = xr.open_dataset(Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4")
+
+    gridlon = sdat.geolon.data * constants.PI / 180.0
+    gridlat = sdat.geolat.data * constants.PI / 180.0
+    (
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        co2_glb,
+        co2_arr,
+        co2_cyc,
+        co2_mvr_data,
+        co2_glb_data,
+        co2_cyc_data,
+    ) = gas_init(
+        Path(datapath),
+        ico2flg,
+        ioznflg,
+        ictmflg,
+        saved_year,
+        saved_month,
+        gridlon,
+        gridlat,
+        prefix,
+    )
+    ldoco2 = imon == saved_month
+    co2_update(
+        iyear,
+        imon,
+        ico2flg,
+        ldoco2,
+        ictmflg,
+        co2_glb,
+        co2_arr,
+        co2_cyc,
+        gridlon,
+        gridlat,
+        co2_glb_data,
+        co2_mvr_data,
+        co2_cyc_data,
+    )
+    pass
