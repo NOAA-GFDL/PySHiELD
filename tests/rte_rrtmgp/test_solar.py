@@ -64,7 +64,8 @@ def test_solinit(datapath, isolar, year, expected):
 
 @pytest.mark.parametrize(
     "date, expected",
-    [pytest.param([2020, 1, 1, 0, 0, 0], 2458849.5)]
+    [pytest.param([2020, 1, 1, 0, 0, 0], 2458849.5, id="midnight"),
+    pytest.param([2020, 1, 1, 12, 0, 0], 2458850.0, id="noon")],
 )
 def test_julian_date(date, expected):
     jd1 = date_to_julian(date[0], date[1], date[2])

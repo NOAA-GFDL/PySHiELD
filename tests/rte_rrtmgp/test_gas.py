@@ -1,0 +1,175 @@
+from pathlib import Path
+from ndsl import constants as constants
+
+import numpy as np
+import xarray as xr
+import pytest
+
+from pySHiELD.radiation.rad_gases import co2_update, gas_init, read_co2_files
+
+
+@pytest.mark.parametrize("datapath", ["test_data/"])
+@pytest.mark.parametrize(
+    "prefix, year, month, expected_glb, expected_mon, expected_cyc",
+    [pytest.param(
+        "global_",
+        1977,
+        1,
+        [1765, 1990, [333.16, 333.84, 1.33, 1.35]],
+        [333.93, 336.32],
+        [1976, 2009, 358.20, .44, 2.93],
+        id="jan_1977",
+    ),]
+)
+def test_dataread(datapath, prefix, year, month, expected_glb, expected_mon, expected_cyc):
+    co2_glb_data, co2_mvr_data, co2_cyc_data = read_co2_files(Path(datapath), prefix)
+    assert co2_glb_data['start_year'] == expected_glb[0]
+    assert co2_glb_data['end_year'] == expected_glb[1]
+    assert co2_glb_data[year] == [val * 1.e-6 for val in expected_glb[2]]
+    assert co2_mvr_data[year]["mean"] == expected_mon[0] * 1.e-6
+    assert co2_mvr_data[year][month][0][0] == expected_mon[1] * 1.e-6
+    assert co2_cyc_data['start_year'] == expected_cyc[0]
+    assert co2_cyc_data['end_year'] == expected_cyc[1]
+    assert co2_cyc_data['annual_mean'] == expected_cyc[2] * 1.e-6
+    assert co2_cyc_data[month]['mean'] == expected_cyc[3] * 1.e-6
+    assert co2_cyc_data[month]['data'][0][0] == expected_cyc[4] * 1.e-6
+
+
+# TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2
+@pytest.mark.parametrize("datapath", ["test_data/"])
+@pytest.mark.parametrize(
+    "ico2flg, ioznflg, ictmflg, iyear, imonth",
+    [pytest.param(
+        0,
+        1,
+        0,
+        2000,
+        1,
+        id="0_1_0_jan_2000",
+    ),
+    pytest.param(
+        1,
+        1,
+        1,
+        2000,
+        1,
+        id="1_1_1_jan_2000",
+    ),
+    pytest.param(
+        2,
+        1,
+        1,
+        2000,
+        1,
+        id="2_1_1_jan_2000",
+    ),
+    pytest.param(
+        2,
+        1,
+        1,
+        2020,
+        1,
+        id="2_1_1_jan_2020",
+    ),
+    ]
+)
+def test_gas_init(
+    datapath,
+    ico2flg,
+    ioznflg,
+    ictmflg,
+    iyear,
+    imonth,
+):
+    prefix = "global_"
+    sdat = xr.open_dataset(Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4")
+
+    gridlon = sdat.geolon.data * constants.PI / 180.0
+    gridlat = sdat.geolat.data * constants.PI / 180.0
+    arrays = gas_init(
+        Path(datapath),
+        ico2flg,
+        ioznflg,
+        ictmflg,
+        iyear,
+        imonth,
+        gridlon,
+        gridlat,
+        prefix,
+    )
+    co2arr = arrays[9]
+    co2cyc = arrays[10]
+    assert arrays[:9] = (3.1e-07, 1.5e-06, 0.209, 0.7808, 1.5e-08, 3.52e-10, 6.358e-10, 1.5e-10, 1.397e-10)
+    if ico2flg == 0:
+        assert arrays[11:] == (None, None, None)
+    else:
+        for dat in arrays[11:]:
+            assert dat
+    pass
+
+
+# @pytest.mark.parametrize("datapath", ["path/to/data.nc"])
+# @pytest.mark.parametrize(
+#     "ico2flg, ictmflg, iyear, imon, saved_month,",
+#     pytest.param(
+#         0,
+#         0,
+#         2000,
+#         1,
+#         2,
+#         id="0_0_jan_feb_2000",
+#     ),
+# )
+# def test_co2_update(
+#     datapath,
+#     iyear,
+#     imon,
+#     saved_month,
+#     ico2flg,
+#     ictmflg,
+# ):
+#     gridlon = np.zeros((20, 20))
+#     gridlat = np.zeros((20, 20))
+#     (
+#         _,
+#         _,
+#         _,
+#         _,
+#         _,
+#         _,
+#         _,
+#         _,
+#         _,
+#         co2_glb,
+#         co2_arr,
+#         co2_cyc,
+#         co2_mvr_data,
+#         co2_glb_data,
+#         co2_cyc_data,
+#     ) = gas_init(
+#         Path(datapath),
+#         ico2flg,
+#         0,
+#         ictmflg,
+#         iyear,
+#         imon,
+#         gridlon,
+#         gridlat,
+#     )
+#     ldoco2 = imon == saved_month
+#     co2_update(
+#         iyear,
+#         imon,
+#         ico2flg,
+#         ldoco2,
+#         ictmflg,
+#         co2_glb,
+#         co2_arr,
+#         co2_cyc,
+#         gridlon,
+#         gridlat,
+#         co2_glb_data,
+#         co2_mvr_data,
+#         co2_cyc_data,
+#     )
+#     pass
