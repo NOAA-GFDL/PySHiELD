@@ -87,9 +87,9 @@ def test_broadcast_co2_to_grid(expect):
         gridlon[:, i] = i * constants.PI / 180.0
     gridlat = np.ones((20, 20))
     for i in range(gridlon.shape[1]):
-        gridlat[i, :] = i * constants.PI / 180.0
+        gridlat[i, :] = (90 - i) * constants.PI / 180.0
     griddat = broadcast_co2_to_grid(test_data, gridlon, gridlat)
-    assert griddat == expect
+    assert np.all(griddat == expect)
 
 # TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2?
 @pytest.mark.parametrize("datapath", ["test_data/"])
@@ -120,7 +120,7 @@ def test_broadcast_co2_to_grid(expect):
             -1,
             1990,
             1,
-            [354.53e-6, 350.89e-6, 0.0],
+            [354.53e-6, 352.03e-6, 0.0],
             id="2_1_-1_jan_1990",
         ),
         pytest.param(
@@ -222,7 +222,7 @@ def test_gas_init(
             1,
             1990,
             1,
-            [354.53e-6, 350.89e-6, 0.0],
+            [354.53e-6, 352.03e-6, 0.0],
             id="read2_const_mon_jan_1990",
         ),
         pytest.param(
@@ -255,7 +255,7 @@ def test_gas_init(
             1,
             2020,
             1,
-            [394.90e-6, 391.19e-6, 0.0],
+            [394.90e-6, 391.74e-6, 0.0],
             id="ext_month_ood_jan_2020",
         ),
         # pytest.param(

@@ -35,7 +35,7 @@ def map_sfc_to_grid(
             if gridlon[i, j] >= 0
             else gridlon[i, j] + (2.0 * constants.PI)
         )
-        lat = constants.PI - gridlat[i, j]
+        lat = 0.5 * constants.PI - gridlat[i, j]
         i2 = int((lon * (180.0 / constants.PI)) // degres_i)
         j2 = int((lat * (180.0 / constants.PI)) // degres_j)
         sfc_grid_data[i, j] = sfc_grid_data[i2, j2]

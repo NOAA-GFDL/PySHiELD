@@ -198,7 +198,7 @@ def broadcast_co2_to_grid(
     tmp = (180.0 / constants.PI) / RESCO2
     for i in range(nx):
         for j in range(ny):
-            jres = (constants.PI - gridlat[i, j]) * tmp
+            jres = (0.5 * constants.PI - gridlat[i, j]) * tmp
             jres = min(JMXCO2 - 1, int(jres))
             ires = (
                 (gridlon[i, j] * tmp)
