@@ -110,7 +110,6 @@ class RTE_RRTMGPDriver:
         self.ico2flg = config.ico2flg
         self.ictmflg = config.ictmflg
         self.ialbflg = config.ialbflg
-        self.iemslw = Int(config.iemsflg % 10)
         self.ldisable_radiation_quasi_sea_ice = config.ldisable_radiation_quasi_sea_ice
         self._first_step = True
 
@@ -190,7 +189,7 @@ class RTE_RRTMGPDriver:
         self.albedo = np.zeros((gridlon.view[:].shape[0], gridlon.view[:].shape[1], 4))
         self.sfcemis = np.zeros((gridlon.view[:].shape[0], gridlon.view[:].shape[1]))
         sfcemis_datafile = config.input_dir.joinpath("sfc_emissivity_idx.txt")
-        self._sfcemis_map = sfc_init(
+        self.iemslw, self._sfcemis_map = sfc_init(
             config.ialbflg,
             config.iemsflg,
             config.ldisable_radiation_quasi_sea_ice,
@@ -426,7 +425,7 @@ class RTE_RRTMGPDriver:
             update_co2 = True
             self.saved_imonth = sdate[1]
 
-        co2_update(
+        self.co2_glb, self._co2_arr.view[:], self._co2_cyc.view[:], = co2_update(
             sdate[0],
             sdate[1],
             self.ico2flg,

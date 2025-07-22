@@ -1,0 +1,214 @@
+from pathlib import Path
+from contextlib import nullcontext
+from math import sin, cos
+import numpy as np
+import xarray as xr
+
+import pytest
+
+from pySHiELD.radiation.rad_sfc import map_sfc_to_grid, sfc_init, set_albedo, set_sfcemis, IMXEMS, JMXEMS, CONST_ALBEDO
+from ndsl import constants as constants
+
+
+@pytest.mark.parametrize(
+    "gridres, expect",
+    [
+        pytest.param(0.5, np.array([
+            [0., 0., 1., 1., 2., 2., 3., 3., 4., 4.],
+            [0., 0., 1., 1., 2., 2., 3., 3., 4., 4.],
+            [360., 360., 361., 361., 362., 362., 363., 363., 364., 364.],
+            [360., 360., 361., 361., 362., 362., 363., 363., 364., 364.],
+            [720., 720., 721., 721., 722., 722., 723., 723., 724., 724.],
+            [720., 720., 721., 721., 722., 722., 723., 723., 724., 724.],
+            [1080., 1080., 1081., 1081., 1082., 1082., 1083., 1083., 1084., 1084.],
+            [1080., 1080., 1081., 1081., 1082., 1082., 1083., 1083., 1084., 1084.],
+            [1440., 1440., 1441., 1441., 1442., 1442., 1443., 1443., 1444., 1444.],
+            [1440., 1440., 1441., 1441., 1442., 1442., 1443., 1443., 1444., 1444.],
+        ]), id="half-degree",),
+    ]
+)
+def test_map_sfc_to_grid(gridres, expected):
+    test_data = np.ones((IMXEMS, JMXEMS))
+    for i in range(IMXEMS):
+        test_data[i, :] *= i
+    for j in range(JMXEMS):
+        test_data[:, j] += IMXEMS * j
+    gridlon = np.ones((10, 10))
+    for i in range(gridlon.shape[0]):
+        gridlon[:, i] = gridres * i * constants.PI / 180.0
+    gridlat = np.ones((10, 10))
+    for i in range(gridlon.shape[1]):
+        gridlat[i, :] = gridres * i * constants.PI / 180.0
+    griddat = map_sfc_to_grid(test_data, gridlon, gridlat)
+    assert griddat == expected
+
+
+@pytest.mark.parametrize("sfcemis_datafile", ["test_data/global_sfc_emissivity_idx.txt"])
+@pytest.mark.parametrize(
+    "ialbflg, iemsflg, ldisable_radiation_quasi_sea_ice, expected,",
+    [pytest.param(
+        1,
+        1,
+        False,
+        [1, 1],
+        id="test1",
+    ),
+    pytest.param(
+        0,
+        10,
+        False,
+        [0, None],
+        id="test1",
+    ),]
+)
+def test_sfc_init(
+    sfcemis_datafile,
+    ialbflg,
+    iemsflg,
+    ldisable_radiation_quasi_sea_ice,
+    expected,
+):
+    data = Path(sfcemis_datafile)
+    iemslw, ext_sfcemis_data = sfc_init(ialbflg, iemsflg, ldisable_radiation_quasi_sea_ice, data)
+    assert iemslw == expected[0]
+    if iemslw == 1:
+        assert ext_sfcemis_data[0, 0]] == expected[1]
+    else:
+        assert ext_sfcemis_data == expected[1]
+
+
+# TODO: add tests for ialbflg == 0, 1, 2
+@pytest.mark.parametrize(
+    "sfc_data, ialbflg, drqsi, expected",
+    [pytest.param(
+        "test_data/sfc_data.tile1.nc",
+        -1,
+        CONST_ALBEDO,
+        False
+        id="constant_albedo",
+    ),]
+)
+def test_set_albedo(sfc_data, ialbflg, drqsi, expected):    
+    if ialbflg != -1:
+        sfcdat = xarray.open_dataset(Path(sfc_data), engine="netcdf4")
+        islmsk = sfcdat.slmsk.data[:]
+        sfcalb = np.zeros((islmsk.shape[0], islmsk.shape[1], 4))
+        alvsf = sfcdat.alvsf.data[:]
+        alnsf = sfcdat.alnsf.data[:]
+        alvwf = sfcdat.alvwf.data[:]
+        alnwf = sfcdat.alnwf.data[:]
+        snowf = sfcdat.snwdph.data[:]
+        snoalb = sfcdat.snoalb.data[:]
+        fice = sfcdat.fice.data[:]
+        tisfc = sfcdat.tisfc.data[:]
+        tsknf = sfcdat.t2m.data[:]
+        zorlf = sfcdat.zorl.data[:]
+        facsf = sfcdat.facsf.data[:]
+        facwf = sfcdat.facwf.data[:]
+        sncovr = sfcdat.sncovr.data[:]
+        hprif = sfcdat.hprif.data[:]
+        lsmalbedo = np.ones_like(zorlf) * 0.98
+        coszf = np.ones_like(zorlf) * 0.6
+    else:
+        nx = 20
+        sfcalb = np.zeros((nx, nx, 4))
+        islmsk  = islmsk
+        alvsf  = islmsk
+        alnsf  = islmsk
+        alvwf  = islmsk
+        alnwf  = islmsk
+        snowf  = islmsk
+        snoalb  = islmsk
+        fice  = islmsk
+        tisfc  = islmsk
+        tsknf  = islmsk
+        zorlf  = islmsk
+        facsf  = islmsk
+        facwf  = islmsk
+        sncovr  = islmsk
+        hprif  = islmsk
+        lsmalbedo  = islmsk
+        coszf  = islmsk
+    set_albedo(
+        ialbflg,
+        islmsk,
+        snowf,
+        sncovr,
+        snoalb,
+        zorlf,
+        coszf,
+        tsknf,
+        hprif,
+        alvsf,
+        alnsf,
+        alvwf,
+        alnwf,
+        facsf,
+        facwf,
+        fice,
+        tisfc,
+        lsmalbedo,
+        sfcalb,
+        drqsi,
+    )
+    assert sfcalb[0, 0, 0] == expected
+
+
+# TODO: add tests for iemsflg == 1, 2
+@pytest.mark.parametrize(
+    "sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected",
+    [pytest.param(
+        "test_data/sfc_data.tile1.nc",
+        "test_data/global_sfc_emissivity_idx.txt",
+        0,
+        -1,
+        1.0,
+        False
+        id="constant_sfcemis",
+    ),]
+)
+def test_set_sfcemis(sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected):
+    iemslw, ext_sfcemis_data = sfc_init(ialbflg, iemsflg, drqsi, Path(sfc_emis))
+    if iemslw == 0:
+        nx = 10
+        gridlon = np.ones((nx, nx))
+        for i in range(gridlon.shape[0]):
+            gridlon[:, i] = gridres * i * constants.PI / 180.0
+        gridlat = np.ones((nx, nx))
+        for i in range(gridlon.shape[1]):
+            gridlat[i, :] = gridres * i * constants.PI / 180.0
+        islmsk = gridlon
+        snowf = gridlon
+        sncovr = gridlon
+        zorlf = gridlon
+        tskin = gridlon
+        hprif = gridlon
+    else:
+        sfcdat = xarray.open_dataset(Path(sfc_data), engine="netcdf4")
+        gridlon = sfcdat.geolon.data * constants.PI / 180.0
+        gridlat = sfcdat.geolat.data * constants.PI / 180.0
+        islmsk = sfcdat.slmsk.data[:]
+        snowf = sfcdat.snwdph.data[:]
+        zorlf = sfcdat.zorl.data[:]
+        sncovr = sfcdat.sncovr.data[:]
+        hprif = sfcdat.hprif.data[:]
+        tskin = sfcdat.t2m.data[:]
+    sfcemis_lsm = np.ones_like(gridlon)
+    sfcemis = np.zeros((gridlon.shape[0], gridlon.shape[1]))
+    set_sfcemis(
+        gridlon,
+        gridlat,
+        islmsk,
+        snowf,
+        sncovr,
+        zorlf,
+        tskin,
+        hprif,
+        iemslw,
+        ialbflg,
+        drqsi,
+        sfcemis,
+        ext_sfcemis_data,
+        sfcemis_lsm,
+    )
+    assert sfcemis[0, 0] == expected

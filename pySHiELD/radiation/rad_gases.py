@@ -436,13 +436,13 @@ def co2_update(
     # if ( .not. ldoco2 ) return    ! no need to update co2 data
 
     if ico2flg == 0:  # use prescribed global mean co2 data
-        return
+        return co2_glb, co2_arr, co2_cyc
     if ictmflg == -1:  # use user provided co2 data
-        return
+        return co2_glb, co2_arr, co2_cyc
     if not ldoco2:  # no need to update co2 data
-        return
+        return co2_glb, co2_arr, co2_cyc
 
-    if ictmflg < 0:  # use user provided external data
+    if ictmflg <= 0:  # use user provided external data
         lextpl = False  # no time extrapolation
         idyr = iyear  # use the model year
     else:  # use historically observed data
@@ -524,13 +524,13 @@ def co2_update(
                 co2_arr[:] = 0.0
                 for i in range(1, 13):
                     co2_arr += broadcast_co2_to_grid(
-                        co2_monthly_means[iyear][i], gridlon, gridlat
+                        co2_monthly_means[iyr][i], gridlon, gridlat
                     )
                 co2_arr /= 12.0
                 pass
             else:
                 co2_arr = broadcast_co2_to_grid(
-                    co2_monthly_means[iyear][imon], gridlon, gridlat
+                    co2_monthly_means[iyr][imon], gridlon, gridlat
                 )
         else:
             raise ValueError(f"ico2flg = {ico2flg} not recognized")
@@ -542,8 +542,10 @@ def co2_update(
     else:
         rate = 0.0
     co2_arr[:] += rate
+    co2_glb += rate
     if ictmflg == -2:  # Save monthly cycle too
         co2_cyc[:] = broadcast_co2_to_grid(co2_monthly_cycle[imon], gridlon, gridlat)
+    return co2_glb, co2_arr, co2_cyc
 
 
 def get_gases_topdown(

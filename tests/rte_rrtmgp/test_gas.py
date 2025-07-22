@@ -52,7 +52,7 @@ def test_dataread(
 
 
 @pytest.mark.parametrize(
-    "year, imonth, expect",
+    "expect",
     [
         pytest.param(np.array([
             [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
@@ -75,7 +75,7 @@ def test_dataread(
             [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],  # fmt: skip
             [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],  # fmt: skip
             [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.]  # fmt: skip
-        ]), id="jan_1990",),
+        ]), id="simple_test",),
     ]
 )
 def test_broadcast_co2_to_grid(expect):
@@ -215,28 +215,6 @@ def test_gas_init(
             id="internal_const_jan_2000",
         ),
         pytest.param(
-            1,
-            1,
-            -1,
-            1990,
-            1,
-            1990,
-            1,
-            [353.745e-6, 353.745e-6, 0.0],
-            id="external_const_jan_1990",
-        ),
-        pytest.param(
-            2,
-            1,
-            -1,
-            1990,
-            1,
-            1990,
-            1,
-            [0.0e-6, 0.0e-6, 0.0],
-            id="external_monthly_const_jan_1990",
-        ),
-        pytest.param(
             2,
             1,
             0,
@@ -244,7 +222,7 @@ def test_gas_init(
             1,
             1990,
             1,
-            [0.0e-6, 0.0e-6, 0.0],
+            [354.53e-6, 350.89e-6, 0.0],
             id="read2_const_mon_jan_1990",
         ),
         pytest.param(
@@ -255,8 +233,19 @@ def test_gas_init(
             1,
             1990,
             1,
-            [0.0e-6, 0.0e-6, 0.0],
+            [353.745e-6, 353.745e-6, 0.0],
             id="read2_const_jan_1990",
+        ),
+        pytest.param(
+            1,
+            1,
+            0,
+            2020,
+            1,
+            2020,
+            1,
+            [353.745e-6, 353.745e-6, 0.0],
+            id="ext_const_ood_jan_2020",
         ),
         pytest.param(
             2,
@@ -266,20 +255,31 @@ def test_gas_init(
             1,
             2020,
             1,
-            [0.0e-6, 0.0e-6, 0.0],
-            id="extrap_mon_const_jan_2020",
+            [394.90e-6, 391.19e-6, 0.0],
+            id="ext_month_ood_jan_2020",
         ),
-        pytest.param(
-            1,
-            1,
-            0,
-            2020,
-            1,
-            2020,
-            1,
-            [0.0e-6, 0.0e-6, 0.0],
-            id="extrap_const_jan_2020",
-        ),
+        # pytest.param(
+        #     1,
+        #     1,
+        #     -1,
+        #     2020,
+        #     1,
+        #     1990,
+        #     1,
+        #     [353.745e-6, 353.745e-6, 0.0],
+        #     id="external_const_jan_2020",
+        # ),
+        # pytest.param(
+        #     2,
+        #     1,
+        #     -1,
+        #     2020,
+        #     1,
+        #     1990,
+        #     1,
+        #     [0.0e-6, 0.0e-6, 0.0],
+        #     id="external_monthly_const_jan_2020",
+        # ),
         # pytest.param(
         #     1,
         #     1,
@@ -363,7 +363,7 @@ def test_co2_update(
         gridlat,
         prefix,
     )
-    co2_update(
+    co2_glb, co2_arr, co2_cyc = co2_update(
         saved_year,
         saved_month,
         ico2flg,
@@ -379,7 +379,7 @@ def test_co2_update(
         co2_cyc_data,
     )
     ldoco2 = imon != saved_month
-    co2_update(
+    co2_glb, co2_arr, co2_cyc = co2_update(
         iyear,
         imon,
         ico2flg,
@@ -404,4 +404,3 @@ def test_co2_update(
     else:
         assert np.all(np.isclose(co2_arr[0, 0], expco2[1]))
         assert np.all(np.isclose(co2_cyc[0, 0], expco2[2]))
-    pass

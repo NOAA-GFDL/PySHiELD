@@ -8,6 +8,7 @@ from ndsl.dsl.typing import Float, Int
 from ndsl.logging import ndsl_log
 
 
+CONST_ALBEDO = 0.98
 EMS_REF = [0.97, 0.95, 0.94, 0.90, 0.93, 0.96, 0.96, 0.99]
 IMXEMS = 360
 JMXEMS = 180
@@ -49,17 +50,20 @@ def sfc_init(
 ):
     # Initialization of surface albedo section
     # physparam::ialbflg
-    # - 0: using climatology surface albedo scheme for SW
-    # - 1: using MODIS based land surface albedo for SW
-    # - 2: using land surface model albedo for SW
+    # - -1: using constant albedo for SW
+    # -  0: using climatology surface albedo scheme for SW
+    # -  1: using MODIS based land surface albedo for SW
+    # -  2: using land surface model albedo for SW
     if ialbflg == 0:
         ndsl_log.info("Using climatology surface albedo scheme for sw")
     elif ialbflg == 1:
         ndsl_log.info("Using MODIS based land surface albedo for sw")
     elif ialbflg == 2:
         ndsl_log.info("Using Albedo From Land Model")
+    elif ialbflg == -1:
+        ndsl_log.info(f"Using Constant Albedo {CONST_ALBEDO}")
     else:
-        raise ValueError(f"ialbflg must be 0, 1, or 2, got {ialbflg}")
+        raise ValueError(f"ialbflg must be -1, 0, 1, or 2, got {ialbflg}")
     # physparam::ldisable_radiation_quasi_sea_ice
     # - = .false.: use a sea-ice-like albedo and emissivity for below
     #     freezing ocean grid cells.
@@ -92,7 +96,7 @@ def sfc_init(
         ndsl_log.info("Using Surface Emissivity From Land Model")
     else:
         raise ValueError(f"iemslw must be 0, 1, or 2, got {iemslw}")
-    return ext_sfcemis_data
+    return iemslw, ext_sfcemis_data
 
 
 def set_albedo(
@@ -175,7 +179,9 @@ def set_albedo(
     !                                                                       !
     !  ====================    end of description    =====================  !
     """
-    if ialbflg == 0:  # use climatological albedo scheme
+    if ialbflg == -1:
+        sfcalb[:] = 0.98
+    elif ialbflg == 0:  # use climatological albedo scheme
         # Modified snow albedo scheme - units convert to m (originally
         # snowf in mm; zorlf in cm)
         for i, j in np.nindex(snowf.shape):
