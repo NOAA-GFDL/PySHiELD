@@ -1,10 +1,13 @@
 from pathlib import Path
+import re
 
 import numpy as np
 
 import ndsl.constants as constants
-from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval, max, min, sin
-from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ
+from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval, sin
+from ndsl.dsl.gt4py import max as gtmax
+from ndsl.dsl.gt4py import min as gtmin
+from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
 
 
@@ -93,7 +96,7 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
                 solar_constant_data["icy1"] = int(table_dat[2])
                 solar_constant_data["icy2"] = int(table_dat[3])
                 solar_constant_data["smean"] = float(table_dat[4])
-            elif line[0][:4] == "****":
+            elif re.fullmatch(r'^(\*)\1{1,}$', table_dat[0]):
                 break  # end at the asterisks
             else:
                 year = int(table_dat[0])
@@ -289,7 +292,7 @@ def solar(
             print(f"E, EP, CD =', {e1}, {ep}, {cd}")
             break
 
-    eq = 2.0 * np.atan(er * np.tan(0.5 * e1))
+    eq = 2.0 * np.arctan(er * np.tan(0.5 * e1))
 
     # date is days since last perihelion passage
 
@@ -313,17 +316,17 @@ def solar(
             print(f"ITERATION COUNT FOR LOOP 31 = {iter}")
             break
 
-    w1 = 2.0 * np.atan(er * np.tan(0.5 * e1))
+    w1 = 2.0 * np.arctan(er * np.tan(0.5 * e1))
 
     r1 = 1.0 - ec * np.cos(e1)
 
-    sindec = sni * sin(w1 - eq)
+    sindec = sni * np.sin(w1 - eq)
     cosdec = np.sqrt(1.0 - sindec * sindec)
 
-    dlt = np.asin(sindec)
-    alp = np.asin(np.tan(dlt) * tini)
+    dlt = np.arcsin(sindec)
+    alp = np.arcsin(np.tan(dlt) * tini)
 
-    tst = cos(w1 - eq)
+    tst = np.cos(w1 - eq)
     if tst < 0.0:
         alp = constants.PI - alp
     if alp < 0.0:
@@ -338,6 +341,7 @@ def solar(
 
 def solar_update(
     sdate: list[int],
+    solc0: float,
     deltsw: float,
     deltim: float,
     lsol_chg: bool,
@@ -399,9 +403,9 @@ def solar_update(
     iyear = sdate[0]
     imon = sdate[1]
     iday = sdate[2]
-    ihr = sdate[4]
-    imin = sdate[5]
-    isec = sdate[6]
+    ihr = sdate[3]
+    imin = sdate[4]
+    isec = sdate[5]
     if lsol_chg:  # get solar constant from data table
         if iyear == iyr_sav:  # same year, no new reading necessary
             if isolflg == 4:
@@ -433,12 +437,12 @@ def solar_update(
 
     # setting up calculation parameters used by subr coszmn
 
-    nswr = round(deltsw / deltim)  # number of mdl t-step per sw call
+    nswr = np.round(deltsw / deltim)  # number of mdl t-step per sw call
     dtswh = deltsw / 3600.0  # time length in hours
 
     if deltsw >= 3600.0:  # for longer sw call interval
-        nn = max(6, min(12, round(3600.0 / deltim)))  # num of calc per hour
-        nstp = round(dtswh) * nn + 1  # num of calc per sw call
+        nn = max(6, min(12, Int(3600.0 / deltim)))  # num of calc per hour
+        nstp = Int(dtswh) * nn + 1  # num of calc per sw call
     else:  # for shorter sw sw call interval
         nstp = max(2, min(20, nswr)) + 1
 
@@ -522,12 +526,12 @@ def coszmn(
                 cc = coslat * cosdec
 
             if iter == 0:
-                h = acos(min(max(-ss / cc, -1.0), 1.0))
+                h = acos(gtmin(gtmax(-ss / cc, -1.0), 1.0))
                 coszenm = ss * h / constants.PI + cc * (sin(h) - sin(-h)) / (
                     2 * constants.PI
                 )
             coszn = ss + cc * cos(cns + xlon)
-            coszen = coszen + max(0.0, coszn)
+            coszen = coszen + gtmax(0.0, coszn)
             if coszn > CZLIMT:
                 istsun = istsun + 1
             iter += 1

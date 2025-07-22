@@ -64,8 +64,6 @@ class RadiationConfig:
     ictmflg: Int
     ialbflg: Int
     iemsflg: Int
-    lsol_chg: bool
-    isolflg: bool
     ldisable_radiation_quasi_sea_ice: bool
     solar_constant_file: Path
     input_dir: Path
@@ -108,12 +106,10 @@ class RTE_RRTMGPDriver:
         self.saved_iday = iday
         self.deltsw = config.deltsw
         self.delt_rad = config.delt_rad
-        self.lsol_chg = config.lsol_chg
-        self.isolflg = config.isolflg
+        self.isolar = config.isolar
         self.ico2flg = config.ico2flg
         self.ictmflg = config.ictmflg
         self.ialbflg = config.ialbflg
-        self.iemslw = Int(config.iemsflg % 10)
         self.ldisable_radiation_quasi_sea_ice = config.ldisable_radiation_quasi_sea_ice
         self._first_step = True
 
@@ -151,9 +147,8 @@ class RTE_RRTMGPDriver:
         self.gridlon = gridlon
         self.gridlat = gridlat
         # Init solar params
-        self._isolar = config.isolar
-        self._isolflg, self._solar_constants, self.solc0 = sol_init(
-            self._isolar,
+        self.isolflg, self._solar_constants, self.solc0 = sol_init(
+            self.isolar,
             config.solar_constant_file,
             iyear,
         )
@@ -194,7 +189,7 @@ class RTE_RRTMGPDriver:
         self.albedo = np.zeros((gridlon.view[:].shape[0], gridlon.view[:].shape[1], 4))
         self.sfcemis = np.zeros((gridlon.view[:].shape[0], gridlon.view[:].shape[1]))
         sfcemis_datafile = config.input_dir.joinpath("sfc_emissivity_idx.txt")
-        self._sfcemis_map = sfc_init(
+        self.iemslw, self._sfcemis_map = sfc_init(
             config.ialbflg,
             config.iemsflg,
             config.ldisable_radiation_quasi_sea_ice,
@@ -402,6 +397,9 @@ class RTE_RRTMGPDriver:
         Updates input data from external sources when model date differs
         from the saved date
         """
+        lsol_chg = False
+        if (self.isolflg not in [0, 10]) and sdate[0] != self.saved_iyear:
+            lsol_chg = True
         (
             self.slag,
             self.sdec,
@@ -413,18 +411,21 @@ class RTE_RRTMGPDriver:
             self.saved_iyear,
         ) = solar_update(
             sdate,
+            self.solc0,
             self.deltsw,
             self.delt_rad,
-            self.lsol_chg,
+            lsol_chg,
             self.saved_iyear,
             self.isolflg,
             self._solar_constants,
         )
 
         # Here is where we update ozone and aerosols when enabled
+        if (sdate[1] != self.saved_imonth) or (self._first_step):
+            update_co2 = True
+            self.saved_imonth = sdate[1]
 
-        update_co2 = (sdate[1] == self.saved_imonth) or (self._first_step)
-        co2_update(
+        self.co2_glb, self._co2_arr.view[:], self._co2_cyc.view[:], = co2_update(
             sdate[0],
             sdate[1],
             self.ico2flg,

@@ -79,8 +79,8 @@ def read_monthly_resolved_co2(co2dat_file: Path):
             table_dat = line.split()
             if i == 0:
                 year = Int(table_dat[0])
-                resolved_monthly_co2_data["mean"] = Float(table_dat[16]) * 1.0e-6
-                resolved_monthly_co2_data["growth_rate"] = Float(table_dat[20]) * 1.0e-6
+                resolved_monthly_co2_data["mean"] = Float(table_dat[16].replace(",","")) * 1.0e-6
+                resolved_monthly_co2_data["growth_rate"] = Float(table_dat[20].replace(",","")) * 1.0e-6
                 resolved_monthly_co2_data["missing"] = Float(table_dat[-1]) * 1.0e-6
             else:
                 ilat = (i - 1) % 12
@@ -118,7 +118,7 @@ def read_monthly_cycle_co2(co2cyc_file: Path):
                 resolved_monthly_co2_cycle["annual_mean"] = (
                     Float(table_dat[15]) * 1.0e-6
                 )
-                resolved_monthly_co2_cycle["growth_rate"] = Float(table_dat[9]) * 1.0e-6
+                resolved_monthly_co2_cycle["growth_rate"] = Float(table_dat[19]) * 1.0e-6
                 resolved_monthly_co2_cycle["missing"] = Float(table_dat[-1]) * 1.0e-6
                 resolved_monthly_co2_cycle["mean"] = []
             elif i < 13:
@@ -141,7 +141,7 @@ def read_monthly_cycle_co2(co2cyc_file: Path):
     return resolved_monthly_co2_cycle
 
 
-def read_co2_files(input_dir: Path):
+def read_co2_files(input_dir: Path, prefix=""):
     """
     Function to read in input CO2 data files
     """
@@ -150,13 +150,16 @@ def read_co2_files(input_dir: Path):
     co2_mvr_data = None
     co2_cyc_data = None
 
-    co2_glob_file = input_dir.joinpath("co2historicaldata_glob.txt")
+    glob_fname = prefix+"co2historicaldata_glob.txt"
+    cyc_fname = prefix+"co2monthlycyc1976_2009.txt" if prefix else "co2monthlycyc.txt"
+
+    co2_glob_file = input_dir.joinpath(glob_fname)
     monthly_co2_files = [
         f
         for f in os.listdir(input_dir)
-        if re.match(r"co2historicaldata_[0-9]{4}\.txt", f)
+        if re.search(r"co2historicaldata_[0-9]{4}\.txt", f)
     ]
-    co2_cycle_file = input_dir.joinpath("co2monthlycyc.txt")
+    co2_cycle_file = input_dir.joinpath(cyc_fname)
 
     if co2_glob_file.is_file():
         co2_glb_data = read_global_annual_co2(co2_glob_file)
@@ -190,19 +193,19 @@ def broadcast_co2_to_grid(
     """
     gridded_data = np.zeros_like(gridlon)
 
-    nx = gridlon.shape(0)
-    ny = gridlon.shape(1)
+    nx = gridlon.shape[0]
+    ny = gridlon.shape[1]
     tmp = (180.0 / constants.PI) / RESCO2
     for i in range(nx):
         for j in range(ny):
-            jres = (constants.PI - gridlat[i, j]) * tmp
-            jres = min(JMXCO2, int(jres))
+            jres = (0.5 * constants.PI - gridlat[i, j]) * tmp
+            jres = min(JMXCO2 - 1, int(jres))
             ires = (
                 (gridlon[i, j] * tmp)
                 if gridlon[i, j] >= 0.0
                 else ((gridlon[i, j] + 2.0 * constants.PI) * tmp)
             )
-            ires = min(IMXCO2, int(ires))
+            ires = min(IMXCO2 - 1, int(ires))
             gridded_data[i, j] = co2dat[jres][ires]
     return gridded_data
 
@@ -216,6 +219,7 @@ def gas_init(
     imonth: Int,
     gridlon: np.ndarray,
     gridlat: np.ndarray,
+    prefix: str = "",
 ):
     """
     Function to init gases for radiation. Returns a global mean CO2 concentration,
@@ -229,8 +233,8 @@ def gas_init(
     n2o = N2OVMR_DEF
     ch4 = CH4VMR_DEF
     o2 = O2VMR_DEF
-    co = N2VMR_DEF
-    n2 = COVMR_DEF
+    co = COVMR_DEF
+    n2 = N2VMR_DEF
     cfc11 = F11VMR_DEF
     cfc12 = F12VMR_DEF
     cfc22 = F22VMR_DEF
@@ -251,6 +255,7 @@ def gas_init(
             cfc12,
             cfc22,
             ccl4,
+            co2_glb,
             co2_arr,
             co2_cyc,
             None,
@@ -258,7 +263,7 @@ def gas_init(
             None,
         )
 
-    co2_glb_data, co2_mvr_data, co2_cyc_data = read_co2_files(input_dir)
+    co2_glb_data, co2_mvr_data, co2_cyc_data = read_co2_files(input_dir, prefix)
 
     if ico2flg == 1 and not co2_glb_data:
         raise FileNotFoundError(
@@ -275,6 +280,7 @@ def gas_init(
         raise FileNotFoundError(
             f"Monthly CO2 cycle file not found in {input_dir}, stopping in gas_init"
         )
+        co2_glb
     if ictmflg == -1:
         if ico2flg == 1:
             if iyear not in co2_glb_data.keys():
@@ -282,7 +288,7 @@ def gas_init(
                     f"{iyear} not found in CO2 global data, stopping in gas_init"
                 )
             else:
-                co2_glb = co2_glb_data[iyear][0] + co2_glb_data[iyear][1] * 0.5
+                co2_glb = (co2_glb_data[iyear][0] + co2_glb_data[iyear][1]) * 0.5
             co2_arr[:] = co2_glb
         else:  # ico2flg == 2
             if iyear not in co2_mvr_data.keys():
@@ -430,13 +436,13 @@ def co2_update(
     # if ( .not. ldoco2 ) return    ! no need to update co2 data
 
     if ico2flg == 0:  # use prescribed global mean co2 data
-        return
+        return co2_glb, co2_arr, co2_cyc
     if ictmflg == -1:  # use user provided co2 data
-        return
+        return co2_glb, co2_arr, co2_cyc
     if not ldoco2:  # no need to update co2 data
-        return
+        return co2_glb, co2_arr, co2_cyc
 
-    if ictmflg < 0:  # use user provided external data
+    if ictmflg <= 0:  # use user provided external data
         lextpl = False  # no time extrapolation
         idyr = iyear  # use the model year
     else:  # use historically observed data
@@ -518,13 +524,13 @@ def co2_update(
                 co2_arr[:] = 0.0
                 for i in range(1, 13):
                     co2_arr += broadcast_co2_to_grid(
-                        co2_monthly_means[iyear][i], gridlon, gridlat
+                        co2_monthly_means[iyr][i], gridlon, gridlat
                     )
                 co2_arr /= 12.0
                 pass
             else:
                 co2_arr = broadcast_co2_to_grid(
-                    co2_monthly_means[iyear][imon], gridlon, gridlat
+                    co2_monthly_means[iyr][imon], gridlon, gridlat
                 )
         else:
             raise ValueError(f"ico2flg = {ico2flg} not recognized")
@@ -536,8 +542,10 @@ def co2_update(
     else:
         rate = 0.0
     co2_arr[:] += rate
+    co2_glb += rate
     if ictmflg == -2:  # Save monthly cycle too
         co2_cyc[:] = broadcast_co2_to_grid(co2_monthly_cycle[imon], gridlon, gridlat)
+    return co2_glb, co2_arr, co2_cyc
 
 
 def get_gases_topdown(
