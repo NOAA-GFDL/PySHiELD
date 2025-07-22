@@ -11,7 +11,7 @@ from ndsl import constants as constants
 
 
 @pytest.mark.parametrize(
-    "gridres, expect",
+    "gridres, expected",
     [
         pytest.param(0.5, np.array([
             [0., 0., 1., 1., 2., 2., 3., 3., 4., 4.],
@@ -38,9 +38,9 @@ def test_map_sfc_to_grid(gridres, expected):
         gridlon[:, i] = gridres * i * constants.PI / 180.0
     gridlat = np.ones((10, 10))
     for i in range(gridlon.shape[1]):
-        gridlat[i, :] = gridres * i * constants.PI / 180.0
+        gridlat[i, :] = (90. - gridres * i) * constants.PI / 180.0 - .000000001  # for stability
     griddat = map_sfc_to_grid(test_data, gridlon, gridlat)
-    assert griddat == expected
+    assert np.all(griddat == expected)
 
 
 @pytest.mark.parametrize("sfcemis_datafile", ["test_data/global_sfc_emissivity_idx.txt"])
@@ -72,7 +72,7 @@ def test_sfc_init(
     iemslw, ext_sfcemis_data = sfc_init(ialbflg, iemsflg, ldisable_radiation_quasi_sea_ice, data)
     assert iemslw == expected[0]
     if iemslw == 1:
-        assert ext_sfcemis_data[0, 0]] == expected[1]
+        assert ext_sfcemis_data[0, 0] == expected[1]
     else:
         assert ext_sfcemis_data == expected[1]
 
@@ -83,8 +83,8 @@ def test_sfc_init(
     [pytest.param(
         "test_data/sfc_data.tile1.nc",
         -1,
+        False,
         CONST_ALBEDO,
-        False
         id="constant_albedo",
     ),]
 )
@@ -112,7 +112,7 @@ def test_set_albedo(sfc_data, ialbflg, drqsi, expected):
     else:
         nx = 20
         sfcalb = np.zeros((nx, nx, 4))
-        islmsk  = islmsk
+        islmsk  = np.zeros((nx, nx))
         alvsf  = islmsk
         alnsf  = islmsk
         alvwf  = islmsk
@@ -162,8 +162,8 @@ def test_set_albedo(sfc_data, ialbflg, drqsi, expected):
         "test_data/global_sfc_emissivity_idx.txt",
         0,
         -1,
+        False,
         1.0,
-        False
         id="constant_sfcemis",
     ),]
 )
@@ -172,11 +172,12 @@ def test_set_sfcemis(sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected):
     if iemslw == 0:
         nx = 10
         gridlon = np.ones((nx, nx))
+        gridres = 0.5
         for i in range(gridlon.shape[0]):
             gridlon[:, i] = gridres * i * constants.PI / 180.0
-        gridlat = np.ones((nx, nx))
+        gridlat = np.ones((10, 10))
         for i in range(gridlon.shape[1]):
-            gridlat[i, :] = gridres * i * constants.PI / 180.0
+            gridlat[i, :] = (90. - gridres * i) * constants.PI / 180.0 - .000000001  # for stability
         islmsk = gridlon
         snowf = gridlon
         sncovr = gridlon
