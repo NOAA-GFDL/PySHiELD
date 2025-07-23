@@ -12,12 +12,14 @@ from pySHiELD.physics_state import PhysicsState
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
 from pySHiELD.stencils.microphysics import Microphysics
+from pySHiELD.radiation.radiation_state import RadiationState
 
 
 def set_sst(tsea, gridlat):
     from __externals__ import tmax
     with computation(FORWARD), interval(0, 1):
         tsea = tmax * (1.0 - sin(gridlat)**2)
+
 
 def calc_p_lay_hydro(
     p_level: FloatField,
@@ -46,26 +48,14 @@ def calc_p_lay_nonhydro(
         p_layer = delp / (constants.GRAV * delz) * tmp
 
 
-def calc_tlvl(
-    t_layer: FloatField,
-    t_skin: FloatFieldIJ,
-    p_level: FloatField,
-    p_layer: FloatField,
-    t_level: FloatField,
-):
-    """
-    Stencil to calculate level (interface) temperatures from
-    level temperatures, level pressures, and layer pressures
-    """
-    with computation(PARALLEL):
-        with interval(0, 1):
-            t_level = t_skin
-        with interval(1, None):
-            t_level = t_layer[0, 0, -1] + (t_layer - t_layer[0, 0, -1]) * (
-                log(p_level) - log(p_layer[0, 0, -1])
-            ) / (log(p_layer) - log(p_layer[0, 0, -1]))
-        # with interval(-1, None):
-        #     t_level = t_layer[0, 0, -1]
+def copy_to_radiation():
+    with computation(PARALLEL), interval(...):
+        pass
+
+
+def copy_from_radiation():
+    with computation(PARALLEL), interval(...):
+        pass
 
 
 def interpolate_radiation(
