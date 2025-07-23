@@ -108,6 +108,8 @@ class PhysicsConfig:
     clin: float = NamelistDefaults.clin
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
+    prescribe_sst: bool = DEFAULT_BOOL
+    peak_sst: float = 293.95
 
     def __post_init__(self):
         if self.schemes is None:

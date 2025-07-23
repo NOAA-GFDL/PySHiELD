@@ -46,7 +46,7 @@ class RadiationState:
     )
     tsfc: Quantity = field(
         metadata={
-            "name": "surface_air_temperature",
+            "name": "surface_temperature",
             "dims": [X_DIM, Y_DIM],
             "units": "degK",
             "intent": "in",

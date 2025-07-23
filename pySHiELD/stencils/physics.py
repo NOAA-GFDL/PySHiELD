@@ -2,7 +2,7 @@ import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp, sin
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, log10
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
@@ -13,6 +13,11 @@ from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
 from pySHiELD.stencils.microphysics import Microphysics
 
+
+def set_sst(tsea, gridlat):
+    from __externals__ import tmax
+    with computation(FORWARD), interval(0, 1):
+        tsea = tmax * (1.0 - sin(gridlat)**2)
 
 def calc_p_lay_hydro(
     p_level: FloatField,
@@ -412,6 +417,9 @@ class Physics:
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         self._pre_radiation = pre_radiation
+        self._prescribe_sst = namelist.prescribe_sst
+        self._gridlon = grid_data.lon_agrid
+        self._gridlat = grid_data.lat_agrid
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -419,6 +427,13 @@ class Physics:
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
+        if self._prescribe_sst:
+            self._set_sst = stencil_factory.from_origin_domain(
+            func=set_sst,
+            externals={"tmax": namelist.peak_sst},
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         self._get_prs_fv3 = stencil_factory.from_origin_domain(
             func=get_prs_fv3,
             origin=grid_indexing.origin_full(),
@@ -502,6 +517,8 @@ class Physics:
             physics_state.delprsi,
             self._del_gz,
         )
+        if self._prescribe_sst:
+            self._set_sst(physics_state.tsfc, self._gridlat)
         # If PBL scheme is present, physics_state should be updated here
         self._get_phi_fv3(
             physics_state.pt,

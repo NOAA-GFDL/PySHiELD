@@ -7,6 +7,7 @@ import pyrte_rrtmgp as rad
 from ndsl import (
     X_DIM,
     Y_DIM,
+    Z_DIM,
     Bool,
     Float,
     FloatField,
@@ -15,7 +16,8 @@ from ndsl import (
     QuantityFactory,
     StencilFactory,
 )
-from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, log
+import ndsl.constants as constants
 
 from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import cld_init, progcld4, progcld5
@@ -26,7 +28,39 @@ from .radiation_state import RadiationState
 
 GRAV = 9.80665
 CP_DRY = 1004.64
+QMIN=1.0e-10
+QME5=1.0e-7
+QME6=1.0e-7
 
+def calc_tlvl(
+    plyr: FloatField,
+    plvl: FloatField,
+    tgrs: FloatField,
+    tskin: FloatFieldIJ,
+    qvapor: FloatField,
+    tvly: FloatField,
+    tsfa: FloatFieldIJ,
+    tlvl: FloatField,
+):
+    """
+    Calculates interface(level) temperatures neede for radiation
+    """
+    with computation(FORWARD):
+        with interval(0, 1):
+            tsfa = tgrs
+            tlvl = tskin
+            tem2da = log(plyr)
+            tem2db = log(plvl)
+            qvapor = max(QME6, qvapor)
+            tvly = tgrs * (1.0 + constants.ZVIR * qvapor)
+        with interval(1, -1):
+            qvapor = max(QME6, qvapor)
+            tvly = tgrs * (1.0 + constants.ZVIR * qvapor)
+            tlvl = tgrs[0, 0, -1] + (tgrs - tgrs[0, 0, -1]) * (
+                log(plvl) - log(plyr[0, 0, -1])
+            ) / (log(plyr) - log(plyr[0, 0, -1]))
+        with interval(-1, None):
+            tlvl = tgrs[0, 0, -1]
 
 def calc_heating(
     flux_up: FloatField,
@@ -143,6 +177,16 @@ class RTE_RRTMGPDriver:
             "",
             dtype=Bool,
         )
+        self._tvly = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            "degK",
+            dtype=Float,
+        )
+        self._tsfca = quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            "degK",
+            dtype=Float,
+        )
 
         self.gridlon = gridlon
         self.gridlat = gridlat
@@ -239,6 +283,11 @@ class RTE_RRTMGPDriver:
             var_mapping=rad.config.var_mapping,
         )
 
+        self._calc_tlvl = stencil_factory.from_origin_domain(
+            func=calc_tlvl,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
         self._coszmn = stencil_factory.from_origin_domain(
             func=coszmn,
             externals={
@@ -328,6 +377,17 @@ class RTE_RRTMGPDriver:
 
         self._update_inputs_if_needed(state, sdate)
 
+        self._calc_tlvl(
+            state.prsl,
+            state.prsi,
+            state.tlyr,
+            state.tsfc,
+            state.qvapor,
+            self._tvly,
+            self._tsfca,
+            state.tlvl,
+        )
+
         self._coszmn(
             self.gridlon.view[:],
             self.gridlat.view[:],
@@ -349,6 +409,22 @@ class RTE_RRTMGPDriver:
                 self._co2_cyc,
                 self._co2_arr,
             )
+
+        self._progcld(
+            plyr: FloatField,
+            plvl: FloatField,
+            tlyr: FloatField,
+            tvly: FloatField,
+            clw: FloatField,
+            cnvw: FloatField,
+            cnvc: FloatField,
+            land_mask: IntFieldIJ,
+            cldtot: FloatFieldIJ,
+            cwp: FloatField,
+            rew: FloatField,
+            cip: FloatField,
+            rei: FloatField,
+        )
 
         set_albedo(
             self.ialbflg,
@@ -448,8 +524,6 @@ class RTE_RRTMGPDriver:
         self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
         is_day = state.mu0.data[:] > 0.0
-
-        self._coszmn()
 
         # Do SW fluxes:
         sw_optics = self._gas_optics_sw.compute_gas_optics(

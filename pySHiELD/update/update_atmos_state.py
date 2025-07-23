@@ -2,7 +2,7 @@ from typing import Optional
 
 import pyFV3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
+from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, log, min, max, exp
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
@@ -10,14 +10,11 @@ from ndsl.typing import Communicator
 import ndsl.constants as constants
 from pyFV3.stencils import fv_subgridz
 from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
+from pySHiELD.physics_state import PhysicsState
 
 
 # TODO: when this file is not importable from physics or pyFV3, import
 #       PhysicsState and DycoreState and use them to type hint below
-
-QMIN = 1.0e-10
-P00 = 1.e5
-PK0INV = (1.0 / P00)**constants.KAPPA
 
 def fill_gfs_delp(delp: FloatField, q: FloatField, q_min: Float):
     with computation(BACKWARD):
@@ -145,128 +142,6 @@ def copy_dycore_to_physics(
         w_out = w_in
         omga_out = omga_in
 
-def SHiELD_atm_conversion(
-    delp: FloatField,
-    delz: FloatField,
-    qvap: FloatField,
-    qliquid: FloatField,
-    qice: FloatField,
-    qrain: FloatField,
-    qsnow: FloatField,
-    qgraupel: FloatField,
-    qo3mr: FloatField,
-    qtke: FloatField,
-    qcld: FloatField,
-    pt: FloatField,
-    ua: FloatField,
-    va: FloatField,
-    omega: FloatField,
-    ptop: FloatFieldIJ,
-    prsl: FloatField,
-    prsi: FloatField,
-    prsik: FloatField,
-    prslk: FloatField,
-    phii: FloatField,
-    qgrs_vap: FloatField,
-    qgrs_liquid: FloatField,
-    qgrs_ice: FloatField,
-    qgrs_rain: FloatField,
-    qgrs_snow: FloatField,
-    qgrs_graupel: FloatField,
-    qgrs_o3mr: FloatField,
-    tgrs: FloatField,
-    ugrs: FloatField,
-    vgrs: FloatField,
-    vvl: FloatField,
-    qgrs_tke: FloatField,
-    qgrs_cld: FloatField,
-):
-    """
-    Converts fields from FV3 to SHiELD 
-    Primarily this converts pressures to be used in physics calculations
-    Assuming k=0 is the surface for all fields...
-    """
-    from __externals__ import hydrostatic, use_hydro_pressures
-    with computation(PARALLEL), interval(0, -1):
-        tgrs = pt
-        ugrs = ua
-        vgrs = va
-        vvl = omega
-        prsl = delp
-        qgrs_vap = qvap * prsl
-        qgrs_liquid = qliquid * prsl
-        qgrs_ice = qice * prsl
-        qgrs_rain = qrain * prsl
-        qgrs_snow = qsnow * prsl
-        qgrs_graupel = qgraupel * prsl
-        qgrs_o3mr = qo3mr * prsl
-        qgrs_tke = qtke
-        qgrs_cld = qcld
-
-        # Remove the contribution of condensates to delp (mass):
-        # TODO: extend for variable tracers
-        prsl = prsl - qgrs_liquid - qgrs_ice - qgrs_rain - qgrs_snow - qgrs_graupel
-
-    with computation(BACKWARD):
-        # Re-compute pressure (dry_mass + water_vapor) derived fields:
-        with interval(-1, None):
-            prsi = ptop
-            prsk = log(ptop)
-
-        with interval(1, -1):
-            prsi = prsi[0, 0, 1] + prsl
-            prsik = log(prsi)
-            qgrs_vap = qgrs_vap / prsl
-            qgrs_liquid = qgrs_liquid / prsl
-            qgrs_ice = qgrs_ice / prsl
-            qgrs_rain = qgrs_rain / prsl
-            qgrs_snow = qgrs_snow / prsl
-            qgrs_graupel = qgrs_graupel / prsl
-            qgrs_o3mr = qgrs_o3mr / prsl
-
-        with interval(0, 0):
-            prsi = prsi[0, 0, 1] + prsl
-            prsik = log(prsi)
-            qgrs_vap = qgrs_vap / prsl
-            qgrs_liquid = qgrs_liquid / prsl
-            qgrs_ice = qgrs_ice / prsl
-            qgrs_rain = qgrs_rain / prsl
-            qgrs_snow = qgrs_snow / prsl
-            qgrs_graupel = qgrs_graupel / prsl
-            qgrs_o3mr = qgrs_o3mr / prsl
-            pgr = prsi
-            phii = 0.0
-
-    with computation(FORWARD):
-        with interval(1, None):
-            if not (hydrostatic or use_hydro_pressures):
-                phii = phii[0, 0, -1] - delz[0, 0, -1] * constants.GRAV
-
-    # Layer mean pressure by perfect gas law:
-    with computation(PARALLEL):
-        with interval(0, -1):
-            qgrs_rad = max(QMIN, qgrs_vap)
-            rTv = constants.RDGAS * tgrs * (1.0 + constants.ZVIR * qgrs_rad)
-            dm = prsl
-            prsl = dm * rTv / (phii[0, 0, 1] - phii)
-            # Ensure subgrid MONOTONICITY of Pressure: SJL 09/11/2016
-            if not hydrostatic:
-                # If violated, replaces it with hydrostatic pressure
-                prsl = min(prsl, prsi - 0.01 * dm)
-                prsl = max(prsl, prsi[0, 0, 1] + 0.01 * dm)
-            
-            # Exner function layer center:
-            # large sensitivity to non-hydro runs with moist kappa
-            prslk = exp(constants.KAPPA * log(prsl / P00))
-            # layer center geopotential; geometric midpoint
-            phil = 0.5 * (phii + phii[0, 0, 1])
-
-            # Compute Exner function at layer "interfaces"
-            prsik = exp(constants.KAPPA * prsik) * PK0INV
-        with interval(-1, None):
-            prsik = (ptop/P00)**constants.KAPPA
-
-
 
 class DycoreToPhysics:
     def __init__(
@@ -282,7 +157,6 @@ class DycoreToPhysics:
             config=stencil_factory.config.dace_config,
             dace_compiletime_args=["dycore_state", "physics_state", "tendency_state"],
         )
-
         self._copy_dycore_to_physics = stencil_factory.from_dims_halo(
             copy_dycore_to_physics,
             compute_dims=[
@@ -306,9 +180,10 @@ class DycoreToPhysics:
 
     def __call__(
         self,
-        dycore_state,
-        physics_state,
+        dycore_state: pyFV3.DycoreState,
+        physics_state: PhysicsState,
         tendency_state=None,
+        ptop: FloatFieldIJ=None,
         timestep: Optional[float] = None,
     ):
         if self._do_dry_convective_adjustment:

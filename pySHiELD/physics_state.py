@@ -282,6 +282,14 @@ class PhysicsState:
             "intent": "in",
         }
     )
+    tsfc: Quantity = field(
+        metadata={
+            "name": "surface_temperature",
+            "dims": [X_DIM, Y_DIM],
+            "units": "K",
+            "intent": "inout",
+        }
+    )
     quantity_factory: InitVar[QuantityFactory]
     schemes: InitVar[List[PHYSICS_PACKAGES]]
 
