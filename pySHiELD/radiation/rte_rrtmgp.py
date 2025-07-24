@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 from pathlib import Path
 
 import numpy as np
@@ -90,7 +91,7 @@ def calc_heating(
 @dataclasses.dataclass
 class RadiationConfig:
     dt_atmos: Float
-    date: list
+    date: datetime.datetime
     fhswr: Float
     fhlwr: Float
     isolar: Int
@@ -120,12 +121,6 @@ class RadiationConfig:
             raise NotImplementedError(
                 "climatological ozone (ioznflg = 0) is not supported"
             )
-        if len(self.date) != 6:
-            raise ValueError(
-                "Initial date must be of format "
-                f"[year, month, day, hour, minute, second], got {self.date}"
-            )
-        self.date = [int(digit) for digit in self.date]
 
 
 class RTE_RRTMGPDriver:
@@ -139,10 +134,10 @@ class RTE_RRTMGPDriver:
         stencil_factory: StencilFactory,
     ):
         grid_indexing = stencil_factory.grid_indexing
-        iyear = config.date[0]
-        imonth = config.date[1]
-        iday = config.date[2]
-        ihr = config.date[3]
+        iyear = config.date.year
+        imonth = config.date.month
+        iday = config.date.day
+        ihr = config.date.hour
         self.saved_iyear = iyear
         self.saved_imonth = imonth
         self.saved_iday = iday
@@ -390,7 +385,7 @@ class RTE_RRTMGPDriver:
         self,
         state: RadiationState,
         sfc_state: SurfaceState,
-        sdate
+        sdate: datetime.datetime
     ):
         """
         For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
@@ -418,7 +413,7 @@ class RTE_RRTMGPDriver:
         self._coszmn(
             self.gridlon.view[:],
             self.gridlat.view[:],
-            sdate[3],
+            Float(sdate.hour),
             self.slag,
             self.sdec,
             self.cdec,
@@ -495,13 +490,17 @@ class RTE_RRTMGPDriver:
         state.sfc_emis.view[:] = self.sfcemis
         pass
 
-    def _update_inputs_if_needed(self, state: RadiationState, sdate):
+    def _update_inputs_if_needed(
+        self,
+        state: RadiationState,
+        sdate: datetime.datetime
+    ):
         """
         Updates input data from external sources when model date differs
         from the saved date
         """
         lsol_chg = False
-        if (self.isolflg not in [0, 10]) and sdate[0] != self.saved_iyear:
+        if (self.isolflg not in [0, 10]) and sdate.year != self.saved_iyear:
             lsol_chg = True
         (
             self.slag,
@@ -524,13 +523,13 @@ class RTE_RRTMGPDriver:
         )
 
         # Here is where we update ozone and aerosols when enabled
-        if (sdate[1] != self.saved_imonth) or (self._first_step):
+        if (sdate.month != self.saved_imonth) or (self._first_step):
             update_co2 = True
-            self.saved_imonth = sdate[1]
+            self.saved_imonth = sdate.month
 
         self.co2_glb, self._co2_arr.view[:], self._co2_cyc.view[:], = co2_update(
-            sdate[0],
-            sdate[1],
+            sdate.year,
+            sdate.month,
             self.ico2flg,
             update_co2,
             self.ictmflg,
@@ -547,7 +546,12 @@ class RTE_RRTMGPDriver:
     def _prep_outputs(self):
         pass
 
-    def step_radiation(self, state: RadiationState, sfc_state, date):
+    def step_radiation(
+        self,
+        state: RadiationState,
+        sfc_state,
+        date: datetime.datetime
+    ):
         self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
         is_day = state.mu0.data[:] > 0.0

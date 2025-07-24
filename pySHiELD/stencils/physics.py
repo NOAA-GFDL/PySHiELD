@@ -1,3 +1,4 @@
+import datetime
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
@@ -544,7 +545,7 @@ class Physics:
         physics_state: PhysicsState,
         radiation_state: RadiationState,
         sfc_state,
-        date,
+        date: datetime.datetime,
         timestep: float
 
     ):
@@ -608,9 +609,9 @@ class Physics:
                 radiation_state.qo3mr,
                 radiation_state.qcld,
             )
-        self._radiation.step_radiation(
-            radiation_state, sfc_state, date
-        )
+            self._radiation.step_radiation(
+                radiation_state, sfc_state, date
+            )
 
 
         # Do physics schemes here:

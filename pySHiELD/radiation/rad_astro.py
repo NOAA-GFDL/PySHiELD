@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import datetime
 
 import numpy as np
 
@@ -340,7 +341,7 @@ def solar(
 
 
 def solar_update(
-    sdate: list[int],
+    sdate: datetime.datetime,
     solc0: float,
     deltsw: float,
     deltim: float,
@@ -400,12 +401,12 @@ def solar_update(
     !                                                                       !
     !  ===================================================================  !
     """
-    iyear = sdate[0]
-    imon = sdate[1]
-    iday = sdate[2]
-    ihr = sdate[3]
-    imin = sdate[4]
-    isec = sdate[5]
+    iyear = sdate.year
+    imon = sdate.month
+    iday = sdate.day
+    ihr = sdate.hour
+    imin = sdate.minute
+    isec = sdate.second
     if lsol_chg:  # get solar constant from data table
         if iyear == iyr_sav:  # same year, no new reading necessary
             if isolflg == 4:
