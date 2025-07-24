@@ -79,8 +79,12 @@ def read_monthly_resolved_co2(co2dat_file: Path):
             table_dat = line.split()
             if i == 0:
                 year = Int(table_dat[0])
-                resolved_monthly_co2_data["mean"] = Float(table_dat[16].replace(",","")) * 1.0e-6
-                resolved_monthly_co2_data["growth_rate"] = Float(table_dat[20].replace(",","")) * 1.0e-6
+                resolved_monthly_co2_data["mean"] = (
+                    Float(table_dat[16].replace(",", "")) * 1.0e-6
+                )
+                resolved_monthly_co2_data["growth_rate"] = (
+                    Float(table_dat[20].replace(",", "")) * 1.0e-6
+                )
                 resolved_monthly_co2_data["missing"] = Float(table_dat[-1]) * 1.0e-6
             else:
                 ilat = (i - 1) % 12
@@ -118,7 +122,9 @@ def read_monthly_cycle_co2(co2cyc_file: Path):
                 resolved_monthly_co2_cycle["annual_mean"] = (
                     Float(table_dat[15]) * 1.0e-6
                 )
-                resolved_monthly_co2_cycle["growth_rate"] = Float(table_dat[19]) * 1.0e-6
+                resolved_monthly_co2_cycle["growth_rate"] = (
+                    Float(table_dat[19]) * 1.0e-6
+                )
                 resolved_monthly_co2_cycle["missing"] = Float(table_dat[-1]) * 1.0e-6
                 resolved_monthly_co2_cycle["mean"] = []
             elif i < 13:
@@ -150,8 +156,8 @@ def read_co2_files(input_dir: Path, prefix=""):
     co2_mvr_data = None
     co2_cyc_data = None
 
-    glob_fname = prefix+"co2historicaldata_glob.txt"
-    cyc_fname = prefix+"co2monthlycyc1976_2009.txt" if prefix else "co2monthlycyc.txt"
+    glob_fname = prefix + "co2historicaldata_glob.txt"
+    cyc_fname = prefix + "co2monthlycyc1976_2009.txt" if prefix else "co2monthlycyc.txt"
 
     co2_glob_file = input_dir.joinpath(glob_fname)
     monthly_co2_files = [
@@ -280,7 +286,6 @@ def gas_init(
         raise FileNotFoundError(
             f"Monthly CO2 cycle file not found in {input_dir}, stopping in gas_init"
         )
-        co2_glb
     if ictmflg == -1:
         if ico2flg == 1:
             if iyear not in co2_glb_data.keys():

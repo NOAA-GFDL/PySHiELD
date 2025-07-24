@@ -1,30 +1,37 @@
 import datetime
+
+import numpy as np
+
 import ndsl.constants as constants
 import pySHiELD.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp, sin
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import interval, log, log10
+from ndsl.dsl.gt4py import interval, log, log10, sin
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
-from pySHiELD.physics_state import PhysicsState
+from pySHiELD.physics_state import PhysicsState, SurfaceState
+from pySHiELD.radiation.rte_rrtmgp import (
+    RadiationConfig,
+    RadiationState,
+    RTE_RRTMGPDriver,
+)
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
 from pySHiELD.stencils.microphysics import Microphysics
-from pySHiELD.radiation.rte_rrtmgp import RTE_RRTMGPDriver, RadiationConfig, RadiationState
-import numpy as np
 
 
-def calc_sigma(ak:np.ndarray, bk:np.ndarray):
+def calc_sigma(ak: np.ndarray, bk: np.ndarray):
     return (ak + bk * physcons.P_REF - ak[-1]) / (physcons.P_REF - ak[-1])
 
 
 def set_sst(tsea, gridlat):
     from __externals__ import tmax
+
     with computation(FORWARD), interval(0, 1):
-        tsea = tmax * (1.0 - sin(gridlat)**2)
+        tsea = tmax * (1.0 - sin(gridlat) ** 2)
 
 
 def calc_p_lay_hydro(
@@ -462,11 +469,11 @@ class Physics:
         self._del_gz = make_quantity()
         if self._prescribe_sst:
             self._set_sst = stencil_factory.from_origin_domain(
-            func=set_sst,
-            externals={"tmax": namelist.peak_sst},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
+                func=set_sst,
+                externals={"tmax": namelist.peak_sst},
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
         self._get_prs_fv3 = stencil_factory.from_origin_domain(
             func=get_prs_fv3,
             origin=grid_indexing.origin_full(),
@@ -541,15 +548,17 @@ class Physics:
         self._nwat = 6  # spec.namelist.nwat
         self._p00 = 1.0e5
 
-    def __call__(self,
+    def __call__(
+        self,
         physics_state: PhysicsState,
         radiation_state: RadiationState,
-        sfc_state,
+        sfc_state: SurfaceState,
         date: datetime.datetime,
-        timestep: float
-
+        timestep: float,
     ):
-        do_radiation = (self._nsteps%self._nsswr == 0) or (self._nsteps%self._nslwr == 0)
+        do_radiation = (self._nsteps % self._nsswr == 0) or (
+            self._nsteps % self._nslwr == 0
+        )
         self._atmos_phys_driver_statein(
             self._prsik,
             physics_state.phii,
@@ -609,10 +618,7 @@ class Physics:
                 radiation_state.qo3mr,
                 radiation_state.qcld,
             )
-            self._radiation.step_radiation(
-                radiation_state, sfc_state, date
-            )
-
+            self._radiation.step_radiation(radiation_state, sfc_state, date)
 
         # Do physics schemes here:
         if self._gfs_microphysics:

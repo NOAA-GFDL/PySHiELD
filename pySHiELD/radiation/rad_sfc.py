@@ -249,7 +249,10 @@ def set_albedo(
                     rfcs = 2.14 / (1.0 + 1.48 * coszf[i, j])
                     rfcw = rfcs
 
-                    if tsknf[i, j] >= constants.TICE0 or ldisable_radiation_quasi_sea_ice:
+                    if (
+                        tsknf[i, j] >= constants.TICE0
+                        or ldisable_radiation_quasi_sea_ice
+                    ):
                         asevb = max(
                             asevd,
                             0.026 / (coszf[i, j] ** 1.7 + 0.065)
@@ -355,7 +358,10 @@ def set_albedo(
                     # )
                     rfcs = 1.775 / (1.0 + 1.55 * coszf[i, j])
 
-                    if tsknf[i, j] >= constants.TICE0 or ldisable_radiation_quasi_sea_ice:
+                    if (
+                        tsknf[i, j] >= constants.TICE0
+                        or ldisable_radiation_quasi_sea_ice
+                    ):
                         asevb = max(
                             asevd,
                             0.026 / (coszf[i, j] ** 1.7 + 0.065)
@@ -451,7 +457,10 @@ def set_albedo(
                     # ) - 2.02*coszf[i, j]*coszf[i, j]*coszf[i, j]
                     rfcs = 1.775 / (1.0 + 1.55 * coszf[i, j])
 
-                    if tsknf[i, j] >= constants.TICE0 or ldisable_radiation_quasi_sea_ice:
+                    if (
+                        tsknf[i, j] >= constants.TICE0
+                        or ldisable_radiation_quasi_sea_ice
+                    ):
                         asevb = max(
                             asevd,
                             0.026 / (coszf[i, j] ** 1.7 + 0.065)

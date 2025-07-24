@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pyrte_rrtmgp as rad
 
+import ndsl.constants as constants
 from ndsl import (
     X_DIM,
     Y_DIM,
@@ -17,22 +18,22 @@ from ndsl import (
     QuantityFactory,
     StencilFactory,
 )
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, log
-import ndsl.constants as constants
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, log
+from pySHiELD.physics_state import SurfaceState
 
 from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import cld_init, progcld4, progcld5
 from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .radiation_state import RadiationState
-from pySHiELD.physics_state import SurfaceState
 
 
 GRAV = 9.80665
 CP_DRY = 1004.64
-QMIN=1.0e-10
-QME5=1.0e-7
-QME6=1.0e-7
+QMIN = 1.0e-10
+QME5 = 1.0e-7
+QME6 = 1.0e-7
+
 
 def calc_tlvl(
     plyr: FloatField,
@@ -63,6 +64,7 @@ def calc_tlvl(
             ) / (log(plyr) - log(plyr[0, 0, -1]))
         with interval(-1, None):
             tlvl = tgrs[0, 0, -1]
+
 
 def calc_heating(
     flux_up: FloatField,
@@ -382,10 +384,7 @@ class RTE_RRTMGPDriver:
         pass
 
     def _accumulate_radiation_inputs(
-        self,
-        state: RadiationState,
-        sfc_state: SurfaceState,
-        sdate: datetime.datetime
+        self, state: RadiationState, sfc_state: SurfaceState, sdate: datetime.datetime
     ):
         """
         For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
@@ -490,11 +489,7 @@ class RTE_RRTMGPDriver:
         state.sfc_emis.view[:] = self.sfcemis
         pass
 
-    def _update_inputs_if_needed(
-        self,
-        state: RadiationState,
-        sdate: datetime.datetime
-    ):
+    def _update_inputs_if_needed(self, state: RadiationState, sdate: datetime.datetime):
         """
         Updates input data from external sources when model date differs
         from the saved date
@@ -546,12 +541,7 @@ class RTE_RRTMGPDriver:
     def _prep_outputs(self):
         pass
 
-    def step_radiation(
-        self,
-        state: RadiationState,
-        sfc_state,
-        date: datetime.datetime
-    ):
+    def step_radiation(self, state: RadiationState, sfc_state, date: datetime.datetime):
         self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
         is_day = state.mu0.data[:] > 0.0

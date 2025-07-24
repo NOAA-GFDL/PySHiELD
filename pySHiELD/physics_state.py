@@ -387,6 +387,7 @@ class PhysicsState:
                     )
         return xr.Dataset(data_vars=data_vars)
 
+
 @dataclass()
 class SurfaceState:
     islmsk: Quantity = field(
@@ -525,10 +526,12 @@ class SurfaceState:
             "intent": "inout",
         }
     )
+    quantity_factory: InitVar[QuantityFactory]
+
     @classmethod
     def init_zeros(
-        cls, quantity_factory, schemes: List[PHYSICS_PACKAGES]
-    ) -> "PhysicsState":
+        cls, quantity_factory
+    ) -> "SurfaceState":
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
@@ -540,7 +543,6 @@ class SurfaceState:
         return cls(
             **initial_arrays,
             quantity_factory=quantity_factory,
-            schemes=schemes,
         )
 
     @classmethod
@@ -549,8 +551,7 @@ class SurfaceState:
         storages: Mapping[str, Any],
         sizer: GridSizer,
         quantity_factory: QuantityFactory,
-        schemes: List[PHYSICS_PACKAGES],
-    ) -> "PhysicsState":
+    ) -> "SurfaceState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
@@ -563,13 +564,13 @@ class SurfaceState:
                     extent=sizer.get_extent(dims),
                 )
                 inputs[_field.name] = quantity
-        return cls(**inputs, quantity_factory=quantity_factory, schemes=schemes)
+        return cls(**inputs, quantity_factory=quantity_factory,)
 
     @property
     def xr_dataset(self):
         data_vars = {}
         for name, field_info in self.__dataclass_fields__.items():
-            if name not in ["quantity_factory", "schemes"]:
+            if name not in ["quantity_factory",]:
                 if issubclass(field_info.type, Quantity):
                     dims = [
                         f"{dim_name}_{name}" for dim_name in field_info.metadata["dims"]

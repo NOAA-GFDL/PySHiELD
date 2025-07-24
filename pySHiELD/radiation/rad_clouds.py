@@ -20,7 +20,7 @@ CLIMIT = 0.001
 CLIMIT2 = 0.05
 OVCST = 1.0 - 1.0e-8
 GORD = constants.GRAV / constants.RDGAS
-EPSQ=1.0e-12
+EPSQ = 1.0e-12
 
 
 def cld_init(sigma, ivflip):

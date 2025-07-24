@@ -1,20 +1,31 @@
 from typing import Optional
 
+import ndsl.constants as constants
 import pyFV3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, log, min, max, exp
+from ndsl.constants import (
+    X_INTERFACE_DIM,
+    Y_INTERFACE_DIM,
+    Z_INTERFACE_DIM,
+)
+from ndsl.dsl.gt4py import (
+    BACKWARD,
+    FORWARD,
+    PARALLEL,
+    computation,
+    interval,
+)
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
 from ndsl.typing import Communicator
-import ndsl.constants as constants
 from pyFV3.stencils import fv_subgridz
-from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
 from pySHiELD.physics_state import PhysicsState
+from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
 
 
 # TODO: when this file is not importable from physics or pyFV3, import
 #       PhysicsState and DycoreState and use them to type hint below
+
 
 def fill_gfs_delp(delp: FloatField, q: FloatField, q_min: Float):
     with computation(BACKWARD):
@@ -183,7 +194,7 @@ class DycoreToPhysics:
         dycore_state: pyFV3.DycoreState,
         physics_state: PhysicsState,
         tendency_state=None,
-        ptop: FloatFieldIJ=None,
+        ptop: FloatFieldIJ = None,
         timestep: Optional[float] = None,
     ):
         if self._do_dry_convective_adjustment:

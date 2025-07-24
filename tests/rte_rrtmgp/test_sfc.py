@@ -1,31 +1,131 @@
 from pathlib import Path
-from contextlib import nullcontext
-from math import sin, cos
+
 import numpy as np
-import xarray as xr
-
 import pytest
+import xarray
 
-from pySHiELD.radiation.rad_sfc import map_sfc_to_grid, sfc_init, set_albedo, set_sfcemis, IMXEMS, JMXEMS, CONST_ALBEDO
 from ndsl import constants as constants
+from pySHiELD.radiation.rad_sfc import (
+    CONST_ALBEDO,
+    IMXEMS,
+    JMXEMS,
+    map_sfc_to_grid,
+    set_albedo,
+    set_sfcemis,
+    sfc_init,
+)
 
 
 @pytest.mark.parametrize(
     "gridres, expected",
     [
-        pytest.param(0.5, np.array([
-            [0., 0., 1., 1., 2., 2., 3., 3., 4., 4.],
-            [0., 0., 1., 1., 2., 2., 3., 3., 4., 4.],
-            [360., 360., 361., 361., 362., 362., 363., 363., 364., 364.],
-            [360., 360., 361., 361., 362., 362., 363., 363., 364., 364.],
-            [720., 720., 721., 721., 722., 722., 723., 723., 724., 724.],
-            [720., 720., 721., 721., 722., 722., 723., 723., 724., 724.],
-            [1080., 1080., 1081., 1081., 1082., 1082., 1083., 1083., 1084., 1084.],
-            [1080., 1080., 1081., 1081., 1082., 1082., 1083., 1083., 1084., 1084.],
-            [1440., 1440., 1441., 1441., 1442., 1442., 1443., 1443., 1444., 1444.],
-            [1440., 1440., 1441., 1441., 1442., 1442., 1443., 1443., 1444., 1444.],
-        ]), id="half-degree",),
-    ]
+        pytest.param(
+            0.5,
+            np.array(
+                [
+                    [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0],
+                    [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0],
+                    [
+                        360.0,
+                        360.0,
+                        361.0,
+                        361.0,
+                        362.0,
+                        362.0,
+                        363.0,
+                        363.0,
+                        364.0,
+                        364.0,
+                    ],
+                    [
+                        360.0,
+                        360.0,
+                        361.0,
+                        361.0,
+                        362.0,
+                        362.0,
+                        363.0,
+                        363.0,
+                        364.0,
+                        364.0,
+                    ],
+                    [
+                        720.0,
+                        720.0,
+                        721.0,
+                        721.0,
+                        722.0,
+                        722.0,
+                        723.0,
+                        723.0,
+                        724.0,
+                        724.0,
+                    ],
+                    [
+                        720.0,
+                        720.0,
+                        721.0,
+                        721.0,
+                        722.0,
+                        722.0,
+                        723.0,
+                        723.0,
+                        724.0,
+                        724.0,
+                    ],
+                    [
+                        1080.0,
+                        1080.0,
+                        1081.0,
+                        1081.0,
+                        1082.0,
+                        1082.0,
+                        1083.0,
+                        1083.0,
+                        1084.0,
+                        1084.0,
+                    ],
+                    [
+                        1080.0,
+                        1080.0,
+                        1081.0,
+                        1081.0,
+                        1082.0,
+                        1082.0,
+                        1083.0,
+                        1083.0,
+                        1084.0,
+                        1084.0,
+                    ],
+                    [
+                        1440.0,
+                        1440.0,
+                        1441.0,
+                        1441.0,
+                        1442.0,
+                        1442.0,
+                        1443.0,
+                        1443.0,
+                        1444.0,
+                        1444.0,
+                    ],
+                    [
+                        1440.0,
+                        1440.0,
+                        1441.0,
+                        1441.0,
+                        1442.0,
+                        1442.0,
+                        1443.0,
+                        1443.0,
+                        1444.0,
+                        1444.0,
+                    ],
+                ]
+            ),
+            id="half-degree",
+        ),
+    ],
 )
 def test_map_sfc_to_grid(gridres, expected):
     test_data = np.ones((IMXEMS, JMXEMS))
@@ -38,28 +138,34 @@ def test_map_sfc_to_grid(gridres, expected):
         gridlon[:, i] = gridres * i * constants.PI / 180.0
     gridlat = np.ones((10, 10))
     for i in range(gridlon.shape[1]):
-        gridlat[i, :] = (90. - gridres * i) * constants.PI / 180.0 - .000000001  # for stability
+        gridlat[i, :] = (
+            90.0 - gridres * i
+        ) * constants.PI / 180.0 - 0.000000001  # for stability
     griddat = map_sfc_to_grid(test_data, gridlon, gridlat)
     assert np.all(griddat == expected)
 
 
-@pytest.mark.parametrize("sfcemis_datafile", ["test_data/global_sfc_emissivity_idx.txt"])
+@pytest.mark.parametrize(
+    "sfcemis_datafile", ["test_data/global_sfc_emissivity_idx.txt"]
+)
 @pytest.mark.parametrize(
     "ialbflg, iemsflg, ldisable_radiation_quasi_sea_ice, expected,",
-    [pytest.param(
-        1,
-        1,
-        False,
-        [1, 1],
-        id="test1",
-    ),
-    pytest.param(
-        0,
-        10,
-        False,
-        [0, None],
-        id="test1",
-    ),]
+    [
+        pytest.param(
+            1,
+            1,
+            False,
+            [1, 1],
+            id="test1",
+        ),
+        pytest.param(
+            0,
+            10,
+            False,
+            [0, None],
+            id="test1",
+        ),
+    ],
 )
 def test_sfc_init(
     sfcemis_datafile,
@@ -69,7 +175,9 @@ def test_sfc_init(
     expected,
 ):
     data = Path(sfcemis_datafile)
-    iemslw, ext_sfcemis_data = sfc_init(ialbflg, iemsflg, ldisable_radiation_quasi_sea_ice, data)
+    iemslw, ext_sfcemis_data = sfc_init(
+        ialbflg, iemsflg, ldisable_radiation_quasi_sea_ice, data
+    )
     assert iemslw == expected[0]
     if iemslw == 1:
         assert ext_sfcemis_data[0, 0] == expected[1]
@@ -80,15 +188,17 @@ def test_sfc_init(
 # TODO: add tests for ialbflg == 0, 1, 2
 @pytest.mark.parametrize(
     "sfc_data, ialbflg, drqsi, expected",
-    [pytest.param(
-        "test_data/sfc_data.tile1.nc",
-        -1,
-        False,
-        CONST_ALBEDO,
-        id="constant_albedo",
-    ),]
+    [
+        pytest.param(
+            "test_data/sfc_data.tile1.nc",
+            -1,
+            False,
+            CONST_ALBEDO,
+            id="constant_albedo",
+        ),
+    ],
 )
-def test_set_albedo(sfc_data, ialbflg, drqsi, expected):    
+def test_set_albedo(sfc_data, ialbflg, drqsi, expected):
     if ialbflg != -1:
         sfcdat = xarray.open_dataset(Path(sfc_data), engine="netcdf4")
         islmsk = sfcdat.slmsk.data[:]
@@ -112,23 +222,23 @@ def test_set_albedo(sfc_data, ialbflg, drqsi, expected):
     else:
         nx = 20
         sfcalb = np.zeros((nx, nx, 4))
-        islmsk  = np.zeros((nx, nx))
-        alvsf  = islmsk
-        alnsf  = islmsk
-        alvwf  = islmsk
-        alnwf  = islmsk
-        snowf  = islmsk
-        snoalb  = islmsk
-        fice  = islmsk
-        tisfc  = islmsk
-        tsknf  = islmsk
-        zorlf  = islmsk
-        facsf  = islmsk
-        facwf  = islmsk
-        sncovr  = islmsk
-        hprif  = islmsk
-        lsmalbedo  = islmsk
-        coszf  = islmsk
+        islmsk = np.zeros((nx, nx))
+        alvsf = islmsk
+        alnsf = islmsk
+        alvwf = islmsk
+        alnwf = islmsk
+        snowf = islmsk
+        snoalb = islmsk
+        fice = islmsk
+        tisfc = islmsk
+        tsknf = islmsk
+        zorlf = islmsk
+        facsf = islmsk
+        facwf = islmsk
+        sncovr = islmsk
+        hprif = islmsk
+        lsmalbedo = islmsk
+        coszf = islmsk
     set_albedo(
         ialbflg,
         islmsk,
@@ -157,15 +267,17 @@ def test_set_albedo(sfc_data, ialbflg, drqsi, expected):
 # TODO: add tests for iemsflg == 1, 2
 @pytest.mark.parametrize(
     "sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected",
-    [pytest.param(
-        "test_data/sfc_data.tile1.nc",
-        "test_data/global_sfc_emissivity_idx.txt",
-        0,
-        -1,
-        False,
-        1.0,
-        id="constant_sfcemis",
-    ),]
+    [
+        pytest.param(
+            "test_data/sfc_data.tile1.nc",
+            "test_data/global_sfc_emissivity_idx.txt",
+            0,
+            -1,
+            False,
+            1.0,
+            id="constant_sfcemis",
+        ),
+    ],
 )
 def test_set_sfcemis(sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected):
     iemslw, ext_sfcemis_data = sfc_init(ialbflg, iemsflg, drqsi, Path(sfc_emis))
@@ -177,7 +289,9 @@ def test_set_sfcemis(sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected):
             gridlon[:, i] = gridres * i * constants.PI / 180.0
         gridlat = np.ones((10, 10))
         for i in range(gridlon.shape[1]):
-            gridlat[i, :] = (90. - gridres * i) * constants.PI / 180.0 - .000000001  # for stability
+            gridlat[i, :] = (
+                90.0 - gridres * i
+            ) * constants.PI / 180.0 - 0.000000001  # for stability
         islmsk = gridlon
         snowf = gridlon
         sncovr = gridlon

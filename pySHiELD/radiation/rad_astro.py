@@ -1,13 +1,14 @@
-from pathlib import Path
-import re
 import datetime
+import re
+from pathlib import Path
 
 import numpy as np
 
 import ndsl.constants as constants
-from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval, sin
+from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval
 from ndsl.dsl.gt4py import max as gtmax
 from ndsl.dsl.gt4py import min as gtmin
+from ndsl.dsl.gt4py import sin
 from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
 
@@ -97,7 +98,7 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
                 solar_constant_data["icy1"] = int(table_dat[2])
                 solar_constant_data["icy2"] = int(table_dat[3])
                 solar_constant_data["smean"] = float(table_dat[4])
-            elif re.fullmatch(r'^(\*)\1{1,}$', table_dat[0]):
+            elif re.fullmatch(r"^(\*)\1{1,}$", table_dat[0]):
                 break  # end at the asterisks
             else:
                 year = int(table_dat[0])

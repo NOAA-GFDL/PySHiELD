@@ -22,66 +22,494 @@ from pySHiELD.radiation.rad_gases import (
     read_co2_files,
 )
 
+
 @pytest.mark.parametrize("datapath", ["test_data/"])
 @pytest.mark.parametrize(
     "prefix, year, month, expected_glb, expected_mon, expected_cyc",
-    [pytest.param(
-        "global_",
-        1977,
-        1,
-        [1765, 1990, [333.16, 333.84, 1.33, 1.35]],
-        [333.93, 336.32],
-        [1976, 2009, 358.20, .44, 2.93],
-        id="jan_1977",
-    ),]
+    [
+        pytest.param(
+            "global_",
+            1977,
+            1,
+            [1765, 1990, [333.16, 333.84, 1.33, 1.35]],
+            [333.93, 336.32],
+            [1976, 2009, 358.20, 0.44, 2.93],
+            id="jan_1977",
+        ),
+    ],
 )
 def test_dataread(
     datapath, prefix, year, month, expected_glb, expected_mon, expected_cyc
 ):
     co2_glb_data, co2_mvr_data, co2_cyc_data = read_co2_files(Path(datapath), prefix)
-    assert co2_glb_data['start_year'] == expected_glb[0]
-    assert co2_glb_data['end_year'] == expected_glb[1]
-    assert co2_glb_data[year] == [val * 1.e-6 for val in expected_glb[2]]
-    assert co2_mvr_data[year]["mean"] == expected_mon[0] * 1.e-6
-    assert co2_mvr_data[year][month][0][0] == expected_mon[1] * 1.e-6
-    assert co2_cyc_data['start_year'] == expected_cyc[0]
-    assert co2_cyc_data['end_year'] == expected_cyc[1]
-    assert co2_cyc_data['annual_mean'] == expected_cyc[2] * 1.e-6
-    assert co2_cyc_data[month]['mean'] == expected_cyc[3] * 1.e-6
-    assert co2_cyc_data[month]['data'][0][0] == expected_cyc[4] * 1.e-6
+    assert co2_glb_data["start_year"] == expected_glb[0]
+    assert co2_glb_data["end_year"] == expected_glb[1]
+    assert co2_glb_data[year] == [val * 1.0e-6 for val in expected_glb[2]]
+    assert co2_mvr_data[year]["mean"] == expected_mon[0] * 1.0e-6
+    assert co2_mvr_data[year][month][0][0] == expected_mon[1] * 1.0e-6
+    assert co2_cyc_data["start_year"] == expected_cyc[0]
+    assert co2_cyc_data["end_year"] == expected_cyc[1]
+    assert co2_cyc_data["annual_mean"] == expected_cyc[2] * 1.0e-6
+    assert co2_cyc_data[month]["mean"] == expected_cyc[3] * 1.0e-6
+    assert co2_cyc_data[month]["data"][0][0] == expected_cyc[4] * 1.0e-6
 
 
 @pytest.mark.parametrize(
     "expect",
     [
-        pytest.param(np.array([
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],  # fmt: skip
-            [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.],   # fmt: skip
-            [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],  # fmt: skip
-            [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],  # fmt: skip
-            [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.],  # fmt: skip
-            [24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 24., 25., 25., 25., 25.]  # fmt: skip
-        ]), id="simple_test",),
-    ]
+        pytest.param(
+            np.array(
+                [
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                    ],  # fmt: skip
+                    [
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                    ],  # fmt: skip
+                    [
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                    ],  # fmt: skip
+                    [
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                    ],  # fmt: skip
+                    [
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        24.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                        25.0,
+                    ],  # fmt: skip
+                ]
+            ),
+            id="simple_test",
+        ),
+    ],
 )
 def test_broadcast_co2_to_grid(expect):
     test_data = []
     for i in range(12):
-        test_data.append([j + 24. * i for j in range(24)])
+        test_data.append([j + 24.0 * i for j in range(24)])
     gridlon = np.ones((20, 20))
     for i in range(gridlon.shape[0]):
         gridlon[:, i] = i * constants.PI / 180.0
@@ -90,6 +518,7 @@ def test_broadcast_co2_to_grid(expect):
         gridlat[i, :] = (90 - i) * constants.PI / 180.0
     griddat = broadcast_co2_to_grid(test_data, gridlon, gridlat)
     assert np.all(griddat == expect)
+
 
 # TODO add tests for ictmflg == -1, 0, -2, yyyy0, yyyy1 with ico2flg == 1, 2?
 @pytest.mark.parametrize("datapath", ["test_data/"])
@@ -150,7 +579,7 @@ def test_broadcast_co2_to_grid(expect):
             [CO2VMR_DEF, 0.0, 0.0],
             id="2_1_1_jan_2020",
         ),
-    ]
+    ],
 )
 def test_gas_init(
     datapath,
@@ -183,8 +612,15 @@ def test_gas_init(
     co2cyc = arrays[10]
 
     assert arrays[:9] == (
-        N2OVMR_DEF, CH4VMR_DEF, O2VMR_DEF, COVMR_DEF, N2VMR_DEF, F11VMR_DEF,
-        F12VMR_DEF, F22VMR_DEF, CL4VMR_DEF
+        N2OVMR_DEF,
+        CH4VMR_DEF,
+        O2VMR_DEF,
+        COVMR_DEF,
+        N2VMR_DEF,
+        F11VMR_DEF,
+        F12VMR_DEF,
+        F22VMR_DEF,
+        CL4VMR_DEF,
     )
     assert np.isclose(arrays[9], expco2[0])
     if ico2flg == 0:
@@ -316,7 +752,7 @@ def test_gas_init(
         #     [],
         #     id="extrap_ann_jan_2020",
         # ),
-    ]
+    ],
 )
 def test_co2_update(
     datapath,
