@@ -12,7 +12,12 @@ from pySHiELD.physics_state import PhysicsState
 from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
 from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
 from pySHiELD.stencils.microphysics import Microphysics
-from pySHiELD.radiation.radiation_state import RadiationState
+from pySHiELD.radiation.rte_rrtmgp import RTE_RRTMGPDriver, RadiationConfig, RadiationState
+import numpy as np
+
+
+def calc_sigma(ak:np.ndarray, bk:np.ndarray):
+    return (ak + bk * physcons.P_REF - ak[-1]) / (physcons.P_REF - ak[-1])
 
 
 def set_sst(tsea, gridlat):
@@ -42,20 +47,53 @@ def calc_p_lay_nonhydro(
 ):
     """
     stencil to calculate nonhydrostatic layer mean pressure
+    Assumes delp has condensates subtracted out
     """
     with computation(PARALLEL), interval(0, -1):
         tmp = constants.RDGAS * t_layer * (1 + constants.ZVIR * qvapor)
         p_layer = delp / (constants.GRAV * delz) * tmp
 
 
-def copy_to_radiation():
-    with computation(PARALLEL), interval(...):
-        pass
-
-
-def copy_from_radiation():
-    with computation(PARALLEL), interval(...):
-        pass
+def copy_to_radiation(
+    prsi: FloatField,
+    prsl: FloatField,
+    pt: FloatField,
+    tsfc: FloatFieldIJ,
+    qvapor: FloatField,
+    qliquid: FloatField,
+    qice: FloatField,
+    qo3mr: FloatField,
+    qcld: FloatField,
+    rad_prsi: FloatField,
+    rad_prsl: FloatField,
+    rad_tlyr: FloatField,
+    rad_tsfc: FloatFieldIJ,
+    rad_qvapor: FloatField,
+    rad_qliquid: FloatField,
+    rad_qice: FloatField,
+    rad_qo3mr: FloatField,
+    rad_qcld: FloatField,
+):
+    with computation(PARALLEL):
+        with interval(0, 1):
+            rad_tsfc = tsfc
+            rad_prsi = prsi
+            rad_prsl = prsl
+            rad_tlyr = pt
+            rad_qvapor = qvapor
+            rad_qliquid = qliquid
+            rad_qice = qice
+            rad_qo3mr = qo3mr
+            rad_qcld = qcld
+        with interval(1, None):
+            rad_prsi = prsi
+            rad_prsl = prsl
+            rad_tlyr = pt
+            rad_qvapor = qvapor
+            rad_qliquid = qliquid
+            rad_qice = qice
+            rad_qo3mr = qo3mr
+            rad_qcld = qcld
 
 
 def interpolate_radiation(
@@ -387,6 +425,7 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
+        rad_config: RadiationConfig,
         pre_radiation=False,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
@@ -410,6 +449,9 @@ class Physics:
         self._prescribe_sst = namelist.prescribe_sst
         self._gridlon = grid_data.lon_agrid
         self._gridlat = grid_data.lat_agrid
+        self._nsteps = 0
+        self._nsswr = namelist.nsswr
+        self._nslwr = namelist.nslwr
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -454,6 +496,24 @@ class Physics:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
+        if "RTE-RRTMGP" in schemes:
+            self._rterrtmgp = True
+            sigma = calc_sigma(grid_data.ak.data, grid_data.bk.data)
+            self._copy_to_radiation = stencil_factory.from_origin_domain(
+                func=copy_to_radiation,
+                origin=grid_indexing.origin_full(),
+                domain=grid_indexing.domain_full(),
+            )
+            self._radiation = RTE_RRTMGPDriver(
+                rad_config,
+                self._gridlon,
+                self._gridlat,
+                sigma,
+                quantity_factory,
+                stencil_factory,
+            )
+        else:
+            self._rterrtmgp = False
         if "GFS_microphysics" in schemes:
             self._gfs_microphysics = True
             self._prepare_microphysics = stencil_factory.from_origin_domain(
@@ -480,7 +540,15 @@ class Physics:
         self._nwat = 6  # spec.namelist.nwat
         self._p00 = 1.0e5
 
-    def __call__(self, physics_state: PhysicsState, timestep: float):
+    def __call__(self,
+        physics_state: PhysicsState,
+        radiation_state: RadiationState,
+        sfc_state,
+        date,
+        timestep: float
+
+    ):
+        do_radiation = (self._nsteps%self._nsswr == 0) or (self._nsteps%self._nslwr == 0)
         self._atmos_phys_driver_statein(
             self._prsik,
             physics_state.phii,
@@ -517,6 +585,35 @@ class Physics:
             physics_state.phii,
             physics_state.phil,
         )
+
+        # Call radiation if timestep is right
+        if do_radiation and self._rterrtmgp:
+            self._copy_to_radiation(
+                physics_state.prsi,
+                physics_state.delp,
+                physics_state.pt,
+                physics_state.tsfc,
+                physics_state.qvapor,
+                physics_state.qliquid,
+                physics_state.qice,
+                physics_state.qo3mr,
+                physics_state.qcld,
+                radiation_state.prsi,
+                radiation_state.prsl,
+                radiation_state.tlyr,
+                radiation_state.tsfc,
+                radiation_state.qvapor,
+                radiation_state.qliquid,
+                radiation_state.qice,
+                radiation_state.qo3mr,
+                radiation_state.qcld,
+            )
+        self._radiation.step_radiation(
+            radiation_state, sfc_state, date
+        )
+
+
+        # Do physics schemes here:
         if self._gfs_microphysics:
             self._prepare_microphysics(
                 physics_state.dz,

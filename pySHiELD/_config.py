@@ -9,6 +9,7 @@ from ndsl.namelist import Namelist, NamelistDefaults
 
 
 DEFAULT_INT = 0
+DEFAULT_FLOAT = 0.0
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 
@@ -20,7 +21,11 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 
 @dataclasses.dataclass
 class PhysicsConfig:
-    dt_atmos: int = DEFAULT_INT
+    dt_atmos: float = DEFAULT_FLOAT
+    fhswr: float = DEFAULT_FLOAT
+    fhlwr: float = DEFAULT_FLOAT
+    nsswr: int = DEFAULT_INT
+    nslwr: int = DEFAULT_INT
     hydrostatic: bool = DEFAULT_BOOL
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
@@ -128,6 +133,8 @@ class PhysicsConfig:
             physics_config = self.from_f90nml(f90_nml)
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
+        self.nsswr = int(self.fhswr / self.dt_atmos)
+        self.nslwr = int(self.fhlwr / self.dt_atmos)
 
     @classmethod
     def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "PhysicsConfig":

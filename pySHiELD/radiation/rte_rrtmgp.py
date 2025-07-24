@@ -24,6 +24,7 @@ from .rad_clouds import cld_init, progcld4, progcld5
 from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .radiation_state import RadiationState
+from pySHiELD.physics_state import SurfaceState
 
 
 GRAV = 9.80665
@@ -89,6 +90,7 @@ def calc_heating(
 @dataclasses.dataclass
 class RadiationConfig:
     dt_atmos: Float
+    date: list
     fhswr: Float
     fhlwr: Float
     isolar: Int
@@ -118,16 +120,18 @@ class RadiationConfig:
             raise NotImplementedError(
                 "climatological ozone (ioznflg = 0) is not supported"
             )
+        if len(self.date) != 6:
+            raise ValueError(
+                "Initial date must be of format "
+                f"[year, month, day, hour, minute, second], got {self.date}"
+            )
+        self.date = [int(digit) for digit in self.date]
 
 
 class RTE_RRTMGPDriver:
     def __init__(
         self,
         config: RadiationConfig,
-        iyear: Int,
-        imonth: Int,
-        iday: Int,
-        ihr: Int,
         gridlon: FloatFieldIJ,
         gridlat: FloatFieldIJ,
         sigma: np.ndarray,
@@ -135,6 +139,10 @@ class RTE_RRTMGPDriver:
         stencil_factory: StencilFactory,
     ):
         grid_indexing = stencil_factory.grid_indexing
+        iyear = config.date[0]
+        imonth = config.date[1]
+        iday = config.date[2]
+        ihr = config.date[3]
         self.saved_iyear = iyear
         self.saved_imonth = imonth
         self.saved_iday = iday
@@ -185,6 +193,16 @@ class RTE_RRTMGPDriver:
         self._tsfca = quantity_factory.zeros(
             [X_DIM, Y_DIM],
             "degK",
+            dtype=Float,
+        )
+        self._cnvw = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            "",
+            dtype=Float,
+        )
+        self._cnvc = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            "",
             dtype=Float,
         )
 
@@ -321,6 +339,10 @@ class RTE_RRTMGPDriver:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
+            raise NotImplementedError(
+                f"radiation cloud microphysics control flag {config.icmphys} "
+                "does not have cnvw or cnvc yet"
+            )
         else:
             raise NotImplementedError(
                 f"radiation cloud microphysics control flag {config.icmphys} "
@@ -364,7 +386,12 @@ class RTE_RRTMGPDriver:
         )
         pass
 
-    def _accumulate_radiation_inputs(self, state: RadiationState, sfc_state, sdate):
+    def _accumulate_radiation_inputs(
+        self,
+        state: RadiationState,
+        sfc_state: SurfaceState,
+        sdate
+    ):
         """
         For RTE-RRTMGP we need level and layer profiles of temperature and pressure,
         the species used for the spectral calculations:
@@ -411,19 +438,19 @@ class RTE_RRTMGPDriver:
             )
 
         self._progcld(
-            plyr: FloatField,
-            plvl: FloatField,
-            tlyr: FloatField,
-            tvly: FloatField,
-            clw: FloatField,
-            cnvw: FloatField,
-            cnvc: FloatField,
-            land_mask: IntFieldIJ,
-            cldtot: FloatFieldIJ,
-            cwp: FloatField,
-            rew: FloatField,
-            cip: FloatField,
-            rei: FloatField,
+            state.prsl,
+            state.prsi,
+            state.tlyr,
+            self._tvly,
+            state.qliquid,
+            self._cnvw,
+            self._cnvc,
+            sfc_state.islmsk,
+            state.qcld,
+            state.clwp,
+            state.clwr,
+            state.cip,
+            state.cir,
         )
 
         set_albedo(
@@ -434,7 +461,7 @@ class RTE_RRTMGPDriver:
             sfc_state.snoalb,
             sfc_state.zorl,
             state.mu0,
-            sfc_state.tskn,
+            sfc_state.tskin,
             sfc_state.hprim,
             sfc_state.alvsf,
             sfc_state.alnsf,

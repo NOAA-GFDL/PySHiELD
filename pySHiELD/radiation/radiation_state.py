@@ -159,7 +159,7 @@ class RadiationState:
     flwu: Quantity = field(
         metadata={
             "name": "longwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -167,7 +167,7 @@ class RadiationState:
     flwd: Quantity = field(
         metadata={
             "name": "longwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -175,7 +175,7 @@ class RadiationState:
     fswu: Quantity = field(
         metadata={
             "name": "shortwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -183,7 +183,7 @@ class RadiationState:
     fswd: Quantity = field(
         metadata={
             "name": "shortwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
