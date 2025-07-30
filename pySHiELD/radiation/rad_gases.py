@@ -244,6 +244,7 @@ def gas_init(
     cfc11 = F11VMR_DEF
     cfc12 = F12VMR_DEF
     cfc22 = F22VMR_DEF
+    cfc113 = F113VMR_DEF
     ccl4 = CL4VMR_DEF
 
     co2_arr = np.zeros_like(gridlon)
@@ -260,6 +261,7 @@ def gas_init(
             cfc11,
             cfc12,
             cfc22,
+            cfc113,
             ccl4,
             co2_glb,
             co2_arr,

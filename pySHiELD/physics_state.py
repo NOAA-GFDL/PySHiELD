@@ -529,9 +529,7 @@ class SurfaceState:
     quantity_factory: InitVar[QuantityFactory]
 
     @classmethod
-    def init_zeros(
-        cls, quantity_factory
-    ) -> "SurfaceState":
+    def init_zeros(cls, quantity_factory) -> "SurfaceState":
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
@@ -564,13 +562,18 @@ class SurfaceState:
                     extent=sizer.get_extent(dims),
                 )
                 inputs[_field.name] = quantity
-        return cls(**inputs, quantity_factory=quantity_factory,)
+        return cls(
+            **inputs,
+            quantity_factory=quantity_factory,
+        )
 
     @property
     def xr_dataset(self):
         data_vars = {}
         for name, field_info in self.__dataclass_fields__.items():
-            if name not in ["quantity_factory",]:
+            if name not in [
+                "quantity_factory",
+            ]:
                 if issubclass(field_info.type, Quantity):
                     dims = [
                         f"{dim_name}_{name}" for dim_name in field_info.metadata["dims"]

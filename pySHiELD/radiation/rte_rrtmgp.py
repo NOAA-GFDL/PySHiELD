@@ -3,22 +3,24 @@ import datetime
 from pathlib import Path
 
 import numpy as np
-import pyrte_rrtmgp as rad
+from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
+from pyrte_rrtmgp.config import DEFAULT_DIM_MAPPING
+from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
+
+# from pyrte_rrtmgp.examples import (
+#     compute_RCE_clouds,
+#     compute_RCE_profiles,
+#     ALLSKY_EXAMPLES,
+#     load_example_file,
+# )
+from pyrte_rrtmgp.input_mapping import AtmosphericMapping
+from pyrte_rrtmgp.rte_solver import rte_solve
 
 import ndsl.constants as constants
-from ndsl import (
-    X_DIM,
-    Y_DIM,
-    Z_DIM,
-    Bool,
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    Int,
-    QuantityFactory,
-    StencilFactory,
-)
+from ndsl import QuantityFactory, StencilFactory
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, log
+from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ, Int
 from pySHiELD.physics_state import SurfaceState
 
 from .rad_astro import coszmn, sol_init, solar_update
@@ -26,6 +28,13 @@ from .rad_clouds import cld_init, progcld4, progcld5
 from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .radiation_state import RadiationState
+
+
+# import pyrte_rrtmgp as rad
+
+
+
+
 
 
 GRAV = 9.80665
@@ -92,7 +101,8 @@ def calc_heating(
 
 @dataclasses.dataclass
 class RadiationConfig:
-    dt_atmos: Float
+    deltsw: Float
+    delt_rad: Float
     date: datetime.datetime
     fhswr: Float
     fhlwr: Float
@@ -107,16 +117,14 @@ class RadiationConfig:
     solar_constant_file: Path
     input_dir: Path
     aerosol_file: Path
-    daily_mean: bool
-    fixed_sollat: bool
-    sollat: Float
-    nstp: Int
-    ivflip: Int
-    lcnorm: bool
-    lcrick: bool
-    gfs_cloud_overlap: bool
-    deltsw: Float
-    delt_rad: Float
+    daily_mean: bool = False
+    fixed_sollat: bool = False
+    sollat: Float = 0.0
+    nstp: Int = 6
+    ivflip: Int = 1
+    lcnorm: bool = False
+    lcrick: bool = False
+    gfs_cloud_overlap: bool = False
 
     def __post_init__(self):
         if self.ioznflg == 0:
@@ -202,13 +210,19 @@ class RTE_RRTMGPDriver:
             "",
             dtype=Float,
         )
+        self._coslat = quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            "",
+            dtype=Float,
+        )
 
         self.gridlon = gridlon
         self.gridlat = gridlat
+        config.input_dir.joinpath(config.solar_constant_file)
         # Init solar params
         self.isolflg, self._solar_constants, self.solc0 = sol_init(
             self.isolar,
-            config.solar_constant_file,
+            config.input_dir.joinpath(config.solar_constant_file),
             iyear,
         )
         # Here is where we will initialize aerosols once they're supported
@@ -223,6 +237,7 @@ class RTE_RRTMGPDriver:
             self.cfc11,
             self.cfc12,
             self.cfc22,
+            self.cfc113,
             self.ccl4,
             self.co2_glb,
             co2_arr,
@@ -237,8 +252,8 @@ class RTE_RRTMGPDriver:
             config.ictmflg,
             iyear,
             imonth,
-            gridlon,
-            gridlat,
+            gridlon.view[:],
+            gridlat.view[:],
         )
 
         self._co2_cyc.view[:] = co2_cyc
@@ -258,18 +273,18 @@ class RTE_RRTMGPDriver:
         # Init clouds:
         self._llyr = cld_init(sigma, config.ivflip)
 
-        self._cloud_optics_lw = rad.rrtmgp_cloud_optics.load_cloud_optics(
-            cloud_optics_file=rad.data_types.CloudOpticsFiles.LW_BND
+        self._cloud_optics_lw = rrtmgp_cloud_optics.load_cloud_optics(
+            cloud_optics_file=CloudOpticsFiles.LW_BND
         )
-        self._gas_optics_lw = rad.rrtmgp_gas_optics.load_gas_optics(
-            gas_optics_file=rad.data_typesGasOpticsFiles.LW_G256
+        self._gas_optics_lw = rrtmgp_gas_optics.load_gas_optics(
+            gas_optics_file=GasOpticsFiles.LW_G256
         )
 
-        self._cloud_optics_sw = rad.rrtmgp_cloud_optics.load_cloud_optics(
-            cloud_optics_file=rad.data_types.CloudOpticsFiles.SW_BND
+        self._cloud_optics_sw = rrtmgp_cloud_optics.load_cloud_optics(
+            cloud_optics_file=CloudOpticsFiles.SW_BND
         )
-        self._gas_optics_sw = rad.rrtmgp_gas_optics.load_gas_optics(
-            gas_optics_file=rad.data_types.GasOpticsFiles.SW_G224
+        self._gas_optics_sw = rrtmgp_gas_optics.load_gas_optics(
+            gas_optics_file=GasOpticsFiles.SW_G224
         )
         self._gas_mapping = {
             "h2o": "qvapor",
@@ -286,6 +301,10 @@ class RTE_RRTMGPDriver:
             "temp_layer": "tlyr",
             "temp_level": "tlvl",
             "surface_temperature": "tsfc",
+            "lwp": "clwp",
+            "iwp": "cip",
+            "rel": "clwr",
+            "rei": "cir",
             "solar_zenith_angle": "solar_zenith_angle",
             "surface_albedo": "surface_albedo",
             "surface_albedo_direct": "surface_albedo_direct",
@@ -293,23 +312,13 @@ class RTE_RRTMGPDriver:
             "surface_emissivity": "surface_emissivity",
             "surface_emissivity_jacobian": "surface_emissivity_jacobian",
         }
-        self._atm_map = rad.data_validation.AtmosphericMapping(
-            dim_mapping=rad.config.DEFAULT_DIM_MAPPING,
-            var_mapping=rad.config.var_mapping,
+        self._atm_map = AtmosphericMapping(
+            dim_mapping=DEFAULT_DIM_MAPPING,
+            var_mapping=self._var_mapping,
         )
 
         self._calc_tlvl = stencil_factory.from_origin_domain(
             func=calc_tlvl,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
-        self._coszmn = stencil_factory.from_origin_domain(
-            func=coszmn,
-            externals={
-                "daily_mean": config.daily_mean,
-                "fixed_sollat": config.fixed_sollat,
-                "nstp": config.nstp,
-            },
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -381,7 +390,6 @@ class RTE_RRTMGPDriver:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-        pass
 
     def _accumulate_radiation_inputs(
         self, state: RadiationState, sfc_state: SurfaceState, sdate: datetime.datetime
@@ -410,8 +418,9 @@ class RTE_RRTMGPDriver:
         )
 
         self._coszmn(
-            self.gridlon.view[:],
-            self.gridlat.view[:],
+            self.gridlon,
+            self.gridlat,
+            self._coslat,
             Float(sdate.hour),
             self.slag,
             self.sdec,
@@ -469,7 +478,8 @@ class RTE_RRTMGPDriver:
             self.albedo,
             self.ldisable_radiation_quasi_sea_ice,
         )
-        state.albedo.view[:] = self.albedo
+        if self.ialbflg == -1:
+            state.albedo.view[:] = self.albedo[:, :, 0]
         set_sfcemis(
             self.gridlon.view[:],
             self.gridlat.view[:],
@@ -487,7 +497,6 @@ class RTE_RRTMGPDriver:
             sfc_state.sfcemis,
         )
         state.sfc_emis.view[:] = self.sfcemis
-        pass
 
     def _update_inputs_if_needed(self, state: RadiationState, sdate: datetime.datetime):
         """
@@ -518,6 +527,7 @@ class RTE_RRTMGPDriver:
         )
 
         # Here is where we update ozone and aerosols when enabled
+        update_co2 = False
         if (sdate.month != self.saved_imonth) or (self._first_step):
             update_co2 = True
             self.saved_imonth = sdate.month
@@ -538,55 +548,98 @@ class RTE_RRTMGPDriver:
             self.co2_cyc_data,
         )
 
-    def _prep_outputs(self):
-        pass
+    def _assign_constant_gases(self, xds):
+        xds["ch4"] = Float(self.ch4)
+        xds["n2o"] = Float(self.n2o)
+        xds["n2"] = Float(self.n2)
+        xds["o2"] = Float(self.o2)
+        xds["co"] = Float(self.co)
+        xds["ch4"] = Float(self.ch4)
+        xds["cfc11"] = Float(
+            self.cfc11,
+        )
+        xds["cfc12"] = Float(
+            self.cfc12,
+        )
+        xds["cfc22"] = Float(
+            self.cfc22,
+        )
+        xds["cfc113"] = Float(
+            self.cfc113,
+        )
+        xds["ccl4"] = Float(
+            self.ccl4,
+        )
 
-    def step_radiation(self, state: RadiationState, sfc_state, date: datetime.datetime):
+    def prep_radiation(
+        self, state: RadiationState, sfc_state: SurfaceState, date: datetime.datetime
+    ):
+        """
+        Method to prepare radiation inputs for flux calculations. Goes through
+        the same steps as step_radiation but stops before calling RTE-RRTMGP and returns
+        the xarray dataset to use for RTE-RRTMGP calls. Primarily Useful to debug calls
+        to the radiation solver.
+
+        Args:
+            state (RadiationState): input state containing atmospheric information
+            sfc_state (SurfaceState): contains surface properties such as surface type, snow cover, etc.
+            date (datetime.datetime): datetime for radiation calculations
+
+        Returns:
+            xarray.Dataset: _description_
+        """
         self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
+        self._assign_constant_gases(radx)
+        return radx
+
+    def step_radiation(
+        self, state: RadiationState, sfc_state: SurfaceState, date: datetime.datetime
+    ):
+        self._accumulate_radiation_inputs(state, sfc_state, date)
+        radx = state.to_rterrtmgp_xr()
+        self._assign_constant_gases(radx)
         is_day = state.mu0.data[:] > 0.0
 
         # Do SW fluxes:
         sw_optics = self._gas_optics_sw.compute_gas_optics(
             radx,
-            problem_type=rad.data_types.OpticsProblemTypes.TWO_STREAM,
+            problem_type=OpticsProblemTypes.TWO_STREAM,
             add_to_input=False,
             gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
         )
         sw_optics["surface_albedo"] = radx["albedo"]
         sw_optics["mu0"] = radx["mu0"]
-        clr_fluxes_sw = rad.rte_solver.rte_solve(sw_optics, add_to_input=False)
+        clr_fluxes_sw = rte_solve(sw_optics, add_to_input=False)
 
         sw_cloud_optical_props = self._cloud_optics_sw.compute_cloud_optics(
             radx,
-            problem_type=rad.data_types.OpticsProblemTypes.ABSORPTION,
+            problem_type=OpticsProblemTypes.TWO_STREAM,
             add_to_input=False,
-            gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
         )
         sw_cloud_optical_props.add_to(sw_optics)
-        fluxes_sw = rad.rte_solver.rte_solve(sw_optics, add_to_input=False)
+        fluxes_sw = rte_solve(sw_optics, add_to_input=False)
 
         # And do LW fluxes
         lw_optics = self._gas_optics_lw.compute_gas_optics(
             radx,
-            problem_type=rad.data_types.OpticsProblemTypes.ABSORPTION,
+            problem_type=OpticsProblemTypes.ABSORPTION,
             add_to_input=False,
             gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
         )
         lw_optics["surface_emissivity"] = radx["sfc_emis"]
-        clr_fluxes_lw = rad.rte_solver.rte_solve(lw_optics, add_to_input=False)
+        clr_fluxes_lw = rte_solve(lw_optics, add_to_input=False)
         lw_cloud_optical_props = self._cloud_optics_lw.compute_cloud_optics(
             radx,
-            problem_type=rad.data_types.OpticsProblemTypes.ABSORPTION,
+            problem_type=OpticsProblemTypes.ABSORPTION,
             add_to_input=False,
-            gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
         )
         lw_cloud_optical_props.add_to(lw_optics)
-        fluxes_lw = rad.rte_solver.rte_solve(lw_optics, add_to_input=False)
+        fluxes_lw = rte_solve(lw_optics, add_to_input=False)
 
         state.flwd.view[:] = fluxes_lw.lw_flux_down.data.reshape(
             state.flwd.view[:].shape
@@ -611,4 +664,3 @@ class RTE_RRTMGPDriver:
 
         if self._first_step:
             self._first_step = False
-        pass

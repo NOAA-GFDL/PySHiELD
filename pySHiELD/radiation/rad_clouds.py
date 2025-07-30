@@ -1,6 +1,6 @@
 import ndsl.constants as constants
-from ndsl.dsl.gt4py import PARALLEL, computation, interval, max, min
-from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.typing import FloatField, IntFieldIJ
 
 
 RE_LIQ = 10.0
@@ -32,13 +32,13 @@ def cld_init(sigma, ivflip):
     if ivflip == 0:  # data from toa to sfc
         for k in range(len(sigma) - 1, 0, -1):
             kl = k
-            if sigma(k) < 0.9e0:
+            if sigma[k] < 0.9e0:
                 break
         llyr = kl
     else:  # data from sfc to top
         for k in range(1, len(sigma)):
             kl = k
-            if sigma(k) < 0.9e0:
+            if sigma[k] < 0.9e0:
                 break
         llyr = kl - 1
     return llyr
@@ -53,7 +53,7 @@ def progcld4(
     cnvw: FloatField,
     cnvc: FloatField,
     land_mask: IntFieldIJ,
-    cldtot: FloatFieldIJ,
+    cldtot: FloatField,
     cwp: FloatField,
     rew: FloatField,
     cip: FloatField,
@@ -182,6 +182,9 @@ def progcld4(
             else:
                 clwf = clw
     with computation(PARALLEL), interval(0, -1):
+        # Initialize rain/snow condensate path
+        crp = 0.0
+        csp = 0.0
         # Compute liquid/ice condensate path in g/m**2
         if ivflip == 0:  # input data from TOA to sfc
             delp = plvl[0, 0, 1] - plvl
@@ -237,7 +240,7 @@ def progcld5(
     cnvw: FloatField,
     cnvc: FloatField,
     land_mask: IntFieldIJ,
-    cldtot: FloatFieldIJ,
+    cldtot: FloatField,
     cwp: FloatField,
     rew: FloatField,
     cip: FloatField,

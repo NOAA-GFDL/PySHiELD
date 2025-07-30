@@ -13,6 +13,7 @@ from pySHiELD.radiation.rad_gases import (
     F11VMR_DEF,
     F12VMR_DEF,
     F22VMR_DEF,
+    F113VMR_DEF,
     N2OVMR_DEF,
     N2VMR_DEF,
     O2VMR_DEF,
@@ -608,10 +609,10 @@ def test_gas_init(
         gridlat,
         prefix,
     )
-    co2arr = arrays[9]
-    co2cyc = arrays[10]
+    co2arr = arrays[10]
+    co2cyc = arrays[11]
 
-    assert arrays[:9] == (
+    assert arrays[:10] == (
         N2OVMR_DEF,
         CH4VMR_DEF,
         O2VMR_DEF,
@@ -620,16 +621,17 @@ def test_gas_init(
         F11VMR_DEF,
         F12VMR_DEF,
         F22VMR_DEF,
+        F113VMR_DEF,
         CL4VMR_DEF,
     )
-    assert np.isclose(arrays[9], expco2[0])
+    assert np.isclose(arrays[10], expco2[0])
     if ico2flg == 0:
         assert arrays[-3:] == (None, None, None)
-        assert np.all(np.isclose(arrays[10], expco2[1]))
-        assert np.all(np.isclose(arrays[11], expco2[2]))
+        assert np.all(np.isclose(arrays[11], expco2[1]))
+        assert np.all(np.isclose(arrays[12], expco2[2]))
     else:
-        assert np.isclose(arrays[10][0, 0], expco2[1])
-        assert np.isclose(arrays[11][0, 0], expco2[2])
+        assert np.isclose(arrays[11][0, 0], expco2[1])
+        assert np.isclose(arrays[12][0, 0], expco2[2])
         for dat in arrays[-3:]:
             assert dat
 
@@ -773,6 +775,7 @@ def test_co2_update(
     gridlon = sdat.geolon.data * constants.PI / 180.0
     gridlat = sdat.geolat.data * constants.PI / 180.0
     (
+        _,
         _,
         _,
         _,

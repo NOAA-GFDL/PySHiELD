@@ -5,10 +5,7 @@ from pathlib import Path
 import numpy as np
 
 import ndsl.constants as constants
-from ndsl.dsl.gt4py import PARALLEL, acos, computation, cos, interval
-from ndsl.dsl.gt4py import max as gtmax
-from ndsl.dsl.gt4py import min as gtmin
-from ndsl.dsl.gt4py import sin
+from ndsl.dsl.gt4py import FORWARD, acos, computation, cos, interval, sin
 from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
 
@@ -504,7 +501,7 @@ def coszmn(
     """
     from __externals__ import daily_mean, fixed_sollat, nstp, sollat
 
-    with computation(PARALLEL), interval(0, 1):
+    with computation(FORWARD), interval(0, 1):
         sinlat = sin(xlat)
         coslat = cos(xlat)
         daymask = False
@@ -518,7 +515,7 @@ def coszmn(
         istsun = 0
 
         iter = 0
-        while iter > nstp:
+        while iter < nstp:
             cns = solar_angle + (iter - 1.0) * anginc + sollag
             if fixed_sollat:
                 ss = sin(sollat * constants.PI / 180.0) * sindec
@@ -528,12 +525,12 @@ def coszmn(
                 cc = coslat * cosdec
 
             if iter == 0:
-                h = acos(gtmin(gtmax(-ss / cc, -1.0), 1.0))
+                h = acos(min(max(-ss / cc, -1.0), 1.0))
                 coszenm = ss * h / constants.PI + cc * (sin(h) - sin(-h)) / (
                     2 * constants.PI
                 )
             coszn = ss + cc * cos(cns + xlon)
-            coszen = coszen + gtmax(0.0, coszn)
+            coszen = coszen + max(0.0, coszn)
             if coszn > CZLIMT:
                 istsun = istsun + 1
             iter += 1
