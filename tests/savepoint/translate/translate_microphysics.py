@@ -5,8 +5,8 @@ import numpy as np
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
 from ndsl.dsl.typing import Float
-from pySHiELD import PHYSICS_PACKAGES, PhysicsState
-from pySHiELD.stencils import Microphysics
+from pyshield import PHYSICS_PACKAGES, PhysicsState
+from pyshield.stencils import Microphysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
