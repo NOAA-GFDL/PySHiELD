@@ -193,10 +193,10 @@ def sol_init(
     sol_const_data = {}
     if isolar == 0:
         solc0 = CON_SOLR_OLD
-        ndsl_log.info(f" - Using old fixed solar constant ={solc0}")
+        ndsl_log.info(f" - Using old fixed solar constant = {solc0}")
     elif isolar == 10:
         solc0 = CON_SOLR
-        ndsl_log.info(f" - Using new fixed solar constant ={solc0}")
+        ndsl_log.info(f" - Using new fixed solar constant = {solc0}")
     elif isolar == 2:  # noaa ann-mean tsi in tim scale
         ndsl_log.info(
             " - Using NOAA annual mean TSI table in TIM scale "

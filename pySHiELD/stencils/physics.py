@@ -11,6 +11,7 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, log10, sin
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
+from ndsl.logging import ndsl_log
 from pySHiELD._config import PHYSICS_PACKAGES, PhysicsConfig
 from pySHiELD.physics_state import PhysicsState, SurfaceState
 from pySHiELD.radiation.rte_rrtmgp import (
@@ -82,7 +83,7 @@ def copy_to_radiation(
     rad_qo3mr: FloatField,
     rad_qcld: FloatField,
 ):
-    with computation(PARALLEL):
+    with computation(FORWARD):
         with interval(0, 1):
             rad_tsfc = tsfc
             rad_prsi = prsi
@@ -442,6 +443,7 @@ class Physics:
                 raise NotImplementedError(
                     f"{scheme} is not an implemented physics parameterization"
                 )
+            ndsl_log.info(f"{scheme} enabled")
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,
@@ -504,7 +506,7 @@ class Physics:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
-        if "RTE-RRTMGP" in schemes:
+        if "RTE_RRTMGP" in schemes:
             self._rterrtmgp = True
             sigma = calc_sigma(grid_data.ak.data, grid_data.bk.data)
             self._copy_to_radiation = stencil_factory.from_origin_domain(
@@ -618,10 +620,12 @@ class Physics:
                 radiation_state.qo3mr,
                 radiation_state.qcld,
             )
+            ndsl_log.info("Entering radiation")
             self._radiation.step_radiation(radiation_state, sfc_state, date)
 
         # Do physics schemes here:
         if self._gfs_microphysics:
+            ndsl_log.info("calling GFS microphysics")
             self._prepare_microphysics(
                 physics_state.dz,
                 physics_state.phii,

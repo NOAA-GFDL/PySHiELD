@@ -11,12 +11,13 @@ from ndsl.namelist import Namelist, NamelistDefaults
 DEFAULT_INT = 0
 DEFAULT_FLOAT = 0.0
 DEFAULT_BOOL = False
-DEFAULT_SCHEMES = ["GFS_microphysics"]
+DEFAULT_SCHEMES = ["GFS_microphysics", "RTE_RRTMGP"]
 
 
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
+    RTE_RRTMGP = "RTE_RRTMGP"
 
 
 @dataclasses.dataclass

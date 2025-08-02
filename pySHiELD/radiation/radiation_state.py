@@ -319,10 +319,10 @@ class RadiationState:
                             newshape = (-1, nz)
                             dims.insert(0, "column")
                         elif ndims == 2:  # x-y array:
-                            newshape = (-1)  # noqa
+                            newshape = (-1,)  # noqa
                             dims.insert(0, "column")
                         elif ndims == 1:  # z-array
-                            newshape == (nz)
+                            newshape == (nz,)
                         else:
                             raise NotImplementedError(
                                 (

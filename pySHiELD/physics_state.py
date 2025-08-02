@@ -339,7 +339,7 @@ class PhysicsState:
                     _field.metadata["dims"],
                     _field.metadata["units"],
                     dtype=Float,
-                ).data
+                )
         return cls(
             **initial_arrays,
             quantity_factory=quantity_factory,
