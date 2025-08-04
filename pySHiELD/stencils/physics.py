@@ -24,9 +24,17 @@ from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
 from pySHiELD.stencils.microphysics import Microphysics
 
 
-def calc_sigma(ak: np.ndarray, bk: np.ndarray):
-    return (ak + bk * physcons.P_REF - ak[-1]) / (physcons.P_REF - ak[-1])
+def calc_sigma(ak: np.ndarray, bk: np.ndarray, k_toa: int):
+    return (ak + bk * physcons.P_REF - ak[k_toa]) / (physcons.P_REF - ak[k_toa])
 
+
+def flip_field_k(
+    in_field: FloatField,
+    out_field: FloatField,
+    k_flip: FloatField,
+):
+    with computation(PARALLEL), interval(...):
+        out_field = in_field[k_flip]
 
 def set_sst(tsea, gridlat):
     from __externals__ import tmax
@@ -44,7 +52,7 @@ def calc_p_lay_hydro(
     from level (interface) pressure
     """
     with computation(PARALLEL), interval(0, -1):
-        p_layer = (p_level - p_level[0, 0, -1]) / log10(p_level / p_level[0, 0, -1])
+        p_layer = (p_level[0, 0, 1] - p_level) / log10(p_level[0, 0, 1] / p_level)
 
 
 def calc_p_lay_nonhydro(
@@ -82,27 +90,29 @@ def copy_to_radiation(
     rad_qice: FloatField,
     rad_qo3mr: FloatField,
     rad_qcld: FloatField,
+    layer_flip: FloatField,
+    level_flip: FloatField,
 ):
     with computation(FORWARD):
         with interval(0, 1):
             rad_tsfc = tsfc
-            rad_prsi = prsi
-            rad_prsl = prsl
-            rad_tlyr = pt
-            rad_qvapor = qvapor
-            rad_qliquid = qliquid
-            rad_qice = qice
-            rad_qo3mr = qo3mr
-            rad_qcld = qcld
+            rad_prsi = prsi[level_flip]
+            rad_prsl = prsl[layer_flip]
+            rad_tlyr = pt[layer_flip]
+            rad_qvapor = qvapor[layer_flip]
+            rad_qliquid = qliquid[layer_flip]
+            rad_qice = qice[layer_flip]
+            rad_qo3mr = qo3mr[layer_flip]
+            rad_qcld = qcld[layer_flip]
         with interval(1, None):
-            rad_prsi = prsi
-            rad_prsl = prsl
-            rad_tlyr = pt
-            rad_qvapor = qvapor
-            rad_qliquid = qliquid
-            rad_qice = qice
-            rad_qo3mr = qo3mr
-            rad_qcld = qcld
+            rad_prsi = prsi[level_flip]
+            rad_prsl = prsl[layer_flip]
+            rad_tlyr = pt[layer_flip]
+            rad_qvapor = qvapor[layer_flip]
+            rad_qliquid = qliquid[layer_flip]
+            rad_qice = qice[layer_flip]
+            rad_qo3mr = qo3mr[layer_flip]
+            rad_qcld = qcld[layer_flip]
 
 
 def interpolate_radiation(
@@ -153,6 +163,7 @@ def interpolate_radiation(
     """
         fits radiative fluxes and heating rates from a coarse radiation
         calc time interval into model's more frequent time steps.
+        Assumes k=0 is the surface
         Fortran name is dcyc2t3
         !  ====================  defination of variables  ====================  !
     !                                                                       !
@@ -436,6 +447,7 @@ class Physics:
         namelist: PhysicsConfig,
         rad_config: RadiationConfig,
         pre_radiation=False,
+        hydro_delp=False,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -451,6 +463,8 @@ class Physics:
         )
 
         grid_indexing = stencil_factory.grid_indexing
+        npz = grid_indexing.domain[2]
+        nz = npz - 1
         self._setup_statein()
         self._ptop = grid_data.ptop
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
@@ -462,6 +476,7 @@ class Physics:
         self._nsteps = 0
         self._nsswr = namelist.nsswr
         self._nslwr = namelist.nslwr
+        self._hydro_delp = hydro_delp
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -469,6 +484,20 @@ class Physics:
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
+
+        self._level_flip = make_quantity()
+        self._layer_flip = make_quantity()
+        for k in range(npz):
+            self._level_flip.data[:, :, k] = npz - 1 - 2 * k
+            if k < nz:
+                self._layer_flip.data[:, :, k] = nz - 1 - 2 * k
+
+        if self._hydro_delp:
+            self._calc_p_lay_hydro = stencil_factory.from_origin_domain(
+                func=calc_p_lay_hydro,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
         if self._prescribe_sst:
             self._set_sst = stencil_factory.from_origin_domain(
                 func=set_sst,
@@ -579,6 +608,10 @@ class Physics:
             physics_state.pt,
             self._dm3d,
         )
+
+        if self._hydro_delp:
+            self._calc_p_lay_hydro(physics_state.prsi, physics_state.delp)
+
         self._get_prs_fv3(
             physics_state.phii,
             physics_state.prsi,
@@ -619,6 +652,8 @@ class Physics:
                 radiation_state.qice,
                 radiation_state.qo3mr,
                 radiation_state.qcld,
+                self._layer_flip,
+                self._level_flip,
             )
             ndsl_log.info("Entering radiation")
             self._radiation.step_radiation(radiation_state, sfc_state, date)
