@@ -6,13 +6,6 @@ import numpy as np
 from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
 from pyrte_rrtmgp.config import DEFAULT_DIM_MAPPING
 from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
-
-# from pyrte_rrtmgp.examples import (
-#     compute_RCE_clouds,
-#     compute_RCE_profiles,
-#     ALLSKY_EXAMPLES,
-#     load_example_file,
-# )
 from pyrte_rrtmgp.input_mapping import AtmosphericMapping
 from pyrte_rrtmgp.rte_solver import rte_solve
 
@@ -28,13 +21,6 @@ from .rad_clouds import cld_init, progcld4, progcld5
 from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .radiation_state import RadiationState
-
-
-# import pyrte_rrtmgp as rad
-
-
-
-
 
 
 GRAV = 9.80665
@@ -582,7 +568,8 @@ class RTE_RRTMGPDriver:
 
         Args:
             state (RadiationState): input state containing atmospheric information
-            sfc_state (SurfaceState): contains surface properties such as surface type, snow cover, etc.
+            sfc_state (SurfaceState): contains surface properties such as
+                surface type, snow cover, etc.
             date (datetime.datetime): datetime for radiation calculations
 
         Returns:
@@ -612,6 +599,12 @@ class RTE_RRTMGPDriver:
         sw_optics["surface_albedo"] = radx["albedo"]
         sw_optics["mu0"] = radx["mu0"]
         clr_fluxes_sw = rte_solve(sw_optics, add_to_input=False)
+        state.fswd_clr.view[:] = clr_fluxes_sw.sw_flux_down.data.reshape(
+            state.fswd_clr.view[:].shape
+        )
+        state.fswu_clr.view[:] = clr_fluxes_sw.sw_flux_up.data.reshape(
+            state.fswu_clr.view[:].shape
+        )
 
         sw_cloud_optical_props = self._cloud_optics_sw.compute_cloud_optics(
             radx,
@@ -621,6 +614,10 @@ class RTE_RRTMGPDriver:
         )
         sw_cloud_optical_props.add_to(sw_optics)
         fluxes_sw = rte_solve(sw_optics, add_to_input=False)
+        state.fswd.view[:] = fluxes_sw.sw_flux_down.data.reshape(
+            state.fswd.view[:].shape
+        )
+        state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(state.fswu.view[:].shape)
 
         # And do LW fluxes
         lw_optics = self._gas_optics_lw.compute_gas_optics(
@@ -632,6 +629,12 @@ class RTE_RRTMGPDriver:
         )
         lw_optics["surface_emissivity"] = radx["sfc_emis"]
         clr_fluxes_lw = rte_solve(lw_optics, add_to_input=False)
+        state.flwd_clr.view[:] = clr_fluxes_lw.lw_flux_down.data.reshape(
+            state.flwd_clr.view[:].shape
+        )
+        state.flwu_clr.view[:] = clr_fluxes_lw.lw_flux_up.data.reshape(
+            state.flwu_clr.view[:].shape
+        )
         lw_cloud_optical_props = self._cloud_optics_lw.compute_cloud_optics(
             radx,
             problem_type=OpticsProblemTypes.ABSORPTION,
@@ -645,10 +648,7 @@ class RTE_RRTMGPDriver:
             state.flwd.view[:].shape
         )
         state.flwu.view[:] = fluxes_lw.lw_flux_up.data.reshape(state.flwu.view[:].shape)
-        state.fswd.view[:] = fluxes_sw.sw_flux_down.data.reshape(
-            state.fswd.view[:].shape
-        )
-        state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(state.fswu.view[:].shape)
+
         self._calc_heating(
             state.fswu,
             state.fswd,

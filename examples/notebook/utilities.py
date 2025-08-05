@@ -43,22 +43,25 @@ def states_from_fortran_restarts(
     radstate = RadiationState.init_zeros(quantity_factory, np)
     sstate = SurfaceState.init_zeros(quantity_factory)
 
-    state.delp.field[:] = dycore_data.delp.data[0, ::-1, :, :].transpose(2, 1, 0)
-    for k in range(state.prsi.field.shape[2] - 1, -1, -1):
-        if state.prsi.field.shape[2] - 1:
-            state.prsi.field[:, :, k] = ak.data[0]
+    buff_3d = np.zeros_like(state.prsi.field)
+    for k in range(buff_3d.shape[2]):
+        if k == 0:
+            buff_3d[:, :, k] = ak.data[0]
         else:
-            state.prsi.field[:, :, k] = (
-                state.prsi.field[:, :, k - 1] + state.delp.field[:, :, k]
+            buff_3d[:, :, k] = (
+                buff_3d[:, :, k - 1] + dycore_data.delp.data[0, k - 1, :, :]
             )
+    state.prsi.field[:] = buff_3d[:, :, :]
 
-    state.pt.field[:] = dycore_data.T.data[0, ::-1, :, :].transpose(2, 1, 0)
+    state.delp.field[:] = dycore_data.delp.data[0, :, :, :].transpose(2, 1, 0)
+    state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
     state.tsfc.field[:] = phys_data.ts_clim_iano.data[0, :, :].transpose()
-    state.qvapor.field[:] = tracer_data.sphum.data[0, ::-1, :, :].transpose(2, 1, 0)
-    state.qliquid.view[:] = tracer_data.liq_wat.data[0, ::-1, :, :].transpose(2, 1, 0)
-    state.qice.view[:] = tracer_data.ice_wat.data[0, ::-1, :, :].transpose(2, 1, 0)
-    state.qcld.view[:] = tracer_data.cld_amt.data[0, ::-1, :, :].transpose(2, 1, 0)
-    state.qo3mr.view[:] = tracer_data.o3mr.data[0, ::-1, :, :].transpose(2, 1, 0)
+    state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
+    state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
+    state.qice.view[:] = tracer_data.ice_wat.data[0, :, :, :].transpose(2, 1, 0)
+    state.qcld.view[:] = tracer_data.cld_amt.data[0, :, :, :].transpose(2, 1, 0)
+    state.qo3mr.view[:] = tracer_data.o3mr.data[0, :, :, :].transpose(2, 1, 0)
+    state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
     return state, radstate, sstate
 
 

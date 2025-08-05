@@ -192,7 +192,7 @@ def set_albedo(
                 hrgh = min(1.0, max(0.20, 1.0577 - 1.1538e-3 * hprif[i, j]))
                 fsno0 = asnow / (argh + asnow) * hrgh
                 if islmsk == 0 and (
-                    tsknf[i, j] > physcons.TICE or ldisable_radiation_quasi_sea_ice
+                    (tsknf[i, j] > physcons.TICE) or ldisable_radiation_quasi_sea_ice
                 ):
                     fsno0 = 0.0
 
@@ -350,7 +350,8 @@ def set_albedo(
                     asnvb = snoalb[i, j]
                     asnnb = snoalb[i, j]
 
-                # Calculate direct sea surface albedo, use fanglin's zenith angle treatment
+                # Calculate direct sea surface albedo,
+                # use fanglin's zenith angle treatment
 
                 if coszf[i, j] > 0.0001:
                     # rfcs = 1.89 - 3.34*coszf[i, j] + 4.13*coszf[i, j]*coszf[i, j] - (
@@ -389,7 +390,8 @@ def set_albedo(
     else:  # ialbflg == 2
         for i in range(snowf.shape[0]):
             for j in range(snowf.shape[1]):
-                # Calculate snow cover input directly for land model, no conversion needed
+                # Calculate snow cover input directly for land model,
+                # no conversion needed
                 fsno0 = sncovr[i, j]
 
                 if islmsk[i, j] == 0 and (
@@ -450,7 +452,8 @@ def set_albedo(
                         asnvb = asnvd
                         asnnb = asnnd
 
-                # Calculate direct sea surface albedo, use fanglin's zenith angle treatment
+                # Calculate direct sea surface albedo,
+                # use fanglin's zenith angle treatment
                 if coszf[i, j] > 0.0001:
                     # rfcs = 1.89 - 3.34*coszf[i, j] + (
                     #     4.13*coszf[i, j]*coszf[i, j]

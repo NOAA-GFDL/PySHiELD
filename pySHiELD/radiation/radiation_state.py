@@ -188,6 +188,38 @@ class RadiationState:
             "intent": "out",
         }
     )
+    flwu_clr: Quantity = field(
+        metadata={
+            "name": "clearsky_longwave_flux_up",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    flwd_clr: Quantity = field(
+        metadata={
+            "name": "clearsky_longwave_flux_down",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    fswu_clr: Quantity = field(
+        metadata={
+            "name": "clearsky_shortwave_flux_up",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    fswd_clr: Quantity = field(
+        metadata={
+            "name": "clearsky_shortwave_flux_down",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
     hrtlw: Quantity = field(
         metadata={
             "name": "longwave_heating_rate",
