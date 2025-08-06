@@ -51,8 +51,6 @@ def progcld4(
     tlyr: FloatField,
     tvly: FloatField,
     clw: FloatField,
-    cnvw: FloatField,
-    cnvc: FloatField,
     land_mask: IntFieldIJ,
     cldtot: FloatField,
     cwp: FloatField,
@@ -70,8 +68,6 @@ def progcld4(
         tlyr: layer-mean temperature,
         tvly: layer-mean virtual temperature,
         clw: layer cloud condensate amount,
-        cnvw: layer convective cloud condensate,
-        cnvc: layer convective cloud cover,
         land_mask: sea/land/ice mask array (sea:0,land:1,sea-ice:2)
 
     Outputs:
@@ -114,8 +110,6 @@ def progcld4(
     !   qstl  (IX,NLAY) : layer saturate humidity in gm/gm                  !
     !   rhly  (IX,NLAY) : layer relative humidity (=qlyr/qstl)              !
     !   clw   (IX,NLAY) : layer cloud condensate amount                     !
-    !   cnvw  (ix,nlay) : layer convective cloud condensate                 !
-    !   cnvc  (ix,nlay) : layer convective cloud cover                      !
     !   xlat  (IX)      : grid latitude in radians, default to pi/2 -> -pi/2!
     !                     range, otherwise see in-line comment              !
     !   xlon  (IX)      : grid longitude in radians  (not used)             !
