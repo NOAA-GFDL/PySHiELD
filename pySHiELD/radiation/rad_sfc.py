@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl.dsl.typing import Float, Int
 from ndsl.logging import ndsl_log
 

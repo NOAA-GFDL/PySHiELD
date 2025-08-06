@@ -5,7 +5,7 @@ import pytest
 import xarray
 
 from ndsl import constants as constants
-from pySHiELD.radiation.rad_sfc import (
+from pyshield.radiation.rad_sfc import (
     CONST_ALBEDO,
     IMXEMS,
     JMXEMS,

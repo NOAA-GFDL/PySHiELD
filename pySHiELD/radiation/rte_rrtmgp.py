@@ -14,7 +14,7 @@ from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, log
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ, Int
-from pySHiELD.physics_state import SurfaceState
+from pyshield.physics_state import SurfaceState
 
 from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import cld_init, progcld4, progcld5
@@ -518,7 +518,11 @@ class RTE_RRTMGPDriver:
             update_co2 = True
             self.saved_imonth = sdate.month
 
-        self.co2_glb, self._co2_arr.view[:], self._co2_cyc.view[:], = co2_update(
+        (
+            self.co2_glb,
+            self._co2_arr.view[:],
+            self._co2_cyc.view[:],
+        ) = co2_update(
             sdate.year,
             sdate.month,
             self.ico2flg,

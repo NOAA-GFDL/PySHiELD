@@ -5,7 +5,7 @@ import pytest
 import xarray as xr
 
 from ndsl import constants as constants
-from pySHiELD.radiation.rad_gases import (
+from pyshield.radiation.rad_gases import (
     CH4VMR_DEF,
     CL4VMR_DEF,
     CO2VMR_DEF,
