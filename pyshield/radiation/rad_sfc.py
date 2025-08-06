@@ -8,7 +8,10 @@ from ndsl.dsl.typing import Float, Int
 from ndsl.logging import ndsl_log
 
 
-CONST_ALBEDO = 0.98
+LAND_ALBEDO = 0.25
+OCEAN_ALBEDO = 0.06
+ICE_ALBEDO = 0.65
+CONST_EMS = 0.97
 EMS_REF = [0.97, 0.95, 0.94, 0.90, 0.93, 0.96, 0.96, 0.99]
 IMXEMS = 360
 JMXEMS = 180
@@ -62,9 +65,14 @@ def sfc_init(
     elif ialbflg == 2:
         ndsl_log.info("Using Albedo From Land Model")
     elif ialbflg == -1:
-        ndsl_log.info(f"Using Constant Albedo {CONST_ALBEDO}")
+        ndsl_log.info(f"Using Constant Albedo {OCEAN_ALBEDO}")
+    elif ialbflg == -2:
+        ndsl_log.info(
+            "Using Prescribed Ocean, Land, Ice Albedos: "
+            f"{OCEAN_ALBEDO, LAND_ALBEDO, ICE_ALBEDO}"
+        )
     else:
-        raise ValueError(f"ialbflg must be -1, 0, 1, or 2, got {ialbflg}")
+        raise ValueError(f"ialbflg must be -2, -1, 0, 1, or 2, got {ialbflg}")
     # physparam::ldisable_radiation_quasi_sea_ice
     # - = .false.: use a sea-ice-like albedo and emissivity for below
     #     freezing ocean grid cells.
@@ -83,7 +91,7 @@ def sfc_init(
     ext_sfcemis_data = None
     iemslw = iemsflg % 10  # emissivity control
     if iemslw == 0:
-        ndsl_log.info("Using Fixed Surface Emissivity = 1.0 for lw")
+        ndsl_log.info(f"Using Fixed Surface Emissivity {CONST_EMS} for lw")
     elif iemslw == 1:
         ndsl_log.info(
             f"Using Varying Surface Emissivity for lw from {sfcemis_datafile}"
@@ -180,8 +188,15 @@ def set_albedo(
     !                                                                       !
     !  ====================    end of description    =====================  !
     """
-    if ialbflg == -1:
-        sfcalb[:] = 0.98
+    if ialbflg == -2:
+        alb = np.zeros_like(islmsk)
+        alb[islmsk == 0] = Float(OCEAN_ALBEDO)  # ocean
+        alb[islmsk == 1] = Float(LAND_ALBEDO)  # land
+        alb[islmsk == 2] = Float(ICE_ALBEDO)  # sea-ice
+        for k in range(sfcalb.shape[2]):
+            sfcalb[:, :, k] = alb
+    elif ialbflg == -1:
+        sfcalb[:] = OCEAN_ALBEDO  # Assuming an aquaplanet
     elif ialbflg == 0:  # use climatological albedo scheme
         # Modified snow albedo scheme - units convert to m (originally
         # snowf in mm; zorlf in cm)
@@ -561,7 +576,7 @@ def set_sfcemis(
     !  ====================    end of description    =====================  !
     """
     if iemslw == 0:
-        sfcemis[:] = Float(1.0)
+        sfcemis[:] = Float(CONST_EMS)
         return
 
     sfcemis[islmsk == 0] = Float(EMS_REF[0])  # sea

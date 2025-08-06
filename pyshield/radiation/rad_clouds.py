@@ -18,7 +18,6 @@ PTOP_DIFF = [PTOP_C[1][jj] - PTOP_C[0][jj] for jj in range(len(PTOP_C[0]))]
 GFAC = 1.0e5 / constants.GRAV
 CLIMIT = 0.001
 CLIMIT2 = 0.05
-CLIMIT3 = 1.0e-4
 OVCST = 1.0 - 1.0e-8
 GORD = constants.GRAV / constants.RDGAS
 EPSQ = 1.0e-12
@@ -151,7 +150,6 @@ def progcld4(
 
     with computation(PARALLEL), interval(0, -1):
         # Initialize everything
-        cldtot = 0.0
         cwp = 0.0
         rew = RE_LIQ
         cip = 0.0
@@ -195,13 +193,13 @@ def progcld4(
         # Effective liquid cloud droplet radius over land
         if land_mask == 1:
             rew = 5.0 + 5.0 * tem_2d
-        if cldtot < CLIMIT3:
+        if cldtot < CLIMIT:
             cwp = 0.0
             cip = 0.0
             crp = 0.0
             csp = 0.0
         if lcnorm:
-            if cldtot >= CLIMIT3:
+            if cldtot >= CLIMIT:
                 tem1 = 1.0 / max(CLIMIT2, cldtot)
                 cwp = cwp * tem1
                 cip = cip * tem1
