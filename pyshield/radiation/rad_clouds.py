@@ -18,6 +18,7 @@ PTOP_DIFF = [PTOP_C[1][jj] - PTOP_C[0][jj] for jj in range(len(PTOP_C[0]))]
 GFAC = 1.0e5 / constants.GRAV
 CLIMIT = 0.001
 CLIMIT2 = 0.05
+CLIMIT3 = 1.0e-4
 OVCST = 1.0 - 1.0e-8
 GORD = constants.GRAV / constants.RDGAS
 EPSQ = 1.0e-12
@@ -200,13 +201,13 @@ def progcld4(
         # Effective liquid cloud droplet radius over land
         if land_mask == 1:
             rew = 5.0 + 5.0 * tem_2d
-        if cldtot < CLIMIT:
+        if cldtot < CLIMIT3:
             cwp = 0.0
             cip = 0.0
             crp = 0.0
             csp = 0.0
         if lcnorm:
-            if cldtot >= CLIMIT:
+            if cldtot >= CLIMIT3:
                 tem1 = 1.0 / max(CLIMIT2, cldtot)
                 cwp = cwp * tem1
                 cip = cip * tem1
@@ -218,13 +219,13 @@ def progcld4(
         if cip > 0.0:
             tem3 = GORD * cip * plyr / (delp * tvly)
             if tem2 < -50.0:
-                rei = (1250.0 / 9.917) * tem3 ** 0.109
+                rei = (1250.0 / 9.917) * tem3**0.109
             elif tem2 < -40.0:
-                rei = (1250.0 / 9.337) * tem3 ** 0.08
+                rei = (1250.0 / 9.337) * tem3**0.08
             elif tem2 < -30.0:
-                rei = (1250.0 / 9.208) * tem3 ** 0.055
+                rei = (1250.0 / 9.208) * tem3**0.055
             else:
-                rei = (1250.0 / 9.387) * tem3 ** 0.031
+                rei = (1250.0 / 9.387) * tem3**0.031
             # rei = max(20.0, min(rei, 300.0))
             # rei = max(10.0, min(rei, 100.0))
             rei = max(10.0, min(rei, 150.0))
@@ -410,13 +411,13 @@ def progcld5(
         if cip > 0.0:
             tem3 = GORD * cip * plyr / (delp * tvly)
             if tem2 < -50.0:
-                rei = (1250.0 / 9.917) * tem3 ** 0.109
+                rei = (1250.0 / 9.917) * tem3**0.109
             elif tem2 < -40.0:
-                rei = (1250.0 / 9.337) * tem3 ** 0.08
+                rei = (1250.0 / 9.337) * tem3**0.08
             elif tem2 < -30.0:
-                rei = (1250.0 / 9.208) * tem3 ** 0.055
+                rei = (1250.0 / 9.208) * tem3**0.055
             else:
-                rei = (1250.0 / 9.387) * tem3 ** 0.031
+                rei = (1250.0 / 9.387) * tem3**0.031
             # rei = max(20.0, min(rei, 300.0))
             # rei = max(10.0, min(rei, 100.0))
             rei = max(10.0, min(rei, 150.0))

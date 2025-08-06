@@ -309,7 +309,8 @@ class RTE_RRTMGPDriver:
             domain=grid_indexing.domain_compute(),
         )
         if config.icmphys == 4:
-            self._progcld = stencil_factory.from_origin_domain(
+            self._cldscheme = 4
+            self._progcld4 = stencil_factory.from_origin_domain(
                 func=progcld4,
                 externals={
                     "ivflip": config.ivflip,
@@ -320,7 +321,8 @@ class RTE_RRTMGPDriver:
                 domain=grid_indexing.domain_compute(),
             )
         elif config.icmphys == 5:
-            self._progcld = stencil_factory.from_origin_domain(
+            self._cldscheme = 5
+            self._progcld5 = stencil_factory.from_origin_domain(
                 func=progcld5,
                 externals={
                     "gfs_cloud_overlap": config.gfs_cloud_overlap,
@@ -426,21 +428,36 @@ class RTE_RRTMGPDriver:
                 self._co2_arr,
             )
 
-        self._progcld(
-            state.prsl,
-            state.prsi,
-            state.tlyr,
-            self._tvly,
-            state.qliquid,
-            self._cnvw,
-            self._cnvc,
-            sfc_state.islmsk,
-            state.qcld,
-            state.clwp,
-            state.clwr,
-            state.cip,
-            state.cir,
-        )
+        if self._cldscheme == 4:
+            self._progcld4(
+                state.prsl,
+                state.prsi,
+                state.tlyr,
+                self._tvly,
+                state.qliquid,
+                sfc_state.islmsk,
+                state.qcld,
+                state.clwp,
+                state.clwr,
+                state.cip,
+                state.cir,
+            )
+        elif self._cldscheme == 5:
+            self._progcld5(
+                state.prsl,
+                state.prsi,
+                state.tlyr,
+                self._tvly,
+                state.qliquid,
+                self._cnvw,
+                self._cnvc,
+                sfc_state.islmsk,
+                state.qcld,
+                state.clwp,
+                state.clwr,
+                state.cip,
+                state.cir,
+            )
 
         set_albedo(
             self.ialbflg,

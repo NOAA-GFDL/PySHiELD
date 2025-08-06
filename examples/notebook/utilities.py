@@ -23,8 +23,8 @@ from ndsl.grid import (
     MetricTerms,
     VerticalGridData,
 )
-from pySHiELD.physics_state import PHYSICS_PACKAGES, PhysicsState, SurfaceState
-from pySHiELD.radiation import RadiationState
+from pyshield.physics_state import PHYSICS_PACKAGES, PhysicsState, SurfaceState
+from pyshield.radiation import RadiationState
 
 
 def states_from_fortran_restarts(
