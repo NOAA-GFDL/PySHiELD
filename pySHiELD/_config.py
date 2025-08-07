@@ -1765,7 +1765,7 @@ class PhysicsConfig:
             ss_fac=namelist.ss_fac,
             gs_fac=namelist.gs_fac,
             rh_fac_evap=namelist.rh_fac_evap,
-            rh_fac_cond=namelist.rh_fac_cond
+            rh_fac_cond=namelist.rh_fac_cond,
             sed_fac=namelist.sed_fac,
             rh_inc=namelist.rh_inc,
             rh_inr=namelist.rh_inr,
