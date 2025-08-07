@@ -12,7 +12,7 @@ from gt4py.cartesian.gtscript import (
 import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.dsl.typing import FloatField, FloatFieldIJ, Bool
 from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import (
     freeze_cloud_water,
     melt_cloud_ice,
@@ -21,6 +21,8 @@ from pySHiELD.stencils.SHiELD_microphysics.subgrid_z_proc import (
     cloud_condensation_evaporation,
     complete_freeze,
     deposit_and_sublimate_ice,
+    deposit_and_sublimate_graupel,
+    deposit_and_sublimate_snow,
     freeze_bigg,
     wegener_bergeron_findeisen,
 )
@@ -223,16 +225,18 @@ def fast_microphysics(
     temp: FloatField,
     delp: FloatField,
     density: FloatField,
+    denfac: FloatField,
     cloud_condensation_nuclei: FloatField,
     cloud_ice_nuclei: FloatField,
     condensation: FloatFieldIJ,
     deposition: FloatFieldIJ,
     evaporation: FloatFieldIJ,
     sublimation: FloatFieldIJ,
+    last_step: Bool,
 ):
-    from __externals__ import convt, do_warm_rain_mp, do_wbf
+    from __externals__ import convt, do_warm_rain_mp, do_wbf, fast_fr_mlt, fast_dep_sub, delay_cond_evap, nconds
 
-    with computation(PARALLEL), interval(...):
+    with computation(FORWARD), interval(...):
         (
             q_liq,
             q_solid,
@@ -246,7 +250,7 @@ def fast_microphysics(
             qvapor, qliquid, qrain, qice, qsnow, qgraupel, temp
         )
 
-        if __INLINED(not do_warm_rain_mp):
+        if __INLINED((not do_warm_rain_mp) and fast_fr_mlt):
             cond = 0.0
             dep = 0.0
             reevap = 0.0
@@ -310,36 +314,45 @@ def fast_microphysics(
                 tcp3,
             )
 
-        (
-            qvapor,
-            qliquid,
-            qrain,
-            qice,
-            qsnow,
-            qgraupel,
-            temp,
-            cvm,
-            lcpk,
-            icpk,
-            tcpk,
-            tcp3,
-            cond,
-            reevap,
-        ) = cloud_condensation_evaporation(
-            qvapor,
-            qliquid,
-            qrain,
-            qice,
-            qsnow,
-            qgraupel,
-            temp,
-            delp,
-            density,
-            te,
-            tcp3,
-        )
+            cond_evap = last_step if delay_cond_evap else True
 
-        if __INLINED(not do_warm_rain_mp):
+            if (cond_evap):
+                n = 1
+                while n <= nconds:
+                    (
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        temp,
+                        cvm,
+                        lcpk,
+                        icpk,
+                        tcpk,
+                        tcp3,
+                        cond,
+                        reevap,
+                    ) = cloud_condensation_evaporation(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        temp,
+                        delp,
+                        density,
+                        te,
+                        tcp3,
+                    )
+                    n += 1
+
+        condensation += cond * convt
+        evaporation += reevap * convt
+
+        if __INLINED((not do_warm_rain_mp) and fast_fr_mlt):
             (
                 qvapor,
                 qliquid,
@@ -491,7 +504,7 @@ def fast_microphysics(
 
         qliquid, qrain = autoconvert_water_to_rain_simple(qliquid, qrain, temp)
 
-        if __INLINED(not do_warm_rain_mp):
+        if __INLINED((not do_warm_rain_mp) and fast_dep_sub):
             (
                 qvapor,
                 qliquid,
@@ -529,14 +542,82 @@ def fast_microphysics(
                 tcp3,
             )
 
-            qice, qsnow = autoconvert_ice_to_snow_simple(qice, qsnow, temp, density)
-
-    with computation(FORWARD), interval(...):
-        if __INLINED(not do_warm_rain_mp):
-            condensation += cond * convt
-            evaporation += reevap * convt
             deposition += dep * convt
             sublimation += sub * convt
+
+            qice, qsnow = autoconvert_ice_to_snow_simple(qice, qsnow, temp, density)
+
+            (
+                qvapor,
+                qliquid,
+                qrain,
+                qice,
+                qsnow,
+                qgraupel,
+                temperature,
+                cvm,
+                lcpk,
+                icpk,
+                tcpk,
+                tcp3,
+                dep,
+                sub,
+            ) = deposit_and_sublimate_snow(
+                qvapor,
+                qliquid,
+                qrain,
+                qice,
+                qsnow,
+                qgraupel,
+                temperature,
+                delp,
+                density,
+                denfac,
+                cvm,
+                te,
+                dep,
+                sub,
+                lcpk,
+                icpk,
+                tcpk,
+                tcp3,
+            )
+
+            (
+                qvapor,
+                qliquid,
+                qrain,
+                qice,
+                qsnow,
+                qgraupel,
+                temperature,
+                cvm,
+                lcpk,
+                icpk,
+                tcpk,
+                tcp3,
+                dep,
+                sub,
+            ) = deposit_and_sublimate_graupel(
+                qvapor,
+                qliquid,
+                qrain,
+                qice,
+                qsnow,
+                qgraupel,
+                temperature,
+                delp,
+                density,
+                denfac,
+                cvm,
+                te,
+                dep,
+                sub,
+                lcpk,
+                icpk,
+                tcpk,
+                tcp3,
+            )
 
 
 class FastMicrophysics:
@@ -607,6 +688,11 @@ class FastMicrophysics:
                 "t_sub": config.t_sub,
                 "is_fac": config.is_fac,
                 "fac_i2s": fac_i2s,
+                "fast_fr_mlt": config.fast_fr_mlt,
+                "fast_dep_sub": config.fast_dep_sub,
+                "delay_cond_evap": config.delay_cond_evap,
+                "nconds": config.nconds,
+                "do_evap_timescale": config.do_evap_timescale,
             },
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
@@ -623,12 +709,14 @@ class FastMicrophysics:
         temp: FloatField,
         delp: FloatField,
         density: FloatField,
+        denfac: FloatField,
         cloud_condensation_nuclei: FloatField,
         cloud_ice_nuclei: FloatField,
         condensation: FloatFieldIJ,
         deposition: FloatFieldIJ,
         evaporation: FloatFieldIJ,
         sublimation: FloatFieldIJ,
+        last_step: Bool,
     ):
         """
         Fast microphysics loop
@@ -660,10 +748,12 @@ class FastMicrophysics:
             temp,
             delp,
             density,
+            denfac,
             cloud_condensation_nuclei,
             cloud_ice_nuclei,
             condensation,
             deposition,
             evaporation,
             sublimation,
+            last_step,
         )

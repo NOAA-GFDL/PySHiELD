@@ -5,7 +5,7 @@ from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, exp, inter
 import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.dsl.typing import FloatField, FloatFieldIJ, Bool
 
 from ..._config import MicroPhysicsConfig
 
@@ -166,8 +166,10 @@ def cloud_condensation_evaporation(
 
     from __externals__ import (
         do_cond_timescale,
+        do_evap_timescale,
         do_mp_table_emulation,
-        rh_fac,
+        rh_fac_evap,
+        rh_fac_cond,
         rhc_cevap,
         tau_l2v,
         tau_v2l,
@@ -188,13 +190,13 @@ def cloud_condensation_evaporation(
     dq = qsw - qvapor
 
     if dq > 0.0:
-        fac = min(1.0, fac_l2v * (rh_fac * dq / qsw))
+        fac = min(1.0, fac_l2v * (rh_fac_evap * dq / qsw)) if do_evap_timescale else 1.0
         sink = min(qliquid, fac * dq / (1 + tcp3 * dqdt))
         if (use_rhc_cevap) and (rh_tem >= rhc_cevap):
             sink = 0.0
         reevaporation += sink * delp
     elif do_cond_timescale:
-        fac = min(1.0, fac_v2l * (rh_fac * (-dq) / qsw))
+        fac = min(1.0, fac_v2l * (rh_fac_cond * (-dq) / qsw)) if do_evap_timescale else 1.0
         sink = -min(qvapor, fac * (-dq) / (1.0 + tcp3 * dqdt))
         condensation -= sink * delp
     else:
@@ -923,7 +925,7 @@ def vertical_subgrid_processes(
     rh_adj: FloatFieldIJ,
 ):
     """"""
-    from __externals__ import do_warm_rain_mp, do_wbf
+    from __externals__ import do_warm_rain_mp, do_wbf, delay_cond_evap, nconds
 
     with computation(FORWARD):
         with interval(-1, None):
@@ -981,36 +983,42 @@ def vertical_subgrid_processes(
                     sub,
                 )
 
-            (
-                qvapor,
-                qliquid,
-                qrain,
-                qice,
-                qsnow,
-                qgraupel,
-                temperature,
-                cvm,
-                lcpk,
-                icpk,
-                tcpk,
-                tcp3,
-                cond,
-                reevap,
-            ) = cloud_condensation_evaporation(
-                qvapor,
-                qliquid,
-                qrain,
-                qice,
-                qsnow,
-                qgraupel,
-                temperature,
-                delp,
-                density,
-                te,
-                tcp3,
-                cond,
-                reevap,
-            )
+            cond_evap = last_step if delay_cond_evap else True
+
+            if cond_evap:
+                n=1
+                while n <= nconds:
+                    (
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        temperature,
+                        cvm,
+                        lcpk,
+                        icpk,
+                        tcpk,
+                        tcp3,
+                        cond,
+                        reevap,
+                    ) = cloud_condensation_evaporation(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        temperature,
+                        delp,
+                        density,
+                        te,
+                        tcp3,
+                        cond,
+                        reevap,
+                    )
+                    n += 1
 
             if __INLINED(not do_warm_rain_mp):
                 (
@@ -1262,7 +1270,8 @@ class VerticalSubgridProcesses:
                 "t_min": config.t_min,
                 "t_sub": config.t_sub,
                 "do_cond_timescale": config.do_cond_timescale,
-                "rh_fac": config.rh_fac,
+                "rh_fac_evap": config.rh_fac_evap,
+                "rh_fac_cond": config.rh_fac_cond,
                 "rhc_cevap": config.rhc_cevap,
                 "tau_l2v": config.tau_l2v,
                 "tau_v2l": config.tau_v2l,
@@ -1301,6 +1310,9 @@ class VerticalSubgridProcesses:
                 "do_warm_rain_mp": config.do_warm_rain_mp,
                 "do_wbf": config.do_wbf,
                 "do_mp_table_emulation": config.do_mp_table_emulation,
+                "delay_cond_evap": config.delay_cond_evap,
+                "nconds": config.nconds,
+                "do_evap_timescale": config.do_evap_timescale,
             },
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
@@ -1325,6 +1337,7 @@ class VerticalSubgridProcesses:
         reevap: FloatFieldIJ,
         sub: FloatFieldIJ,
         rh_adj: FloatFieldIJ,
+        last_step: Bool,
     ):
         """
         Temperature sentive high vertical resolution processes

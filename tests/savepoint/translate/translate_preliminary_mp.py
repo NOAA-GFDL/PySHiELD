@@ -5,7 +5,7 @@ from ndsl.initialization import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
 from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.microphysics_v3 import (
+from pySHiELD.stencils.SHiELD_microphysics.gfdl_cld_mp_driver import (
     calculate_density_factor,
     cloud_nuclei_subgrid_and_relative_humidity,
     convert_specific_to_mass_mixing_ratios_and_calculate_densities,

@@ -8,10 +8,11 @@ import f90nml
 import ndsl.constants as constants
 from ndsl.namelist import Namelist, NamelistDefaults
 from ndsl.utils import MetaEnumStr
+from ndsl.dsl.typing import Float, Int, Bool
 
 
-DEFAULT_INT = 0
-DEFAULT_FLOAT = 0.0
+DEFAULT_INT = Int(0)
+DEFAULT_FLOAT = Float(0.0)
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 
@@ -23,362 +24,375 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 
 @dataclasses.dataclass
 class AdjustNegativeTracerConfig:
-    ntimes: float
-    c1_ice: float
-    c1_liq: float
-    c1_vap: float
-    d1_ice: float
-    d1_vap: float
-    li00: float
-    li20: float
-    lv00: float
-    t_wfr: float
+    ntimes: Float
+    c1_ice: Float
+    c1_liq: Float
+    c1_vap: Float
+    d1_ice: Float
+    d1_vap: Float
+    li00: Float
+    li20: Float
+    lv00: Float
+    t_wfr: Float
 
 
 @dataclasses.dataclass
 class FastMPConfig:
-    do_warm_rain_mp: bool
-    do_wbf: bool
-    c1_vap: float
-    c1_liq: float
-    c1_ice: float
-    lv00: float
-    li00: float
-    li20: float
-    d1_vap: float
-    d1_ice: float
-    t_wfr: float
-    ql_mlt: float
-    qs_mlt: float
-    tau_imlt: float
-    tice_mlt: float
-    do_cond_timescale: bool
-    do_hail: bool
-    rh_fac: float
-    rhc_cevap: float
-    tau_l2v: float
-    tau_v2l: float
-    tau_r2g: float
-    tau_smlt: float
-    tau_gmlt: float
-    tau_l2r: float
-    use_rhc_cevap: bool
-    qi0_crt: float
-    qi0_max: float
-    ql0_max: float
-    tau_wbf: float
-    do_psd_water_num: bool
-    do_psd_ice_num: bool
-    muw: float
-    mui: float
-    mur: float
-    mus: float
-    mug: float
-    muh: float
-    pcaw: float
-    pcbw: float
-    pcai: float
-    pcbi: float
-    prog_ccn: float
-    inflag: int
-    igflag: int
-    qi_lim: float
-    t_sub: float
-    is_fac: float
-    tau_i2s: float
+    do_warm_rain_mp: Bool
+    do_wbf: Bool
+    c1_vap: Float
+    c1_liq: Float
+    c1_ice: Float
+    lv00: Float
+    li00: Float
+    li20: Float
+    d1_vap: Float
+    d1_ice: Float
+    t_wfr: Float
+    ql_mlt: Float
+    qs_mlt: Float
+    tau_imlt: Float
+    tice_mlt: Float
+    do_cond_timescale: Bool
+    do_evap_timescale: Bool
+    do_hail: Bool
+    rh_fac_evap: Float
+    rh_fac_cond: Float
+    rhc_cevap: Float
+    tau_l2v: Float
+    tau_v2l: Float
+    tau_r2g: Float
+    tau_smlt: Float
+    tau_gmlt: Float
+    tau_l2r: Float
+    use_rhc_cevap: Bool
+    qi0_crt: Float
+    qi0_max: Float
+    ql0_max: Float
+    tau_wbf: Float
+    do_psd_water_num: Bool
+    do_psd_ice_num: Bool
+    muw: Float
+    mui: Float
+    mur: Float
+    mus: Float
+    mug: Float
+    muh: Float
+    pcaw: Float
+    pcbw: Float
+    pcai: Float
+    pcbi: Float
+    prog_ccn: Float
+    inflag: Int
+    igflag: Int
+    qi_lim: Float
+    t_sub: Float
+    is_fac: Float
+    tau_i2s: Float
+    fast_fr_mlt: Bool
+    fast_dep_sub: Bool
+    delay_cond_evap: Bool
+    nconds: Int
 
 
 @dataclasses.dataclass
 class MicroPhysicsConfig:
-    dt_full: float
-    dt_split: float = dataclasses.field(init=False)
-    ntimes: int
-    hydrostatic: bool
-    npx: int
-    npy: int
-    npz: int
-    nwat: int
-    do_qa: bool
-    do_inline_mp: bool
-    c_cracw: float
-    c_paut: float
-    c_pracs: float
-    c_psacr: float
-    c_pgacr: float
-    c_pgacs: float
-    c_psacw: float
-    c_psaci: float
-    c_pracw: float
-    c_praci: float
-    c_pgacw: float
-    c_pgaci: float
-    ccn_l: float
-    ccn_o: float
-    const_vg: bool
-    const_vi: bool
-    const_vr: bool
-    const_vw: bool
-    const_vs: bool
-    vw_fac: float
-    vs_fac: float
-    vg_fac: float
-    vi_fac: float
-    vr_fac: float
-    de_ice: bool
-    layout: Tuple[int, int]
+    dt_full: Float
+    dt_split: Float = dataclasses.field(init=False)
+    ntimes: Int
+    nconds: Int
+    hydrostatic: Bool
+    npx: Int
+    npy: Int
+    npz: Int
+    nwat: Int
+    do_qa: Bool
+    do_inline_mp: Bool
+    c_cracw: Float
+    c_paut: Float
+    c_pracs: Float
+    c_psacr: Float
+    c_pgacr: Float
+    c_pgacs: Float
+    c_psacw: Float
+    c_psaci: Float
+    c_pracw: Float
+    c_praci: Float
+    c_pgacw: Float
+    c_pgaci: Float
+    ccn_l: Float
+    ccn_o: Float
+    const_vg: Bool
+    const_vi: Bool
+    const_vr: Bool
+    const_vw: Bool
+    const_vs: Bool
+    vw_fac: Float
+    vs_fac: Float
+    vg_fac: Float
+    vi_fac: Float
+    vr_fac: Float
+    de_ice: Bool
+    layout: Tuple[Int, Int]
     # gfdl_cloud_microphys.F90
-    tau_r2g: float
-    tau_smlt: float
-    tau_gmlt: float
-    tau_g2r: float
-    tau_imlt: float
-    tau_i2s: float
-    tau_l2r: float
-    tau_g2v: float
-    tau_v2g: float
-    ql_mlt: float
-    ql0_max: float
-    qs_mlt: float
-    t_sub: float
-    t_min: float
-    qi_gen: float
-    qi_lim: float
-    qi0_max: float
-    rad_snow: bool
-    rad_graupel: bool
-    rad_rain: bool
-    do_cld_adj: bool
-    dw_ocean: float
-    dw_land: float
-    icloud_f: int
-    cld_min: float
-    tau_l2v: float
-    tau_v2l: float
-    tau_revp: float
-    tau_wbf: float
-    c2l_ord: int
-    do_sedi_heat: bool
-    do_sedi_melt: bool
-    do_sedi_uv: bool
-    do_sedi_w: bool
-    fast_sat_adj: bool
-    qc_crt: float
-    fix_negative: bool
-    do_cond_timescale: bool
-    do_hail: bool
-    consv_checker: bool
-    do_warm_rain_mp: bool
-    do_wbf: bool
-    do_psd_water_fall: bool
-    do_psd_ice_fall: bool
-    do_psd_water_num: bool
-    do_psd_ice_num: bool
-    do_new_acc_water: bool
-    do_new_acc_ice: bool
-    cp_heating: bool
-    mp_time: float
-    prog_ccn: bool
-    qi0_crt: float
-    qs0_crt: float
-    xr_a: float
-    xr_b: float
-    xr_c: float
-    te_err: float
-    tw_err: float
-    rh_thres: float
-    rhc_cevap: float
-    rhc_revap: float
-    f_dq_p: float
-    f_dq_m: float
-    fi2s_fac: float
-    fi2g_fac: float
-    fs2g_fac: float
-    is_fac: float
-    ss_fac: float
-    gs_fac: float
-    rh_fac: float
-    sed_fac: float
-    rh_inc: float
-    rh_inr: float
+    tau_r2g: Float
+    tau_smlt: Float
+    tau_gmlt: Float
+    tau_g2r: Float
+    tau_imlt: Float
+    tau_i2s: Float
+    tau_l2r: Float
+    tau_g2v: Float
+    tau_v2g: Float
+    ql_mlt: Float
+    ql0_max: Float
+    qs_mlt: Float
+    t_sub: Float
+    t_min: Float
+    qi_gen: Float
+    qi_lim: Float
+    qi0_max: Float
+    rad_snow: Bool
+    rad_graupel: Bool
+    rad_rain: Bool
+    do_cld_adj: Bool
+    dw_ocean: Float
+    dw_land: Float
+    icloud_f: Int
+    cld_min: Float
+    tau_l2v: Float
+    tau_v2l: Float
+    tau_revp: Float
+    tau_wbf: Float
+    c2l_ord: Int
+    do_sedi_heat: Bool
+    do_sedi_melt: Bool
+    do_sedi_uv: Bool
+    do_sedi_w: Bool
+    fast_sat_adj: Bool
+    qc_crt: Float
+    fix_negative: Bool
+    do_cond_timescale: Bool
+    do_evap_timescale: Bool
+    do_hail: Bool
+    consv_checker: Bool
+    do_warm_rain_mp: Bool
+    do_wbf: Bool
+    do_psd_water_fall: Bool
+    do_psd_ice_fall: Bool
+    do_psd_water_num: Bool
+    do_psd_ice_num: Bool
+    do_new_acc_water: Bool
+    do_new_acc_ice: Bool
+    cp_heating: Bool
+    fast_fr_mlt: Bool
+    fast_dep_sub: Bool
+    delay_cond_evap: Bool
+    nconds: Int
+    mp_time: Float
+    prog_ccn: Bool
+    qi0_crt: Float
+    qs0_crt: Float
+    xr_a: Float
+    xr_b: Float
+    xr_c: Float
+    te_err: Float
+    tw_err: Float
+    rh_thres: Float
+    rhc_cevap: Float
+    rhc_revap: Float
+    f_dq_p: Float
+    f_dq_m: Float
+    fi2s_fac: Float
+    fi2g_fac: Float
+    fs2g_fac: Float
+    is_fac: Float
+    ss_fac: Float
+    gs_fac: Float
+    rh_fac_evap: Float
+    rh_fac_cond: Float
+    sed_fac: Float
+    rh_inc: Float
+    rh_inr: Float
     # rh_ins: Any
-    rthresh: float
-    sedi_transport: bool
+    rthresh: Float
+    sedi_transport: Bool
     # use_ccn: Any
-    use_ppm: bool
-    use_rhc_cevap: bool
-    use_rhc_revap: bool
-    vw_max: float
-    vg_max: float
-    vi_max: float
-    vr_max: float
-    vs_max: float
-    z_slope_ice: bool
-    z_slope_liq: bool
-    tice: float
-    tice_mlt: float
-    alin: float
-    alinw: float
-    alini: float
-    alinr: float
-    alins: float
-    aling: float
-    alinh: float
-    blinw: float
-    blini: float
-    blinr: float
-    blins: float
-    bling: float
-    blinh: float
-    clin: float
-    n0w_sig: float
-    n0i_sig: float
-    n0r_sig: float
-    n0s_sig: float
-    n0g_sig: float
-    n0h_sig: float
-    n0w_exp: float
-    n0i_exp: float
-    n0r_exp: float
-    n0s_exp: float
-    n0g_exp: float
-    n0h_exp: float
-    muw: float
-    mui: float
-    mur: float
-    mus: float
-    mug: float
-    muh: float
-    cfflag: float
-    irain_f: int
-    inflag: int
-    igflag: int
-    ifflag: int
-    sedflag: int
-    vdiffflag: int
-    do_mp_table_emulation: bool
-    c_air: float = dataclasses.field(init=False)
-    c_vap: float = dataclasses.field(init=False)
-    d0_vap: float = dataclasses.field(init=False)
-    lv00: float = dataclasses.field(init=False)
-    li00: float = dataclasses.field(init=False)
-    li20: float = dataclasses.field(init=False)
-    d1_vap: float = dataclasses.field(init=False)
-    d1_ice: float = dataclasses.field(init=False)
-    c1_vap: float = dataclasses.field(init=False)
-    c1_liq: float = dataclasses.field(init=False)
-    c1_ice: float = dataclasses.field(init=False)
-    n_min: int = dataclasses.field(init=False)
-    delt: float = dataclasses.field(init=False)
-    esbasw: float = dataclasses.field(init=False)
-    tbasw: float = dataclasses.field(init=False)
-    esbasi: float = dataclasses.field(init=False)
-    tmin: float = dataclasses.field(init=False)
-    t_wfr: float = dataclasses.field(init=False)
-    pcaw: float = dataclasses.field(init=False)
-    pcbw: float = dataclasses.field(init=False)
-    pcai: float = dataclasses.field(init=False)
-    pcbi: float = dataclasses.field(init=False)
-    pcar: float = dataclasses.field(init=False)
-    pcbr: float = dataclasses.field(init=False)
-    pcas: float = dataclasses.field(init=False)
-    pcbs: float = dataclasses.field(init=False)
-    pcag: float = dataclasses.field(init=False)
-    pcbg: float = dataclasses.field(init=False)
-    pcah: float = dataclasses.field(init=False)
-    pcbh: float = dataclasses.field(init=False)
-    edaw: float = dataclasses.field(init=False)
-    edbw: float = dataclasses.field(init=False)
-    edai: float = dataclasses.field(init=False)
-    edbi: float = dataclasses.field(init=False)
-    edar: float = dataclasses.field(init=False)
-    edbr: float = dataclasses.field(init=False)
-    edas: float = dataclasses.field(init=False)
-    edbs: float = dataclasses.field(init=False)
-    edag: float = dataclasses.field(init=False)
-    edbg: float = dataclasses.field(init=False)
-    edah: float = dataclasses.field(init=False)
-    edbh: float = dataclasses.field(init=False)
-    oeaw: float = dataclasses.field(init=False)
-    oebw: float = dataclasses.field(init=False)
-    oeai: float = dataclasses.field(init=False)
-    oebi: float = dataclasses.field(init=False)
-    oear: float = dataclasses.field(init=False)
-    oebr: float = dataclasses.field(init=False)
-    oeas: float = dataclasses.field(init=False)
-    oebs: float = dataclasses.field(init=False)
-    oeag: float = dataclasses.field(init=False)
-    oebg: float = dataclasses.field(init=False)
-    oeah: float = dataclasses.field(init=False)
-    oebh: float = dataclasses.field(init=False)
-    rraw: float = dataclasses.field(init=False)
-    rrbw: float = dataclasses.field(init=False)
-    rrai: float = dataclasses.field(init=False)
-    rrbi: float = dataclasses.field(init=False)
-    rrar: float = dataclasses.field(init=False)
-    rrbr: float = dataclasses.field(init=False)
-    rras: float = dataclasses.field(init=False)
-    rrbs: float = dataclasses.field(init=False)
-    rrag: float = dataclasses.field(init=False)
-    rrbg: float = dataclasses.field(init=False)
-    rrah: float = dataclasses.field(init=False)
-    rrbh: float = dataclasses.field(init=False)
-    tvai: float = dataclasses.field(init=False)
-    tvbi: float = dataclasses.field(init=False)
-    tvar: float = dataclasses.field(init=False)
-    tvbr: float = dataclasses.field(init=False)
-    tvas: float = dataclasses.field(init=False)
-    tvbs: float = dataclasses.field(init=False)
-    tvag: float = dataclasses.field(init=False)
-    tvbg: float = dataclasses.field(init=False)
-    tvah: float = dataclasses.field(init=False)
-    tvbh: float = dataclasses.field(init=False)
-    crevp_1: float = dataclasses.field(init=False)
-    crevp_2: float = dataclasses.field(init=False)
-    crevp_3: float = dataclasses.field(init=False)
-    crevp_4: float = dataclasses.field(init=False)
-    crevp_5: float = dataclasses.field(init=False)
-    cssub_1: float = dataclasses.field(init=False)
-    cssub_2: float = dataclasses.field(init=False)
-    cssub_3: float = dataclasses.field(init=False)
-    cssub_4: float = dataclasses.field(init=False)
-    cssub_5: float = dataclasses.field(init=False)
-    cgsub_1: float = dataclasses.field(init=False)
-    cgsub_2: float = dataclasses.field(init=False)
-    cgsub_3: float = dataclasses.field(init=False)
-    cgsub_4: float = dataclasses.field(init=False)
-    cgsub_5: float = dataclasses.field(init=False)
-    csmlt_1: float = dataclasses.field(init=False)
-    csmlt_2: float = dataclasses.field(init=False)
-    csmlt_3: float = dataclasses.field(init=False)
-    csmlt_4: float = dataclasses.field(init=False)
-    cgmlt_1: float = dataclasses.field(init=False)
-    cgmlt_2: float = dataclasses.field(init=False)
-    cgmlt_3: float = dataclasses.field(init=False)
-    cgmlt_4: float = dataclasses.field(init=False)
-    cgfr_1: float = dataclasses.field(init=False)
-    cgfr_2: float = dataclasses.field(init=False)
-    normw: float = dataclasses.field(init=False)
-    normr: float = dataclasses.field(init=False)
-    normi: float = dataclasses.field(init=False)
-    norms: float = dataclasses.field(init=False)
-    normg: float = dataclasses.field(init=False)
-    expow: float = dataclasses.field(init=False)
-    expor: float = dataclasses.field(init=False)
-    expoi: float = dataclasses.field(init=False)
-    expos: float = dataclasses.field(init=False)
-    expog: float = dataclasses.field(init=False)
-    cracw: float = dataclasses.field(init=False)
-    craci: float = dataclasses.field(init=False)
-    csacw: float = dataclasses.field(init=False)
-    csaci: float = dataclasses.field(init=False)
-    cgacw: float = dataclasses.field(init=False)
-    cgaci: float = dataclasses.field(init=False)
-    cracs: float = dataclasses.field(init=False)
-    csacr: float = dataclasses.field(init=False)
-    cgacr: float = dataclasses.field(init=False)
-    cgacs: float = dataclasses.field(init=False)
-    acc: List[float] = dataclasses.field(init=False)
-    acco: List[List[float]] = dataclasses.field(init=False)
+    use_ppm: Bool
+    use_rhc_cevap: Bool
+    use_rhc_revap: Bool
+    vw_max: Float
+    vg_max: Float
+    vi_max: Float
+    vr_max: Float
+    vs_max: Float
+    z_slope_ice: Bool
+    z_slope_liq: Bool
+    tice: Float
+    tice_mlt: Float
+    alin: Float
+    alinw: Float
+    alini: Float
+    alinr: Float
+    alins: Float
+    aling: Float
+    alinh: Float
+    blinw: Float
+    blini: Float
+    blinr: Float
+    blins: Float
+    bling: Float
+    blinh: Float
+    clin: Float
+    n0w_sig: Float
+    n0i_sig: Float
+    n0r_sig: Float
+    n0s_sig: Float
+    n0g_sig: Float
+    n0h_sig: Float
+    n0w_exp: Float
+    n0i_exp: Float
+    n0r_exp: Float
+    n0s_exp: Float
+    n0g_exp: Float
+    n0h_exp: Float
+    muw: Float
+    mui: Float
+    mur: Float
+    mus: Float
+    mug: Float
+    muh: Float
+    cfflag: Float
+    irain_f: Int
+    inflag: Int
+    igflag: Int
+    ifflag: Int
+    sedflag: Int
+    vdiffflag: Int
+    do_mp_table_emulation: Bool
+    c_air: Float = dataclasses.field(init=False)
+    c_vap: Float = dataclasses.field(init=False)
+    d0_vap: Float = dataclasses.field(init=False)
+    lv00: Float = dataclasses.field(init=False)
+    li00: Float = dataclasses.field(init=False)
+    li20: Float = dataclasses.field(init=False)
+    d1_vap: Float = dataclasses.field(init=False)
+    d1_ice: Float = dataclasses.field(init=False)
+    c1_vap: Float = dataclasses.field(init=False)
+    c1_liq: Float = dataclasses.field(init=False)
+    c1_ice: Float = dataclasses.field(init=False)
+    n_min: Int = dataclasses.field(init=False)
+    delt: Float = dataclasses.field(init=False)
+    esbasw: Float = dataclasses.field(init=False)
+    tbasw: Float = dataclasses.field(init=False)
+    esbasi: Float = dataclasses.field(init=False)
+    tmin: Float = dataclasses.field(init=False)
+    t_wfr: Float = dataclasses.field(init=False)
+    pcaw: Float = dataclasses.field(init=False)
+    pcbw: Float = dataclasses.field(init=False)
+    pcai: Float = dataclasses.field(init=False)
+    pcbi: Float = dataclasses.field(init=False)
+    pcar: Float = dataclasses.field(init=False)
+    pcbr: Float = dataclasses.field(init=False)
+    pcas: Float = dataclasses.field(init=False)
+    pcbs: Float = dataclasses.field(init=False)
+    pcag: Float = dataclasses.field(init=False)
+    pcbg: Float = dataclasses.field(init=False)
+    pcah: Float = dataclasses.field(init=False)
+    pcbh: Float = dataclasses.field(init=False)
+    edaw: Float = dataclasses.field(init=False)
+    edbw: Float = dataclasses.field(init=False)
+    edai: Float = dataclasses.field(init=False)
+    edbi: Float = dataclasses.field(init=False)
+    edar: Float = dataclasses.field(init=False)
+    edbr: Float = dataclasses.field(init=False)
+    edas: Float = dataclasses.field(init=False)
+    edbs: Float = dataclasses.field(init=False)
+    edag: Float = dataclasses.field(init=False)
+    edbg: Float = dataclasses.field(init=False)
+    edah: Float = dataclasses.field(init=False)
+    edbh: Float = dataclasses.field(init=False)
+    oeaw: Float = dataclasses.field(init=False)
+    oebw: Float = dataclasses.field(init=False)
+    oeai: Float = dataclasses.field(init=False)
+    oebi: Float = dataclasses.field(init=False)
+    oear: Float = dataclasses.field(init=False)
+    oebr: Float = dataclasses.field(init=False)
+    oeas: Float = dataclasses.field(init=False)
+    oebs: Float = dataclasses.field(init=False)
+    oeag: Float = dataclasses.field(init=False)
+    oebg: Float = dataclasses.field(init=False)
+    oeah: Float = dataclasses.field(init=False)
+    oebh: Float = dataclasses.field(init=False)
+    rraw: Float = dataclasses.field(init=False)
+    rrbw: Float = dataclasses.field(init=False)
+    rrai: Float = dataclasses.field(init=False)
+    rrbi: Float = dataclasses.field(init=False)
+    rrar: Float = dataclasses.field(init=False)
+    rrbr: Float = dataclasses.field(init=False)
+    rras: Float = dataclasses.field(init=False)
+    rrbs: Float = dataclasses.field(init=False)
+    rrag: Float = dataclasses.field(init=False)
+    rrbg: Float = dataclasses.field(init=False)
+    rrah: Float = dataclasses.field(init=False)
+    rrbh: Float = dataclasses.field(init=False)
+    tvai: Float = dataclasses.field(init=False)
+    tvbi: Float = dataclasses.field(init=False)
+    tvar: Float = dataclasses.field(init=False)
+    tvbr: Float = dataclasses.field(init=False)
+    tvas: Float = dataclasses.field(init=False)
+    tvbs: Float = dataclasses.field(init=False)
+    tvag: Float = dataclasses.field(init=False)
+    tvbg: Float = dataclasses.field(init=False)
+    tvah: Float = dataclasses.field(init=False)
+    tvbh: Float = dataclasses.field(init=False)
+    crevp_1: Float = dataclasses.field(init=False)
+    crevp_2: Float = dataclasses.field(init=False)
+    crevp_3: Float = dataclasses.field(init=False)
+    crevp_4: Float = dataclasses.field(init=False)
+    crevp_5: Float = dataclasses.field(init=False)
+    cssub_1: Float = dataclasses.field(init=False)
+    cssub_2: Float = dataclasses.field(init=False)
+    cssub_3: Float = dataclasses.field(init=False)
+    cssub_4: Float = dataclasses.field(init=False)
+    cssub_5: Float = dataclasses.field(init=False)
+    cgsub_1: Float = dataclasses.field(init=False)
+    cgsub_2: Float = dataclasses.field(init=False)
+    cgsub_3: Float = dataclasses.field(init=False)
+    cgsub_4: Float = dataclasses.field(init=False)
+    cgsub_5: Float = dataclasses.field(init=False)
+    csmlt_1: Float = dataclasses.field(init=False)
+    csmlt_2: Float = dataclasses.field(init=False)
+    csmlt_3: Float = dataclasses.field(init=False)
+    csmlt_4: Float = dataclasses.field(init=False)
+    cgmlt_1: Float = dataclasses.field(init=False)
+    cgmlt_2: Float = dataclasses.field(init=False)
+    cgmlt_3: Float = dataclasses.field(init=False)
+    cgmlt_4: Float = dataclasses.field(init=False)
+    cgfr_1: Float = dataclasses.field(init=False)
+    cgfr_2: Float = dataclasses.field(init=False)
+    normw: Float = dataclasses.field(init=False)
+    normr: Float = dataclasses.field(init=False)
+    normi: Float = dataclasses.field(init=False)
+    norms: Float = dataclasses.field(init=False)
+    normg: Float = dataclasses.field(init=False)
+    expow: Float = dataclasses.field(init=False)
+    expor: Float = dataclasses.field(init=False)
+    expoi: Float = dataclasses.field(init=False)
+    expos: Float = dataclasses.field(init=False)
+    expog: Float = dataclasses.field(init=False)
+    cracw: Float = dataclasses.field(init=False)
+    craci: Float = dataclasses.field(init=False)
+    csacw: Float = dataclasses.field(init=False)
+    csaci: Float = dataclasses.field(init=False)
+    cgacw: Float = dataclasses.field(init=False)
+    cgaci: Float = dataclasses.field(init=False)
+    cracs: Float = dataclasses.field(init=False)
+    csacr: Float = dataclasses.field(init=False)
+    cgacr: Float = dataclasses.field(init=False)
+    cgacs: Float = dataclasses.field(init=False)
+    acc: List[Float] = dataclasses.field(init=False)
+    acco: List[List[Float]] = dataclasses.field(init=False)
 
     def __post_init__(self):
         if self.hydrostatic:
@@ -461,8 +475,10 @@ class MicroPhysicsConfig:
             tau_imlt=self.tau_imlt,
             tice_mlt=self.tice_mlt,
             do_cond_timescale=self.do_cond_timescale,
+            do_evap_timescale=self.do_evap_timescale,
             do_hail=self.do_hail,
-            rh_fac=self.rh_fac,
+            rh_fac_evap=self.rh_fac_evap,
+            rh_fac_cond=self.rh_fac_cond,
             rhc_cevap=self.rhc_cevap,
             tau_l2v=self.tau_l2v,
             tau_v2l=self.tau_v2l,
@@ -494,6 +510,10 @@ class MicroPhysicsConfig:
             t_sub=self.t_sub,
             is_fac=self.is_fac,
             tau_i2s=self.tau_i2s,
+            fast_fr_mlt=self.fast_fr_mlt,
+            fast_dep_sub=self.fast_dep_sub,
+            delay_cond_evap=self.delay_cond_evap,
+            nconds=self.nconds,
         )
 
     def _set_timestepping(self):
@@ -502,7 +522,7 @@ class MicroPhysicsConfig:
         full_timestep is equivalent to dtm
         split_timestep is equivalent to dts
         """
-        self.ntimes = int(
+        self.ntimes = Int(
             max(self.ntimes, self.dt_full / min(self.dt_full, self.mp_time))
         )
         self.dt_split = self.dt_full / self.ntimes
@@ -1407,200 +1427,207 @@ class MicroPhysicsConfig:
 
 @dataclasses.dataclass
 class PhysicsConfig:
-    dt_atmos: float = DEFAULT_FLOAT
-    ntimes: int = NamelistDefaults.ntimes
-    hydrostatic: bool = DEFAULT_BOOL
+    dt_atmos: Float = DEFAULT_FLOAT
+    ntimes: Int = NamelistDefaults.ntimes
+    nconds: Int = Int(1)
+    hydrostatic: Bool = DEFAULT_BOOL
     scheme: str = "GFS"  # Which physics schemes to use
-    npx: int = DEFAULT_INT
-    npy: int = DEFAULT_INT
-    npz: int = DEFAULT_INT
-    nwat: int = DEFAULT_INT
+    npx: Int = DEFAULT_INT
+    npy: Int = DEFAULT_INT
+    npz: Int = DEFAULT_INT
+    nwat: Int = DEFAULT_INT
     schemes: List = None
-    do_qa: bool = DEFAULT_BOOL
-    do_inline_mp: bool = NamelistDefaults.do_inline_mp
-    c_cracw: float = NamelistDefaults.c_cracw
-    c_paut: float = NamelistDefaults.c_paut
-    c_pracs: float = NamelistDefaults.c_pracs
-    c_psacr: float = NamelistDefaults.c_psacr
-    c_pgacr: float = NamelistDefaults.c_pgacr
-    c_pgacs: float = NamelistDefaults.c_pgacs
-    c_psacw: float = NamelistDefaults.c_psacw
-    c_psaci: float = NamelistDefaults.c_psaci
-    c_pracw: float = NamelistDefaults.c_pracw
-    c_praci: float = NamelistDefaults.c_praci
-    c_pgacw: float = NamelistDefaults.c_pgacw
-    c_pgaci: float = NamelistDefaults.c_pgaci
-    ccn_l: float = NamelistDefaults.ccn_l
-    ccn_o: float = NamelistDefaults.ccn_o
-    const_vg: bool = NamelistDefaults.const_vg
-    const_vi: bool = NamelistDefaults.const_vi
-    const_vr: bool = NamelistDefaults.const_vr
-    const_vw: bool = NamelistDefaults.const_vw
-    const_vs: bool = NamelistDefaults.const_vs
-    vw_fac: float = NamelistDefaults.vw_fac
-    vs_fac: float = NamelistDefaults.vs_fac
-    vg_fac: float = NamelistDefaults.vg_fac
-    vi_fac: float = NamelistDefaults.vi_fac
-    vr_fac: float = NamelistDefaults.vr_fac
-    de_ice: bool = NamelistDefaults.de_ice
-    layout: Tuple[int, int] = NamelistDefaults.layout
+    do_qa: Bool = DEFAULT_BOOL
+    do_inline_mp: Bool = NamelistDefaults.do_inline_mp
+    c_cracw: Float = NamelistDefaults.c_cracw
+    c_paut: Float = NamelistDefaults.c_paut
+    c_pracs: Float = NamelistDefaults.c_pracs
+    c_psacr: Float = NamelistDefaults.c_psacr
+    c_pgacr: Float = NamelistDefaults.c_pgacr
+    c_pgacs: Float = NamelistDefaults.c_pgacs
+    c_psacw: Float = NamelistDefaults.c_psacw
+    c_psaci: Float = NamelistDefaults.c_psaci
+    c_pracw: Float = NamelistDefaults.c_pracw
+    c_praci: Float = NamelistDefaults.c_praci
+    c_pgacw: Float = NamelistDefaults.c_pgacw
+    c_pgaci: Float = NamelistDefaults.c_pgaci
+    ccn_l: Float = NamelistDefaults.ccn_l
+    ccn_o: Float = NamelistDefaults.ccn_o
+    const_vg: Bool = NamelistDefaults.const_vg
+    const_vi: Bool = NamelistDefaults.const_vi
+    const_vr: Bool = NamelistDefaults.const_vr
+    const_vw: Bool = NamelistDefaults.const_vw
+    const_vs: Bool = NamelistDefaults.const_vs
+    vw_fac: Float = NamelistDefaults.vw_fac
+    vs_fac: Float = NamelistDefaults.vs_fac
+    vg_fac: Float = NamelistDefaults.vg_fac
+    vi_fac: Float = NamelistDefaults.vi_fac
+    vr_fac: Float = NamelistDefaults.vr_fac
+    de_ice: Bool = NamelistDefaults.de_ice
+    layout: Tuple[Int, Int] = NamelistDefaults.layout
     # gfdl_cloud_microphys.F90
-    tau_r2g: float = NamelistDefaults.tau_r2g  # rain freezing during fast_sat
-    tau_smlt: float = NamelistDefaults.tau_smlt  # snow melting timescale
-    tau_gmlt: float = NamelistDefaults.tau_gmlt  # graupel melting timescale
-    tau_g2r: float = NamelistDefaults.tau_g2r  # graupel melting to rain
-    tau_imlt: float = NamelistDefaults.tau_imlt  # cloud ice melting
-    tau_i2s: float = NamelistDefaults.tau_i2s  # cloud ice to snow auto - conversion
-    tau_l2r: float = NamelistDefaults.tau_l2r  # cloud water to rain auto - conversion
-    tau_g2v: float = NamelistDefaults.tau_g2v  # graupel sublimation
-    tau_v2g: float = (
+    tau_r2g: Float = NamelistDefaults.tau_r2g  # rain freezing during fast_sat
+    tau_smlt: Float = NamelistDefaults.tau_smlt  # snow melting timescale
+    tau_gmlt: Float = NamelistDefaults.tau_gmlt  # graupel melting timescale
+    tau_g2r: Float = NamelistDefaults.tau_g2r  # graupel melting to rain
+    tau_imlt: Float = NamelistDefaults.tau_imlt  # cloud ice melting
+    tau_i2s: Float = NamelistDefaults.tau_i2s  # cloud ice to snow auto - conversion
+    tau_l2r: Float = NamelistDefaults.tau_l2r  # cloud water to rain auto - conversion
+    tau_g2v: Float = NamelistDefaults.tau_g2v  # graupel sublimation
+    tau_v2g: Float = (
         NamelistDefaults.tau_v2g
     )  # graupel deposition -- make it a slow process
-    ql_mlt: float = (
+    ql_mlt: Float = (
         NamelistDefaults.ql_mlt
     )  # max value of cloud water allowed from melted cloud ice
-    ql0_max: float = (
+    ql0_max: Float = (
         NamelistDefaults.ql0_max
     )  # max cloud water value (auto converted to rain)
-    qs_mlt: float = NamelistDefaults.qs_mlt  # max cloud water due to snow melt
-    t_min: float = (
+    qs_mlt: Float = NamelistDefaults.qs_mlt  # max cloud water due to snow melt
+    t_min: Float = (
         NamelistDefaults.t_min
     )  # minimum temperature to freeze - dry all water vapor (K)
-    t_sub: float = NamelistDefaults.t_sub  # min temp for sublimation of cloud ice
-    qi_gen: float = (
+    t_sub: Float = NamelistDefaults.t_sub  # min temp for sublimation of cloud ice
+    qi_gen: Float = (
         NamelistDefaults.qi_gen
     )  # max cloud ice generation during remapping step
-    qi_lim: float = (
+    qi_lim: Float = (
         NamelistDefaults.qi_lim
     )  # cloud ice limiter to prevent large ice build up
-    qi0_max: float = NamelistDefaults.qi0_max  # max cloud ice value (by other sources)
-    rad_snow: bool = (
+    qi0_max: Float = NamelistDefaults.qi0_max  # max cloud ice value (by other sources)
+    rad_snow: Bool = (
         NamelistDefaults.rad_snow
     )  # consider snow in cloud fraction calculation
-    rad_graupel: bool = (
+    rad_graupel: Bool = (
         NamelistDefaults.rad_graupel
     )  # consider graupel in cloud fraction calculation
-    rad_rain: bool = (
+    rad_rain: Bool = (
         NamelistDefaults.rad_rain
     )  # consider rain in cloud fraction calculation
-    do_cld_adj: bool = NamelistDefaults.do_cld_adj  # do cloud fraction adjustment
-    dw_ocean: float = NamelistDefaults.dw_ocean  # base value for ocean
-    dw_land: float = (
+    do_cld_adj: Bool = NamelistDefaults.do_cld_adj  # do cloud fraction adjustment
+    dw_ocean: Float = NamelistDefaults.dw_ocean  # base value for ocean
+    dw_land: Float = (
         NamelistDefaults.dw_land
     )  # base value for subgrid deviation / variability over land
     # cloud scheme 0 - ?
     # 1: old fvgfs gfdl) mp implementation
     # 2: binary cloud scheme (0 / 1)
-    icloud_f: int = NamelistDefaults.icloud_f
-    cld_min: float = NamelistDefaults.cld_min  # minimum cloud fraction
-    tau_l2v: float = (
+    icloud_f: Int = NamelistDefaults.icloud_f
+    cld_min: Float = NamelistDefaults.cld_min  # minimum cloud fraction
+    tau_l2v: Float = (
         NamelistDefaults.tau_l2v
     )  # cloud water to water vapor (evaporation)
-    tau_v2l: float = (
+    tau_v2l: Float = (
         NamelistDefaults.tau_v2l
     )  # water vapor to cloud water (condensation)
-    tau_revp: float = NamelistDefaults.tau_revp
-    tau_wbf: float = NamelistDefaults.tau_wbf
-    c2l_ord: int = NamelistDefaults.c2l_ord
-    do_sedi_heat: bool = NamelistDefaults.do_sedi_heat
-    do_sedi_melt: bool = NamelistDefaults.do_sedi_melt
-    do_sedi_uv: bool = NamelistDefaults.do_sedi_uv
-    do_sedi_w: bool = NamelistDefaults.do_sedi_w
-    fast_sat_adj: bool = NamelistDefaults.fast_sat_adj
-    qc_crt: float = NamelistDefaults.qc_crt
-    fix_negative: bool = NamelistDefaults.fix_negative
-    do_cond_timescale: bool = NamelistDefaults.do_cond_timescale
-    do_hail: bool = NamelistDefaults.do_hail
-    consv_checker: bool = NamelistDefaults.consv_checker
-    do_warm_rain_mp: bool = NamelistDefaults.do_warm_rain_mp
-    do_wbf: bool = NamelistDefaults.do_wbf
-    do_psd_water_fall: bool = NamelistDefaults.do_psd_water_fall
-    do_psd_ice_fall: bool = NamelistDefaults.do_psd_ice_fall
-    do_psd_water_num: bool = NamelistDefaults.do_psd_water_num
-    do_psd_ice_num: bool = NamelistDefaults.do_psd_ice_num
-    do_new_acc_water: bool = NamelistDefaults.do_new_acc_water
-    do_new_acc_ice: bool = NamelistDefaults.do_new_acc_ice
-    cp_heating: bool = NamelistDefaults.cp_heating
-    mp_time: float = NamelistDefaults.mp_time
-    prog_ccn: bool = NamelistDefaults.prog_ccn
-    qi0_crt: float = NamelistDefaults.qi0_crt
-    qs0_crt: float = NamelistDefaults.qs0_crt
-    xr_a: float = NamelistDefaults.xr_a
-    xr_b: float = NamelistDefaults.xr_b
-    xr_c: float = NamelistDefaults.xr_c
-    te_err: float = NamelistDefaults.te_err
-    tw_err: float = NamelistDefaults.tw_err
-    rh_thres: float = NamelistDefaults.rh_thres
-    rhc_cevap: float = NamelistDefaults.rhc_cevap
-    rhc_revap: float = NamelistDefaults.rhc_revap
-    f_dq_p: float = NamelistDefaults.f_dq_p
-    f_dq_m: float = NamelistDefaults.f_dq_m
-    fi2s_fac: float = NamelistDefaults.fi2s_fac
-    fi2g_fac: float = NamelistDefaults.fi2g_fac
-    fs2g_fac: float = NamelistDefaults.fs2g_fac
-    is_fac: float = NamelistDefaults.is_fac
-    ss_fac: float = NamelistDefaults.ss_fac
-    gs_fac: float = NamelistDefaults.gs_fac
-    rh_fac: float = NamelistDefaults.rh_fac
-    sed_fac: float = NamelistDefaults.sed_fac
-    rh_inc: float = NamelistDefaults.rh_inc
-    rh_inr: float = NamelistDefaults.rh_inr
+    tau_revp: Float = NamelistDefaults.tau_revp
+    tau_wbf: Float = NamelistDefaults.tau_wbf
+    c2l_ord: Int = NamelistDefaults.c2l_ord
+    do_sedi_heat: Bool = NamelistDefaults.do_sedi_heat
+    do_sedi_melt: Bool = NamelistDefaults.do_sedi_melt
+    do_sedi_uv: Bool = NamelistDefaults.do_sedi_uv
+    do_sedi_w: Bool = NamelistDefaults.do_sedi_w
+    fast_sat_adj: Bool = NamelistDefaults.fast_sat_adj
+    qc_crt: Float = NamelistDefaults.qc_crt
+    fix_negative: Bool = NamelistDefaults.fix_negative
+    do_cond_timescale: Bool = NamelistDefaults.do_cond_timescale
+    do_evap_timescale: Bool = True
+    do_hail: Bool = NamelistDefaults.do_hail
+    consv_checker: Bool = NamelistDefaults.consv_checker
+    do_warm_rain_mp: Bool = NamelistDefaults.do_warm_rain_mp
+    do_wbf: Bool = NamelistDefaults.do_wbf
+    do_psd_water_fall: Bool = NamelistDefaults.do_psd_water_fall
+    do_psd_ice_fall: Bool = NamelistDefaults.do_psd_ice_fall
+    do_psd_water_num: Bool = NamelistDefaults.do_psd_water_num
+    do_psd_ice_num: Bool = NamelistDefaults.do_psd_ice_num
+    do_new_acc_water: Bool = NamelistDefaults.do_new_acc_water
+    do_new_acc_ice: Bool = NamelistDefaults.do_new_acc_ice
+    cp_heating: Bool = NamelistDefaults.cp_heating
+    fast_fr_mlt: Bool = True
+    fast_dep_sub: Bool = True
+    delay_cond_evap: Bool = True
+    nconds: Int = 1
+    mp_time: Float = NamelistDefaults.mp_time
+    prog_ccn: Bool = NamelistDefaults.prog_ccn
+    qi0_crt: Float = NamelistDefaults.qi0_crt
+    qs0_crt: Float = NamelistDefaults.qs0_crt
+    xr_a: Float = NamelistDefaults.xr_a
+    xr_b: Float = NamelistDefaults.xr_b
+    xr_c: Float = NamelistDefaults.xr_c
+    te_err: Float = NamelistDefaults.te_err
+    tw_err: Float = NamelistDefaults.tw_err
+    rh_thres: Float = NamelistDefaults.rh_thres
+    rhc_cevap: Float = NamelistDefaults.rhc_cevap
+    rhc_revap: Float = NamelistDefaults.rhc_revap
+    f_dq_p: Float = NamelistDefaults.f_dq_p
+    f_dq_m: Float = NamelistDefaults.f_dq_m
+    fi2s_fac: Float = NamelistDefaults.fi2s_fac
+    fi2g_fac: Float = NamelistDefaults.fi2g_fac
+    fs2g_fac: Float = NamelistDefaults.fs2g_fac
+    is_fac: Float = NamelistDefaults.is_fac
+    ss_fac: Float = NamelistDefaults.ss_fac
+    gs_fac: Float = NamelistDefaults.gs_fac
+    rh_fac_evap: Float = NamelistDefaults.rh_fac_evap
+    rh_fac_cond: Float = NamelistDefaults.rh_fac_cond
+    sed_fac: Float = NamelistDefaults.sed_fac
+    rh_inc: Float = NamelistDefaults.rh_inc
+    rh_inr: Float = NamelistDefaults.rh_inr
     # rh_ins: Any
-    rthresh: float = NamelistDefaults.rthresh
-    sedi_transport: bool = NamelistDefaults.sedi_transport
+    rthresh: Float = NamelistDefaults.rthresh
+    sedi_transport: Bool = NamelistDefaults.sedi_transport
     # use_ccn: Any
-    use_ppm: bool = NamelistDefaults.use_ppm
-    use_rhc_cevap: bool = NamelistDefaults.use_rhc_cevap
-    use_rhc_revap: bool = NamelistDefaults.use_rhc_revap
-    vw_max: float = NamelistDefaults.vw_max
-    vg_max: float = NamelistDefaults.vg_max
-    vi_max: float = NamelistDefaults.vi_max
-    vr_max: float = NamelistDefaults.vr_max
-    vs_max: float = NamelistDefaults.vs_max
-    z_slope_ice: bool = NamelistDefaults.z_slope_ice
-    z_slope_liq: bool = NamelistDefaults.z_slope_liq
-    tice: float = NamelistDefaults.tice
-    tice_mlt: float = NamelistDefaults.tice_mlt
-    alin: float = NamelistDefaults.alin
-    alinw: float = NamelistDefaults.alinw
-    alini: float = NamelistDefaults.alini
-    alinr: float = NamelistDefaults.alinr
-    alins: float = NamelistDefaults.alins
-    aling: float = NamelistDefaults.aling
-    alinh: float = NamelistDefaults.alinh
-    blinw: float = NamelistDefaults.blinw
-    blini: float = NamelistDefaults.blini
-    blinr: float = NamelistDefaults.blinr
-    blins: float = NamelistDefaults.blins
-    bling: float = NamelistDefaults.bling
-    blinh: float = NamelistDefaults.blinh
-    clin: float = NamelistDefaults.clin
-    n0w_sig: float = NamelistDefaults.n0w_sig
-    n0i_sig: float = NamelistDefaults.n0i_sig
-    n0r_sig: float = NamelistDefaults.n0r_sig
-    n0s_sig: float = NamelistDefaults.n0s_sig
-    n0g_sig: float = NamelistDefaults.n0g_sig
-    n0h_sig: float = NamelistDefaults.n0h_sig
-    n0w_exp: float = NamelistDefaults.n0w_exp
-    n0i_exp: float = NamelistDefaults.n0i_exp
-    n0r_exp: float = NamelistDefaults.n0r_exp
-    n0s_exp: float = NamelistDefaults.n0s_exp
-    n0g_exp: float = NamelistDefaults.n0g_exp
-    n0h_exp: float = NamelistDefaults.n0h_exp
-    muw: float = NamelistDefaults.muw
-    mui: float = NamelistDefaults.mui
-    mur: float = NamelistDefaults.mur
-    mus: float = NamelistDefaults.mus
-    mug: float = NamelistDefaults.mug
-    muh: float = NamelistDefaults.muh
-    cfflag: int = NamelistDefaults.cfflag
-    irain_f: int = NamelistDefaults.irain_f
-    inflag: int = NamelistDefaults.inflag
-    igflag: int = NamelistDefaults.igflag
-    ifflag: int = NamelistDefaults.ifflag
-    sedflag: int = NamelistDefaults.sedflag
-    vdiffflag: int = NamelistDefaults.vdiffflag
-    do_mp_table_emulation: bool = NamelistDefaults.do_mp_table_emulation
+    use_ppm: Bool = NamelistDefaults.use_ppm
+    use_rhc_cevap: Bool = NamelistDefaults.use_rhc_cevap
+    use_rhc_revap: Bool = NamelistDefaults.use_rhc_revap
+    vw_max: Float = NamelistDefaults.vw_max
+    vg_max: Float = NamelistDefaults.vg_max
+    vi_max: Float = NamelistDefaults.vi_max
+    vr_max: Float = NamelistDefaults.vr_max
+    vs_max: Float = NamelistDefaults.vs_max
+    z_slope_ice: Bool = NamelistDefaults.z_slope_ice
+    z_slope_liq: Bool = NamelistDefaults.z_slope_liq
+    tice: Float = NamelistDefaults.tice
+    tice_mlt: Float = NamelistDefaults.tice_mlt
+    alin: Float = NamelistDefaults.alin
+    alinw: Float = NamelistDefaults.alinw
+    alini: Float = NamelistDefaults.alini
+    alinr: Float = NamelistDefaults.alinr
+    alins: Float = NamelistDefaults.alins
+    aling: Float = NamelistDefaults.aling
+    alinh: Float = NamelistDefaults.alinh
+    blinw: Float = NamelistDefaults.blinw
+    blini: Float = NamelistDefaults.blini
+    blinr: Float = NamelistDefaults.blinr
+    blins: Float = NamelistDefaults.blins
+    bling: Float = NamelistDefaults.bling
+    blinh: Float = NamelistDefaults.blinh
+    clin: Float = NamelistDefaults.clin
+    n0w_sig: Float = NamelistDefaults.n0w_sig
+    n0i_sig: Float = NamelistDefaults.n0i_sig
+    n0r_sig: Float = NamelistDefaults.n0r_sig
+    n0s_sig: Float = NamelistDefaults.n0s_sig
+    n0g_sig: Float = NamelistDefaults.n0g_sig
+    n0h_sig: Float = NamelistDefaults.n0h_sig
+    n0w_exp: Float = NamelistDefaults.n0w_exp
+    n0i_exp: Float = NamelistDefaults.n0i_exp
+    n0r_exp: Float = NamelistDefaults.n0r_exp
+    n0s_exp: Float = NamelistDefaults.n0s_exp
+    n0g_exp: Float = NamelistDefaults.n0g_exp
+    n0h_exp: Float = NamelistDefaults.n0h_exp
+    muw: Float = NamelistDefaults.muw
+    mui: Float = NamelistDefaults.mui
+    mur: Float = NamelistDefaults.mur
+    mus: Float = NamelistDefaults.mus
+    mug: Float = NamelistDefaults.mug
+    muh: Float = NamelistDefaults.muh
+    cfflag: Int = NamelistDefaults.cfflag
+    irain_f: Int = NamelistDefaults.irain_f
+    inflag: Int = NamelistDefaults.inflag
+    igflag: Int = NamelistDefaults.igflag
+    ifflag: Int = NamelistDefaults.ifflag
+    sedflag: Int = NamelistDefaults.sedflag
+    vdiffflag: Int = NamelistDefaults.vdiffflag
+    do_mp_table_emulation: Bool = NamelistDefaults.do_mp_table_emulation
 
     namelist_override: Optional[str] = None
 
@@ -1701,6 +1728,7 @@ class PhysicsConfig:
             qc_crt=namelist.qc_crt,
             fix_negative=namelist.fix_negative,
             do_cond_timescale=namelist.do_cond_timescale,
+            do_evap_timescale=namelist.do_evap_timescale,
             do_hail=namelist.do_hail,
             consv_checker=namelist.consv_checker,
             do_warm_rain_mp=namelist.do_warm_rain_mp,
@@ -1712,6 +1740,10 @@ class PhysicsConfig:
             do_new_acc_water=namelist.do_new_acc_water,
             do_new_acc_ice=namelist.do_new_acc_ice,
             cp_heating=namelist.cp_heating,
+            fast_fr_mlt=namelist.fast_fr_mlt,
+            fast_dep_sub=namelist.fast_dep_sub,
+            delay_cond_evap=namelist.delay_cond_evap,
+            nconds=namelist.nconds,
             mp_time=namelist.mp_time,
             prog_ccn=namelist.prog_ccn,
             qi0_crt=namelist.qi0_crt,
@@ -1732,7 +1764,8 @@ class PhysicsConfig:
             is_fac=namelist.is_fac,
             ss_fac=namelist.ss_fac,
             gs_fac=namelist.gs_fac,
-            rh_fac=namelist.rh_fac,
+            rh_fac_evap=namelist.rh_fac_evap,
+            rh_fac_cond=namelist.rh_fac_cond
             sed_fac=namelist.sed_fac,
             rh_inc=namelist.rh_inc,
             rh_inr=namelist.rh_inr,
@@ -1790,6 +1823,7 @@ class PhysicsConfig:
             sedflag=namelist.sedflag,
             vdiffflag=namelist.vdiffflag,
             ntimes=namelist.ntimes,
+            nconds=namelist.nconds,
             do_inline_mp=namelist.do_inline_mp,
             do_mp_table_emulation=namelist.do_mp_table_emulation,
         )
@@ -1799,6 +1833,7 @@ class PhysicsConfig:
         return MicroPhysicsConfig(
             dt_full=self.dt_atmos,
             ntimes=self.ntimes,
+            nconds=self.nconds,
             hydrostatic=self.hydrostatic,
             npx=self.npx,
             npy=self.npy,
@@ -1870,6 +1905,7 @@ class PhysicsConfig:
             qc_crt=self.qc_crt,
             fix_negative=self.fix_negative,
             do_cond_timescale=self.do_cond_timescale,
+            do_evap_timescale=self.do_evap_timescale,
             do_hail=self.do_hail,
             consv_checker=self.consv_checker,
             do_warm_rain_mp=self.do_warm_rain_mp,
@@ -1881,6 +1917,10 @@ class PhysicsConfig:
             do_new_acc_water=self.do_new_acc_water,
             do_new_acc_ice=self.do_new_acc_ice,
             cp_heating=self.cp_heating,
+            fast_fr_mlt=self.fast_fr_mlt,
+            fast_dep_sub=self.fast_dep_sub,
+            delay_cond_evap=self.delay_cond_evap,
+            nconds=self.nconds,
             mp_time=self.mp_time,
             prog_ccn=self.prog_ccn,
             qi0_crt=self.qi0_crt,
@@ -1901,7 +1941,8 @@ class PhysicsConfig:
             is_fac=self.is_fac,
             ss_fac=self.ss_fac,
             gs_fac=self.gs_fac,
-            rh_fac=self.rh_fac,
+            rh_fac_evap=self.rh_fac_evap,
+            rh_fac_cond=self.rh_fac_cond,
             sed_fac=self.sed_fac,
             rh_inc=self.rh_inc,
             rh_inr=self.rh_inr,

@@ -2,7 +2,7 @@ from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.dsl.typing import FloatField, FloatFieldIJ, Bool
 from ndsl.initialization.allocator import QuantityFactory
 from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import IceCloud
 from pySHiELD.stencils.SHiELD_microphysics.sedimentation import Sedimentation
@@ -187,6 +187,7 @@ class FullMicrophysics:
         deposition: FloatFieldIJ,
         evaporation: FloatFieldIJ,
         sublimation: FloatFieldIJ,
+        last_step: Bool,
     ):
         """
         Full Microphysics Loop

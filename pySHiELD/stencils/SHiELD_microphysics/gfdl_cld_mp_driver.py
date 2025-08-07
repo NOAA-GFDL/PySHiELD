@@ -17,7 +17,7 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Bool
 from ndsl.grid import GridData
 from ndsl.performance.timer import Timer
 from pySHiELD.stencils.SHiELD_microphysics.cloud_fraction import CloudFraction
@@ -1180,7 +1180,7 @@ class Microphysics:
     def __call__(
         self,
         state: MicrophysicsState,
-        last_step: bool,
+        last_step: Bool = True,
         timer: Timer = pace.util.NullTimer(),
     ):
 
@@ -1383,6 +1383,7 @@ class Microphysics:
                 state.deposition,
                 state.evaporation,
                 state.sublimation,
+                last_step
             )
 
         if (self.do_qa) and last_step:

@@ -4,7 +4,7 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
 from pySHiELD import PhysicsConfig
 from pySHiELD.stencils.SHiELD_microphysics.microphysics_state import MicrophysicsState
-from pySHiELD.stencils.SHiELD_microphysics.microphysics_v3 import Microphysics
+from pySHiELD.stencils.SHiELD_microphysics import Microphysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
