@@ -116,16 +116,30 @@ def copy_to_radiation(
             rad_qcld = qcld[0, 0, layer_flip]
 
 
+# TODO: combine with interpolate_radiation stencil
 def copy_from_radiation(
     rad_htrsw: FloatField,
     rad_htrlw: FloatField,
+    rad_swflux_up: FloatField,
+    rad_swflux_down: FloatField,
+    rad_lwflux_up: FloatField,
+    rad_lwflux_down: FloatField,
     htrsw: FloatField,
     htrlw: FloatField,
+    swflux_up: FloatField,
+    swflux_down: FloatField,
+    lwflux_up: FloatField,
+    lwflux_down: FloatField,
     layer_flip: IntFieldK,
+    level_flip: IntFieldK,
 ):
     with computation(PARALLEL), interval(...):
         htrsw = rad_htrsw[0, 0, layer_flip]
         htrlw = rad_htrlw[0, 0, layer_flip]
+        swflux_up = rad_swflux_up[0, 0, level_flip]
+        swflux_down = rad_swflux_down[0, 0, level_flip]
+        lwflux_up = rad_lwflux_up[0, 0, level_flip]
+        lwflux_down = rad_lwflux_down[0, 0, level_flip]
 
 
 def interpolate_radiation(
@@ -566,6 +580,11 @@ class Physics:
                 origin=grid_indexing.origin_full(),
                 domain=grid_indexing.domain_full(),
             )
+            self._copy_from_radiation = stencil_factory.from_origin_domain(
+                func=copy_from_radiation,
+                origin=grid_indexing.origin_full(),
+                domain=grid_indexing.domain_full(),
+            )
             self._radiation = RTE_RRTMGPDriver(
                 rad_config,
                 self._gridlon,
@@ -680,6 +699,22 @@ class Physics:
             )
             ndsl_log.info("Entering radiation")
             self._radiation.step_radiation(radiation_state, sfc_state, date)
+            self._copy_from_radiation(
+                radiation_state.hrtsw,
+                radiation_state.hrtlw,
+                radiation_state.fswu,
+                radiation_state.fswd,
+                radiation_state.flwu,
+                radiation_state.flwd,
+                physics_state.hrtsw,
+                physics_state.hrtlw,
+                physics_state.fswu,
+                physics_state.fswd,
+                physics_state.flwu,
+                physics_state.flwd,
+                self._layer_flip,
+                self._level_flip,
+            )
 
         # Do physics schemes here:
         if self._gfs_microphysics:
