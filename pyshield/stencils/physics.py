@@ -116,6 +116,18 @@ def copy_to_radiation(
             rad_qcld = qcld[0, 0, layer_flip]
 
 
+def copy_from_radiation(
+    rad_htrsw: FloatField,
+    rad_htrlw: FloatField,
+    htrsw: FloatField,
+    htrlw: FloatField,
+    layer_flip: IntFieldK,
+):
+    with computation(PARALLEL), interval(...):
+        htrsw = rad_htrsw[0, 0, layer_flip]
+        htrlw = rad_htrlw[0, 0, layer_flip]
+
+
 def interpolate_radiation(
     sinlat: FloatFieldIJ,
     coslat: FloatFieldIJ,

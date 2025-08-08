@@ -3,11 +3,11 @@ import datetime
 from pathlib import Path
 
 import numpy as np
-from pyrte_rrtmgp import rrtmgp_cloud_optics, rrtmgp_gas_optics
+from pyrte_rrtmgp import rte
 from pyrte_rrtmgp.config import DEFAULT_DIM_MAPPING
-from pyrte_rrtmgp.data_types import CloudOpticsFiles, GasOpticsFiles, OpticsProblemTypes
 from pyrte_rrtmgp.input_mapping import AtmosphericMapping
-from pyrte_rrtmgp.rte_solver import rte_solve
+from pyrte_rrtmgp.rrtmgp import CloudOptics, GasOptics
+from pyrte_rrtmgp.rrtmgp_data_files import CloudOpticsFiles, GasOpticsFiles
 
 import ndsl.constants as constants
 from ndsl import QuantityFactory, StencilFactory
@@ -259,19 +259,11 @@ class RTE_RRTMGPDriver:
         # Init clouds:
         self._llyr = cld_init(sigma, config.ivflip)
 
-        self._cloud_optics_lw = rrtmgp_cloud_optics.load_cloud_optics(
-            cloud_optics_file=CloudOpticsFiles.LW_BND
-        )
-        self._gas_optics_lw = rrtmgp_gas_optics.load_gas_optics(
-            gas_optics_file=GasOpticsFiles.LW_G256
-        )
+        self._cloud_optics_lw = CloudOptics(cloud_optics_file=CloudOpticsFiles.LW_BND)
+        self._gas_optics_lw = GasOptics(gas_optics_file=GasOpticsFiles.LW_G256)
 
-        self._cloud_optics_sw = rrtmgp_cloud_optics.load_cloud_optics(
-            cloud_optics_file=CloudOpticsFiles.SW_BND
-        )
-        self._gas_optics_sw = rrtmgp_gas_optics.load_gas_optics(
-            gas_optics_file=GasOpticsFiles.SW_G224
-        )
+        self._cloud_optics_sw = CloudOptics(cloud_optics_file=CloudOpticsFiles.SW_BND)
+        self._gas_optics_sw = GasOptics(gas_optics_file=GasOpticsFiles.SW_G224)
         self._gas_mapping = {
             "h2o": "qvapor",
             "o3": "qo3mr",
@@ -610,16 +602,16 @@ class RTE_RRTMGPDriver:
         is_day = state.mu0.data[:] > 0.0
 
         # Do SW fluxes:
-        sw_optics = self._gas_optics_sw.compute_gas_optics(
+        sw_optics = self._gas_optics_sw.compute(
             radx,
-            problem_type=OpticsProblemTypes.TWO_STREAM,
+            problem_type=rte.OpticsTypes.TWO_STREAM,
             add_to_input=False,
             gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
         )
         sw_optics["surface_albedo"] = radx["albedo"]
         sw_optics["mu0"] = radx["mu0"]
-        clr_fluxes_sw = rte_solve(sw_optics, add_to_input=False)
+        clr_fluxes_sw = sw_optics.rte.solve(add_to_input=False)
         state.fswd_clr.view[:] = clr_fluxes_sw.sw_flux_down.data.reshape(
             state.fswd_clr.view[:].shape
         )
@@ -627,43 +619,43 @@ class RTE_RRTMGPDriver:
             state.fswu_clr.view[:].shape
         )
 
-        sw_cloud_optical_props = self._cloud_optics_sw.compute_cloud_optics(
+        sw_cloud_optical_props = self._cloud_optics_sw.compute(
             radx,
-            problem_type=OpticsProblemTypes.TWO_STREAM,
+            problem_type=rte.OpticsTypes.TWO_STREAM,
             add_to_input=False,
             variable_mapping=self._atm_map,
         )
-        sw_cloud_optical_props.add_to(sw_optics)
-        fluxes_sw = rte_solve(sw_optics, add_to_input=False)
+        sw_cloud_optical_props.rte.add_to(sw_optics)
+        fluxes_sw = sw_optics.rte.solve(add_to_input=False)
         state.fswd.view[:] = fluxes_sw.sw_flux_down.data.reshape(
             state.fswd.view[:].shape
         )
         state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(state.fswu.view[:].shape)
 
         # And do LW fluxes
-        lw_optics = self._gas_optics_lw.compute_gas_optics(
+        lw_optics = self._gas_optics_lw.compute(
             radx,
-            problem_type=OpticsProblemTypes.ABSORPTION,
+            problem_type=rte.OpticsTypes.ABSORPTION,
             add_to_input=False,
             gas_name_map=self._gas_mapping,
             variable_mapping=self._atm_map,
         )
         lw_optics["surface_emissivity"] = radx["sfc_emis"]
-        clr_fluxes_lw = rte_solve(lw_optics, add_to_input=False)
+        clr_fluxes_lw = lw_optics.rte.solve(add_to_input=False)
         state.flwd_clr.view[:] = clr_fluxes_lw.lw_flux_down.data.reshape(
             state.flwd_clr.view[:].shape
         )
         state.flwu_clr.view[:] = clr_fluxes_lw.lw_flux_up.data.reshape(
             state.flwu_clr.view[:].shape
         )
-        lw_cloud_optical_props = self._cloud_optics_lw.compute_cloud_optics(
+        lw_cloud_optical_props = self._cloud_optics_lw.compute(
             radx,
-            problem_type=OpticsProblemTypes.ABSORPTION,
+            problem_type=rte.OpticsTypes.ABSORPTION,
             add_to_input=False,
             variable_mapping=self._atm_map,
         )
-        lw_cloud_optical_props.add_to(lw_optics)
-        fluxes_lw = rte_solve(lw_optics, add_to_input=False)
+        lw_cloud_optical_props.rte.add_to(lw_optics)
+        fluxes_lw = lw_optics.rte.solve(add_to_input=False)
 
         state.flwd.view[:] = fluxes_lw.lw_flux_down.data.reshape(
             state.flwd.view[:].shape
