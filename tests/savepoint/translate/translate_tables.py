@@ -1,6 +1,6 @@
 from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, interval
 
-import ndsl.constants as constants
+import pyshield.constants as physcons
 import pySHiELD.stencils.SHiELD_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, IntField
@@ -44,7 +44,7 @@ def calc_table_values(
             wqs, dwdt = physfun.sat_spec_hum_water(temp, den)
             iqs, didt = physfun.sat_spec_hum_water_ice(temp, den)
 
-        ap1 = 10.0 * max(temp - (constants.TICE0 - 160.0)) + 1
+        ap1 = 10.0 * max(temp - (physcons.TICE0 - 160.0)) + 1
         ap1 = min(ap1, 2621.0)
         it1 = ap1
         it2 = ap1 - 0.5

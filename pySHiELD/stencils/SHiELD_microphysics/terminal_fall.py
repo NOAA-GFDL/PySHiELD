@@ -11,6 +11,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
+import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
@@ -38,7 +39,7 @@ def prep_terminal_fall(
     from __externals__ import do_sedi_w
 
     with computation(BACKWARD), interval(...):
-        if q_fall > constants.QFMIN:
+        if q_fall > physcons.QFMIN:
             no_fall = 0.0
     with computation(FORWARD), interval(...):
         if no_fall == 0.0:
@@ -331,8 +332,8 @@ def update_energy_wind_heat_post_fall(
                 cv0 = dm * (
                     constants.CV_AIR
                     + qvapor * constants.CV_VAP
-                    + (qrain + qliquid) * constants.C_LIQ
-                    + (qice + qsnow + qgraupel) * constants.C_ICE
+                    + (qrain + qliquid) * physcons.C_LIQ
+                    + (qice + qsnow + qgraupel) * physcons.C_ICE
                 ) + cw * (flux - flux[0, 0, -1])
 
     with computation(FORWARD), interval(1, None):
@@ -472,7 +473,7 @@ class TerminalFall:
                 "do_sedi_uv": config.do_sedi_uv,
                 "do_sedi_w": config.do_sedi_w,
                 "do_sedi_heat": config.do_sedi_heat,
-                "cw": constants.C_ICE,
+                "cw": physcons.C_ICE,
                 "c1_ice": config.c1_ice,
                 "c1_liq": config.c1_liq,
                 "c1_vap": config.c1_vap,

@@ -13,11 +13,12 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
+import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Bool
+from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.performance.timer import Timer
 from pySHiELD.stencils.SHiELD_microphysics.cloud_fraction import CloudFraction
@@ -407,7 +408,7 @@ def calculate_particle_properties(
     )
 
     with computation(PARALLEL), interval(...):
-        if qliquid > constants.QCMIN:
+        if qliquid > physcons.QCMIN:
             pc_liquid = physfun.calc_particle_concentration(
                 qliquid, density, pcaw, pcbw, muw
             )
@@ -424,7 +425,7 @@ def calculate_particle_properties(
                 qliquid, density, tvaw, tvbw, muw, blinw
             )
 
-        if qice > constants.QCMIN:
+        if qice > physcons.QCMIN:
             pc_ice = physfun.calc_particle_concentration(qice, density, pcai, pcbi, mui)
             ed_ice = physfun.calc_effective_diameter(qice, density, edai, edbi, mui)
             oe_ice = physfun.calc_optical_extinction(qice, density, oeai, oebi, mui)
@@ -433,7 +434,7 @@ def calculate_particle_properties(
                 qice, density, tvai, tvbi, mui, blini
             )
 
-        if qrain > constants.QCMIN:
+        if qrain > physcons.QCMIN:
             pc_rain = physfun.calc_particle_concentration(
                 qrain, density, pcar, pcbr, mur
             )
@@ -444,7 +445,7 @@ def calculate_particle_properties(
                 qrain, density, tvar, tvbr, mur, blinr
             )
 
-        if qsnow > constants.QCMIN:
+        if qsnow > physcons.QCMIN:
             pc_snow = physfun.calc_particle_concentration(
                 qsnow, density, pcas, pcbs, mus
             )
@@ -455,7 +456,7 @@ def calculate_particle_properties(
                 qsnow, density, tvas, tvbs, mus, blins
             )
 
-        if qgraupel > constants.QCMIN:
+        if qgraupel > physcons.QCMIN:
             pc_graupel = physfun.calc_particle_concentration(
                 qgraupel, density, pcag, pcbg, mug
             )
@@ -676,8 +677,8 @@ def calculate_total_energy_change_and_convert_temp(
                 cp8 = (
                     con_r8 * constants.CP_AIR
                     + qvapor * constants.CP_VAP
-                    + (qliquid + qrain) * constants.C_LIQ
-                    + (qice + qsnow + qgraupel) * constants.C_ICE
+                    + (qliquid + qrain) * physcons.C_LIQ
+                    + (qice + qsnow + qgraupel) * physcons.C_ICE
                 )
                 delz = delz / temperature0
                 temperature = (
@@ -1383,7 +1384,7 @@ class Microphysics:
                 state.deposition,
                 state.evaporation,
                 state.sublimation,
-                last_step
+                last_step,
             )
 
         if (self.do_qa) and last_step:

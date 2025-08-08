@@ -1,6 +1,6 @@
 from gt4py.cartesian.gtscript import __INLINED, PARALLEL, computation, interval
 
-import ndsl.constants as constants
+import pyshield.constants as physcons
 import pySHiELD.stencils.SHiELD_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -93,14 +93,14 @@ def cloud_fraction_test(
         if tin <= t_wfr:
             qstar = qsi
             dqdt = dqidt
-        elif tin >= constants.TICE0:
+        elif tin >= physcons.TICE0:
             qstar = qsw
             dqdt = dqwdt
         else:
-            if q_cond > constants.QCMIN:
+            if q_cond > physcons.QCMIN:
                 rqi = q_solid / q_cond
             else:
-                rqi = (constants.TICE0 - tin) / (constants.TICE0 - t_wfr)
+                rqi = (physcons.TICE0 - tin) / (physcons.TICE0 - t_wfr)
             qstar = rqi * qsi + (1.0 - rqi) * qsw
             dqdt = 0.5 * (dqidt + dqwdt)
 
@@ -167,7 +167,7 @@ class CloudFractionTest:
                 "rad_rain": config.rad_rain,
                 "rad_snow": config.rad_snow,
                 "t_wfr": config.t_wfr,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "cld_min": config.cld_min,
                 "do_cld_adj": config.do_cld_adj,
                 "f_dq_m": config.f_dq_m,

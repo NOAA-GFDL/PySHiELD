@@ -12,6 +12,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
+import pyshield.constants as physcons
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
@@ -91,7 +92,7 @@ def evaporate_rain(
             qsat, dqdt = physfun.sat_spec_hum_water(tin, density)
         dqv = qsat - qvapor
 
-        dqh = max(qliquid, h_var * max(qpz, constants.QCMIN))
+        dqh = max(qliquid, h_var * max(qpz, physcons.QCMIN))
         dqh = min(dqh, 0.2 * qpz)
 
         q_minus = qpz - dqh
@@ -101,7 +102,7 @@ def evaporate_rain(
 
         if (
             (temperature > t_wfr)
-            and (qrain > constants.QCMIN)
+            and (qrain > physcons.QCMIN)
             and (dqv > 0.0)
             and (qsat > q_minus)
         ):
@@ -196,8 +197,8 @@ def accrete_rain(
     with computation(PARALLEL), interval(...):
         if (
             (temperature > t_wfr)
-            and (qrain > constants.QCMIN)
-            and (qliquid > constants.QCMIN)
+            and (qrain > physcons.QCMIN)
+            and (qliquid > physcons.QCMIN)
         ):
             qden = qrain * density
 
@@ -284,19 +285,19 @@ def autoconvert_water_rain(
     with computation(PARALLEL), interval(...):
         if __INLINED(irain_f == 0):
             # rest of praut
-            if (temperature > t_wfr) and (qliquid > constants.QCMIN):
+            if (temperature > t_wfr) and (qliquid > physcons.QCMIN):
                 if __INLINED(do_psd_water_num):
                     cloud_condensation_nuclei = physfun.calc_particle_concentration(
                         qliquid, density, pcaw, pcbw, muw
                     )
                     cloud_condensation_nuclei /= density
                 qc = fac_rc * cloud_condensation_nuclei
-                dl = min(max(constants.QCMIN, dl), 0.5 * qliquid)
+                dl = min(max(physcons.QCMIN, dl), 0.5 * qliquid)
                 dq = 0.5 * (qliquid + dl - qc)
 
                 if dq > 0.0:
                     c_praut = cpaut * exp(
-                        (-1.0 / 3.0) * log(cloud_condensation_nuclei * constants.RHO_W)
+                        (-1.0 / 3.0) * log(cloud_condensation_nuclei * physcons.RHO_W)
                     )
                     sink = (
                         min(1.0, dq / dl)
@@ -310,7 +311,7 @@ def autoconvert_water_rain(
                     qliquid -= sink
                     qrain += sink
         else:  # if irain_f == 1:
-            if (temperature > t_wfr) and (qliquid > constants.QCMIN):
+            if (temperature > t_wfr) and (qliquid > physcons.QCMIN):
                 if __INLINED(do_psd_water_num):
                     cloud_condensation_nuclei = physfun.calc_particle_concentration(
                         qliquid, density, pcaw, pcbw, muw
@@ -322,7 +323,7 @@ def autoconvert_water_rain(
 
                 if dq > 0.0:
                     c_praut = cpaut * exp(
-                        (-1.0 / 3.0) * log(cloud_condensation_nuclei * constants.RHO_W)
+                        (-1.0 / 3.0) * log(cloud_condensation_nuclei * physcons.RHO_W)
                     )
                     sink = min(
                         dq,
@@ -347,9 +348,9 @@ class WarmRain:
         if config.tau_revp > 1.0e-6:
             self._fac_revap = 1.0 - math.exp(-timestep / config.tau_revp)
 
-        fac_rc = (4.0 / 3.0) * constants.PI * constants.RHO_W * config.rthresh ** 3
+        fac_rc = (4.0 / 3.0) * constants.PI * physcons.RHO_W * config.rthresh ** 3
         aone = 2.0 / 9.0 * (3.0 / 4.0) ** (4.0 / 3.0) / constants.PI ** (1.0 / 3.0)
-        cpaut = config.c_paut * aone * constants.GRAV / constants.VISD
+        cpaut = config.c_paut * aone * constants.GRAV / physcons.VISD
 
         self._evaporate_rain = stencil_factory.from_origin_domain(
             func=evaporate_rain,

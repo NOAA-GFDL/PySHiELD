@@ -1,6 +1,7 @@
 import numpy as np
 
 import ndsl.constants as constants
+import pyshield.constants as physcons
 
 
 class HumiditySaturationTables:
@@ -22,14 +23,14 @@ class HumiditySaturationTables:
 
     def _initialize_table0(self):
         # TODO: numpy-ify these init methods?
-        tmin = constants.TICE0 - 160.0
+        tmin = physcons.TICE0 - 160.0
 
         for i in range(self.length):
             tem = tmin + self.delt * float(i)
-            fac0 = (tem - constants.TICE0) / (tem * constants.TICE0)
-            fac1 = fac0 * constants.LV0
+            fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
+            fac1 = fac0 * physcons.LV0
             fac2 = (
-                constants.DC_VAP * np.log(tem / constants.TICE0) + fac1
+                constants.DC_VAP * np.log(tem / physcons.TICE0) + fac1
             ) / constants.RVGAS
             self.table0[i] = constants.E00 * np.exp(fac2)
             if i > 0:
@@ -42,15 +43,15 @@ class HumiditySaturationTables:
         if not self._t0_init:
             self._initialize_table0
 
-        tmin = constants.TICE0 - self.n_min * self.delt
+        tmin = physcons.TICE0 - self.n_min * self.delt
 
         for i in range(self.length):
             if i < self.n_min:
                 tem = tmin + self.delt * float(i)
-                fac0 = (tem - constants.TICE0) / (tem * constants.TICE0)
-                fac1 = fac0 * constants.LI2
+                fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
+                fac1 = fac0 * physcons.LI2
                 fac2 = (
-                    constants.D2ICE * np.log(tem / constants.TICE0) + fac1
+                    physcons.D2ICE * np.log(tem / physcons.TICE0) + fac1
                 ) / constants.RVGAS
                 self.table2[i] = constants.E00 * np.exp(fac2)
             else:
@@ -63,7 +64,7 @@ class HumiditySaturationTables:
         self._t2_init = True
 
     def _saturation(self, temperature, density, table: int):
-        tmin = constants.TICE0 - 160.0
+        tmin = physcons.TICE0 - 160.0
         ap1 = 10.0 * np.maximum(0, temperature - tmin) + 1.0
         ap1 = np.minimum(self.length, ap1) - 1.0
         it = (ap1 - 0.5).astype(int)

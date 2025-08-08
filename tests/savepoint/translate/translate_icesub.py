@@ -7,8 +7,8 @@ from gt4py.cartesian.gtscript import (  # noqa
     interval,
 )
 
-import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
+import pyshield.constants as physcons
 import pySHiELD.stencils.SHiELD_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
@@ -95,7 +95,7 @@ def melt_snow_test(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
     psacw = 0.0
     psacr = 0.0
@@ -105,10 +105,10 @@ def melt_snow_test(
     sink0 = 0.0
     sink = 0.0
 
-    if (tc >= 0) and (qsnow > constants.QCMIN):
+    if (tc >= 0) and (qsnow > physcons.QCMIN):
         psacw = 0.0
         qden = qsnow * density
-        if qliquid > constants.QCMIN:
+        if qliquid > physcons.QCMIN:
             if __INLINED(do_new_acc_water):
                 psacw = physfun.accretion_3d(
                     vterminal_s,
@@ -129,7 +129,7 @@ def melt_snow_test(
 
         psacr = 0.0
         pracs = 0.0
-        if qrain > constants.QCMIN:
+        if qrain > physcons.QCMIN:
             psacr = physfun.accretion_3d(
                 vterminal_s,
                 vterminal_r,
@@ -572,7 +572,7 @@ class IceFunction:
                 "li20": config.li20,
                 "lv00": config.lv00,
                 "t_wfr": config.t_wfr,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "ql_mlt": config.ql_mlt,
                 "tau_imlt": config.tau_imlt,
                 "tice_mlt": config.tice_mlt,

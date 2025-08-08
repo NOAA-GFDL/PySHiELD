@@ -12,6 +12,7 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
+import pyshield.constants as physcons
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -47,7 +48,7 @@ def melt_cloud_ice(
     fac_imlt = 1.0 - exp(-timestep / tau_imlt)
 
     tc = temperature - tice_mlt
-    if (tc > 0.0) and (qice > constants.QCMIN):
+    if (tc > 0.0) and (qice > physcons.QCMIN):
         sink = fac_imlt * tc / icpk
         sink = min(qice, sink)
         tmp = min(sink, basic.dim(ql_mlt, qliquid))
@@ -121,7 +122,7 @@ def freeze_cloud_water(
     from __externals__ import qi0_crt, t_wfr
 
     tc = t_wfr - temperature
-    if (tc > 0.0) and (qliquid > constants.QCMIN):
+    if (tc > 0.0) and (qliquid > physcons.QCMIN):
         sink = qliquid * tc / constants.DT_FR
         sink = min(qliquid, min(sink, tc / icpk))
         qim = qi0_crt / density
@@ -230,12 +231,12 @@ def melt_snow(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc >= 0) and (qsnow > constants.QCMIN):
+    if (tc >= 0) and (qsnow > physcons.QCMIN):
         psacw = 0.0
         qden = qsnow * density
-        if qliquid > constants.QCMIN:
+        if qliquid > physcons.QCMIN:
             if __INLINED(do_new_acc_water):
                 psacw = physfun.accretion_3d(
                     vterminal_s,
@@ -256,7 +257,7 @@ def melt_snow(
 
         psacr = 0.0
         pracs = 0.0
-        if qrain > constants.QCMIN:
+        if qrain > physcons.QCMIN:
             psacr = physfun.accretion_3d(
                 vterminal_s,
                 vterminal_r,
@@ -412,12 +413,12 @@ def melt_graupel(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc >= 0) and (qgraupel > constants.QCMIN):
+    if (tc >= 0) and (qgraupel > physcons.QCMIN):
         pgacw = 0.0
         qden = qgraupel * density
-        if qliquid > constants.QCMIN:
+        if qliquid > physcons.QCMIN:
             if __INLINED(do_new_acc_water):
                 pgacw = physfun.accretion_3d(
                     vterminal_g,
@@ -437,7 +438,7 @@ def melt_graupel(
                 pgacw = factor / (1.0 + timestep * factor) * qliquid
 
         pgacr = 0.0
-        if qrain > constants.QCMIN:
+        if qrain > physcons.QCMIN:
             pgacr = min(
                 qrain / timestep,
                 physfun.accretion_3d(
@@ -559,12 +560,12 @@ def accrete_snow_with_ice(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc < 0.0) and (qice > constants.QCMIN):
+    if (tc < 0.0) and (qice > physcons.QCMIN):
         sink = 0.0
         qden = qsnow * density
-        if qsnow > constants.QCMIN:
+        if qsnow > physcons.QCMIN:
             if __INLINED(do_new_acc_ice):
                 sink = timestep * physfun.accretion_3d(
                     vterminal_s,
@@ -608,16 +609,16 @@ def autoconvert_ice_to_snow(
     from __externals__ import fi2s_fac, qi0_crt, tau_i2s, timestep
 
     fac_i2s = 1.0 - exp(-timestep / tau_i2s)
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc < 0.0) and (qice > constants.QCMIN):
+    if (tc < 0.0) and (qice > physcons.QCMIN):
         sink = 0.0
         tmp = fac_i2s * exp(0.025 * tc)
-        di = max(di, constants.QCMIN)
+        di = max(di, physcons.QCMIN)
         q_plus = qice + di
         qim = qi0_crt / density
 
-        if q_plus > (qim + constants.QCMIN):
+        if q_plus > (qim + physcons.QCMIN):
             if qim > (qice - di):
                 dq = (0.25 * (q_plus - qim) ** 2) / di
             else:
@@ -654,13 +655,13 @@ def accrete_graupel_with_ice(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc < 0.0) and (qice > constants.QCMIN):
+    if (tc < 0.0) and (qice > physcons.QCMIN):
         sink = 0.0
         qden = qgraupel * density
 
-        if qgraupel > constants.QCMIN:
+        if qgraupel > physcons.QCMIN:
             if __INLINED(do_new_acc_ice):
                 sink = timestep * physfun.accretion_3d(
                     vterminal_g,
@@ -725,11 +726,11 @@ def accrete_snow_with_rain_and_freeze_to_graupel(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc < 0.0) and (qrain > constants.QCMIN):
+    if (tc < 0.0) and (qrain > physcons.QCMIN):
         psacr = 0.0
-        if qsnow > constants.QCMIN:
+        if qsnow > physcons.QCMIN:
             psacr = timestep * physfun.accretion_3d(
                 vterminal_s,
                 vterminal_r,
@@ -752,7 +753,7 @@ def accrete_snow_with_rain_and_freeze_to_graupel(
             * exp((6 + mur) / (mur + 3) * log(6 * qrain * density))
         )
         sink = psacr + pgfr
-        factor = min(sink, min(qrain, -tc / icpk)) / max(sink, constants.QCMIN)
+        factor = min(sink, min(qrain, -tc / icpk)) / max(sink, physcons.QCMIN)
         psacr = factor * psacr
         pgfr = factor * pgfr
 
@@ -828,9 +829,9 @@ def accrete_graupel_with_snow(
     )
 
     if (
-        (temperature < constants.TICE0)
-        and (qsnow > constants.QCMIN)
-        and (qgraupel > constants.QCMIN)
+        (temperature < physcons.TICE0)
+        and (qsnow > physcons.QCMIN)
+        and (qgraupel > physcons.QCMIN)
     ):
         sink = timestep * physfun.accretion_3d(
             vterminal_g,
@@ -866,9 +867,9 @@ def autoconvert_snow_to_graupel(
     """
     from __externals__ import fs2g_fac, qs0_crt, timestep
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc < 0.0) and (qsnow > constants.QCMIN):
+    if (tc < 0.0) and (qsnow > physcons.QCMIN):
         sink = 0.0
         qsm = qs0_crt / density
 
@@ -921,12 +922,12 @@ def accrete_graupel_with_cloud_water_and_rain(
         timestep,
     )
 
-    tc = temperature - constants.TICE0
+    tc = temperature - physcons.TICE0
 
-    if (tc < 0.0) and (qgraupel > constants.QCMIN):
+    if (tc < 0.0) and (qgraupel > physcons.QCMIN):
         pgacw = 0.0
 
-        if qliquid > constants.QCMIN:
+        if qliquid > physcons.QCMIN:
             qden = qgraupel * density
             factor = timestep * physfun.accretion_2d(
                 qden, cgacw, density_factor, bling, mug
@@ -934,7 +935,7 @@ def accrete_graupel_with_cloud_water_and_rain(
             pgacw = factor / (1.0 + factor) * qliquid
 
         pgacr = 0.0
-        if qrain > constants.QCMIN:
+        if qrain > physcons.QCMIN:
             pgacr = min(
                 timestep
                 * physfun.accretion_3d(
@@ -954,8 +955,8 @@ def accrete_graupel_with_cloud_water_and_rain(
             )
 
         sink = pgacr + pgacw
-        factor = min(sink, basic.dim(constants.TICE0, temperature) / icpk) / max(
-            sink, constants.QCMIN
+        factor = min(sink, basic.dim(physcons.TICE0, temperature) / icpk) / max(
+            sink, physcons.QCMIN
         )
         pgacr = factor * pgacr
         pgacw = factor * pgacw
@@ -1331,7 +1332,7 @@ class IceCloud:
                 "li20": config.li20,
                 "lv00": config.lv00,
                 "t_wfr": config.t_wfr,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "ql_mlt": config.ql_mlt,
                 "tau_imlt": config.tau_imlt,
                 "tice_mlt": config.tice_mlt,

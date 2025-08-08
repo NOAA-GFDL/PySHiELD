@@ -4,8 +4,9 @@ from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, exp, inter
 
 import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
+import pyshield.constants as physcons
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ, Bool
+from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 
 from ..._config import MicroPhysicsConfig
 
@@ -44,7 +45,7 @@ def perform_instant_processes(
 
     # Instant deposit all water vapor to cloud ice when temperature is super low
     if temperature < t_min:
-        sink = basic.dim(qvapor, constants.QCMIN)
+        sink = basic.dim(qvapor, physcons.QCMIN)
         dep += sink * delp
 
         (
@@ -168,8 +169,8 @@ def cloud_condensation_evaporation(
         do_cond_timescale,
         do_evap_timescale,
         do_mp_table_emulation,
-        rh_fac_evap,
         rh_fac_cond,
+        rh_fac_evap,
         rhc_cevap,
         tau_l2v,
         tau_v2l,
@@ -196,7 +197,11 @@ def cloud_condensation_evaporation(
             sink = 0.0
         reevaporation += sink * delp
     elif do_cond_timescale:
-        fac = min(1.0, fac_v2l * (rh_fac_cond * (-dq) / qsw)) if do_evap_timescale else 1.0
+        fac = (
+            min(1.0, fac_v2l * (rh_fac_cond * (-dq) / qsw))
+            if do_evap_timescale
+            else 1.0
+        )
         sink = -min(qvapor, fac * (-dq) / (1.0 + tcp3 * dqdt))
         condensation -= sink * delp
     else:
@@ -273,8 +278,8 @@ def complete_freeze(
     from __externals__ import t_wfr
 
     tc = t_wfr - temperature
-    if (tc > 0.0) and (qliquid > constants.QCMIN):
-        sink = qliquid * tc / constants.DT_FR
+    if (tc > 0.0) and (qliquid > physcons.QCMIN):
+        sink = qliquid * tc / physcons.DT_FR
         sink = min(qliquid, min(sink, tc / icpk))
         (
             qvapor,
@@ -344,7 +349,7 @@ def wegener_bergeron_findeisen(
 
     from __externals__ import do_mp_table_emulation, qi0_crt, tau_wbf, timestep
 
-    tc = constants.TICE0 - temperature
+    tc = physcons.TICE0 - temperature
     if __INLINED(do_mp_table_emulation):
         qsw, dqdt = physfun.wqs(temperature, density)
         qsi, dqdt = physfun.iqs(temperature, density)
@@ -354,8 +359,8 @@ def wegener_bergeron_findeisen(
 
     if (
         (tc > 0.0)
-        and (qliquid > constants.QCMIN)
-        and (qice > constants.QCMIN)
+        and (qliquid > physcons.QCMIN)
+        and (qice > physcons.QCMIN)
         and (qvapor > qsi)
         and (qvapor < qsw)
     ):
@@ -435,8 +440,8 @@ def freeze_bigg(
     """
     from __externals__ import do_psd_water_num, muw, pcaw, pcbw, timestep
 
-    tc = constants.TICE0 - temperature
-    if (tc > 0.0) and (qliquid > constants.QCMIN):
+    tc = physcons.TICE0 - temperature
+    if (tc > 0.0) and (qliquid > physcons.QCMIN):
         if do_psd_water_num:
             cloud_condensation_nuclei = physfun.calc_particle_concentration(
                 qliquid, density, pcaw, pcbw, muw
@@ -445,7 +450,7 @@ def freeze_bigg(
 
         sink = (
             100.0
-            / (constants.RHO_W * cloud_condensation_nuclei)
+            / (physcons.RHO_W * cloud_condensation_nuclei)
             * timestep
             * (exp(0.66 * tc) - 1.0)
             * qliquid ** 2.0
@@ -539,7 +544,7 @@ def deposit_and_sublimate_ice(
         timestep,
     )
 
-    if temperature < constants.TICE0:
+    if temperature < physcons.TICE0:
         pidep = 0.0
         if __INLINED(do_mp_table_emulation):
             qsi, dqdt = physfun.iqs(temperature, density)
@@ -548,13 +553,13 @@ def deposit_and_sublimate_ice(
         dq = qvapor - qsi
         tmp = dq / (1.0 + tcpk * dqdt)
 
-        if qice > constants.QCMIN:
+        if qice > physcons.QCMIN:
             if not prog_ccn:
                 if inflag == 1:
                     cloud_ice_nuclei = 5.38e7 * exp(0.75 * log(qice * density))
                 elif inflag == 2:
                     cloud_ice_nuclei = (
-                        exp(-2.80 + 0.262 * (constants.TICE0 - temperature)) * 1000.0
+                        exp(-2.80 + 0.262 * (physcons.TICE0 - temperature)) * 1000.0
                     )
                 elif inflag == 3:
                     cloud_ice_nuclei = (
@@ -562,11 +567,11 @@ def deposit_and_sublimate_ice(
                     )
                 elif inflag == 4:
                     cloud_ice_nuclei = (
-                        5.0e-3 * exp(0.304 * (constants.TICE0 - temperature)) * 1000.0
+                        5.0e-3 * exp(0.304 * (physcons.TICE0 - temperature)) * 1000.0
                     )
                 else:  # inflag == 5:
                     cloud_ice_nuclei = (
-                        1.0e-5 * exp(0.5 * (constants.TICE0 - temperature)) * 1000.0
+                        1.0e-5 * exp(0.5 * (physcons.TICE0 - temperature)) * 1000.0
                     )
             if do_psd_ice_num:
                 cloud_ice_nuclei = physfun.calc_particle_concentration(
@@ -584,12 +589,12 @@ def deposit_and_sublimate_ice(
                     qsi
                     * density
                     * (tcpk * cvm) ** 2
-                    / (constants.TCOND * constants.RVGAS * temperature ** 2)
-                    + 1.0 / constants.VDIFU
+                    / (physcons.TCOND * constants.RVGAS * temperature ** 2)
+                    + 1.0 / physcons.VDIFU
                 )
             )
         if dq > 0:
-            tc = constants.TICE0 - temperature
+            tc = physcons.TICE0 - temperature
             qi_gen = 4.92e-11 * exp(1.33 * log(1.0e3 * exp(0.1 * tc)))
             if igflag == 1:
                 qi_crt = qi_gen / density
@@ -692,7 +697,7 @@ def deposit_and_sublimate_snow(
         timestep,
     )
 
-    if qsnow > constants.QCMIN:
+    if qsnow > physcons.QCMIN:
         tin = temperature
         if __INLINED(do_mp_table_emulation):
             qsi, dqdt = physfun.iqs(tin, density)
@@ -726,8 +731,8 @@ def deposit_and_sublimate_snow(
             sub += sink * delp
         else:
             sink = 0.0
-            if temperature <= constants.TICE0:
-                sink = max(dq, (temperature - constants.TICE0) / tcpk)
+            if temperature <= physcons.TICE0:
+                sink = max(dq, (temperature - physcons.TICE0) / tcpk)
                 sink = max(pssub, sink)
             dep -= sink * delp
 
@@ -817,7 +822,7 @@ def deposit_and_sublimate_graupel(
         timestep,
     )
 
-    if qgraupel > constants.QCMIN:
+    if qgraupel > physcons.QCMIN:
         tin = temperature
         if __INLINED(do_mp_table_emulation):
             qsi, dqdt = physfun.iqs(tin, density)
@@ -853,8 +858,8 @@ def deposit_and_sublimate_graupel(
             sub += sink * delp
         else:
             sink = 0.0
-            if temperature <= constants.TICE0:
-                sink = max(dq, (temperature - constants.TICE0) / tcpk)
+            if temperature <= physcons.TICE0:
+                sink = max(dq, (temperature - physcons.TICE0) / tcpk)
                 sink = max(pgsub, sink)
             dep -= sink * delp
 
@@ -923,9 +928,10 @@ def vertical_subgrid_processes(
     reevap: FloatFieldIJ,
     sub: FloatFieldIJ,
     rh_adj: FloatFieldIJ,
+    last_step: Bool,
 ):
     """"""
-    from __externals__ import do_warm_rain_mp, do_wbf, delay_cond_evap, nconds
+    from __externals__ import delay_cond_evap, do_warm_rain_mp, do_wbf, nconds
 
     with computation(FORWARD):
         with interval(-1, None):
@@ -986,7 +992,7 @@ def vertical_subgrid_processes(
             cond_evap = last_step if delay_cond_evap else True
 
             if cond_evap:
-                n=1
+                n = 1
                 while n <= nconds:
                     (
                         qvapor,
@@ -1379,4 +1385,5 @@ class VerticalSubgridProcesses:
             reevap,
             sub,
             rh_adj,
+            last_step,
         )

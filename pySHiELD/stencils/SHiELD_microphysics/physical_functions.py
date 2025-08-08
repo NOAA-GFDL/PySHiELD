@@ -3,6 +3,7 @@ from gt4py.cartesian.gtscript import exp, floor, log, sqrt
 
 import pyFV3.stencils.basic_operations as basic
 import pySHiELD.constants as constants
+import pyshield.constants as physcons
 
 
 @gtscript.function
@@ -128,7 +129,7 @@ def calc_heat_cap_and_latent_heat_coeff(
     icpk = (li00 + d1_ice * temperature) / cvm
     tcpk = (li20 + (d1_vap + d1_ice) * temperature) / cvm
     tcp3 = lcpk + icpk * min(
-        1.0, basic.dim(constants.TICE0, temperature) / (constants.TICE0 - t_wfr)
+        1.0, basic.dim(physcons.TICE0, temperature) / (physcons.TICE0 - t_wfr)
     )
 
     return q_liq, q_solid, cvm, te, lcpk, icpk, tcpk, tcp3
@@ -182,7 +183,7 @@ def update_hydrometeors_and_temperatures(
     icpk = (li00 + d1_ice * tk) / cvm
     tcpk = (li20 + (d1_vap + d1_ice) * tk) / cvm
     tcp3 = lcpk + icpk * min(
-        1.0, basic.dim(constants.TICE0, tk) / (constants.TICE0 - t_wfr)
+        1.0, basic.dim(physcons.TICE0, tk) / (physcons.TICE0 - t_wfr)
     )
 
     return (
@@ -210,8 +211,8 @@ def table0(temp):
     """
     return constants.E00 * exp(
         (
-            constants.DC_VAP * log(temp / constants.TICE0)
-            + constants.LV0 * (temp - constants.TICE0) / (temp * constants.TICE0)
+            constants.DC_VAP * log(temp / physcons.TICE0)
+            + physcons.LV0 * (temp - physcons.TICE0) / (temp * physcons.TICE0)
         )
         / constants.RVGAS
     )
@@ -225,14 +226,12 @@ def table2(temp):
     it is not designed for mixed-phase cloud microphysics
     used for ice microphysics (< 0 deg C) or warm rain microphysics (> 0 deg C)
     """
-    if temp < constants.TICE0:
+    if temp < physcons.TICE0:
         # Over ice between -160 degrees Celsius and 0 degrees Celsius
         return_val = constants.E00 * exp(
             (
-                constants.D2ICE * log(temp / constants.TICE0)
-                + constants.LI2
-                * (temp - constants.TICE0)
-                / (temp * constants.TICE0)
+                physcons.D2ICE * log(temp / physcons.TICE0)
+                + physcons.LI2 * (temp - physcons.TICE0) / (temp * physcons.TICE0)
             )
             / constants.RVGAS
         )
@@ -251,28 +250,22 @@ def sat_spec_hum_water(temp, density):
     compute the saturated specific humidity, core function
     """
     q = table0(temp) / (constants.RVGAS * temp * density)
-    dqdt = (
-        q
-        * (constants.DC_VAP + constants.LV0 / temp)
-        / (constants.RVGAS * temp)
-    )
+    dqdt = q * (constants.DC_VAP + physcons.LV0 / temp) / (constants.RVGAS * temp)
     return q, dqdt
 
 
 @gtscript.function
 def sat_spec_hum_water_ice(temperature, density):
-    temp = max(constants.TICE0 - 160.0, min(temperature, constants.TICE0 + 102.0))
+    temp = max(physcons.TICE0 - 160.0, min(temperature, physcons.TICE0 + 102.0))
     q = table2(temp) / (constants.RVGAS * temperature * density)
-    if temp < constants.TICE0:
+    if temp < physcons.TICE0:
         dqdt = (
-            q
-            * (constants.D2ICE + constants.LI2 / temp)
-            / (constants.RVGAS * temperature)
+            q * (physcons.D2ICE + physcons.LI2 / temp) / (constants.RVGAS * temperature)
         )
     else:
         dqdt = (
             q
-            * (constants.DC_VAP + constants.LV0 / temp)
+            * (constants.DC_VAP + physcons.LV0 / temp)
             / (constants.RVGAS * temperature)
         )
     return q, dqdt
@@ -280,13 +273,13 @@ def sat_spec_hum_water_ice(temperature, density):
 
 @gtscript.function
 def temperature_index(temperature):
-    tmin = constants.TICE0 - 160.0
+    tmin = physcons.TICE0 - 160.0
     return floor(10.0 * (temperature - tmin)) / 10.0 + tmin
 
 
 @gtscript.function
 def table0_delta(int_temperature):
-    tmax = constants.TICE0 - 160.0 + 262.0
+    tmax = physcons.TICE0 - 160.0 + 262.0
     int_temperature = min(int_temperature, tmax)
     return max(0.0, table0(int_temperature + 0.1) - table0(int_temperature))
 
@@ -301,7 +294,7 @@ def lookup_0(temperature):
 
 @gtscript.function
 def table2_delta(int_temperature):
-    tmax = constants.TICE0 - 160.0 + 262.0
+    tmax = physcons.TICE0 - 160.0 + 262.0
     int_temperature = min(int_temperature, tmax)
     return max(0.0, table2(int_temperature + 0.1) - table2(int_temperature))
 
@@ -316,7 +309,7 @@ def lookup_2(temperature):
 
 @gtscript.function
 def wqs(temperature, density):
-    tmin = constants.TICE0 - 160.0
+    tmin = physcons.TICE0 - 160.0
     temp_limit = min(tmin + 262.1, max(tmin, temperature))
     qsat = lookup_0(temp_limit) / (constants.RVGAS * temperature * density)
     it = temperature_index(temp_limit - 0.05)
@@ -333,7 +326,7 @@ def wqs(temperature, density):
 
 @gtscript.function
 def iqs(temperature, density):
-    tmin = constants.TICE0 - 160.0
+    tmin = physcons.TICE0 - 160.0
     temp_limit = min(tmin + 262.1, max(tmin, temperature))
     qsat = lookup_2(temp_limit) / (constants.RVGAS * temperature * density)
     it = temperature_index(temp_limit - 0.05)
@@ -394,7 +387,7 @@ def melting_function(
     """
     return (c1 / (icpk * cvm) * tc / density - c2 * lcpk / icpk * dq) * exp(
         (1 + mu) / (mu + 3) * log(6 * qden)
-    ) * vent_coeff(qden, density_factor, c3, c4, blin, mu) + constants.C_LIQ / (
+    ) * vent_coeff(qden, density_factor, c3, c4, blin, mu) + physcons.C_LIQ / (
         icpk * cvm
     ) * tc * (
         pxacw + pxacr

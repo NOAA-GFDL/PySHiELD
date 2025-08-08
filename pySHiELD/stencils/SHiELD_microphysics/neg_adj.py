@@ -1,7 +1,7 @@
 import physical_functions as physfun
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
 
-import ndsl.constants as constants
+import pyshield.constants as physcons
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
@@ -180,7 +180,7 @@ class AdjustNegativeTracers:
                 "li20": config.li20,
                 "d1_vap": config.d1_vap,
                 "d1_ice": config.d1_ice,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "t_wfr": config.t_wfr,
                 "convt": convert_mm_day,
                 "ntimes": config.ntimes,

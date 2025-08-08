@@ -9,6 +9,7 @@ from gt4py.cartesian.gtscript import (  # noqa
 )
 
 import ndsl.constants as constants
+import pyshield.constants as physcons
 import pySHiELD.stencils.SHiELD_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
@@ -105,7 +106,7 @@ def evaporate_rain(
         qsat, dqdt = physfun.sat_spec_hum_water(tin, density)
         dqv = qsat - qvapor
 
-        dqh = max(qliquid, h_var * max(qpz, constants.QCMIN))
+        dqh = max(qliquid, h_var * max(qpz, physcons.QCMIN))
         dqh = min(dqh, 0.2 * qpz)
 
         q_minus = qpz - dqh
@@ -115,7 +116,7 @@ def evaporate_rain(
 
         if (
             (temperature > t_wfr)
-            and (qrain > constants.QCMIN)
+            and (qrain > physcons.QCMIN)
             and (dqv > 0.0)
             and (qsat > q_minus)
         ):
@@ -195,9 +196,9 @@ class RainFunction:
         if config.tau_revp > 1.0e-6:
             self._fac_revap = 1.0 - math.exp(-timestep / config.tau_revp)
 
-        fac_rc = (4.0 / 3.0) * constants.PI * constants.RHO_W * config.rthresh ** 3
+        fac_rc = (4.0 / 3.0) * constants.PI * physcons.RHO_W * config.rthresh ** 3
         aone = 2.0 / 9.0 * (3.0 / 4.0) ** (4.0 / 3.0) / constants.PI ** (1.0 / 3.0)
-        cpaut = config.c_paut * aone * constants.GRAV / constants.VISD
+        cpaut = config.c_paut * aone * constants.GRAV / physcons.VISD
 
         self._evaporate_rain = stencil_factory.from_origin_domain(
             func=evaporate_rain,
@@ -217,7 +218,7 @@ class RainFunction:
                 "li00": config.li00,
                 "li20": config.li20,
                 "lv00": config.lv00,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "c1": config.crevp_1,
                 "c2": config.crevp_2,
                 "c3": config.crevp_3,

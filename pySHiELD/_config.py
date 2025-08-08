@@ -6,9 +6,10 @@ from typing import List, Optional, Tuple
 import f90nml
 
 import ndsl.constants as constants
+import pyshield.constants as physcons
+from ndsl.dsl.typing import Bool, Float, Int
 from ndsl.namelist import Namelist, NamelistDefaults
 from ndsl.utils import MetaEnumStr
-from ndsl.dsl.typing import Float, Int, Bool
 
 
 DEFAULT_INT = Int(0)
@@ -402,21 +403,19 @@ class MicroPhysicsConfig:
         else:
             self.c_air = constants.CV_AIR
             self.c_vap = constants.CV_VAP
-        self.d0_vap = self.c_vap - constants.C_LIQ
+        self.d0_vap = self.c_vap - physcons.C_LIQ
 
         # scaled constants to reduce 32 bit floating errors
-        self.lv00 = (constants.HLV - self.d0_vap * constants.TICE0) / self.c_air
-        self.li00 = (
-            constants.HLF - constants.DC_ICE * constants.TICE0
-        ) / self.c_air
+        self.lv00 = (constants.HLV - self.d0_vap * physcons.TICE0) / self.c_air
+        self.li00 = (constants.HLF - constants.DC_ICE * physcons.TICE0) / self.c_air
         self.li20 = self.lv00 + self.li00
 
         self.d1_vap = self.d0_vap / self.c_air
         self.d1_ice = constants.DC_ICE / self.c_air
 
         self.c1_vap = self.c_vap / self.c_air
-        self.c1_liq = constants.C_LIQ / self.c_air
-        self.c1_ice = constants.C_ICE / self.c_air
+        self.c1_liq = physcons.C_LIQ / self.c_air
+        self.c1_ice = physcons.C_ICE / self.c_air
 
         self._calculate_particle_parameters()
 
@@ -433,13 +432,13 @@ class MicroPhysicsConfig:
         self.n_min = 1600
         self.delt = 0.1
         self.esbasw = 1013246.0
-        self.tbasw = constants.TICE0 + 100.0
+        self.tbasw = physcons.TICE0 + 100.0
         self.esbasi = 6107.1
-        self.tmin = constants.TICE0 - self.n_min * self.delt
+        self.tmin = physcons.TICE0 - self.n_min * self.delt
         if self.do_warm_rain_mp:  # unsupported
             self.t_wfr = self.tmin
         else:
-            self.t_wfr = constants.TICE0 - 40.0
+            self.t_wfr = physcons.TICE0 - 40.0
 
     @property
     def adjustnegative(self) -> AdjustNegativeTracerConfig:
@@ -575,7 +574,7 @@ class MicroPhysicsConfig:
         self.pcbw = math.exp(
             muw
             / (muw + 3)
-            * math.log(constants.PI * constants.RHO_W * math.gamma(muw + 3))
+            * math.log(constants.PI * physcons.RHO_W * math.gamma(muw + 3))
         )
         self.pcai = (
             math.exp(3 / (mui + 3) * math.log(n0i_sig))
@@ -585,7 +584,7 @@ class MicroPhysicsConfig:
         self.pcbi = math.exp(
             mui
             / (mui + 3)
-            * math.log(constants.PI * constants.RHO_I * math.gamma(mui + 3))
+            * math.log(constants.PI * physcons.RHO_I * math.gamma(mui + 3))
         )
 
         self.pcar = (
@@ -596,7 +595,7 @@ class MicroPhysicsConfig:
         self.pcbr = math.exp(
             mur
             / (mur + 3)
-            * math.log(constants.PI * constants.RHO_R * math.gamma(mur + 3))
+            * math.log(constants.PI * physcons.RHO_R * math.gamma(mur + 3))
         )
 
         self.pcas = (
@@ -607,7 +606,7 @@ class MicroPhysicsConfig:
         self.pcbs = math.exp(
             mus
             / (mus + 3)
-            * math.log(constants.PI * constants.RHO_S * math.gamma(mus + 3))
+            * math.log(constants.PI * physcons.RHO_S * math.gamma(mus + 3))
         )
 
         self.pcag = (
@@ -618,7 +617,7 @@ class MicroPhysicsConfig:
         self.pcbg = math.exp(
             mug
             / (mug + 3)
-            * math.log(constants.PI * constants.RHO_G * math.gamma(mug + 3))
+            * math.log(constants.PI * physcons.RHO_G * math.gamma(mug + 3))
         )
 
         self.pcah = (
@@ -629,7 +628,7 @@ class MicroPhysicsConfig:
         self.pcbh = math.exp(
             muh
             / (muh + 3)
-            * math.log(constants.PI * constants.RHO_H * math.gamma(muh + 3))
+            * math.log(constants.PI * physcons.RHO_H * math.gamma(muh + 3))
         )
 
         # Effective Diameter
@@ -641,7 +640,7 @@ class MicroPhysicsConfig:
         self.edbw = math.exp(
             1.0
             / (muw + 3)
-            * math.log(constants.PI * constants.RHO_W * math.gamma(muw + 3))
+            * math.log(constants.PI * physcons.RHO_W * math.gamma(muw + 3))
         )
 
         self.edai = (
@@ -652,7 +651,7 @@ class MicroPhysicsConfig:
         self.edbi = math.exp(
             1.0
             / (mui + 3)
-            * math.log(constants.PI * constants.RHO_I * math.gamma(mui + 3))
+            * math.log(constants.PI * physcons.RHO_I * math.gamma(mui + 3))
         )
 
         self.edar = (
@@ -663,7 +662,7 @@ class MicroPhysicsConfig:
         self.edbr = math.exp(
             1.0
             / (mur + 3)
-            * math.log(constants.PI * constants.RHO_R * math.gamma(mur + 3))
+            * math.log(constants.PI * physcons.RHO_R * math.gamma(mur + 3))
         )
 
         self.edas = (
@@ -674,7 +673,7 @@ class MicroPhysicsConfig:
         self.edbs = math.exp(
             1.0
             / (mus + 3)
-            * math.log(constants.PI * constants.RHO_S * math.gamma(mus + 3))
+            * math.log(constants.PI * physcons.RHO_S * math.gamma(mus + 3))
         )
 
         self.edag = (
@@ -685,7 +684,7 @@ class MicroPhysicsConfig:
         self.edbg = math.exp(
             1.0
             / (mug + 3)
-            * math.log(constants.PI * constants.RHO_G * math.gamma(mug + 3))
+            * math.log(constants.PI * physcons.RHO_G * math.gamma(mug + 3))
         )
 
         self.edah = (
@@ -696,7 +695,7 @@ class MicroPhysicsConfig:
         self.edbh = math.exp(
             1.0
             / (muh + 3)
-            * math.log(constants.PI * constants.RHO_H * math.gamma(muh + 3))
+            * math.log(constants.PI * physcons.RHO_H * math.gamma(muh + 3))
         )
 
         # Optical Extinction
@@ -709,7 +708,7 @@ class MicroPhysicsConfig:
         self.oebw = 2 * math.exp(
             (muw + 2)
             / (muw + 3)
-            * math.log(constants.PI * constants.RHO_W * math.gamma(muw + 3))
+            * math.log(constants.PI * physcons.RHO_W * math.gamma(muw + 3))
         )
 
         self.oeai = (
@@ -721,7 +720,7 @@ class MicroPhysicsConfig:
         self.oebi = 2 * math.exp(
             (mui + 2)
             / (mui + 3)
-            * math.log(constants.PI * constants.RHO_I * math.gamma(mui + 3))
+            * math.log(constants.PI * physcons.RHO_I * math.gamma(mui + 3))
         )
 
         self.oear = (
@@ -733,7 +732,7 @@ class MicroPhysicsConfig:
         self.oebr = 2 * math.exp(
             (mur + 2)
             / (mur + 3)
-            * math.log(constants.PI * constants.RHO_R * math.gamma(mur + 3))
+            * math.log(constants.PI * physcons.RHO_R * math.gamma(mur + 3))
         )
 
         self.oeas = (
@@ -745,7 +744,7 @@ class MicroPhysicsConfig:
         self.oebs = 2 * math.exp(
             (mus + 2)
             / (mus + 3)
-            * math.log(constants.PI * constants.RHO_S * math.gamma(mus + 3))
+            * math.log(constants.PI * physcons.RHO_S * math.gamma(mus + 3))
         )
 
         self.oeag = (
@@ -757,7 +756,7 @@ class MicroPhysicsConfig:
         self.oebg = 2 * math.exp(
             (mug + 2)
             / (mug + 3)
-            * math.log(constants.PI * constants.RHO_G * math.gamma(mug + 3))
+            * math.log(constants.PI * physcons.RHO_G * math.gamma(mug + 3))
         )
 
         self.oeah = (
@@ -769,7 +768,7 @@ class MicroPhysicsConfig:
         self.oebh = 2 * math.exp(
             (muh + 2)
             / (muh + 3)
-            * math.log(constants.PI * constants.RHO_H * math.gamma(muh + 3))
+            * math.log(constants.PI * physcons.RHO_H * math.gamma(muh + 3))
         )
 
         # Radar Reflectivity
@@ -781,7 +780,7 @@ class MicroPhysicsConfig:
         self.rrbw = math.exp(
             (muw + 6)
             / (muw + 3)
-            * math.log(constants.PI * constants.RHO_W * math.gamma(muw + 3))
+            * math.log(constants.PI * physcons.RHO_W * math.gamma(muw + 3))
         )
 
         self.rrai = (
@@ -792,7 +791,7 @@ class MicroPhysicsConfig:
         self.rrbi = math.exp(
             (mui + 6)
             / (mui + 3)
-            * math.log(constants.PI * constants.RHO_I * math.gamma(mui + 3))
+            * math.log(constants.PI * physcons.RHO_I * math.gamma(mui + 3))
         )
 
         self.rrar = (
@@ -803,7 +802,7 @@ class MicroPhysicsConfig:
         self.rrbr = math.exp(
             (mur + 6)
             / (mur + 3)
-            * math.log(constants.PI * constants.RHO_R * math.gamma(mur + 3))
+            * math.log(constants.PI * physcons.RHO_R * math.gamma(mur + 3))
         )
 
         self.rras = (
@@ -814,7 +813,7 @@ class MicroPhysicsConfig:
         self.rrbs = math.exp(
             (mus + 6)
             / (mus + 3)
-            * math.log(constants.PI * constants.RHO_S * math.gamma(mus + 3))
+            * math.log(constants.PI * physcons.RHO_S * math.gamma(mus + 3))
         )
 
         self.rrag = (
@@ -825,7 +824,7 @@ class MicroPhysicsConfig:
         self.rrbg = math.exp(
             (mug + 6)
             / (mug + 3)
-            * math.log(constants.PI * constants.RHO_G * math.gamma(mug + 3))
+            * math.log(constants.PI * physcons.RHO_G * math.gamma(mug + 3))
         )
 
         self.rrah = (
@@ -836,7 +835,7 @@ class MicroPhysicsConfig:
         self.rrbh = math.exp(
             (muh + 6)
             / (muh + 3)
-            * math.log(constants.PI * constants.RHO_H * math.gamma(muh + 3))
+            * math.log(constants.PI * physcons.RHO_H * math.gamma(muh + 3))
         )
 
         # Terminal Velocity
@@ -849,7 +848,7 @@ class MicroPhysicsConfig:
         self.tvbw = math.exp(
             blinw
             / (muw + 3)
-            * math.log(constants.PI * constants.RHO_W * math.gamma(muw + 3))
+            * math.log(constants.PI * physcons.RHO_W * math.gamma(muw + 3))
         ) * math.gamma(muw + 3)
 
         self.tvai = (
@@ -861,7 +860,7 @@ class MicroPhysicsConfig:
         self.tvbi = math.exp(
             blini
             / (mui + 3)
-            * math.log(constants.PI * constants.RHO_I * math.gamma(mui + 3))
+            * math.log(constants.PI * physcons.RHO_I * math.gamma(mui + 3))
         ) * math.gamma(mui + 3)
 
         self.tvar = (
@@ -873,7 +872,7 @@ class MicroPhysicsConfig:
         self.tvbr = math.exp(
             blinr
             / (mur + 3)
-            * math.log(constants.PI * constants.RHO_R * math.gamma(mur + 3))
+            * math.log(constants.PI * physcons.RHO_R * math.gamma(mur + 3))
         ) * math.gamma(mur + 3)
 
         self.tvas = (
@@ -885,7 +884,7 @@ class MicroPhysicsConfig:
         self.tvbs = math.exp(
             blins
             / (mus + 3)
-            * math.log(constants.PI * constants.RHO_S * math.gamma(mus + 3))
+            * math.log(constants.PI * physcons.RHO_S * math.gamma(mus + 3))
         ) * math.gamma(mus + 3)
 
         self.tvag = (
@@ -893,11 +892,11 @@ class MicroPhysicsConfig:
             * aling
             * math.gamma(mug + bling + 3)
             * math.exp(-bling * n0g_exp / (mug + 3) * math.log(10.0))
-        ) * constants.GCON
+        ) * physcons.GCON
         self.tvbg = math.exp(
             bling
             / (mug + 3)
-            * math.log(constants.PI * constants.RHO_G * math.gamma(mug + 3))
+            * math.log(constants.PI * physcons.RHO_G * math.gamma(mug + 3))
         ) * math.gamma(mug + 3)
 
         self.tvah = (
@@ -905,11 +904,11 @@ class MicroPhysicsConfig:
             * alinh
             * math.gamma(muh + blinh + 3)
             * math.exp(-blinh * n0h_exp / (muh + 3) * math.log(10.0))
-        ) * constants.HCON
+        ) * physcons.HCON
         self.tvbh = math.exp(
             blinh
             / (muh + 3)
-            * math.log(constants.PI * constants.RHO_H * math.gamma(muh + 3))
+            * math.log(constants.PI * physcons.RHO_H * math.gamma(muh + 3))
         ) * math.gamma(muh + 3)
 
     def _calculate_slope_parameters(self):
@@ -917,22 +916,22 @@ class MicroPhysicsConfig:
         Calculates slope parameters used for other variables
         """
         self.normw = (
-            constants.PI * constants.RHO_W * self.n0w_sig * math.gamma(self.muw + 3)
+            constants.PI * physcons.RHO_W * self.n0w_sig * math.gamma(self.muw + 3)
         )
         self.normi = (
-            constants.PI * constants.RHO_I * self.n0i_sig * math.gamma(self.mui + 3)
+            constants.PI * physcons.RHO_I * self.n0i_sig * math.gamma(self.mui + 3)
         )
         self.normr = (
-            constants.PI * constants.RHO_R * self.n0r_sig * math.gamma(self.mur + 3)
+            constants.PI * physcons.RHO_R * self.n0r_sig * math.gamma(self.mur + 3)
         )
         self.norms = (
-            constants.PI * constants.RHO_S * self.n0s_sig * math.gamma(self.mus + 3)
+            constants.PI * physcons.RHO_S * self.n0s_sig * math.gamma(self.mus + 3)
         )
         self.normg = (
-            constants.PI * constants.RHO_G * self.n0g_sig * math.gamma(self.mug + 3)
+            constants.PI * physcons.RHO_G * self.n0g_sig * math.gamma(self.mug + 3)
         )
         self.normh = (
-            constants.PI * constants.RHO_H * self.n0h_sig * math.gamma(self.muh + 3)
+            constants.PI * physcons.RHO_H * self.n0h_sig * math.gamma(self.muh + 3)
         )
 
         self.expow = math.exp(self.n0w_exp / (self.muw + 3) * math.log(10.0))
@@ -953,8 +952,8 @@ class MicroPhysicsConfig:
         self.crevp_1 = (
             2.0
             * constants.PI
-            * constants.VDIFU
-            * constants.TCOND
+            * physcons.VDIFU
+            * physcons.TCOND
             * constants.RVGAS
             * self.n0r_sig
             * math.gamma(1 + self.mur)
@@ -964,8 +963,8 @@ class MicroPhysicsConfig:
         self.crevp_2 = 0.78
         self.crevp_3 = (
             0.31
-            * constants.SCM3
-            * math.sqrt(self.alinr / constants.VISK)
+            * physcons.SCM3
+            * math.sqrt(self.alinr / physcons.VISK)
             * math.gamma((3 + 2 * self.mur + self.blinr) / 2)
             / math.exp(
                 (3 + 2 * self.mur + self.blinr)
@@ -977,14 +976,14 @@ class MicroPhysicsConfig:
             / math.gamma(1 + self.mur)
             * math.exp((-1 - self.blinr) / 2.0 * math.log(self.expor))
         )
-        self.crevp_4 = constants.TCOND * constants.RVGAS
-        self.crevp_5 = constants.VDIFU
+        self.crevp_4 = physcons.TCOND * constants.RVGAS
+        self.crevp_5 = physcons.VDIFU
 
         self.cssub_1 = (
             2.0
             * constants.PI
-            * constants.VDIFU
-            * constants.TCOND
+            * physcons.VDIFU
+            * physcons.TCOND
             * constants.RVGAS
             * self.n0s_sig
             * math.gamma(1 + self.mus)
@@ -994,8 +993,8 @@ class MicroPhysicsConfig:
         self.cssub_2 = 0.78
         self.cssub_3 = (
             0.31
-            * constants.SCM3
-            * math.sqrt(self.alins / constants.VISK)
+            * physcons.SCM3
+            * math.sqrt(self.alins / physcons.VISK)
             * math.gamma((3 + 2 * self.mus + self.blins) / 2)
             / math.exp(
                 (3 + 2 * self.mus + self.blins)
@@ -1007,15 +1006,15 @@ class MicroPhysicsConfig:
             / math.gamma(1 + self.mus)
             * math.exp((-1 - self.blins) / 2.0 * math.log(self.expos))
         )
-        self.cssub_4 = constants.TCOND * constants.RVGAS
-        self.cssub_5 = constants.VDIFU
+        self.cssub_4 = physcons.TCOND * constants.RVGAS
+        self.cssub_5 = physcons.VDIFU
 
         if self.do_hail:
             self.cgsub_1 = (
                 2.0
                 * constants.PI
-                * constants.VDIFU
-                * constants.TCOND
+                * physcons.VDIFU
+                * physcons.TCOND
                 * constants.RVGAS
                 * self.n0h_sig
                 * math.gamma(1 + self.muh)
@@ -1025,8 +1024,8 @@ class MicroPhysicsConfig:
             self.cgsub_2 = 0.78
             self.cgsub_3 = (
                 0.31
-                * constants.SCM3
-                * math.sqrt(self.alinh * constants.HCON / constants.VISK)
+                * physcons.SCM3
+                * math.sqrt(self.alinh * physcons.HCON / physcons.VISK)
                 * math.gamma((3 + 2 * self.muh + self.blinh) / 2)
                 / math.exp(
                     1.0
@@ -1043,8 +1042,8 @@ class MicroPhysicsConfig:
             self.cgsub_1 = (
                 2.0
                 * constants.PI
-                * constants.VDIFU
-                * constants.TCOND
+                * physcons.VDIFU
+                * physcons.TCOND
                 * constants.RVGAS
                 * self.n0g_sig
                 * math.gamma(1 + self.mug)
@@ -1054,8 +1053,8 @@ class MicroPhysicsConfig:
             self.cgsub_2 = 0.78
             self.cgsub_3 = (
                 0.31
-                * constants.SCM3
-                * math.sqrt(self.aling * constants.GCON / constants.VISK)
+                * physcons.SCM3
+                * math.sqrt(self.aling * physcons.GCON / physcons.VISK)
                 * math.gamma((3 + 2 * self.mug + self.bling) / 2)
                 / math.exp(
                     (3 + 2 * self.mug + self.bling)
@@ -1067,8 +1066,8 @@ class MicroPhysicsConfig:
                 / math.gamma(1 + self.mug)
                 * math.exp((-1 - self.bling) / 2.0 * math.log(self.expog))
             )
-        self.cgsub_4 = constants.TCOND * constants.RVGAS
-        self.cgsub_5 = constants.VDIFU
+        self.cgsub_4 = physcons.TCOND * constants.RVGAS
+        self.cgsub_5 = physcons.VDIFU
 
     def _calculate_accretion_parameters(self):
         """
@@ -1109,7 +1108,7 @@ class MicroPhysicsConfig:
                 * self.n0h_sig
                 * self.alinh
                 * math.gamma(2 + self.muh + self.blinh)
-                * constants.HCON
+                * physcons.HCON
                 / (
                     4.0
                     * math.exp(
@@ -1127,7 +1126,7 @@ class MicroPhysicsConfig:
                 * self.n0g_sig
                 * self.aling
                 * math.gamma(2 + self.mug + self.bling)
-                * constants.GCON
+                * physcons.GCON
                 / (
                     4.0
                     * math.exp(
@@ -1142,17 +1141,17 @@ class MicroPhysicsConfig:
 
         if self.do_new_acc_water:
             self.cracw = (
-                constants.PI ** 2 * self.n0r_sig * self.n0w_sig * constants.RHO_W / 24.0
+                constants.PI ** 2 * self.n0r_sig * self.n0w_sig * physcons.RHO_W / 24.0
             )
             self.csacw = (
-                constants.PI ** 2 * self.n0s_sig * self.n0w_sig * constants.RHO_W / 24.0
+                constants.PI ** 2 * self.n0s_sig * self.n0w_sig * physcons.RHO_W / 24.0
             )
             if self.do_hail:
                 self.cgacw = (
                     constants.PI ** 2
                     * self.n0h_sig
                     * self.n0w_sig
-                    * constants.RHO_W
+                    * physcons.RHO_W
                     / 24.0
                 )
             else:
@@ -1160,23 +1159,23 @@ class MicroPhysicsConfig:
                     constants.PI ** 2
                     * self.n0g_sig
                     * self.n0w_sig
-                    * constants.RHO_W
+                    * physcons.RHO_W
                     / 24.0
                 )
 
         if self.do_new_acc_ice:
             self.craci = (
-                constants.PI ** 2 * self.n0r_sig * self.n0i_sig * constants.RHO_I / 24.0
+                constants.PI ** 2 * self.n0r_sig * self.n0i_sig * physcons.RHO_I / 24.0
             )
             self.csaci = (
-                constants.PI ** 2 * self.n0s_sig * self.n0i_sig * constants.RHO_I / 24.0
+                constants.PI ** 2 * self.n0s_sig * self.n0i_sig * physcons.RHO_I / 24.0
             )
             if self.do_hail:
                 self.cgaci = (
                     constants.PI ** 2
                     * self.n0h_sig
                     * self.n0i_sig
-                    * constants.RHO_I
+                    * physcons.RHO_I
                     / 24.0
                 )
             else:
@@ -1184,7 +1183,7 @@ class MicroPhysicsConfig:
                     constants.PI ** 2
                     * self.n0g_sig
                     * self.n0i_sig
-                    * constants.RHO_I
+                    * physcons.RHO_I
                     / 24.0
                 )
         else:
@@ -1198,24 +1197,24 @@ class MicroPhysicsConfig:
         self.cgaci = self.cgaci * self.c_pgaci
 
         self.cracs = (
-            constants.PI ** 2 * self.n0r_sig * self.n0s_sig * constants.RHO_S / 24.0
+            constants.PI ** 2 * self.n0r_sig * self.n0s_sig * physcons.RHO_S / 24.0
         )
         self.csacr = (
-            constants.PI ** 2 * self.n0s_sig * self.n0r_sig * constants.RHO_R / 24.0
+            constants.PI ** 2 * self.n0s_sig * self.n0r_sig * physcons.RHO_R / 24.0
         )
         if self.do_hail:
             self.cgacs = (
-                constants.PI ** 2 * self.n0h_sig * self.n0s_sig * constants.RHO_S / 24.0
+                constants.PI ** 2 * self.n0h_sig * self.n0s_sig * physcons.RHO_S / 24.0
             )
             self.cgacr = (
-                constants.PI ** 2 * self.n0h_sig * self.n0r_sig * constants.RHO_R / 24.0
+                constants.PI ** 2 * self.n0h_sig * self.n0r_sig * physcons.RHO_R / 24.0
             )
         else:
             self.cgacs = (
-                constants.PI ** 2 * self.n0g_sig * self.n0s_sig * constants.RHO_S / 24.0
+                constants.PI ** 2 * self.n0g_sig * self.n0s_sig * physcons.RHO_S / 24.0
             )
             self.cgacr = (
-                constants.PI ** 2 * self.n0g_sig * self.n0r_sig * constants.RHO_R / 24.0
+                constants.PI ** 2 * self.n0g_sig * self.n0r_sig * physcons.RHO_R / 24.0
             )
 
         self.cracs *= self.c_pracs
@@ -1351,7 +1350,7 @@ class MicroPhysicsConfig:
         self.csmlt_1 = (
             2.0
             * constants.PI
-            * constants.TCOND
+            * physcons.TCOND
             * self.n0s_sig
             * math.gamma(1 + self.mus)
             / math.exp((1 + self.mus) / (self.mus + 3) * math.log(self.norms))
@@ -1360,7 +1359,7 @@ class MicroPhysicsConfig:
         self.csmlt_2 = (
             2.0
             * constants.PI
-            * constants.VDIFU
+            * physcons.VDIFU
             * self.n0s_sig
             * math.gamma(1 + self.mus)
             / math.exp((1 + self.mus) / (self.mus + 3) * math.log(self.norms))
@@ -1374,7 +1373,7 @@ class MicroPhysicsConfig:
             self.cgmlt_1 = (
                 2.0
                 * constants.PI
-                * constants.TCOND
+                * physcons.TCOND
                 * self.n0h_sig
                 * math.gamma(1 + self.muh)
                 / math.exp((1 + self.muh) / (self.muh + 3) * math.log(self.normh))
@@ -1383,7 +1382,7 @@ class MicroPhysicsConfig:
             self.cgmlt_2 = (
                 2.0
                 * constants.PI
-                * constants.VDIFU
+                * physcons.VDIFU
                 * self.n0h_sig
                 * math.gamma(1 + self.muh)
                 / math.exp((1 + self.muh) / (self.muh + 3) * math.log(self.normh))
@@ -1393,7 +1392,7 @@ class MicroPhysicsConfig:
             self.cgmlt_1 = (
                 2.0
                 * constants.PI
-                * constants.TCOND
+                * physcons.TCOND
                 * self.n0g_sig
                 * math.gamma(1 + self.mug)
                 / math.exp((1 + self.mug) / (self.mug + 3) * math.log(self.normg))
@@ -1402,7 +1401,7 @@ class MicroPhysicsConfig:
             self.cgmlt_2 = (
                 2.0
                 * constants.PI
-                * constants.VDIFU
+                * physcons.VDIFU
                 * self.n0g_sig
                 * math.gamma(1 + self.mug)
                 / math.exp((1 + self.mug) / (self.mug + 3) * math.log(self.normg))
@@ -1417,7 +1416,7 @@ class MicroPhysicsConfig:
             / 36
             * constants.PI ** 2
             * self.n0r_sig
-            * constants.RHO_R
+            * physcons.RHO_R
             * math.gamma(6 + self.mur)
             / math.exp((6 + self.mur) / (self.mur + 3) * math.log(self.normr))
             * math.exp(-3.0 * math.log(self.expor))
@@ -1823,7 +1822,6 @@ class PhysicsConfig:
             sedflag=namelist.sedflag,
             vdiffflag=namelist.vdiffflag,
             ntimes=namelist.ntimes,
-            nconds=namelist.nconds,
             do_inline_mp=namelist.do_inline_mp,
             do_mp_table_emulation=namelist.do_mp_table_emulation,
         )
@@ -1920,7 +1918,6 @@ class PhysicsConfig:
             fast_fr_mlt=self.fast_fr_mlt,
             fast_dep_sub=self.fast_dep_sub,
             delay_cond_evap=self.delay_cond_evap,
-            nconds=self.nconds,
             mp_time=self.mp_time,
             prog_ccn=self.prog_ccn,
             qi0_crt=self.qi0_crt,

@@ -1,18 +1,11 @@
 import physical_functions as physfun
 from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import (
-    __INLINED,
-    FORWARD,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-)
+from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, exp, interval
 
-import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
+import pyshield.constants as physcons
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ, Bool
+from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import (
     freeze_cloud_water,
     melt_cloud_ice,
@@ -20,8 +13,8 @@ from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import (
 from pySHiELD.stencils.SHiELD_microphysics.subgrid_z_proc import (
     cloud_condensation_evaporation,
     complete_freeze,
-    deposit_and_sublimate_ice,
     deposit_and_sublimate_graupel,
+    deposit_and_sublimate_ice,
     deposit_and_sublimate_snow,
     freeze_bigg,
     wegener_bergeron_findeisen,
@@ -53,7 +46,7 @@ def freeze_rain_to_graupel_simple(
     from __externals__ import fac_r2g, tice
 
     tc = temp - tice
-    if (tc < 0.0) and (qrain > constants.QCMIN):
+    if (tc < 0.0) and (qrain > physcons.QCMIN):
         sink = (-tc * 0.025) ** 2 * qrain
         sink = min(qrain, sink, -fac_r2g * tc / icpk)
 
@@ -125,7 +118,7 @@ def melt_snow_simple(
     from __externals__ import fac_smlt, qs_mlt, tice
 
     tc = temp - tice
-    if (tc > 0.0) and (qsnow > constants.QCMIN):
+    if (tc > 0.0) and (qsnow > physcons.QCMIN):
         sink = (tc * 0.1) ** 2 * qsnow
         sink = min(qsnow, sink, fac_smlt * tc / icpk)
         tmp = min(sink, basic.dim(qs_mlt, qliquid))
@@ -234,7 +227,15 @@ def fast_microphysics(
     sublimation: FloatFieldIJ,
     last_step: Bool,
 ):
-    from __externals__ import convt, do_warm_rain_mp, do_wbf, fast_fr_mlt, fast_dep_sub, delay_cond_evap, nconds
+    from __externals__ import (
+        convt,
+        delay_cond_evap,
+        do_warm_rain_mp,
+        do_wbf,
+        fast_dep_sub,
+        fast_fr_mlt,
+        nconds,
+    )
 
     with computation(FORWARD), interval(...):
         (
@@ -316,7 +317,7 @@ def fast_microphysics(
 
             cond_evap = last_step if delay_cond_evap else True
 
-            if (cond_evap):
+            if cond_evap:
                 n = 1
                 while n <= nconds:
                     (
@@ -554,7 +555,7 @@ def fast_microphysics(
                 qice,
                 qsnow,
                 qgraupel,
-                temperature,
+                temp,
                 cvm,
                 lcpk,
                 icpk,
@@ -569,7 +570,7 @@ def fast_microphysics(
                 qice,
                 qsnow,
                 qgraupel,
-                temperature,
+                temp,
                 delp,
                 density,
                 denfac,
@@ -590,7 +591,7 @@ def fast_microphysics(
                 qice,
                 qsnow,
                 qgraupel,
-                temperature,
+                temp,
                 cvm,
                 lcpk,
                 icpk,
@@ -605,7 +606,7 @@ def fast_microphysics(
                 qice,
                 qsnow,
                 qgraupel,
-                temperature,
+                temp,
                 delp,
                 density,
                 denfac,
@@ -652,7 +653,7 @@ class FastMicrophysics:
                 "li20": config.li20,
                 "d1_vap": config.d1_vap,
                 "d1_ice": config.d1_ice,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "t_wfr": config.t_wfr,
                 "convt": convert_mm_day,
                 "ql_mlt": config.ql_mlt,
@@ -661,7 +662,8 @@ class FastMicrophysics:
                 "tice_mlt": config.tice_mlt,
                 "timestep": timestep,
                 "do_cond_timescale": config.do_cond_timescale,
-                "rh_fac": config.rh_fac,
+                "rh_fac_evap": config.rh_fac_evap,
+                "rh_fac_cond": config.rh_fac_cond,
                 "rhc_cevap": config.rhc_cevap,
                 "tau_l2v": config.tau_l2v,
                 "tau_v2l": config.tau_v2l,
