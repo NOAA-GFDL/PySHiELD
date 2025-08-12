@@ -1928,7 +1928,6 @@ class PhysicsConfig:
             fast_sat_adj=namelist.fast_sat_adj,
             qc_crt=namelist.qc_crt,
             fix_negative=namelist.fix_negative,
-            nconds=namelist.nconds,
             mp_time=namelist.mp_time,
             prog_ccn=namelist.prog_ccn,
             qi0_crt=namelist.qi0_crt,
