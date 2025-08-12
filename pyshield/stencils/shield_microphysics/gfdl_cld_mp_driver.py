@@ -1,5 +1,4 @@
 import numpy as np
-import pyfv3.stencils.basic_operations as basic
 from gt4py.cartesian.gtscript import (
     __INLINED,
     BACKWARD,
@@ -11,6 +10,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
+import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl import QuantityFactory

@@ -1,5 +1,4 @@
-import pyfv3.stencils.basic_operations as basic
-
+import ndsl.stencils.basic_operations as basic
 from ndsl.constants import X_DIM, Y_DIM
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.initialization import SubtileGridSizer
