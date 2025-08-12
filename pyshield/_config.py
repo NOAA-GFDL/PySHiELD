@@ -9,7 +9,7 @@ import ndsl.constants as constants
 import ndsl.namelist as nml
 import pyshield.constants as physcons
 from ndsl.dsl.typing import Bool, Float, Int
-from ndsl.utils import MetaEnumStr
+from ndsl import MetaEnumStr
 
 
 DEFAULT_INT = Int(0)
@@ -1644,14 +1644,12 @@ class MicroPhysicsConfig:
         )
         self.cgfr_2 = 0.66
 
-
 @dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: Float = DEFAULT_FLOAT
     ntimes: Int = NamelistDefaults.ntimes
     nconds: Int = Int(1)
     hydrostatic: Bool = DEFAULT_BOOL
-    scheme: str = "GFS"  # Which physics schemes to use
     npx: Int = DEFAULT_INT
     npy: Int = DEFAULT_INT
     npz: Int = DEFAULT_INT
@@ -1847,6 +1845,7 @@ class PhysicsConfig:
     sedflag: Int = NamelistDefaults.sedflag
     vdiffflag: Int = NamelistDefaults.vdiffflag
     do_mp_table_emulation: Bool = NamelistDefaults.do_mp_table_emulation
+    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
     namelist_override: Optional[str] = None
 
@@ -2044,6 +2043,7 @@ class PhysicsConfig:
             ntimes=namelist.ntimes,
             do_inline_mp=namelist.do_inline_mp,
             do_mp_table_emulation=namelist.do_mp_table_emulation,
+            daily_mean=namelist.daily_mean,
         )
 
     @property

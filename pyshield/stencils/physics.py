@@ -1,29 +1,171 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import (
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-    log,
-)
-
 import ndsl.constants as constants
+import pyshield.constants as physcons
+from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.orchestration import orchestrate
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Float, FloatField
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
-from ndsl.initialization.allocator import QuantityFactory
 from ndsl.logging import ndsl_log
-from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
-from pyshield.physics_state import PhysicsState
 
-from .get_phi_fv3 import get_phi_fv3
-from .get_prs_fv3 import get_prs_fv3
 from .gfs_microphysics import Microphysics as GFS_Microphysics
 from .shield_microphysics import Microphysics as SHiELD_Microphysics
+from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
+from pyshield.physics_state import PhysicsState
+from pyshield.stencils.get_phi_fv3 import get_phi_fv3
+from pyshield.stencils.get_prs_fv3 import get_prs_fv3
+
+
+def interpolate_radiation(
+    sinlat: FloatFieldIJ,
+    coslat: FloatFieldIJ,
+    xlon: FloatFieldIJ,
+    coszen: FloatFieldIJ,
+    t_sea: FloatFieldIJ,
+    t_surface: FloatFieldIJ,
+    t_surface_longwave: FloatFieldIJ,
+    sfcemis: FloatFieldIJ,
+    sfcdlw: FloatFieldIJ,
+    sfcnsw: FloatFieldIJ,
+    sfcdsw: FloatFieldIJ,
+    sfcnirbmu: FloatFieldIJ,
+    sfcnirdfu: FloatFieldIJ,
+    sfcvisbmu: FloatFieldIJ,
+    sfcvisdfu: FloatFieldIJ,
+    sfcnirbmd: FloatFieldIJ,
+    sfcnirdfd: FloatFieldIJ,
+    sfcvisbmd: FloatFieldIJ,
+    sfcvisdfd: FloatFieldIJ,
+    swh: FloatField,
+    swhc: FloatField,
+    hlw: FloatField,
+    hlwc: FloatField,
+    dtdt: FloatField,
+    dtdtc: FloatField,
+    adjsfcdlw: FloatFieldIJ,
+    adjsfculw: FloatFieldIJ,
+    adjsfcnsw: FloatFieldIJ,
+    adjsfcdsw: FloatFieldIJ,
+    adjnirbmu: FloatFieldIJ,
+    adjnirdfu: FloatFieldIJ,
+    adjvisbmu: FloatFieldIJ,
+    adjvisdfu: FloatFieldIJ,
+    adjnirbmd: FloatFieldIJ,
+    adjnirdfd: FloatFieldIJ,
+    adjvisbmd: FloatFieldIJ,
+    adjvisdfd: FloatFieldIJ,
+    xcosz: FloatFieldIJ,
+    xmu: FloatFieldIJ,
+    solhr: Float,
+    slag: Float,
+    sdec: Float,
+    cdec: Float,
+):
+    """
+        fits radiative fluxes and heating rates from a coarse radiation
+        calc time interval into model's more frequent time steps.
+        Fortran name is dcyc2t3
+        !  ====================  defination of variables  ====================  !
+    !                                                                       !
+    !  inputs:                                                              !
+    !     solhr        - real, forecast time in 24-hour form (hr)           !
+    !     slag         - real, equation of time in radians                  !
+    !     sdec, cdec   - real, sin and cos of the solar declination angle   !
+    !     sinlat(im), coslat(im):                                           !
+    !                  - real, sin and cos of latitude                      !
+    !     xlon   (im)  - real, longitude in radians                         !
+    !     coszen (im)  - real, avg of cosz over daytime sw call interval    !
+    !     tsea   (im)  - real, ground surface temperature (k)               !
+    !     tf     (im)  - real, surface air (layer 1) temperature (k)        !
+    !     sfcemis(im)  - real, surface emissivity (fraction)                !
+    !     tsflw  (im)  - real, sfc air (layer 1) temp in k saved in lw call !
+    !     sfcdsw (im)  - real, total sky sfc downward sw flux ( w/m**2 )    !
+    !     sfcnsw (im)  - real, total sky sfc net sw into ground (w/m**2)    !
+    !     sfcdlw (im)  - real, total sky sfc downward lw flux ( w/m**2 )    !
+    !     swh(ix,levs) - real, total sky sw heating rates ( k/s )           !
+    !     swhc(ix,levs) - real, clear sky sw heating rates ( k/s )          !
+    !     hlw(ix,levs) - real, total sky lw heating rates ( k/s )           !
+    !     hlwc(ix,levs) - real, clear sky lw heating rates ( k/s )          !
+    !     sfcnirbmu(im)- real, tot sky sfc nir-beam sw upward flux (w/m2)   !
+    !     sfcnirdfu(im)- real, tot sky sfc nir-diff sw upward flux (w/m2)   !
+    !     sfcvisbmu(im)- real, tot sky sfc uv+vis-beam sw upward flux (w/m2)!
+    !     sfcvisdfu(im)- real, tot sky sfc uv+vis-diff sw upward flux (w/m2)!
+    !     sfcnirbmd(im)- real, tot sky sfc nir-beam sw downward flux (w/m2) !
+    !     sfcnirdfd(im)- real, tot sky sfc nir-diff sw downward flux (w/m2) !
+    !     sfcvisbmd(im)- real, tot sky sfc uv+vis-beam sw dnward flux (w/m2)!
+    !     sfcvisdfd(im)- real, tot sky sfc uv+vis-diff sw dnward flux (w/m2)!
+    !     ix, im       - integer, horiz. dimention and num of used points   !
+    !     levs         - integer, vertical layer dimension                  !
+    !                                                                       !
+    !  input/output:                                                        !
+    !     dtdt(im,levs)- real, model time step adjusted total radiation     !
+    !                          heating rates ( k/s )                        !
+    !     dtdtc(im,levs)- real, model time step adjusted clear sky radiation!
+    !                          heating rates ( k/s )                        !
+    !                                                                       !
+    !  outputs:                                                             !
+    !     adjsfcdsw(im)- real, time step adjusted sfc dn sw flux (w/m**2)   !
+    !     adjsfcnsw(im)- real, time step adj sfc net sw into ground (w/m**2)!
+    !     adjsfcdlw(im)- real, time step adjusted sfc dn lw flux (w/m**2)   !
+    !     adjsfculw(im)- real, sfc upward lw flux at current time (w/m**2)  !
+    !     adjnirbmu(im)- real, t adj sfc nir-beam sw upward flux (w/m2)     !
+    !     adjnirdfu(im)- real, t adj sfc nir-diff sw upward flux (w/m2)     !
+    !     adjvisbmu(im)- real, t adj sfc uv+vis-beam sw upward flux (w/m2)  !
+    !     adjvisdfu(im)- real, t adj sfc uv+vis-diff sw upward flux (w/m2)  !
+    !     adjnirbmd(im)- real, t adj sfc nir-beam sw downward flux (w/m2)   !
+    !     adjnirdfd(im)- real, t adj sfc nir-diff sw downward flux (w/m2)   !
+    !     adjvisbmd(im)- real, t adj sfc uv+vis-beam sw dnward flux (w/m2)  !
+    !     adjvisdfd(im)- real, t adj sfc uv+vis-diff sw dnward flux (w/m2)  !
+    !     xmu   (im)   - real, time step zenith angle adjust factor for sw  !
+    !     xcosz (im)   - real, cosine of zenith angle at current time step  !
+    !                                                                       !
+    !  ====================    end of description    =====================  !
+    """
+    from __externals__ import daily_mean
+
+    with computation(FORWARD), interval(0, 1):
+        cns = constants.PI * (solhr - 12.0) / 12.0 + slag
+
+        # adjust sfc downward lw flux to account for t changes in layer 1
+        tem1 = (t_surface / t_surface_longwave) ** 2
+        adjsfcdlw = sfcdlw * tem1 * tem1
+
+        # compute sfc upward lw flux from current sfc temp
+        adjsfculw = sfcemis * constants.SBC * (t_sea) ** 4 + (1.0 - sfcemis) * adjsfcdlw
+
+        # sw time-step adjustment
+        ss = sinlat * sdec
+        cc = coslat * cdec
+        ch = cc * cos(xlon + cns)
+        xcosz = ch + ss
+
+        if daily_mean:
+            # replace cosz with daily mean value
+            xcosz = coszen
+
+        if (xcosz > physcons.F_EPS) and (coszen > physcons.F_EPS):
+            xmu = xcosz / coszen
+        else:
+            xmu = 0.0
+
+        # adjust sfc net and downward sw fluxes for zenith angle changes
+        adjsfcnsw = sfcnsw * xmu
+        adjsfcdsw = sfcdsw * xmu
+        adjnirbmu = sfcnirbmu * xmu
+        adjnirdfu = sfcnirdfu * xmu
+        adjvisbmu = sfcvisbmu * xmu
+        adjvisdfu = sfcvisdfu * xmu
+        adjnirbmd = sfcnirbmd * xmu
+        adjnirdfd = sfcnirdfd * xmu
+        adjvisbmd = sfcvisbmd * xmu
+        adjvisdfd = sfcvisdfd * xmu
+
+    with computation(FORWARD), interval(...):
+        # adjust sw heating rates with zenith angle change and add with
+        # lw heating to temperature tendency
+        dtdt = dtdt + swh * xmu + hlw
+        dtdtc = dtdtc + swhc * xmu + hlwc
 
 
 def atmos_phys_driver_statein(
@@ -146,7 +288,7 @@ def prepare_microphysics(
         qa_dt = 0.0
 
 
-@gtscript.function
+@gtfunction
 def forward_euler(q_t0, q_dt, dt):
     return q_t0 + q_dt * dt
 
@@ -204,6 +346,7 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
+        pre_radiation=False,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -222,6 +365,7 @@ class Physics:
         self._ptop = grid_data.ptop
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
+        self._pre_radiation = pre_radiation
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -250,6 +394,15 @@ class Physics:
                 "pktop": self._pktop,
             },
         )
+        if not self._pre_radiation:
+            self._interpolate_radiation = stencil_factory.from_origin_domain(
+                func=interpolate_radiation,
+                externals={
+                    "daily_mean": namelist.daily_mean,
+                },
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
         if "GFS_microphysics" in schemes:
             if "SHiELD_microphysics" in schemes:
                 raise ValueError(

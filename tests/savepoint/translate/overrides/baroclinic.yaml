@@ -49,3 +49,12 @@ Microph:
       mph_qg_dt: 1e-18
       mph_udt: 1e-8
       mph_vdt: 1e-8
+  - backend: dace:cpu
+    max_error: 2.2e-8
+    cuda_no_fma: true
+    ignore_near_zero_errors:
+      mph_ql_dt: 1e-8
+      mph_qr_dt: 1e-9
+      mph_qg_dt: 1e-18
+      mph_udt: 1e-8
+      mph_vdt: 1e-8

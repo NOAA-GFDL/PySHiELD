@@ -1,0 +1,10 @@
+name: "pace main tests"
+on:
+  pull_request:
+
+jobs:
+  pace_unit_tests:
+    uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
+    with:
+      component_trigger: true
+      component_name: pySHiELD

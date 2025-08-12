@@ -1,23 +1,24 @@
-import gt4py.cartesian.gtscript as gtscript
-import pyfv3
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, exp, interval, log
-
 import ndsl.constants as constants
-from ndsl.comm.communicator import Communicator
+import pyfv3
+from ndsl import (
+    Quantity,
+    QuantityFactory,
+    StencilFactory,
+    WrappedHaloUpdater,
+    orchestrate,
+)
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.orchestration import orchestrate
-from ndsl.dsl.dace.wrapped_halo_exchange import WrappedHaloUpdater
-from ndsl.dsl.stencil import StencilFactory
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp, interval, log
+from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.quantity import Quantity
 from ndsl.stencils.c2l_ord import CubedToLatLon
+from ndsl.typing import Communicator
 from pyshield.update.update_dwind_phys import AGrid2DGridPhysics
 
 
-# TODO: This is the same as moist_cv.py in pyFV3, should move to integration dir
-@gtscript.function
+# TODO: This is the same as moist_cv.py in pyfv3, should move to integration dir
+@gtfunction
 def moist_cvm(qvapor, gz, ql, qs):
     cvm = (
         (1.0 - (qvapor + gz)) * constants.CV_AIR
