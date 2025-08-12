@@ -1,7 +1,7 @@
-import physical_functions as physfun
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
 
 import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 

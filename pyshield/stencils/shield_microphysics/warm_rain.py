@@ -1,6 +1,5 @@
 import math
 
-import physical_functions as physfun
 from gt4py.cartesian.gtscript import (
     __INLINED,
     FORWARD,
@@ -13,6 +12,7 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.constants as constants
 import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
