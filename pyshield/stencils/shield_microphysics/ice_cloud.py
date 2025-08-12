@@ -12,8 +12,6 @@ from gt4py.cartesian.gtscript import (
 
 import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as physcons
-
-# from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 

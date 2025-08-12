@@ -1,5 +1,4 @@
 import numpy as np
-import pace.util
 import physical_functions as physfun
 from gt4py.cartesian.gtscript import (
     __INLINED,
@@ -14,13 +13,12 @@ from gt4py.cartesian.gtscript import (
 import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as physcons
+from ndsl import QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-
-# from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
-from ndsl.performance.timer import Timer
+from ndsl.performance.timer import NullTimer, Timer
 
 from ..._config import MicroPhysicsConfig
 from .cloud_fraction import CloudFraction
@@ -785,7 +783,7 @@ class Microphysics:
     def __init__(
         self,
         stencil_factory: StencilFactory,
-        quantity_factory: pace.util.QuantityFactory,
+        quantity_factory: QuantityFactory,
         grid_data: GridData,
         config: MicroPhysicsConfig,
         full_timestep: float = None,
@@ -1182,7 +1180,7 @@ class Microphysics:
         self,
         state: SHiELDMicrophysicsState,
         last_step: Bool = True,
-        timer: Timer = pace.util.NullTimer(),
+        timer: Timer = NullTimer(),
     ):
 
         self._reset_initial_values_and_make_copies(
