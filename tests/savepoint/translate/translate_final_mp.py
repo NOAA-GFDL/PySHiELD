@@ -1,8 +1,5 @@
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization import SubtileGridSizer
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.namelist import Namelist
+from ndsl import StencilFactory, SubtileGridSizer, QuantityFactory, Namelist
 from pyshield import PhysicsConfig
 from pyshield.stencils.shield_microphysics.cloud_fraction import CloudFraction
 from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (

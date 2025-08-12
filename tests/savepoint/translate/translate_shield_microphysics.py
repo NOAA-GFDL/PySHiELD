@@ -1,5 +1,5 @@
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization import SubtileGridSizer
+from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig

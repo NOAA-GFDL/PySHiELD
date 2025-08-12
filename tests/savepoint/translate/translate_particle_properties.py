@@ -1,6 +1,6 @@
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField
-from ndsl.initialization import SubtileGridSizer
+from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
 from pyshield._config import MicroPhysicsConfig, PhysicsConfig

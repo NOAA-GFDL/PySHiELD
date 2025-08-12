@@ -3,11 +3,8 @@ from gt4py.cartesian.gtscript import __INLINED, PARALLEL, computation, interval
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
+from ndsl import GridIndexing, StencilFactory, SubtileGridSizer, QuantityFactory, Namelist
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.initialization import SubtileGridSizer
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.namelist import Namelist
 from pyshield._config import MicroPhysicsConfig, PhysicsConfig
 from pyshield.stencils.shield_microphysics.cloud_fraction import (  # noqa
     CloudFraction,
