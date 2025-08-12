@@ -6,11 +6,10 @@ import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as physcons
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
-from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import (
-    freeze_cloud_water,
-    melt_cloud_ice,
-)
-from pySHiELD.stencils.SHiELD_microphysics.subgrid_z_proc import (
+
+from ..._config import FastMPConfig
+from .ice_cloud import freeze_cloud_water, melt_cloud_ice
+from .subgrid_z_proc import (
     cloud_condensation_evaporation,
     complete_freeze,
     deposit_and_sublimate_graupel,
@@ -19,8 +18,6 @@ from pySHiELD.stencils.SHiELD_microphysics.subgrid_z_proc import (
     freeze_bigg,
     wegener_bergeron_findeisen,
 )
-
-from ..._config import FastMPConfig
 
 
 @gtscript.function

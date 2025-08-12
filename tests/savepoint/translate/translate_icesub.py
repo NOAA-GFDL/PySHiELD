@@ -9,12 +9,12 @@ from gt4py.cartesian.gtscript import (  # noqa
 
 import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as physcons
-import pySHiELD.stencils.SHiELD_microphysics.physical_functions as physfun
+import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
-from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import (  # noqa
+from pyshield import PhysicsConfig
+from pyshield.stencils.shield_microphysics.ice_cloud import (  # noqa
     accrete_graupel_with_cloud_water_and_rain,
     accrete_graupel_with_ice,
     accrete_graupel_with_snow,

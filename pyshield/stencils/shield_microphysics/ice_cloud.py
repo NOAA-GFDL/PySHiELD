@@ -10,7 +10,6 @@ from gt4py.cartesian.gtscript import (
     log,
 )
 
-import ndsl.constants as constants
 import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as physcons
 
@@ -123,7 +122,7 @@ def freeze_cloud_water(
 
     tc = t_wfr - temperature
     if (tc > 0.0) and (qliquid > physcons.QCMIN):
-        sink = qliquid * tc / constants.DT_FR
+        sink = qliquid * tc / physcons.DT_FR
         sink = min(qliquid, min(sink, tc / icpk))
         qim = qi0_crt / density
         tmp = min(sink, basic.dim(qim, qice))

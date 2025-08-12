@@ -18,9 +18,9 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, Int, IntField
 from ndsl.initialization.allocator import QuantityFactory
-from pySHiELD.stencils.SHiELD_microphysics.terminal_fall import TerminalFall
 
 from ..._config import MicroPhysicsConfig
+from .terminal_fall import TerminalFall
 
 
 def moist_heat_capacity(

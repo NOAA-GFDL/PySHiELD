@@ -2,16 +2,14 @@ from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
-from ndsl.dsl.typing import FloatField, FloatFieldIJ, Bool
+from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 from ndsl.initialization.allocator import QuantityFactory
-from pySHiELD.stencils.SHiELD_microphysics.ice_cloud import IceCloud
-from pySHiELD.stencils.SHiELD_microphysics.sedimentation import Sedimentation
-from pySHiELD.stencils.SHiELD_microphysics.subgrid_z_proc import (
-    VerticalSubgridProcesses,
-)
-from pySHiELD.stencils.SHiELD_microphysics.warm_rain import WarmRain
 
 from ..._config import MicroPhysicsConfig
+from .ice_cloud import IceCloud
+from .sedimentation import Sedimentation
+from .subgrid_z_proc import VerticalSubgridProcesses
+from .warm_rain import WarmRain
 
 
 def add_fluxes_and_surface_tracers(
@@ -307,6 +305,7 @@ class FullMicrophysics:
                 self._reevap,
                 self._sub,
                 rh_adj,
+                last_step,
             )
 
             self._accumulate_state_changes(

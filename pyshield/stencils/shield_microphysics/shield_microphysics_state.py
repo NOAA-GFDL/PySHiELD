@@ -7,7 +7,7 @@ from ndsl.quantity import Quantity
 
 
 @dataclass()
-class MicrophysicsState:
+class SHiELDMicrophysicsState:
     qvapor: Quantity = field(
         metadata={
             "name": "specific_humidity",
@@ -491,7 +491,7 @@ class MicrophysicsState:
     quantity_factory: InitVar[QuantityFactory]
 
     @classmethod
-    def init_zeros(cls, quantity_factory) -> "MicrophysicsState":
+    def init_zeros(cls, quantity_factory) -> "SHiELDMicrophysicsState":
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
@@ -506,7 +506,7 @@ class MicrophysicsState:
         storages: Mapping[str, Any],
         sizer: GridSizer,
         quantity_factory: QuantityFactory,
-    ) -> "MicrophysicsState":
+    ) -> "SHiELDMicrophysicsState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():

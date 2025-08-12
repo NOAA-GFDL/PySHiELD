@@ -1,12 +1,12 @@
 from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, interval
 
 import pyshield.constants as physcons
-import pySHiELD.stencils.SHiELD_microphysics.physical_functions as physfun
+import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, IntField
 from ndsl.namelist import Namelist
-from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.humidity_tables import (
+from pyshield import PhysicsConfig
+from pyshield.stencils.shield_microphysics.humidity_tables import (
     HumiditySaturationTables,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

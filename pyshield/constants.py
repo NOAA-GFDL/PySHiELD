@@ -21,7 +21,6 @@ LI2 = (
 )  # 2906297.413876225, sublimation latent heat coefficient at 0 degrees Kelvin
 LI0 = constants.HLF - DC_ICE * TICE0
 
-
 RHO_0 = 1.0  # reference air density (kg/m^3), ref: IFS
 RHO_W = 1.0e3  # density of cloud water (kg/m^3)
 RHO_I = 9.17e2  # density of cloud ice (kg/m^3)

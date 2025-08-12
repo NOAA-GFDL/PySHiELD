@@ -13,7 +13,7 @@ from ndsl.grid import DriverGridData, GridData
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
 from ndsl.stencils.c2l_ord import CubedToLatLon
-from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
+from pyshield.update.update_dwind_phys import AGrid2DGridPhysics
 
 
 # TODO: This is the same as moist_cv.py in pyFV3, should move to integration dir

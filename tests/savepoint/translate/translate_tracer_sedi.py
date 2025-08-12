@@ -3,15 +3,15 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.initialization import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
-from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.sedimentation import (
+from pyshield import PhysicsConfig
+from pyshield.stencils.shield_microphysics.sedimentation import (
     adjust_fluxes,
     calc_edge_and_terminal_height,
     calc_terminal_velocity_ice,
     calc_terminal_velocity_rsg,
     sedi_melt,
 )
-from pySHiELD.stencils.SHiELD_microphysics.terminal_fall import TerminalFall
+from pyshield.stencils.shield_microphysics.terminal_fall import TerminalFall
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

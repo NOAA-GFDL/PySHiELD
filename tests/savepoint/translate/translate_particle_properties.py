@@ -3,8 +3,8 @@ from ndsl.dsl.typing import FloatField
 from ndsl.initialization import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
-from pySHiELD._config import MicroPhysicsConfig, PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.gfdl_cld_mp_driver import (
+from pyshield._config import MicroPhysicsConfig, PhysicsConfig
+from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (
     calculate_particle_properties,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

@@ -4,8 +4,8 @@ from ndsl.initialization import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
 from ndsl.quantity import Quantity
-from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.sedimentation import (
+from pyshield import PhysicsConfig
+from pyshield.stencils.shield_microphysics.sedimentation import (
     Sedimentation,
     calc_terminal_velocity_ice,
     calc_terminal_velocity_rsg,

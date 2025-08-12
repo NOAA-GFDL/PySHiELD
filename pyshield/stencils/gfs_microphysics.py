@@ -12,7 +12,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
-import pySHiELD.functions.microphysics_funcs as functions
+import pyshield.functions.microphysics_funcs as functions
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.dace.orchestration import dace_inhibitor, orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -1553,7 +1553,7 @@ def fields_update(
         graupel = graupel * convt
 
 
-class MicrophysicsState:
+class GFSMicrophysicsState:
     """
     pt, qvapor, qrain, qice, qsnow, qgraupel, qcld, &
     ua, va, delp, delz, omga: same as physics state
@@ -1978,7 +1978,7 @@ class Microphysics:
         self._fac_l2v = 1.0 - np.exp(-self._dt_evap / self.namelist.tau_l2v)
         self._timestep = timestep
 
-    def __call__(self, state: MicrophysicsState, timestep: float):
+    def __call__(self, state: GFSMicrophysicsState, timestep: float):
         # TODO (floriand): reintroduce after DaCe fix to inlined scalar that shouldn't
         self._update_timestep_if_needed(timestep)
         self._fields_init(

@@ -11,7 +11,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField
 from ndsl.grid import DriverGridData, GridData
 from ndsl.initialization.allocator import QuantityFactory
-from pySHiELD.update.fv_update_phys import ApplyPhysicsToDycore
+from pyshield.update.fv_update_phys import ApplyPhysicsToDycore
 
 
 # TODO: when this file is not importable from physics or pyFV3, import

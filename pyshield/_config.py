@@ -6,14 +6,15 @@ from typing import List, Optional, Tuple
 import f90nml
 
 import ndsl.constants as constants
+import ndsl.namelist as nml
 import pyshield.constants as physcons
 from ndsl.dsl.typing import Bool, Float, Int
-from ndsl.namelist import Namelist, NamelistDefaults
 from ndsl.utils import MetaEnumStr
 
 
 DEFAULT_INT = Int(0)
 DEFAULT_FLOAT = Float(0.0)
+DEFAULT_STR = ""
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 
@@ -21,6 +22,227 @@ DEFAULT_SCHEMES = ["GFS_microphysics"]
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
+
+
+# Global set of physics namelist defaults
+# attached to class for namespacing and static typing
+class NamelistDefaults:
+    tau_r2g = 900.0  # rain freezing during fast_sat
+    tau_smlt = 900.0  # snow melting timescale
+    tau_gmlt = 600.0  # snow melting timescale
+    tau_g2r = 600.0  # graupel melting to rain
+    tau_imlt = 1200.0  # cloud ice melting
+    tau_i2s = 1000.0  # cloud ice to snow auto - conversion
+    tau_l2r = 900.0  # cloud water to rain auto - conversion
+    tau_l2v = 300.0  # cloud water to water vapor (evaporation)
+    tau_v2l = 150.0  # water vapor to cloud water (condensation)
+    tau_revp = 0.0  # rain evaporation time scale (s)
+    tau_g2v = 1200.0  # graupel sublimation
+    tau_v2g = 21600.0  # graupel deposition -- make it a slow process
+    tau_wbf = 300.0  # wegener bergeron findeisen timescale
+    sat_adj0 = 0.90  # adjustment factor (0: no, 1: full) during fast_sat_adj
+    ql_gen = 1.0e-3  # max new cloud water during remapping step if fast_sat_adj = .t.
+    ql_mlt = 2.0e-3  # max value of cloud water allowed from melted cloud ice
+    qs_mlt = 1.0e-6  # max cloud water due to snow melt
+    ql0_max = 2.0e-3  # max cloud water value (auto converted to rain)
+    t_min = 178.0  # minimum temperature to freeze - dry all water vapor (K)
+    t_sub = 184.0  # min temp for sublimation of cloud ice
+    qi_gen = 1.82e-6  # max cloud ice generation during remapping step
+    qi_lim = 1.0  # cloud ice limiter to prevent large ice build up
+    qi0_max = 1.0e-4  # max cloud ice value (by other sources)
+    rad_snow = True  # consider snow in cloud fraciton calculation
+    rad_rain = True  # consider rain in cloud fraction calculation
+    rad_graupel = True  # consider graupel in cloud fraction calculation
+    do_cld_adj = False  # do cloud fraction adjustment
+    tintqs = False  # use temperature in the saturation mixing in PDF
+    dw_ocean = 0.10  # base value for ocean
+    dw_land = 0.20  # base value for subgrid deviation / variability over land
+    # cloud scheme 0 - ?
+    # 1: old fvgfs gfdl) mp implementation
+    # 2: binary cloud scheme (0 / 1)
+    icloud_f = 0  # GFDL cloud scheme
+    # 0: subgrid variability based scheme
+    # 1: same as 0, but for old fvgfs implementation
+    # 2: binary cloud scheme
+    # 3: extension of 0
+    cld_min = 0.05  # minimum cloud fraction
+    c2l_ord = 4
+    regional = False
+    m_split = 0
+    convert_ke = False
+    breed_vortex_inline = False
+    use_old_omega = True
+    use_logp = False
+    rf_fast = False
+    p_ref = 1e5  # Surface pressure used to construct a horizontally-uniform reference
+    adiabatic = False
+    nf_omega = 1
+    fv_sg_adj = -1
+    n_sponge = 1
+    fast_sat_adj = True
+    qc_crt = 5.0e-8  # Minimum condensate mixing ratio to allow partial cloudiness
+    c_cracw = 0.8  # Rain accretion efficiency
+    c_paut = (
+        0.55  # Autoconversion cloud water to rain (use 0.5 to reduce autoconversion)
+    )
+    c_pracs = 1.0  # snow to rain accretion efficiency
+    c_psacr = 1.0  # rain to snow accretion efficiency
+    c_pgacr = 1.0  # rain to graupel accretion efficiency
+    c_pgacs = 0.01  # Snow to graupel "accretion" eff. (was 0.1 in zetac)
+    c_psacw = 1.0  # Cloud water to snow accretion efficiency
+    c_psaci = 0.05  # Accretion: cloud ice to snow (was 0.1 in zetac)
+    c_pracw = 0.8  # Cloud water to rain accretion efficiency
+    c_praci = 1.0  # Cloud ice to rain accretion efficiency
+    c_pgacw = 1.0  # Cloud water to graupel accretion efficiency
+    c_pgaci = 0.05  # Cloud ice to graupel accretion efficiency (was 0.1 in ZETAC)
+    ccn_l = 270.0  # CCN over land (cm^-3)
+    ccn_o = 90.0  # CCN over ocean (cm^-3)
+    use_rhc_cevap = False  # cap of rh for cloud water evaporation
+    use_rhc_revap = False  # cap of rh for rain evaporation
+    const_vw = False  # Fall velocity tuning constant of cloud water
+    const_vg = False  # Fall velocity tuning constant of graupel
+    const_vi = False  # Fall velocity tuning constant of ice
+    const_vr = False  # Fall velocity tuning constant of rain water
+    const_vs = False  # Fall velocity tuning constant of snow
+    is_fac = 0.2  # Cloud ice sublimation temperature factor
+    ss_fac = 0.2  # Snow sublimation temperature factor
+    gs_fac = 0.2  # Graupel sublimation temperature factor
+    rh_fac_evap = 10.0  # cloud water evaporation relative humidity factor
+    rh_fac_cond = 10.0  # cloud water condensation relative humidity factor
+    sed_fac = 1.0  # coefficient for sedimentation fall,
+    # Scale from 1.0 (implicit) to 0.0 (lagrangian)
+    xr_a = 0.25  # p value in Xu and Randall (1996)
+    xr_b = 100.0  # alpha_0 value in Xu and Randall (1996)
+    xr_c = 0.49  # gamma value in Xu and Randall (1996)
+    te_err = 1.0e-5  # 64bit: 1.e-14, 32bit: 1.e-7; turn off to save computer time
+    tw_err = 1.0e-8  # 64bit: 1.e-14, 32bit: 1.e-7; turn off to save computer time
+    rh_thres = 0.75  # minimum relative humidity for cloud fraction
+    rhc_cevap = 0.85  # maximum relative humidity for cloud water evaporation
+    rhc_revap = 0.85  # maximum relative humidity for rain evaporation
+    f_dq_p = 1.0  # cloud fraction adjustment for supersaturation
+    f_dq_m = 1.0  # cloud fraction adjustment for undersaturation
+    fi2s_fac = 1.0  # maximum sink of cloud ice to form snow: 0-1
+    fi2g_fac = 1.0  # maximum sink of cloud ice to form graupel: 0-1
+    fs2g_fac = 1.0  # maximum sink of snow to form graupel: 0-1
+    vw_fac = 1.0
+    vi_fac = 1.0  # if const_vi: 1/3
+    vs_fac = 1.0  # if const_vs: 1.
+    vg_fac = 1.0  # if const_vg: 2.
+    vr_fac = 1.0  # if const_vr: 4.
+    de_ice = False  # To prevent excessive build-up of cloud ice from external sources
+    do_qa = True  # Do inline cloud fraction
+    do_sedi_heat = True  # Transport of heat in sedimentation
+    do_sedi_melt = True  # Melt cloud ice, snow, and graupel during sedimentation
+    do_sedi_uv = True  # Transport of horizontal momentum in sedimentation
+    do_sedi_w = True  # Transport of vertical motion in sedimentation
+    fix_negative = True  # Fix negative water species
+    do_cond_timescale = False  # Whether to apply a timescale to condensation
+    do_hail = False  # Use hail parameters instead of graupel
+    consv_checker = False  # Turn on energy and water conservation check in microphysics
+    do_warm_rain_mp = False  # Do only warm rain microphysics
+    do_wbf = False  # Do Wegener Bergeron Findeisen process
+    do_psd_water_fall = False  # Calculate cloud water terminal velocity based on PSD
+    do_psd_ice_fall = False  # Calculate cloud ice terminal velocity based on PSD
+    do_psd_water_num = False  # Calculate cloud water number concentration based on PSD
+    do_psd_ice_num = False  # Calculate cloud ice number concentration based on PSD
+    do_new_acc_water = False  # Perform the new accretion for cloud water
+    do_new_acc_ice = False  # Perform the new accretion for cloud water
+    cp_heating = False  # update temperature based on constant pressure
+    mono_prof = False  # Perform terminal fall with mono ppm scheme
+    mp_time = 150.0  # Maximum microphysics timestep (sec)
+    prog_ccn = False  # Do prognostic ccn (yi ming's method)
+    qi0_crt = 1.0e-04  # Cloud ice to snow autoconversion threshold
+    qs0_crt = 1.0e-3  # Snow to graupel density threshold (0.6e-3 in purdue lin scheme)
+    rh_inc = 0.25  # RH increment for complete evaporation of cloud water and cloud ice
+    rh_inr = 0.25  # RH increment for minimum evaporation of rain
+    rthresh = 10.0e-6  # Critical cloud drop radius (micrometers)
+    sedi_transport = True  # Transport of momentum in sedimentation
+    use_ppm = False  # Use ppm fall scheme
+    vw_max = 0.01  # Maximum fall speed for cloud water
+    vg_max = 8.0  # Maximum fall speed for graupel
+    vi_max = 0.5  # Maximum fall speed for ice
+    vr_max = 12.0  # Maximum fall speed for rain
+    vs_max = 5.0  # Maximum fall speed for snow
+    z_slope_ice = True  # Use linear mono slope for autoconversions
+    z_slope_liq = True  # Use linear mono slope for autoconversions
+    tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
+    tice_mlt = 273.16  # can set ice melting temperature to 268 based on observation
+    # (Kay et al. 2016) (K)
+    alin = 842.0  # "a" in lin1983
+    alinw = 3.0e7  # "a" in Lin et al. (1983) for cloud water (Ikawa and Saito 1990)
+    alini = 7.0e2  # "a" in Lin et al. (1983) for cloud ice (Ikawa and Saita 1990)
+    alinr = 842.0  # "a" in Lin et al. (1983) for rain (Liu and Orville 1969)
+    alins = 4.8  # "a" in Lin et al. (1983) for snow (straka 2009)
+    aling = 1.0  # "a" in Lin et al. (1983) for graupel (Pruppacher and Klett 2010)
+    alinh = 1.0  # "a" in Lin et al. (1983) for hail (Pruppacher and Klett 2010)
+    blinw = 2.0  # "b" in Lin et al. (1983) for cloud water (Ikawa and Saito 1990)
+    blini = 1.0  # "b" in Lin et al. (1983) for cloud ice (Ikawa and Saita 1990)
+    blinr = 0.8  # "b" in Lin et al. (1983) for rain (Liu and Orville 1969)
+    blins = 0.25  # "b" in Lin et al. (1983) for snow (straka 2009)
+    bling = 0.5  # "b" in Lin et al. (1983) for graupel (Pruppacher and Klett 2010)
+    blinh = 0.5  # "b" in Lin et al. (1983) for hail (Pruppacher and Klett 2010)
+    clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to ehance ql -- > qs)
+    ntimes = 1  # Number of cloud microphysics sub cycles
+    do_inline_mp = False  # Whether the microphsyics is called inside of the dycore
+    do_mp_table_emulation = False  # Whether lookup tables should be emulated instead of
+    # directly calculating values in microphysics, useful for validation
+    n0w_sig = 1.1  # cwater significand (Lin et al. 1983) (m^-4) (Martin et al. 1994)
+    n0i_sig = 1.3  # cice significand (Lin et al. 1983) (m^-4) (McFarquhar et al. 2015)
+    n0r_sig = 8.0
+    # rain significand (Lin et al. 1983) (m^-4) (Marshall and Palmer 1948)
+    n0s_sig = 3.0  # snow significand (Lin et al. 1983) (m^-4) (Gunn and Marshall 1958)
+    n0g_sig = 4.0
+    # graupel significand (Rutledge and Hobbs 1984) (m^-4) (Houze et al. 1979)
+    n0h_sig = 4.0
+    # hail significand (Lin et al. 1983) (m^-4) (Federer and Waldvogel 1975)
+    n0w_exp = 41  # cwater exponent (Lin et al. 1983) (m^-4) (Martin et al. 1994)
+    n0i_exp = 18  # cice exponent (Lin et al. 1983) (m^-4) (McFarquhar et al. 2015)
+    n0r_exp = 6  # rain exponent (Lin et al. 1983) (m^-4) (Marshall and Palmer 1948)
+    n0s_exp = 6  # snow exponent (Lin et al. 1983) (m^-4) (Gunn and Marshall 1958)
+    n0g_exp = 6
+    # graupel exponent (Rutledge and Hobbs 1984) (m^-4) (Houze et al. 1979)
+    n0h_exp = 4  # hail exponent (Lin et al. 1983) (m^-4) (Federer and Waldvogel 1975)
+    muw = (
+        6.0  # shape parameter of cloud water in Gamma distribution (Martin et al. 1994)
+    )
+    mui = 3.35  # Gamma shape parameter of cloud ice (McFarquhar et al. 2015)
+    mur = 1.0
+    # shape parameter of rain in Gamma distribution (Marshall and Palmer 1948)
+    mus = 1.0  # shape parameter of snow in Gamma distribution (Gunn and Marshall 1958)
+    mug = 1.0  # shape parameter of graupel in Gamma distribution (Houze et al. 1979)
+    muh = 1.0
+    # shape parameter of hail in Gamma distribution (Federer and Waldvogel 1975)
+    cfflag = 1  # cloud fraction scheme
+    # 1: GFDL cloud scheme
+    # 2: Xu and Randall (1996)
+    # 3: Park et al. (2016)
+    # 4: Gultepe and Isaac (2007)
+    irain_f = 0  # cloud water to rain auto conversion scheme
+    # 0: subgrid variability based scheme
+    # 1: no subgrid varaibility
+    inflag = 1  # Ice nucleation scheme:
+    # 1: Hong et al. (2004)
+    # 2: Meyers et al. (1992)
+    # 3: Meyers et al. (1992)
+    # 4: Cooper (1986)
+    # 5: Fletcher (1962)
+    igflag = 3  # Ice generation scheme
+    # 1: WSM6
+    # 2: WSM6 with 0 at 0 C
+    # 3: WSM6 with 0 at 0 C and fixed value at - 10 C
+    # 4: combination of 1 and 3
+    ifflag = 1  # Ice fall scheme
+    # 1: Deng and Mace (2008)
+    # 2: Heymsfield and Donner (1990)
+    sedflag = 1  # sedimentation scheme
+    # 1: implicit scheme
+    # 2: explicit scheme
+    # 3: lagrangian scheme
+    # 4: combined implicit and lagrangian scheme
+    vdiffflag = 1  # wind difference scheme in accretion
+    # 1: Wisner et al. (1972)
+    # 2: Mizuno (1990)
+    # 3: Murakami (1990)
 
 
 @dataclasses.dataclass
@@ -189,7 +411,6 @@ class MicroPhysicsConfig:
     fast_fr_mlt: Bool
     fast_dep_sub: Bool
     delay_cond_evap: Bool
-    nconds: Int
     mp_time: Float
     prog_ccn: Bool
     qi0_crt: Float
@@ -1463,7 +1684,7 @@ class PhysicsConfig:
     vi_fac: Float = NamelistDefaults.vi_fac
     vr_fac: Float = NamelistDefaults.vr_fac
     de_ice: Bool = NamelistDefaults.de_ice
-    layout: Tuple[Int, Int] = NamelistDefaults.layout
+    layout: Tuple[Int, Int] = nml.NamelistDefaults.layout
     # gfdl_cloud_microphys.F90
     tau_r2g: Float = NamelistDefaults.tau_r2g  # rain freezing during fast_sat
     tau_smlt: Float = NamelistDefaults.tau_smlt  # snow melting timescale
@@ -1545,7 +1766,6 @@ class PhysicsConfig:
     fast_fr_mlt: Bool = True
     fast_dep_sub: Bool = True
     delay_cond_evap: Bool = True
-    nconds: Int = 1
     mp_time: Float = NamelistDefaults.mp_time
     prog_ccn: Bool = NamelistDefaults.prog_ccn
     qi0_crt: Float = NamelistDefaults.qi0_crt
@@ -1650,11 +1870,11 @@ class PhysicsConfig:
 
     @classmethod
     def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "PhysicsConfig":
-        namelist = Namelist.from_f90nml(f90_namelist)
+        namelist = nml.Namelist.from_f90nml(f90_namelist)
         return self.from_namelist(namelist)
 
     @classmethod
-    def from_namelist(cls, namelist: Namelist) -> "PhysicsConfig":
+    def from_namelist(cls, namelist: nml.Namelist) -> "PhysicsConfig":
         return cls(
             dt_atmos=namelist.dt_atmos,
             hydrostatic=namelist.hydrostatic,
@@ -1877,8 +2097,8 @@ class PhysicsConfig:
             ql_mlt=self.ql_mlt,
             ql0_max=self.ql0_max,
             qs_mlt=self.qs_mlt,
-            t_min=self.t_min,
             t_sub=self.t_sub,
+            t_min=self.t_min,
             qi_gen=self.qi_gen,
             qi_lim=self.qi_lim,
             qi0_max=self.qi0_max,

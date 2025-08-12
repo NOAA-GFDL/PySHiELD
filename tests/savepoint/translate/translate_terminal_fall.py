@@ -2,8 +2,8 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.initialization import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.namelist import Namelist
-from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.terminal_fall import TerminalFall
+from pyshield import PhysicsConfig
+from pyshield.stencils.shield_microphysics.terminal_fall import TerminalFall
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

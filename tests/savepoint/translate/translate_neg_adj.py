@@ -1,7 +1,7 @@
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.namelist import Namelist
-from pySHiELD import PhysicsConfig
-from pySHiELD.stencils.SHiELD_microphysics.neg_adj import AdjustNegativeTracers
+from pyshield import PhysicsConfig
+from pyshield.stencils.shield_microphysics.neg_adj import AdjustNegativeTracers
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

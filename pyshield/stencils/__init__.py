@@ -1,4 +1,4 @@
-from .microphysics import Microphysics, MicrophysicsState
+from .gfs_microphysics import GFSMicrophysicsState, Microphysics
 
 
 """

@@ -21,13 +21,13 @@ from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.performance.timer import Timer
-from pySHiELD.stencils.SHiELD_microphysics.cloud_fraction import CloudFraction
-from pySHiELD.stencils.SHiELD_microphysics.microphysics_state import MicrophysicsState
-from pySHiELD.stencils.SHiELD_microphysics.mp_fast import FastMicrophysics
-from pySHiELD.stencils.SHiELD_microphysics.mp_full import FullMicrophysics
-from pySHiELD.stencils.SHiELD_microphysics.neg_adj import AdjustNegativeTracers
 
 from ..._config import MicroPhysicsConfig
+from .cloud_fraction import CloudFraction
+from .mp_fast import FastMicrophysics
+from .mp_full import FullMicrophysics
+from .neg_adj import AdjustNegativeTracers
+from .shield_microphysics_state import SHiELDMicrophysicsState
 
 
 def reset_initial_values_and_make_copies(
@@ -1180,7 +1180,7 @@ class Microphysics:
 
     def __call__(
         self,
-        state: MicrophysicsState,
+        state: SHiELDMicrophysicsState,
         last_step: Bool = True,
         timer: Timer = pace.util.NullTimer(),
     ):
@@ -1341,12 +1341,14 @@ class Microphysics:
                 state.pt,
                 state.delp,
                 self._density,
+                self._density_factor,
                 self._cloud_condensation_nuclei,
                 self._cloud_ice_nuclei,
                 state.condensation,
                 state.deposition,
                 state.evaporation,
                 state.sublimation,
+                last_step,
             )
 
         if self.do_mp_full:
