@@ -8,7 +8,7 @@ from gt4py.cartesian.gtscript import (  # noqa
     log,
 )
 
-import ndsl.constants as constants  # noqa
+import pyshield.constants as physcons
 import ndsl.stencils.basic_operations as basic  # noqa
 import pyshield.stencils.shield_microphysics.physical_functions as physfun  # noqa
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -60,7 +60,7 @@ def perform_instant_processes_test(
 
     # Instant deposit all water vapor to cloud ice when temperature is super low
     if temperature < t_min:
-        sink = basic.dim(qvapor, constants.QCMIN)
+        sink = basic.dim(qvapor, physcons.QCMIN)
         dep += sink * delp
 
         (
