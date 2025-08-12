@@ -1944,7 +1944,6 @@ class PhysicsConfig:
             z_slope_ice=namelist.z_slope_ice,
             z_slope_liq=namelist.z_slope_liq,
             tice=namelist.tice,
-            tice_mlt=namelist.tice_mlt,
             alin=namelist.alin,
             clin=namelist.clin,
             irain_f=namelist.irain_f,
