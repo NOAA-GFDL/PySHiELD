@@ -1,8 +1,8 @@
 import gt4py.cartesian.gtscript as gtscript
+import pyfv3
 from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, exp, interval, log
 
 import ndsl.constants as constants
-import pyFV3
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.dace.orchestration import orchestrate
@@ -90,7 +90,7 @@ class ApplyPhysicsToDycore:
         namelist,
         comm: Communicator,
         grid_info: DriverGridData,
-        state: pyFV3.DycoreState,
+        state: pyfv3.DycoreState,
         u_dt: Quantity,
         v_dt: Quantity,
     ):

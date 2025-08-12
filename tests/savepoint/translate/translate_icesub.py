@@ -1,3 +1,4 @@
+import pyfv3.stencils.basic_operations as basic
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import (  # noqa
     __INLINED,
@@ -7,7 +8,6 @@ from gt4py.cartesian.gtscript import (  # noqa
     interval,
 )
 
-import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory

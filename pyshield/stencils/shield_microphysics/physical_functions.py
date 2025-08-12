@@ -1,7 +1,7 @@
+import pyfv3.stencils.basic_operations as basic
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import exp, floor, log, sqrt
 
-import pyFV3.stencils.basic_operations as basic
 import pyshield.constants as constants
 import pyshield.constants as physcons
 

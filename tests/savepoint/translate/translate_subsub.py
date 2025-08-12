@@ -1,3 +1,4 @@
+import pyfv3.stencils.basic_operations as basic  # noqa
 from gt4py.cartesian import gtscript  # noqa
 from gt4py.cartesian.gtscript import (  # noqa
     __INLINED,
@@ -9,7 +10,6 @@ from gt4py.cartesian.gtscript import (  # noqa
 )
 
 import ndsl.constants as constants  # noqa
-import pyFV3.stencils.basic_operations as basic  # noqa
 import pyshield.stencils.shield_microphysics.physical_functions as physfun  # noqa
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ

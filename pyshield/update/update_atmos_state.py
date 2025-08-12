@@ -1,9 +1,9 @@
 from typing import Optional
 
+import pyfv3
+import pyfv3.stencils.fv_subgridz as fv_subgridz
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, PARALLEL, computation, interval
 
-import pyFV3
-import pyFV3.stencils.fv_subgridz as fv_subgridz
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.dace.orchestration import orchestrate
@@ -150,7 +150,7 @@ class DycoreToPhysics:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        dycore_config: pyFV3.DynamicalCoreConfig,
+        dycore_config: pyfv3.DynamicalCoreConfig,
         do_dry_convective_adjust: bool,
         dycore_only: bool,
     ):
@@ -244,7 +244,7 @@ class UpdateAtmosphereState:
         namelist,
         comm: Communicator,
         grid_info: DriverGridData,
-        state: pyFV3.DycoreState,
+        state: pyfv3.DycoreState,
         quantity_factory: QuantityFactory,
         dycore_only: bool,
         apply_tendencies: bool,
