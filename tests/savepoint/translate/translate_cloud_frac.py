@@ -244,26 +244,26 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
     ):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "qvapor": {"serialname": "cf_qv", "mp3": True},
-            "qliquid": {"serialname": "cf_ql", "mp3": True},
-            "qrain": {"serialname": "cf_qr", "mp3": True},
-            "qice": {"serialname": "cf_qi", "mp3": True},
-            "qsnow": {"serialname": "cf_qs", "mp3": True},
-            "qgraupel": {"serialname": "cf_qg", "mp3": True},
-            "qa": {"serialname": "cf_qa", "mp3": True},
-            "temperature": {"serialname": "cf_pt", "mp3": True},
-            "density": {"serialname": "cf_den", "mp3": True},
-            "pz": {"serialname": "cf_pz", "mp3": True},
-            "h_var": {"serialname": "cf_h_var", "mp3": True},
-            "gsize": {"serialname": "cf_gsize", "mp3": True},
-            "qsi": {"serialname": "cf_qsi", "mp3": True},
-            "dqidt": {"serialname": "cf_dqidt", "mp3": True},
-            "qsw": {"serialname": "cf_qsw", "mp3": True},
-            "dqwdt": {"serialname": "cf_dqwdt", "mp3": True},
+            "qvapor": {"serialname": "cf_qv", "shield": True},
+            "qliquid": {"serialname": "cf_ql", "shield": True},
+            "qrain": {"serialname": "cf_qr", "shield": True},
+            "qice": {"serialname": "cf_qi", "shield": True},
+            "qsnow": {"serialname": "cf_qs", "shield": True},
+            "qgraupel": {"serialname": "cf_qg", "shield": True},
+            "qa": {"serialname": "cf_qa", "shield": True},
+            "temperature": {"serialname": "cf_pt", "shield": True},
+            "density": {"serialname": "cf_den", "shield": True},
+            "pz": {"serialname": "cf_pz", "shield": True},
+            "h_var": {"serialname": "cf_h_var", "shield": True},
+            "gsize": {"serialname": "cf_gsize", "shield": True},
+            "qsi": {"serialname": "cf_qsi", "shield": True},
+            "dqidt": {"serialname": "cf_dqidt", "shield": True},
+            "qsw": {"serialname": "cf_qsw", "shield": True},
+            "dqwdt": {"serialname": "cf_dqwdt", "shield": True},
         }
 
         self.out_vars = {
-            "qa": {"serialname": "cf_qa", "kend": namelist.npz, "mp3": True},
+            "qa": {"serialname": "cf_qa", "kend": namelist.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
@@ -271,6 +271,7 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
         pconf = PhysicsConfig.from_namelist(namelist)
         self.config = pconf.microphysics
         self.config.do_mp_table_emulation = True
+        print(f"cfflag is {self.config.cfflag}")
 
         sizer = SubtileGridSizer.from_tile_params(
             nx_tile=self.namelist.npx - 1,

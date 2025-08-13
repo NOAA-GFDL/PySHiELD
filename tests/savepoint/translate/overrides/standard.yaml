@@ -201,3 +201,9 @@ MPSub:
       - mps_qi
       - mps_qs
       - mps_qg
+
+FinalCalculations:
+  - backend: numpy
+    near_zero: 1.e-20
+    ignore_near_zero_errors:
+      - column_energy_loss

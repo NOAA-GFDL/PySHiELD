@@ -140,24 +140,24 @@ class TranslateStartFall(TranslatePhysicsFortranData2Py):
     ):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "q_fall": {"serialname": "sf_qf", "mp3": True},
-            "qvapor": {"serialname": "sf_qv", "mp3": True},
-            "qliquid": {"serialname": "sf_ql", "mp3": True},
-            "qrain": {"serialname": "sf_qr", "mp3": True},
-            "qice": {"serialname": "sf_qi", "mp3": True},
-            "qsnow": {"serialname": "sf_qs", "mp3": True},
-            "qgraupel": {"serialname": "sf_qg", "mp3": True},
-            "temperature": {"serialname": "sf_pt", "mp3": True},
-            "delp": {"serialname": "sf_delp", "mp3": True},
-            "dm": {"serialname": "sf_dm", "mp3": True},
-            "tot_e_initial": {"serialname": "sf_e1", "mp3": True},
-            "no_fall": {"serialname": "sf_nf", "mp3": True},
+            "q_fall": {"serialname": "sf_qf", "shield": True},
+            "qvapor": {"serialname": "sf_qv", "shield": True},
+            "qliquid": {"serialname": "sf_ql", "shield": True},
+            "qrain": {"serialname": "sf_qr", "shield": True},
+            "qice": {"serialname": "sf_qi", "shield": True},
+            "qsnow": {"serialname": "sf_qs", "shield": True},
+            "qgraupel": {"serialname": "sf_qg", "shield": True},
+            "temperature": {"serialname": "sf_pt", "shield": True},
+            "delp": {"serialname": "sf_delp", "shield": True},
+            "dm": {"serialname": "sf_dm", "shield": True},
+            "tot_e_initial": {"serialname": "sf_e1", "shield": True},
+            "no_fall": {"serialname": "sf_nf", "shield": True},
         }
 
         self.out_vars = {
-            "dm": {"serialname": "sf_dm", "kend": namelist.npz, "mp3": True},
-            "tot_e_initial": {"serialname": "sf_e1", "mp3": True},
-            "no_fall": {"serialname": "sf_nf", "mp3": True},
+            "dm": {"serialname": "sf_dm", "kend": namelist.npz, "shield": True},
+            "tot_e_initial": {"serialname": "sf_e1", "shield": True},
+            "no_fall": {"serialname": "sf_nf", "shield": True},
         }
 
         self.stencil_factory = stencil_factory
@@ -186,37 +186,37 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
     ):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "qvapor": {"serialname": "ef_qv", "mp3": True},
-            "qliquid": {"serialname": "ef_ql", "mp3": True},
-            "qrain": {"serialname": "ef_qr", "mp3": True},
-            "qice": {"serialname": "ef_qi", "mp3": True},
-            "qsnow": {"serialname": "ef_qs", "mp3": True},
-            "qgraupel": {"serialname": "ef_qg", "mp3": True},
-            "ua": {"serialname": "ef_ua", "mp3": True},
-            "va": {"serialname": "ef_va", "mp3": True},
-            "wa": {"serialname": "ef_wa", "mp3": True},
-            "temperature": {"serialname": "ef_pt", "mp3": True},
-            "delp": {"serialname": "ef_dp", "mp3": True},
-            "delz": {"serialname": "ef_dz", "mp3": True},
-            "flux": {"serialname": "ef_pfi", "mp3": True},
-            "dm": {"serialname": "ef_dm", "mp3": True},
-            "v_terminal": {"serialname": "ef_vt", "mp3": True},
-            "column_energy_change": {"serialname": "ef_dte", "mp3": True},
-            "tmp_energy1": {"serialname": "ef_ie", "mp3": True},
-            "tmp_energy2": {"serialname": "ef_fe", "mp3": True},
-            "no_fall": {"serialname": "ef_nf", "mp3": True},
+            "qvapor": {"serialname": "ef_qv", "shield": True},
+            "qliquid": {"serialname": "ef_ql", "shield": True},
+            "qrain": {"serialname": "ef_qr", "shield": True},
+            "qice": {"serialname": "ef_qi", "shield": True},
+            "qsnow": {"serialname": "ef_qs", "shield": True},
+            "qgraupel": {"serialname": "ef_qg", "shield": True},
+            "ua": {"serialname": "ef_ua", "shield": True},
+            "va": {"serialname": "ef_va", "shield": True},
+            "wa": {"serialname": "ef_wa", "shield": True},
+            "temperature": {"serialname": "ef_pt", "shield": True},
+            "delp": {"serialname": "ef_dp", "shield": True},
+            "delz": {"serialname": "ef_dz", "shield": True},
+            "flux": {"serialname": "ef_pfi", "shield": True},
+            "dm": {"serialname": "ef_dm", "shield": True},
+            "v_terminal": {"serialname": "ef_vt", "shield": True},
+            "column_energy_change": {"serialname": "ef_dte", "shield": True},
+            "tmp_energy1": {"serialname": "ef_ie", "shield": True},
+            "tmp_energy2": {"serialname": "ef_fe", "shield": True},
+            "no_fall": {"serialname": "ef_nf", "shield": True},
         }
 
         self.out_vars = {
-            "ua": {"serialname": "ef_ua", "kend": namelist.npz, "mp3": True},
-            "va": {"serialname": "ef_va", "kend": namelist.npz, "mp3": True},
-            "wa": {"serialname": "ef_wa", "kend": namelist.npz, "mp3": True},
-            "temperature": {"serialname": "ef_pt", "kend": namelist.npz, "mp3": True},
+            "ua": {"serialname": "ef_ua", "kend": namelist.npz, "shield": True},
+            "va": {"serialname": "ef_va", "kend": namelist.npz, "shield": True},
+            "wa": {"serialname": "ef_wa", "kend": namelist.npz, "shield": True},
+            "temperature": {"serialname": "ef_pt", "kend": namelist.npz, "shield": True},
             "tmp_energy1": {
                 "serialname": "ef_ie",
-                "mp3": True,
+                "shield": True,
             },
-            "column_energy_change": {"serialname": "ef_dte", "mp3": True},
+            "column_energy_change": {"serialname": "ef_dte", "shield": True},
         }
 
         self.stencil_factory = stencil_factory

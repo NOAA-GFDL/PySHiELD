@@ -191,111 +191,111 @@ class TranslateParticleProperties(TranslatePhysicsFortranData2Py):
     ):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "qliquid": {"serialname": "pp_ql", "mp3": True},
-            "qrain": {"serialname": "pp_qr", "mp3": True},
-            "qice": {"serialname": "pp_qi", "mp3": True},
-            "qsnow": {"serialname": "pp_qs", "mp3": True},
-            "qgraupel": {"serialname": "pp_qg", "mp3": True},
-            "density": {"serialname": "pp_den", "mp3": True},
+            "qliquid": {"serialname": "pp_ql", "shield": True},
+            "qrain": {"serialname": "pp_qr", "shield": True},
+            "qice": {"serialname": "pp_qi", "shield": True},
+            "qsnow": {"serialname": "pp_qs", "shield": True},
+            "qgraupel": {"serialname": "pp_qg", "shield": True},
+            "density": {"serialname": "pp_den", "shield": True},
             "particle_concentration_w": {
                 "serialname": "pp_pcw",
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_w": {
                 "serialname": "pp_edw",
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_w": {
                 "serialname": "pp_oew",
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_w": {
                 "serialname": "pp_rrw",
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_w": {
                 "serialname": "pp_tvw",
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_r": {
                 "serialname": "pp_pcr",
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_r": {
                 "serialname": "pp_edr",
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_r": {
                 "serialname": "pp_oer",
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_r": {
                 "serialname": "pp_rrr",
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_r": {
                 "serialname": "pp_tvr",
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_i": {
                 "serialname": "pp_pci",
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_i": {
                 "serialname": "pp_edi",
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_i": {
                 "serialname": "pp_oei",
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_i": {
                 "serialname": "pp_rri",
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_i": {
                 "serialname": "pp_tvi",
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_s": {
                 "serialname": "pp_pcs",
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_s": {
                 "serialname": "pp_eds",
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_s": {
                 "serialname": "pp_oes",
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_s": {
                 "serialname": "pp_rrs",
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_s": {
                 "serialname": "pp_tvs",
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_g": {
                 "serialname": "pp_pcg",
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_g": {
                 "serialname": "pp_edg",
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_g": {
                 "serialname": "pp_oeg",
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_g": {
                 "serialname": "pp_rrg",
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_g": {
                 "serialname": "pp_tvg",
-                "mp3": True,
+                "shield": True,
             },
         }
 
@@ -303,127 +303,127 @@ class TranslateParticleProperties(TranslatePhysicsFortranData2Py):
             "particle_concentration_w": {
                 "serialname": "pp_pcw",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_w": {
                 "serialname": "pp_edw",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_w": {
                 "serialname": "pp_oew",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_w": {
                 "serialname": "pp_rrw",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_w": {
                 "serialname": "pp_tvw",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_r": {
                 "serialname": "pp_pcr",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_r": {
                 "serialname": "pp_edr",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_r": {
                 "serialname": "pp_oer",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_r": {
                 "serialname": "pp_rrr",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_r": {
                 "serialname": "pp_tvr",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_i": {
                 "serialname": "pp_pci",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_i": {
                 "serialname": "pp_edi",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_i": {
                 "serialname": "pp_oei",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_i": {
                 "serialname": "pp_rri",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_i": {
                 "serialname": "pp_tvi",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_s": {
                 "serialname": "pp_pcs",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_s": {
                 "serialname": "pp_eds",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_s": {
                 "serialname": "pp_oes",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_s": {
                 "serialname": "pp_rrs",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_s": {
                 "serialname": "pp_tvs",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "particle_concentration_g": {
                 "serialname": "pp_pcg",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "effective_diameter_g": {
                 "serialname": "pp_edg",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "optical_extinction_g": {
                 "serialname": "pp_oeg",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "radar_reflectivity_g": {
                 "serialname": "pp_rrg",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
             "terminal_velocity_g": {
                 "serialname": "pp_tvg",
                 "kend": namelist.npz,
-                "mp3": True,
+                "shield": True,
             },
         }
 

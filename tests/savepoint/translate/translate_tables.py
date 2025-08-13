@@ -1,4 +1,4 @@
-from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, interval
+from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, interval, min, max
 
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
@@ -123,30 +123,30 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
         super().__init__(grid, namelist, stencil_factory)
 
         self.in_vars["data_vars"] = {
-            "index": {"serialname": "tc_index", "mp3": True},
-            "table0": {"serialname": "tc_t0", "mp3": True},
-            "table2": {"serialname": "tc_t2", "mp3": True},
-            "wqs": {"serialname": "tab_wq", "mp3": True},
-            "dwdt": {"serialname": "tab_dwq", "mp3": True},
-            "iqs": {"serialname": "tab_iq", "mp3": True},
-            "didt": {"serialname": "tab_diq", "mp3": True},
-            "temp": {"serialname": "tab_pt", "mp3": True},
-            "den": {"serialname": "tab_den", "mp3": True},
-            "ap1": {"serialname": "tc_ap1", "mp3": True},
-            "it1": {"serialname": "tc_it1", "mp3": True},
-            "it2": {"serialname": "tc_it2", "mp3": True},
+            "index": {"serialname": "tc_index", "shield": True},
+            "table0": {"serialname": "tc_t0", "shield": True},
+            "table2": {"serialname": "tc_t2", "shield": True},
+            "wqs": {"serialname": "tab_wq", "shield": True},
+            "dwdt": {"serialname": "tab_dwq", "shield": True},
+            "iqs": {"serialname": "tab_iq", "shield": True},
+            "didt": {"serialname": "tab_diq", "shield": True},
+            "temp": {"serialname": "tab_pt", "shield": True},
+            "den": {"serialname": "tab_den", "shield": True},
+            "ap1": {"serialname": "tc_ap1", "shield": True},
+            "it1": {"serialname": "tc_it1", "shield": True},
+            "it2": {"serialname": "tc_it2", "shield": True},
         }
 
         self.out_vars = {
-            "table0": {"serialname": "tc_t0", "kend": namelist.npz, "mp3": True},
-            "table2": {"serialname": "tc_t2", "kend": namelist.npz, "mp3": True},
-            "wqs": {"serialname": "tab_wq", "kend": namelist.npz, "mp3": True},
-            "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "mp3": True},
-            "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "mp3": True},
-            "didt": {"serialname": "tab_diq", "kend": namelist.npz, "mp3": True},
-            "ap1": {"serialname": "tc_ap1", "kend": namelist.npz, "mp3": True},
-            "it1": {"serialname": "tc_it1", "kend": namelist.npz, "mp3": True},
-            "it2": {"serialname": "tc_it2", "kend": namelist.npz, "mp3": True},
+            "table0": {"serialname": "tc_t0", "kend": namelist.npz, "shield": True},
+            "table2": {"serialname": "tc_t2", "kend": namelist.npz, "shield": True},
+            "wqs": {"serialname": "tab_wq", "kend": namelist.npz, "shield": True},
+            "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "shield": True},
+            "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
+            "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
+            "ap1": {"serialname": "tc_ap1", "kend": namelist.npz, "shield": True},
+            "it1": {"serialname": "tc_it1", "kend": namelist.npz, "shield": True},
+            "it2": {"serialname": "tc_it2", "kend": namelist.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
@@ -173,24 +173,24 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
         super().__init__(grid, namelist, stencil_factory)
 
         self.in_vars["data_vars"] = {
-            "temp": {"serialname": "tc_temp", "mp3": True},
-            "table0": {"serialname": "tc_t0", "mp3": True},
-            "table2": {"serialname": "tc_t2", "mp3": True},
-            "wqs": {"serialname": "tab_wq", "mp3": True},
-            "dwdt": {"serialname": "tab_dwq", "mp3": True},
-            "iqs": {"serialname": "tab_iq", "mp3": True},
-            "didt": {"serialname": "tab_diq", "mp3": True},
-            "temp2": {"serialname": "tab_pt", "mp3": True},
-            "den": {"serialname": "tab_den", "mp3": True},
+            "temp": {"serialname": "tc_temp", "shield": True},
+            "table0": {"serialname": "tc_t0", "shield": True},
+            "table2": {"serialname": "tc_t2", "shield": True},
+            "wqs": {"serialname": "tab_wq", "shield": True},
+            "dwdt": {"serialname": "tab_dwq", "shield": True},
+            "iqs": {"serialname": "tab_iq", "shield": True},
+            "didt": {"serialname": "tab_diq", "shield": True},
+            "temp2": {"serialname": "tab_pt", "shield": True},
+            "den": {"serialname": "tab_den", "shield": True},
         }
 
         self.out_vars = {
-            "table0": {"serialname": "tc_t0", "kend": namelist.npz, "mp3": True},
-            "table2": {"serialname": "tc_t2", "kend": namelist.npz, "mp3": True},
-            "wqs": {"serialname": "tab_wq", "kend": namelist.npz, "mp3": True},
-            "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "mp3": True},
-            "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "mp3": True},
-            "didt": {"serialname": "tab_diq", "kend": namelist.npz, "mp3": True},
+            "table0": {"serialname": "tc_t0", "kend": namelist.npz, "shield": True},
+            "table2": {"serialname": "tc_t2", "kend": namelist.npz, "shield": True},
+            "wqs": {"serialname": "tab_wq", "kend": namelist.npz, "shield": True},
+            "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "shield": True},
+            "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
+            "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
         }
 
         self.max_error = 1.5e-14  # 10^-25 absolute errors at the top of the tables

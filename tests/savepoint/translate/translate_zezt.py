@@ -50,23 +50,23 @@ class TranslateZeZt(TranslatePhysicsFortranData2Py):
     ):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
-            "z_surface": {"serialname": "zz_zs", "mp3": True},
-            "z_edge": {"serialname": "zz_ze", "mp3": True},
-            "z_terminal": {"serialname": "zz_zt", "mp3": True},
-            "delz": {"serialname": "zz_dz", "mp3": True},
-            "v_terminal": {"serialname": "zz_vt", "mp3": True},
+            "z_surface": {"serialname": "zz_zs", "shield": True},
+            "z_edge": {"serialname": "zz_ze", "shield": True},
+            "z_terminal": {"serialname": "zz_zt", "shield": True},
+            "delz": {"serialname": "zz_dz", "shield": True},
+            "v_terminal": {"serialname": "zz_vt", "shield": True},
         }
 
         self.in_vars["parameters"] = ["dt"]
 
         self.out_vars = {
-            "z_edge": {"serialname": "zz_ze", "kend": namelist.npz + 1, "mp3": True},
+            "z_edge": {"serialname": "zz_ze", "kend": namelist.npz + 1, "shield": True},
             "z_terminal": {
                 "serialname": "zz_zt",
                 "kend": namelist.npz + 1,
-                "mp3": True,
+                "shield": True,
             },
-            "z_surface": {"serialname": "zz_zs", "mp3": True},
+            "z_surface": {"serialname": "zz_zs", "shield": True},
         }
 
         self.stencil_factory = stencil_factory
