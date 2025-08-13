@@ -2,7 +2,7 @@ from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import FORWARD, computation, exp, interval, log, sqrt
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -16,8 +16,8 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.stencils.basic_operations import sign
-from pySHiELD._config import FloatFieldTracer
-from pySHiELD.functions.physics_functions import fpvsx
+from pyshield._config import FloatFieldTracer
+from pyshield.functions.physics_functions import fpvsx
 
 
 @gtscript.function
@@ -178,28 +178,28 @@ def cal_z0_hwrf15(ws10m):
     b6 = 0.0406766967657759
 
     if ws10m <= 5.0:
-        z0 = 0.0185 / 9.8 * (7.59e-4 * ws10m ** 2 + 2.46e-2 * ws10m) ** 2
+        z0 = 0.0185 / 9.8 * (7.59e-4 * ws10m**2 + 2.46e-2 * ws10m) ** 2
     elif (ws10m > 5.0) and (ws10m <= 10.0):
-        z0 = 0.00000235 * (ws10m ** 2 - 25.0) + 3.805129199617346e-05
+        z0 = 0.00000235 * (ws10m**2 - 25.0) + 3.805129199617346e-05
     elif (ws10m > 10.0) and (ws10m <= 60.0):
         z0 = (
             a6
             + a5 * ws10m
-            + a4 * ws10m ** 2
-            + a3 * ws10m ** 3
-            + a2 * ws10m ** 4
-            + a1 * ws10m ** 5
-            + a0 * ws10m ** 6
+            + a4 * ws10m**2
+            + a3 * ws10m**3
+            + a2 * ws10m**4
+            + a1 * ws10m**5
+            + a0 * ws10m**6
         )
     else:
         z0 = (
             b6
             + b5 * ws10m
-            + b4 * ws10m ** 2
-            + b3 * ws10m ** 3
-            + b2 * ws10m ** 4
-            + b1 * ws10m ** 5
-            + b0 * ws10m ** 6
+            + b4 * ws10m**2
+            + b3 * ws10m**3
+            + b2 * ws10m**4
+            + b1 * ws10m**5
+            + b0 * ws10m**6
         )
     return z0
 
@@ -231,36 +231,36 @@ def cal_zt_hwrf15(ws10m):
     c6 = 0.00357204479347
 
     if ws10m <= 7.0:
-        zt = 0.0185 / 9.8 * (7.59e-4 * ws10m ** 2 + 2.46e-2 * ws10m) ** 2
+        zt = 0.0185 / 9.8 * (7.59e-4 * ws10m**2 + 2.46e-2 * ws10m) ** 2
     elif (ws10m > 7.0) and (ws10m <= 15.0):
         zt = (
             a6
             + a5 * ws10m
-            + a4 * ws10m ** 2
-            + a3 * ws10m ** 3
-            + a2 * ws10m ** 4
-            + a1 * ws10m ** 5
-            + a0 * ws10m ** 6
+            + a4 * ws10m**2
+            + a3 * ws10m**3
+            + a2 * ws10m**4
+            + a1 * ws10m**5
+            + a0 * ws10m**6
         )
     elif (ws10m > 15.0) and (ws10m <= 60.0):
         zt = (
             b6
             + b5 * ws10m
-            + b4 * ws10m ** 2
-            + b3 * ws10m ** 3
-            + b2 * ws10m ** 4
-            + b1 * ws10m ** 5
-            + b0 * ws10m ** 6
+            + b4 * ws10m**2
+            + b3 * ws10m**3
+            + b2 * ws10m**4
+            + b1 * ws10m**5
+            + b0 * ws10m**6
         )
     else:
         zt = (
             c6
             + c5 * ws10m
-            + c4 * ws10m ** 2
-            + c3 * ws10m ** 3
-            + c2 * ws10m ** 4
-            + c1 * ws10m ** 5
-            + c0 * ws10m ** 6
+            + c4 * ws10m**2
+            + c3 * ws10m**3
+            + c2 * ws10m**4
+            + c1 * ws10m**5
+            + c0 * ws10m**6
         )
     return zt
 
@@ -287,22 +287,22 @@ def cal_z0_hwrf17(ws10m):
     p40 = 4.579369142033410e-04
 
     if ws10m <= 6.5:
-        z0 = exp(p10 + p11 * ws10m + p12 * ws10m ** 2 + p13 * ws10m ** 3)
+        z0 = exp(p10 + p11 * ws10m + p12 * ws10m**2 + p13 * ws10m**3)
     elif (ws10m > 6.5) and (ws10m <= 15.7):
         z0 = (
-            p25 * ws10m ** 5
-            + p24 * ws10m ** 4
-            + p23 * ws10m ** 3
-            + p22 * ws10m ** 2
+            p25 * ws10m**5
+            + p24 * ws10m**4
+            + p23 * ws10m**3
+            + p22 * ws10m**2
             + p21 * ws10m
             + p20
         )
     elif (ws10m > 15.7) and (ws10m <= 53.0):
         z0 = exp(
-            p35 * ws10m ** 5
-            + p34 * ws10m ** 4
-            + p33 * ws10m ** 3
-            + p32 * ws10m ** 2
+            p35 * ws10m**5
+            + p34 * ws10m**4
+            + p33 * ws10m**3
+            + p32 * ws10m**2
             + p31 * ws10m
             + p30
         )
@@ -447,7 +447,7 @@ def sfc_diff(
 
         if flag_iter[0, 0]:
             # Get lowest atmospheric level variables:
-            wind = max(sqrt(u1 ** 2 + v1 ** 2) + max(0.0, min(ddvel, 30.0)), 1.0)
+            wind = max(sqrt(u1**2 + v1**2) + max(0.0, min(ddvel, 30.0)), 1.0)
             tem1 = 1.0 + constants.ZVIR * max(q1[0, 0, 0][0], 1.0e-8)
             thv1 = t1 * prslki * tem1
             tvs = 0.5 * (tsurf + tskin) * tem1

@@ -1,5 +1,5 @@
 from ndsl import Namelist, StencilFactory
-from pySHiELD.stencils.surface.sfc_sice import SurfaceSeaIce
+from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

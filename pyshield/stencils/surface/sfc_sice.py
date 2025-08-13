@@ -2,7 +2,7 @@ from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -15,8 +15,8 @@ from ndsl.dsl.typing import (
     Int,
     IntFieldIJ,
 )
-from pySHiELD._config import FloatFieldTracer
-from pySHiELD.functions.physics_functions import fpvs
+from pyshield._config import FloatFieldTracer
+from pyshield.functions.physics_functions import fpvs
 
 
 @gtscript.function

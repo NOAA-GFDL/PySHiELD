@@ -18,6 +18,9 @@ TCRF = 1.0 / (constants.TICE - TF)
 CONT = constants.CP_AIR / constants.GRAV
 CONQ = constants.HLV / constants.GRAV
 
+# Constants used in interpolating radiation onto physics timestep:
+F_EPS = 0.0001
+
 # sfc_sice constants
 FLOAT_EPS = 1.0e-8
 HIMAX = 8.0  # maximum ice thickness allowed
@@ -48,8 +51,6 @@ DSLI = RHO_SNO * LI  # Snow density times latent heat of fusion (j/m^3)
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
 CPH2O2 = 4.2e6
 
-# Constants used in interpolating radiation onto physics timestep:
-F_EPS = 0.0001
 
 # SFC_DIFF Constants
 ALPHA = 5.0
@@ -84,8 +85,6 @@ ELCP = 2.4888e3
 RD1 = 287.04
 CP1 = 1004.5
 CP2 = 1004.0
-CPH2O1 = 4.218e3
-CPH2O2 = 4.2e6
 CPVAP = 1.8460e3
 CPICE = 2.1060e3
 CPICE1 = 2.106e6

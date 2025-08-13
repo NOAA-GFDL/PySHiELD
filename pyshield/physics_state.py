@@ -7,8 +7,8 @@ import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
-from pySHiELD._config import PHYSICS_PACKAGES
-from pySHiELD.stencils.microphysics import MicrophysicsState
+from pyshield._config import PHYSICS_PACKAGES
+from pyshield.stencils.microphysics import MicrophysicsState
 
 
 @dataclass()
@@ -331,7 +331,7 @@ class PhysicsState:
                     _field.metadata["dims"],
                     _field.metadata["units"],
                     dtype=Float,
-                ).data
+                )
         return cls(
             **initial_arrays,
             quantity_factory=quantity_factory,

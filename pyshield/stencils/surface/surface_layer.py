@@ -16,12 +16,12 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
-from pySHiELD._config import SurfaceConfig
-from pySHiELD.functions.set_sfc_params import set_sfc_arrays
-from pySHiELD.stencils.surface.sfc_diff import SurfaceExchange
-from pySHiELD.stencils.surface.sfc_ocean import SurfaceOcean
-from pySHiELD.stencils.surface.sfc_sice import SurfaceSeaIce
-from pySHiELD.stencils.surface.sfc_state import SurfaceState
+from pyshield._config import SurfaceConfig
+from pyshield.functions.set_sfc_params import set_sfc_arrays
+from pyshield.stencils.surface.sfc_diff import SurfaceExchange
+from pyshield.stencils.surface.sfc_ocean import SurfaceOcean
+from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
+from pyshield.stencils.surface.sfc_state import SurfaceState
 
 
 def init_step_vars(

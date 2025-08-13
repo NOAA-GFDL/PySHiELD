@@ -1,13 +1,13 @@
 from gt4py.cartesian.gtscript import FORWARD, computation, interval, sqrt
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import BoolFieldIJ, FloatField, FloatFieldIJ, IntFieldIJ
-from pySHiELD._config import FloatFieldTracer
-from pySHiELD.functions.physics_functions import fpvs
+from pyshield._config import FloatFieldTracer
+from pyshield.functions.physics_functions import fpvs
 
 
 def sfc_ocean(
@@ -34,7 +34,7 @@ def sfc_ocean(
 ):
     with computation(FORWARD), interval(0, 1):
         if (islimsk == 0) and (flag_iter):
-            wind = max(sqrt(u1 ** 2 + v1 ** 2) + max(0.0, min(ddvel, 30)), 1.0)
+            wind = max(sqrt(u1**2 + v1**2) + max(0.0, min(ddvel, 30)), 1.0)
             q0 = max(q1[0, 0, 0][0], 1.0e-8)
             rho = prsl1 / (constants.RDGAS * t1 * (1.0 + constants.ZVIR * q0))
 

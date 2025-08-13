@@ -2,7 +2,7 @@ import numpy as np
 
 from ndsl import TilePartitioner
 from ndsl.utils import safe_assign_array
-from pySHiELD.update import AGrid2DGridPhysics
+from pyshield.update import AGrid2DGridPhysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

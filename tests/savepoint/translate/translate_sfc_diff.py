@@ -1,5 +1,5 @@
 from ndsl import Namelist, StencilFactory
-from pySHiELD.stencils.surface.sfc_diff import SurfaceExchange
+from pyshield.stencils.surface.sfc_diff import SurfaceExchange
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
