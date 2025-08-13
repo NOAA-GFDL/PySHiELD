@@ -4,7 +4,7 @@ import ndsl.dsl.gt4py_utils as utils
 from ndsl import GridIndexing
 from ndsl.stencils.testing import ParallelTranslate2Py, TranslateFortranData2Py
 from ndsl.stencils.testing.translate import as_numpy
-from pySHiELD import PhysicsConfig
+from pyshield import PhysicsConfig
 
 
 def transform_dwind_serialized_data(data, grid_indexing: GridIndexing, backend: str):

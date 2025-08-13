@@ -67,3 +67,6 @@ W1S = -2.0e-4
 W2S = -2.0e-3
 W3S = -1.0e-3
 W4S = -2.0e-5
+
+# Constants used in interpolating radiation onto physics timestep:
+F_EPS = 0.0001

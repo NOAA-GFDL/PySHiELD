@@ -1,3 +1,8 @@
+import copy
+
+import numpy as np
+from gt4py.cartesian.gtscript import FORWARD, computation, interval
+
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import (
@@ -12,35 +17,46 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.sizer import SubtileGridSizer
-from gt4py.cartesian.gtscript import FORWARD, computation, interval
-from pySHiELD.stencils.shallow_convection.samfshalconv import (
+from pyshield._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
+from pyshield.stencils.shallow_convection.samfshalconv import (
     ScaleAwareMassFluxShallowConvection,
-    stencil_static1, stencil_static0,
-    stencil_update_kbcon1_cnvflg,
-    stencil_static9, stencil_static12,
+    col_diffs,
+    comp_tendencies,
+    exit_routine,
     feedback_control_update_mass_flux,
-    comp_tendencies, stencil_static13,
-    stencil_ntrstatic0, init_col_arr,
-    init_final, init_kbm_kmax, init_par_and_arr,
-    init_tracers, pa_to_cb, exit_routine, true_cols, col_diffs,
-    stencil_static2, stencil_static3, stencil_static5,
-    stencil_ntrstatic1, stencil_static7, stencil_ntrstatic2,
-    stencil_static10, stencil_static11,
+    init_col_arr,
+    init_final,
+    init_kbm_kmax,
+    init_par_and_arr,
+    init_tracers,
+    pa_to_cb,
+    stencil_ntrstatic0,
+    stencil_ntrstatic1,
+    stencil_ntrstatic2,
+    stencil_static0,
+    stencil_static1,
+    stencil_static2,
+    stencil_static3,
+    stencil_static5,
+    stencil_static7,
+    stencil_static9,
+    stencil_static10,
+    stencil_static11,
+    stencil_static12,
+    stencil_static13,
+    stencil_update_kbcon1_cnvflg,
+    true_cols,
 )
-from pySHiELD._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
-import numpy as np
-import copy
+
 
 def set_pfld_kbcon(
-    kbcon: IntFieldIJ,
-    k_mask: IntField,
-    pfld: FloatField,
-    pfld_kbcon: FloatFieldIJ
+    kbcon: IntFieldIJ, k_mask: IntField, pfld: FloatField, pfld_kbcon: FloatFieldIJ
 ):
     with computation(FORWARD), interval(...):
         if k_mask == kbcon:
             pfld_kbcon = pfld
+
 
 class InitCols:
     def __init__(
@@ -96,7 +112,7 @@ class InitCols:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-    
+
     def __call__(
         self,
         delp,
@@ -136,7 +152,7 @@ class InitCols:
         prsl,
         del0,
     ):
-    # Convert input Pa terms to Cb terms
+        # Convert input Pa terms to Cb terms
         self._pa_to_cb(
             psp,
             prslp,
@@ -167,9 +183,9 @@ class InitCols:
         )
         conv_a = copy.deepcopy(cnvflg)
         conv_b = np.full(cnvflg.shape, True)
-        print(cnvflg[3:-4,3:-4][16,1], conv_b[3:-4,3:-4][16,1])
-        print(cnvflg[3:-4,3:-4][16,1]^conv_b[3:-4,3:-4][16,1])
-        cols = col_diffs(cnvflg[3:-4,3:-4], conv_b[3:-4,3:-4])
+        print(cnvflg[3:-4, 3:-4][16, 1], conv_b[3:-4, 3:-4][16, 1])
+        print(cnvflg[3:-4, 3:-4][16, 1] ^ conv_b[3:-4, 3:-4][16, 1])
+        cols = col_diffs(cnvflg[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("Post-init: ", cols)
 
 
@@ -361,7 +377,7 @@ class Static1:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-    
+
     def __call__(
         self,
         delp,
@@ -431,7 +447,7 @@ class Static1:
         conv_a = copy.deepcopy(cnvflg)
         conv_b = np.ones_like(conv_a)
 
-        cols = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        cols = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("Post-init: ", cols)
 
         self._init_par_and_arr(
@@ -549,8 +565,9 @@ class Static1:
         # cnvflg[3:-4,3:-4][16,1] = True
         conv_b = copy.deepcopy(cnvflg)
 
-        columns = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("after static1: ", columns)
+
 
 class Static2:
     def __init__(
@@ -866,7 +883,7 @@ class Static2:
         conv_a = copy.deepcopy(cnvflg)
         conv_b = np.ones_like(conv_a)
 
-        cols = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        cols = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("Post-init: ", cols)
 
         self._init_par_and_arr(
@@ -986,7 +1003,7 @@ class Static2:
 
         conv_b = copy.deepcopy(cnvflg)
 
-        columns = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("after static1: ", columns)
         # breakpoint()
 
@@ -1002,6 +1019,7 @@ class Static2:
             self._pfld_kb,
             self._pfld_kbcon,
         )
+
 
 class UpdateKB9:
     def __init__(
@@ -1293,7 +1311,7 @@ class UpdateKB9:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-    
+
     def __call__(
         self,
         delp,
@@ -1361,7 +1379,7 @@ class UpdateKB9:
         conv_a = copy.deepcopy(cnvflg)
         conv_b = np.ones_like(conv_a)
 
-        cols = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        cols = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("Post-init: ", cols)
 
         self._init_par_and_arr(
@@ -1480,7 +1498,7 @@ class UpdateKB9:
 
         conv_b = copy.deepcopy(cnvflg)
 
-        columns = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("after static1: ", columns)
 
         self._stencil_static2(
@@ -1500,7 +1518,7 @@ class UpdateKB9:
 
         conv_a = copy.deepcopy(cnvflg)
 
-        columns = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("after static2: ", columns)
 
         self._stencil_static3(
@@ -1592,7 +1610,7 @@ class UpdateKB9:
         )
         conv_b = copy.deepcopy(cnvflg)
 
-        columns = col_diffs(conv_a[3:-4,3:-4], conv_b[3:-4,3:-4])
+        columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
         print("after update kbcon1: ", columns)
 
         self._stencil_static9(
@@ -1603,6 +1621,7 @@ class UpdateKB9:
             self._k_mask,
             kbcon1,
         )
+
 
 class Static10:
     def __init__(
@@ -1890,7 +1909,7 @@ class Static10:
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-    
+
     def __call__(
         self,
         delp,
@@ -2226,6 +2245,7 @@ class Static10:
         )
         if exit_routine(cnvflg[:]):
             return
+
 
 class Static11(ScaleAwareMassFluxShallowConvection):
     def __init__(
@@ -2632,6 +2652,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         columns = col_diffs(conv_a, conv_b)
         print("after static11: ", columns)
 
+
 class Static12:
     def __init__(
         self,
@@ -2642,7 +2663,9 @@ class Static12:
     ):
         grid_indexing = stencil_factory.grid_indexing
 
-        self._heo_kb = quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=Float)
+        self._heo_kb = quantity_factory.zeros(
+            [X_DIM, Y_DIM], units="unknown", dtype=Float
+        )
         self._k_mask = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
@@ -2650,14 +2673,14 @@ class Static12:
         )
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
-        
+
         self._static12 = stencil_factory.from_origin_domain(
             func=stencil_static12,
             externals={"c1": c1, "ncloud": ncloud},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-    
+
     def __call__(
         self,
         cnvflg: BoolFieldIJ,
@@ -2721,6 +2744,7 @@ class Static12:
             dellal,
         )
 
+
 class FeedbackCtrl:
     def __init__(
         self,
@@ -2731,15 +2755,15 @@ class FeedbackCtrl:
         grid_indexing = stencil_factory.grid_indexing
 
         self._ud_mf = quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
-                units="unknown",
-                dtype=Float,
-            )
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
         self._dt_mf = quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
-                units="unknown",
-                dtype=Float,
-            )
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
         self._k_mask = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
@@ -2747,14 +2771,14 @@ class FeedbackCtrl:
         )
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
-        
+
         self._feedback_control_update_mass_flux = stencil_factory.from_origin_domain(
             func=feedback_control_update_mass_flux,
             externals={"dt2": dt2},
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
-    
+
     def __call__(
         self,
         cnvflg: BoolFieldIJ,
@@ -2846,6 +2870,7 @@ class FeedbackCtrl:
             eta,
         )
 
+
 class SC13:
     def __init__(
         self,
@@ -2863,10 +2888,10 @@ class SC13:
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
         self._stencil_static13 = stencil_factory.from_origin_domain(
-                func=stencil_static13,
-                origin=grid_indexing.origin_compute(),
-                domain=grid_indexing.domain_compute(),
-            )
+            func=stencil_static13,
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
 
     def __call__(
         self,
@@ -2890,6 +2915,7 @@ class SC13:
                 qlko_ktcon,
             )
 
+
 class CompTendencies:
     def __init__(
         self,
@@ -2898,9 +2924,13 @@ class CompTendencies:
         dt2: Float,
     ):
         grid_indexing = stencil_factory.grid_indexing
-        self._dt2=dt2
-        self._zi_ktcon = quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=Float)
-        self._zi_kbcon = quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=Float)
+        self._dt2 = dt2
+        self._zi_ktcon = quantity_factory.zeros(
+            [X_DIM, Y_DIM], units="unknown", dtype=Float
+        )
+        self._zi_kbcon = quantity_factory.zeros(
+            [X_DIM, Y_DIM], units="unknown", dtype=Float
+        )
         self._k_mask = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
             units="unknown",
@@ -2915,6 +2945,7 @@ class CompTendencies:
             domain=grid_indexing.domain_compute(),
         )
         pass
+
     def __call__(
         self,
         cnvflg,
@@ -3008,6 +3039,7 @@ class CompTendencies:
             umean,
         )
 
+
 class TranslateInitCol(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3035,9 +3067,21 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
             "cnvw": {"serialname": "icol_cnvw", "shield": True},
             "cnvc": {"serialname": "icol_cnvc", "shield": True},
             "cnvflg": {"serialname": "icol_cnvflg", "shield": True},
-            "kbcon": {"serialname": "icol_kbcon", "shield": True, "index_variable": True},
-            "ktcon": {"serialname": "icol_ktcon", "shield": True, "index_variable": True},
-            "ktconn": {"serialname": "icol_ktconn", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "icol_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktcon": {
+                "serialname": "icol_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktconn": {
+                "serialname": "icol_ktconn",
+                "shield": True,
+                "index_variable": True,
+            },
             "kb": {"serialname": "icol_kb", "shield": True, "index_variable": True},
             "pdot": {"serialname": "icol_pdot", "shield": True},
             "qlko_ktcon": {"serialname": "icol_qlko_ktcon", "shield": True},
@@ -3065,9 +3109,21 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
         ]
         self.out_vars = {
             "cnvflg": {"serialname": "icol_cnvflg", "shield": True},
-            "kbcon": {"serialname": "icol_kbcon", "shield": True, "index_variable": True},
-            "ktcon": {"serialname": "icol_ktcon", "shield": True, "index_variable": True},
-            "ktconn": {"serialname": "icol_ktconn", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "icol_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktcon": {
+                "serialname": "icol_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktconn": {
+                "serialname": "icol_ktconn",
+                "shield": True,
+                "index_variable": True,
+            },
             "kb": {"serialname": "icol_kb", "shield": True, "index_variable": True},
             "pdot": {"serialname": "icol_pdot", "shield": True},
             "qlko_ktcon": {"serialname": "icol_qlko_ktcon", "shield": True},
@@ -3122,6 +3178,7 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 
+
 class TranslateStatic1(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3129,7 +3186,11 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "sc1_cnvflg", "shield": True},
             "flg": {"serialname": "sc1_flg", "shield": True},
-            "kbcon": {"serialname": "sc1_kbcon", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "sc1_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kmax": {"serialname": "sc1_kmax", "shield": True, "index_variable": True},
             "kbm": {"serialname": "sc1_kbm", "shield": True, "index_variable": True},
             "kb": {"serialname": "sc1_kb", "shield": True, "index_variable": True},
@@ -3175,7 +3236,11 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
         self.out_vars = {
             "cnvflg": {"serialname": "sc1_cnvflg", "shield": True},
             "flg": {"serialname": "sc1_flg", "shield": True},
-            "kbcon": {"serialname": "sc1_kbcon", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "sc1_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kmax": {"serialname": "sc1_kmax", "shield": True, "index_variable": True},
             "kbm": {"serialname": "sc1_kbm", "shield": True, "index_variable": True},
             "kb": {"serialname": "sc1_kb", "shield": True, "index_variable": True},
@@ -3226,6 +3291,7 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 
+
 class TranslateStatic2(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3254,7 +3320,11 @@ class TranslateStatic2(TranslatePhysicsFortranData2Py):
             "cnvc": {"serialname": "sc2_cnvc", "shield": True},
             "cnvflg": {"serialname": "sc2_cnvflg", "shield": True},
             "pdot": {"serialname": "sc2_pdot", "shield": True},
-            "kbcon": {"serialname": "sc2_kbcon", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "sc2_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kb": {"serialname": "sc2_kb", "shield": True, "index_variable": True},
             "pfld": {"serialname": "sc2_pfld", "shield": True},
         }
@@ -3276,7 +3346,11 @@ class TranslateStatic2(TranslatePhysicsFortranData2Py):
             "pdot": {"serialname": "sc2_pdot", "shield": True},
             "dot": {"serialname": "sc2_dot", "shield": True},
             "islimsk": {"serialname": "sc2_islimsk", "shield": True},
-            "kbcon": {"serialname": "sc2_kbcon", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "sc2_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kb": {"serialname": "sc2_kb", "shield": True, "index_variable": True},
             "pfld": {"serialname": "sc2_pfld", "shield": True},
         }
@@ -3353,8 +3427,16 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
             "cnvflg": {"serialname": "uk9_cnvflg", "shield": True},
             "kmax": {"serialname": "uk9_kmax", "shield": True, "index_variable": True},
             "kbm": {"serialname": "uk9_kbm", "shield": True, "index_variable": True},
-            "kbcon": {"serialname": "uk9_kbcon", "shield": True, "index_variable": True},
-            "kbcon1": {"serialname": "uk9_kbcon1", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "uk9_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "kbcon1": {
+                "serialname": "uk9_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "flg": {"serialname": "uk9_flg", "shield": True},
             "pfld": {"serialname": "uk9_pfld", "shield": True},
         }
@@ -3376,8 +3458,16 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
             "cnvflg": {"serialname": "uk9_cnvflg", "shield": True},
             "kmax": {"serialname": "uk9_kmax", "shield": True, "index_variable": True},
             "kbm": {"serialname": "uk9_kbm", "shield": True, "index_variable": True},
-            "kbcon": {"serialname": "uk9_kbcon", "shield": True, "index_variable": True},
-            "kbcon1": {"serialname": "uk9_kbcon1", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "uk9_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "kbcon1": {
+                "serialname": "uk9_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "flg": {"serialname": "uk9_flg", "shield": True},
             "pfld": {"serialname": "uk9_pfld", "shield": True},
         }
@@ -3423,6 +3513,7 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 
+
 class TranslateStatic10(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3452,7 +3543,11 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
             "cina": {"serialname": "sc10_cina", "shield": True},
             "cnvflg": {"serialname": "sc10_cnvflg", "shield": True},
             "kb": {"serialname": "sc10_kb", "shield": True, "index_variable": True},
-            "kbcon1": {"serialname": "sc10_kbcon1", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "sc10_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "zo": {"serialname": "sc10_zo", "shield": True},
             "qeso": {"serialname": "sc10_qeso", "shield": True},
             "to": {"serialname": "sc10_to", "shield": True},
@@ -3477,7 +3572,11 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
             "cina": {"serialname": "sc10_cina", "shield": True},
             "cnvflg": {"serialname": "sc10_cnvflg", "shield": True},
             "kb": {"serialname": "sc10_kb", "shield": True, "index_variable": True},
-            "kbcon1": {"serialname": "sc10_kbcon1", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "sc10_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "zo": {"serialname": "sc10_zo", "shield": True},
             "qeso": {"serialname": "sc10_qeso", "shield": True},
             "to": {"serialname": "sc10_to", "shield": True},
@@ -3527,6 +3626,7 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 
+
 class TranslateStatic11(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3555,15 +3655,31 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
             "cnvc": {"serialname": "sc11_cnvc", "shield": True},
             "flg": {"serialname": "sc11_flg", "shield": True},
             "cnvflg": {"serialname": "sc11_cnvflg", "shield": True},
-            "ktcon": {"serialname": "sc11_ktcon", "shield": True, "index_variable": True},
+            "ktcon": {
+                "serialname": "sc11_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kbm": {"serialname": "sc11_kbm", "shield": True, "index_variable": True},
-            "kbcon1": {"serialname": "sc11_kbcon1", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "sc11_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "dbyo": {"serialname": "sc11_dbyo", "shield": True},
-            "kbcon": {"serialname": "sc11_kbcon", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "sc11_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "del0": {"serialname": "sc11_del0", "shield": True},
             "xmbmax": {"serialname": "sc11_xmbmax", "shield": True},
             "aa1": {"serialname": "sc11_aa1", "shield": True},
-            "kb": {"serialname": "sc11_kb", "shield": True, "index_variable": True,},
+            "kb": {
+                "serialname": "sc11_kb",
+                "shield": True,
+                "index_variable": True,
+            },
             "qcko": {"serialname": "sc11_qcko", "shield": True},
             "qo": {"serialname": "sc11_qo", "shield": True},
             "qrcko": {"serialname": "sc11_qrcko", "shield": True},
@@ -3597,11 +3713,23 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
         self.out_vars = {
             "flg": {"serialname": "sc11_flg", "shield": True},
             "cnvflg": {"serialname": "sc11_cnvflg", "shield": True},
-            "ktcon": {"serialname": "sc11_ktcon", "shield": True, "index_variable": True},
+            "ktcon": {
+                "serialname": "sc11_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kbm": {"serialname": "sc11_kbm", "shield": True, "index_variable": True},
-            "kbcon1": {"serialname": "sc11_kbcon1", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "sc11_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "dbyo": {"serialname": "sc11_dbyo", "shield": True},
-            "kbcon": {"serialname": "sc11_kbcon", "shield": True, "index_variable": True},
+            "kbcon": {
+                "serialname": "sc11_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "del0": {"serialname": "sc11_del0", "shield": True},
             "xmbmax": {"serialname": "sc11_xmbmax", "shield": True},
             "aa1": {"serialname": "sc11_aa1", "shield": True},
@@ -3665,6 +3793,7 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 
+
 class TranslateStatic12(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
@@ -3673,9 +3802,17 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
             "cnvflg": {"serialname": "s12_cnvflg", "shield": True},
             "aa1": {"serialname": "s12_aa1", "shield": True},
             "flg": {"serialname": "s12_flg", "shield": True},
-            "ktcon1": {"serialname": "s12_ktcon1", "shield": True, "index_variable": True},
+            "ktcon1": {
+                "serialname": "s12_ktcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "kbm": {"serialname": "s12_kbm", "shield": True, "index_variable": True},
-            "ktcon": {"serialname": "s12_ktcon", "shield": True, "index_variable": True},
+            "ktcon": {
+                "serialname": "s12_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "zo": {"serialname": "s12_zo", "shield": True},
             "qeso": {"serialname": "s12_qeso", "shield": True},
             "to": {"serialname": "s12_to", "shield": True},
@@ -3695,7 +3832,11 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
             "wu2": {"serialname": "s12_wu2", "shield": True},
             "wc": {"serialname": "s12_wc", "shield": True},
             "sumx": {"serialname": "s12_sumx", "shield": True},
-            "kbcon1": {"serialname": "s12_kbcon1", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "s12_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "drag": {"serialname": "s12_drag", "shield": True},
             "dellal": {"serialname": "s12_dellal", "shield": True},
         }
@@ -3707,9 +3848,17 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
             "cnvflg": {"serialname": "s12_cnvflg", "shield": True},
             "aa1": {"serialname": "s12_aa1", "shield": True},
             "flg": {"serialname": "s12_flg", "shield": True},
-            "ktcon1": {"serialname": "s12_ktcon1", "shield": True, "index_variable": True},
+            "ktcon1": {
+                "serialname": "s12_ktcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "kbm": {"serialname": "s12_kbm", "shield": True, "index_variable": True},
-            "ktcon": {"serialname": "s12_ktcon", "shield": True, "index_variable": True},
+            "ktcon": {
+                "serialname": "s12_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "zo": {"serialname": "s12_zo", "shield": True},
             "qeso": {"serialname": "s12_qeso", "shield": True},
             "to": {"serialname": "s12_to", "shield": True},
@@ -3729,7 +3878,11 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
             "wu2": {"serialname": "s12_wu2", "shield": True},
             "wc": {"serialname": "s12_wc", "shield": True},
             "sumx": {"serialname": "s12_sumx", "shield": True},
-            "kbcon1": {"serialname": "s12_kbcon1", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "s12_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
             "drag": {"serialname": "s12_drag", "shield": True},
             "dellal": {"serialname": "s12_dellal", "shield": True},
         }
@@ -3760,6 +3913,7 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
         )
         self.compute_func(**inputs)
         return self.slice_output(inputs)
+
 
 class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
@@ -3880,13 +4034,18 @@ class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 
+
 class TranslateSC13(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "s13_cnvflg", "shield": True},
-            "ktcon": {"serialname": "s13_ktcon", "shield": True, "index_variable": True},
+            "ktcon": {
+                "serialname": "s13_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "qeso": {"serialname": "s13_qeso", "shield": True},
             "to": {"serialname": "s13_to", "shield": True},
             "dbyo": {"serialname": "s13_dbyo", "shield": True},
@@ -3898,7 +4057,11 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
         ]
         self.out_vars = {
             "cnvflg": {"serialname": "s13_cnvflg", "shield": True},
-            "ktcon": {"serialname": "s13_ktcon", "shield": True, "index_variable": True},
+            "ktcon": {
+                "serialname": "s13_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "qeso": {"serialname": "s13_qeso", "shield": True},
             "to": {"serialname": "s13_to", "shield": True},
             "dbyo": {"serialname": "s13_dbyo", "shield": True},
@@ -3930,18 +4093,35 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
             int(inputs.pop("s13_ncloud")),
         )
         self.compute_func(**inputs)
-        print(np.argwhere(inputs['cnvflg']))
+        print(np.argwhere(inputs["cnvflg"]))
         return self.slice_output(inputs)
+
 
 class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "sct_cnvflg", "shield": True},
-            "kbcon1": {"serialname": "sct_kbcon1", "shield": True, "index_variable": True},
-            "kbcon": {"serialname": "sct_kbcon", "shield": True, "index_variable": True},
-            "ktcon1": {"serialname": "sct_ktcon1", "shield": True, "index_variable": True},
-            "ktcon": {"serialname": "sct_ktcon", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "sct_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
+            "kbcon": {
+                "serialname": "sct_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktcon1": {
+                "serialname": "sct_ktcon1",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktcon": {
+                "serialname": "sct_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kb": {"serialname": "sct_kb", "shield": True, "index_variable": True},
             "kmax": {"serialname": "sct_kmax", "shield": True, "index_variable": True},
             "dellah": {"serialname": "sct_dellah", "shield": True},
@@ -3985,10 +4165,26 @@ class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
         ]
         self.out_vars = {
             "cnvflg": {"serialname": "sct_cnvflg", "shield": True},
-            "kbcon1": {"serialname": "sct_kbcon1", "shield": True, "index_variable": True},
-            "kbcon": {"serialname": "sct_kbcon", "shield": True, "index_variable": True},
-            "ktcon1": {"serialname": "sct_ktcon1", "shield": True, "index_variable": True},
-            "ktcon": {"serialname": "sct_ktcon", "shield": True, "index_variable": True},
+            "kbcon1": {
+                "serialname": "sct_kbcon1",
+                "shield": True,
+                "index_variable": True,
+            },
+            "kbcon": {
+                "serialname": "sct_kbcon",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktcon1": {
+                "serialname": "sct_ktcon1",
+                "shield": True,
+                "index_variable": True,
+            },
+            "ktcon": {
+                "serialname": "sct_ktcon",
+                "shield": True,
+                "index_variable": True,
+            },
             "kb": {"serialname": "sct_kb", "shield": True, "index_variable": True},
             "kmax": {"serialname": "sct_kmax", "shield": True, "index_variable": True},
             "dellah": {"serialname": "sct_dellah", "shield": True},
@@ -4053,7 +4249,7 @@ class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
             self.quantity_factory,
             inputs.pop("sct_dt2"),
         )
-        print(np.argwhere(inputs['cnvflg']))
-        print(len(np.argwhere(inputs['cnvflg'])))
+        print(np.argwhere(inputs["cnvflg"]))
+        print(len(np.argwhere(inputs["cnvflg"])))
         self.compute_func(**inputs)
         return self.slice_output(inputs)

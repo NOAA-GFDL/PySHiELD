@@ -153,6 +153,7 @@ class PhysicsConfig:
     isatmedmf: int = DEFAULT_INT
     fscav: list = dataclasses.field(default_factory=list)
     namelist_override: Optional[str] = None
+    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
     def __post_init__(self):
         if self.schemes is None:
@@ -252,6 +253,7 @@ class PhysicsConfig:
             pgcon_shal=namelist.pgcon_shal,
             asolfac_shal=namelist.asolfac_shal,
             ncld=namelist.ncld,
+            daily_mean=namelist.daily_mean,
         )
 
     @property

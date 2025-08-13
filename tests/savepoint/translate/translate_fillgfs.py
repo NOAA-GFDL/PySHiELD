@@ -2,7 +2,7 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.utils import safe_assign_array
-from pySHiELD.update.update_atmos_state import fill_gfs_delp
+from pyshield.update.update_atmos_state import fill_gfs_delp
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

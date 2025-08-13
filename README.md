@@ -11,12 +11,12 @@ pySHiELD is under active development. Currently, the pace level docker environme
 Install the requirements with:
 
 ```
-pip install -r ./physics/requirements.txt
+pip install .[tests,pyfv3,ndsl]
 ```
 
-A standard `setup.py` installation script is provided and can be installed with `pip`.
+A standard `pyproject.toml` configuration file is provided and can be installed with `pip`.
 If you are planning on modifying the source files, use the following command:
 
 ```
-pip install -e ./physics
+pip install -e .
 ```

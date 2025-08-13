@@ -1,3 +1,6 @@
+import copy
+
+import numpy as np
 from gt4py.cartesian.gtscript import (
     BACKWARD,
     FORWARD,
@@ -10,7 +13,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl import QuantityFactory, StencilFactory
@@ -26,14 +29,13 @@ from ndsl.dsl.typing import (
     IntField,
     IntFieldIJ,
 )
-from pySHiELD._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
-from pySHiELD.functions.physics_functions import fpvs
+from pyshield._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
+from pyshield.functions.physics_functions import fpvs
 
-import copy
-import numpy as np
 
 def exit_routine(cnvflg):
     return cnvflg.sum() == 0
+
 
 def col_diffs(conv1, conv2):
     cols = []
@@ -42,12 +44,14 @@ def col_diffs(conv1, conv2):
             cols.append((i, j))
     return cols
 
+
 def true_cols(conv):
     cols = []
     for i, j in np.ndindex(conv.shape):
         if conv[i, j]:
             cols.append((i, j))
     return cols
+
 
 def pa_to_cb(
     psp: FloatFieldIJ,
@@ -831,7 +835,7 @@ def stencil_static10(
         if cnvflg:
             if k_mask > kb and k_mask < kbcon1:
                 dz1 = zo[0, 0, 1] - zo
-                gamma = physcons.EL2ORC * qeso / to ** 2
+                gamma = physcons.EL2ORC * qeso / to**2
                 rfact = 1.0 + physcons.DELTA * constants.CP_AIR * (
                     gamma * to / constants.HLV
                 )
@@ -979,7 +983,7 @@ def stencil_static11(
         if cnvflg:
             if k_mask > kb and k_mask < ktcon:
                 dz = zi - zi[0, 0, -1]
-                gamma = physcons.EL2ORC * qeso / (to ** 2)
+                gamma = physcons.EL2ORC * qeso / (to**2)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
                 tem = 0.5 * (xlamue + xlamue[0, 0, -1]) * dz
                 tem1 = 0.5 * xlamud * dz
@@ -1115,14 +1119,17 @@ def stencil_static12(
             if flg:
                 if k_mask >= ktcon and k_mask < kbm:
                     dz1 = zo[0, 0, 1] - zo
-                    gamma = physcons.EL2ORC * qeso / (to ** 2)
+                    gamma = physcons.EL2ORC * qeso / (to**2)
                     rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
                         to / constants.HLV
                     )
                     aa1 = (
                         aa1
-                        + dz1 * (constants.GRAV / (constants.CP_AIR * to))
-                        * dbyo / (1.0 + gamma) * rfact
+                        + dz1
+                        * (constants.GRAV / (constants.CP_AIR * to))
+                        * dbyo
+                        / (1.0 + gamma)
+                        * rfact
                     )
 
                     # val = 0.
@@ -1158,7 +1165,7 @@ def stencil_static12(
                 # cloud water and precipitation and detrain convective cloud water in
                 # the overshooting layers.
                 dz = zi - zi[0, 0, -1]
-                gamma = physcons.EL2ORC * qeso / (to ** 2)
+                gamma = physcons.EL2ORC * qeso / (to**2)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
                 tem = 0.5 * (xlamue + xlamue[0, 0, -1]) * dz
                 tem1 = 0.5 * xlamud * dz
@@ -1274,13 +1281,15 @@ def stencil_static13(
 
         if cnvflg:
             if k_mask == ktcon - 1:
-                gamma = physcons.EL2ORC * qeso / (to ** 2.0)
+                gamma = physcons.EL2ORC * qeso / (to**2.0)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
                 dq = qcko - qrch
                 # Check if there is excess moisture to release latent heat
                 if dq > 0.0:
                     qlko_ktcon = dq
                     qcko = qrch
+
+
 # endif
 
 
@@ -1338,7 +1347,7 @@ def stencil_static14(
             # Use ziktcon and zikb to represent zi(ktcon) and zi(kb)
             vshear = 1.0e3 * vshear / (zi_ktcon - zi_kb)
 
-            e1 = 1.591-.639*vshear + .0953*(vshear**2)-.00496*(vshear**3)
+            e1 = 1.591 - 0.639 * vshear + 0.0953 * (vshear**2) - 0.00496 * (vshear**3)
 
             edt = 1.0 - e1
             # val = .9
@@ -1465,7 +1474,9 @@ def comp_tendencies(
                     - eta[0, 0, -1] * dv3h
                     - tem * eta[0, 0, -1] * dv2h * dz
                     + tem1 * eta[0, 0, -1] * 0.5 * (hcko + hcko[0, 0, -1]) * dz
-                ) * constants.GRAV / dp
+                )
+                * constants.GRAV
+                / dp
             )
 
             dellaq = (
@@ -1475,7 +1486,9 @@ def comp_tendencies(
                     - eta[0, 0, -1] * dv3q
                     - tem * eta[0, 0, -1] * dv2q * dz
                     + tem1 * eta[0, 0, -1] * 0.5 * (qrcko + qcko[0, 0, -1]) * dz
-                ) * constants.GRAV / dp
+                )
+                * constants.GRAV
+                / dp
             )
 
             tem1 = eta * (uo - ucko)
@@ -1503,12 +1516,14 @@ def comp_tendencies(
                 dellau = (
                     eta[0, 0, -1]
                     * (ucko[0, 0, -1] - uo[0, 0, -1])
-                    * constants.GRAV / dp
+                    * constants.GRAV
+                    / dp
                 )
                 dellav = (
                     eta[0, 0, -1]
                     * (vcko[0, 0, -1] - vo[0, 0, -1])
-                    * constants.GRAV / dp
+                    * constants.GRAV
+                    / dp
                 )
 
                 # Cloud water
@@ -1751,7 +1766,7 @@ def feedback_control_update_mass_flux(
                 # updated temperature
                 qeso = fpvst1
                 qeso = constants.EPS * qeso / (pfld + (constants.EPS - 1) * qeso)
-                val = 1.e-8
+                val = 1.0e-8
                 qeso = max(qeso, val)
 
     with computation(FORWARD), interval(1, -1):
@@ -1794,7 +1809,7 @@ def feedback_control_update_mass_flux(
                     else:
                         evef = edt * physcons.EVFACT
                     qcond = (
-                        evef * (q1 - qeso) / (1.0 + physcons.EL2ORC * qeso / (t1 ** 2))
+                        evef * (q1 - qeso) / (1.0 + physcons.EL2ORC * qeso / (t1**2))
                     )
 
                     dp = 1000.0 * del0
