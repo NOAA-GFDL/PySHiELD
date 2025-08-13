@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from ndsl import constants as constants
-from pySHiELD.radiation.rad_astro import (
+from pyshield.radiation.rad_astro import (
     date_to_julian,
     read_NOAA_solar_file,
     sol_init,
@@ -140,7 +140,16 @@ def test_solar_update(
 ):
     isolflag, sol_const_data, solc0 = sol_init(isolar, Path(datapath), iyr_sav)
     lsol_chg = (isolflag not in [0, 10]) and sdate[0] != iyr_sav
-    (slag, sdec, cdec, anginc, solcon, solc0, nstp, saved_iyear,) = solar_update(
+    (
+        slag,
+        sdec,
+        cdec,
+        anginc,
+        solcon,
+        solc0,
+        nstp,
+        saved_iyear,
+    ) = solar_update(
         sdate,
         solc0,
         deltsw,
