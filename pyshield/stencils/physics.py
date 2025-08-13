@@ -1,33 +1,24 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import (
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    cos,
-    exp,
-    interval,
-    log,
-)
-
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.stencils.basic_operations import copy_defn
-from pySHiELD._config import (
+from pyshield._config import (
     PHYSICS_PACKAGES,
     TRACER_DIM,
     FloatFieldTracer,
     PhysicsConfig,
 )
-from pySHiELD.physics_state import PhysicsState
-from pySHiELD.stencils.get_phi_fv3 import get_phi_fv3
-from pySHiELD.stencils.get_prs_fv3 import get_prs_fv3
-from pySHiELD.stencils.microphysics import Microphysics
-from pySHiELD.stencils.pbl import ScaleAwareTKEMoistEDMF
+from pyshield.physics_state import PhysicsState
+from pyshield.stencils.get_phi_fv3 import get_phi_fv3
+from pyshield.stencils.get_prs_fv3 import get_prs_fv3
+from pyshield.stencils.microphysics import Microphysics
+from pyshield.stencils.pbl import ScaleAwareTKEMoistEDMF
 
 
 def interpolate_radiation(
@@ -358,7 +349,7 @@ def prepare_microphysics(
         qa_dt = 0.0
 
 
-@gtscript.function
+@gtfunction
 def forward_euler(q_t0, q_dt, dt):
     return q_t0 + q_dt * dt
 

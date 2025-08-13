@@ -1,6 +1,6 @@
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import (
@@ -15,10 +15,10 @@ from ndsl.dsl.typing import (
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.stencils.basic_operations import copy_defn
-from pySHiELD._config import TRACER_DIM, FloatFieldTracer, PBLConfig
-from pySHiELD.stencils.pbl.mfpblt import PBLMassFlux
-from pySHiELD.stencils.pbl.mfscu import StratocumulusMassFlux
-from pySHiELD.stencils.pbl.satmedmfvdiff import (
+from pyshield._config import TRACER_DIM, FloatFieldTracer, PBLConfig
+from pyshield.stencils.pbl.mfpblt import PBLMassFlux
+from pyshield.stencils.pbl.mfscu import StratocumulusMassFlux
+from pyshield.stencils.pbl.satmedmfvdiff import (
     compute_asymptotic_mixing_length,
     compute_eddy_diffusivity_buoy_shear,
     compute_prandtl_num_exchange_coeff,

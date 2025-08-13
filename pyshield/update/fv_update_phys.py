@@ -1,8 +1,5 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, exp, interval, log
-
 import ndsl.constants as constants
-import pyFV3
+import pyfv3
 from ndsl import (
     Quantity,
     QuantityFactory,
@@ -11,15 +8,18 @@ from ndsl import (
     orchestrate,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
 from ndsl.stencils.c2l_ord import CubedToLatLon
 from ndsl.typing import Communicator
-from pySHiELD.update.update_dwind_phys import AGrid2DGridPhysics
+from pyshield.update.update_dwind_phys import AGrid2DGridPhysics
 
 
-# TODO: This is the same as moist_cv.py in pyFV3, should move to integration dir
-@gtscript.function
+# TODO: This is the same as moist_cv.py in pyfv3, should move to integration dir
+@gtfunction
 def moist_cvm(qvapor, gz, ql, qs):
     cvm = (
         (1.0 - (qvapor + gz)) * constants.CV_AIR
@@ -92,7 +92,7 @@ class ApplyPhysicsToDycore:
         namelist,
         comm: Communicator,
         grid_info: DriverGridData,
-        state: pyFV3.DycoreState,
+        state: pyfv3.DycoreState,
         u_dt: Quantity,
         v_dt: Quantity,
     ):

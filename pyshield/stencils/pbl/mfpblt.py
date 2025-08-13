@@ -1,7 +1,7 @@
 from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval, sqrt
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -17,8 +17,8 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.allocator import QuantityFactory
-from pySHiELD._config import FloatFieldTracer
-from pySHiELD.functions.physics_functions import fpvs
+from pyshield._config import FloatFieldTracer
+from pyshield.functions.physics_functions import fpvs
 
 
 A1 = 0.13
@@ -129,7 +129,7 @@ def mfpblt_s1(
                 dq = qtu[0, 0, 0] - qs
 
                 if dq > 0.0:
-                    gamma = physcons.EL2ORC * qs / (tlu ** 2)
+                    gamma = physcons.EL2ORC * qs / (tlu**2)
                     qlu = dq / (1.0 + gamma)
                     qtu = qs + qlu
                     thvu = (thlu[0, 0, 0] + pix[0, 0, 0] * physcons.ELOCP * qlu) * (
@@ -316,7 +316,7 @@ def mfpblt_s2(
                 )
                 dq = qtu[0, 0, 0] - qs
                 if dq > 0.0:
-                    qlu = dq / (1.0 + (physcons.EL2ORC * qs / (tlu ** 2)))
+                    qlu = dq / (1.0 + (physcons.EL2ORC * qs / (tlu**2)))
                     qtu = qs + qlu
                     qcko[0, 0, 0][0] = qs
                     qcko[0, 0, 0][ntcw - 1] = qlu

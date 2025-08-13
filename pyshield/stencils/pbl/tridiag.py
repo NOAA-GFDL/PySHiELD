@@ -1,7 +1,7 @@
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, computation, interval
 
 from ndsl.dsl.typing import FloatField, Int
-from pySHiELD._config import FloatFieldTracer
+from pyshield._config import FloatFieldTracer
 
 
 def tridit(

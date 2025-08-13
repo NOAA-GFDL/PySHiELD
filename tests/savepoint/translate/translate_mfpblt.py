@@ -2,7 +2,7 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import Int
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
-from pySHiELD.stencils.pbl.mfpblt import PBLMassFlux
+from pyshield.stencils.pbl.mfpblt import PBLMassFlux
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

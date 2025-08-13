@@ -8,7 +8,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -24,8 +24,8 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.allocator import QuantityFactory
-from pySHiELD._config import FloatFieldTracer
-from pySHiELD.functions.physics_functions import fpvs
+from pyshield._config import FloatFieldTracer
+from pyshield.functions.physics_functions import fpvs
 
 
 def mfscu_s0(
@@ -182,7 +182,7 @@ def mfscu_s3(
             constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
         )
         dq = qtd[0, 0, 0] - qs
-        gamma = physcons.EL2ORC * qs / (tld ** 2)
+        gamma = physcons.EL2ORC * qs / (tld**2)
         qld = dq / (1.0 + gamma)
         if cnvflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
             if dq > 0.0:
@@ -431,7 +431,7 @@ def mfscu_s9(
                 constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
             )
             dq = qtd[0, 0, 0] - qs
-            gamma = physcons.EL2ORC * qs / (tld ** 2)
+            gamma = physcons.EL2ORC * qs / (tld**2)
             qld = dq / (1.0 + gamma)
 
             if dq > 0.0:

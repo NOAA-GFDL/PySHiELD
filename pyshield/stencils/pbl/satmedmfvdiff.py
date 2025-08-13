@@ -9,7 +9,7 @@ from gt4py.cartesian.gtscript import (
 )
 
 import ndsl.constants as constants
-import pySHiELD.constants as physcons
+import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -26,11 +26,11 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.allocator import QuantityFactory
-from pySHiELD._config import TRACER_DIM, FloatFieldTracer, PBLConfig
-from pySHiELD.functions.physics_functions import fpvs
-from pySHiELD.stencils.pbl.mfpblt import PBLMassFlux
-from pySHiELD.stencils.pbl.mfscu import StratocumulusMassFlux
-from pySHiELD.stencils.pbl.tridiag import tridi2, tridin, tridit
+from pyshield._config import TRACER_DIM, FloatFieldTracer, PBLConfig
+from pyshield.functions.physics_functions import fpvs
+from pyshield.stencils.pbl.mfpblt import PBLMassFlux
+from pyshield.stencils.pbl.mfscu import StratocumulusMassFlux
+from pyshield.stencils.pbl.tridiag import tridi2, tridin, tridit
 
 
 def init_turbulence(
@@ -311,7 +311,7 @@ def init_turbulence(
         tem1 = 0.5 * (t1[0, 0, 0] + t1[0, 0, 1])
         cfh = min(cfly[0, 0, 1], 0.5 * (cfly[0, 0, 0] + cfly[0, 0, 1]))
         alp = constants.GRAV / (0.5 * (svx[0, 0, 0] + svx[0, 0, 1]))
-        gamma = physcons.EL2ORC * (0.5 * (qstl[0, 0, 0] + qstl[0, 0, 1])) / (tem1 ** 2)
+        gamma = physcons.EL2ORC * (0.5 * (qstl[0, 0, 0] + qstl[0, 0, 1])) / (tem1**2)
         epsi = tem1 / physcons.ELOCP
         beta = (1.0 + gamma * epsi * (1.0 + constants.ZVIR)) / (1.0 + gamma)
         chx = cfh * alp * beta + (1.0 - cfh) * alp
@@ -1991,7 +1991,6 @@ class ScaleAwareTKEMoistEDMF:
         dkt: FloatField,
         islimsk: IntFieldIJ,
     ):
-
         """
         ix is the block size in i, for us the same as im since gt4py handles threading
         Still have to figure out what to do with:

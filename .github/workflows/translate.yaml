@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
       component_trigger:
-        type:  boolean
+        type: boolean
         default: false
         required: false
       component_name:
@@ -39,28 +39,28 @@ jobs:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
 
-      - name:  external trigger Install packages for FV3 component
-        if : ${{contains(inputs.component_name, 'FV3')}}
-        run : |
+      - name: external trigger Install packages for FV3 component
+        if: ${{contains(inputs.component_name, 'FV3')}}
+        run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
 
       - name: external trigger Install packages for NDSL component
-        if : ${{contains(inputs.component_name, 'NDSL')}}
+        if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
-          pip3 install .[pyFV3,test]
+          pip3 install .[pyfv3,test]
 
       - name: Install pySHiELD packages
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
-          pip3 install .[ndsl,pyFV3,test]
+          pip3 install .[ndsl,pyfv3,test]
 
       - name: Download data
         run: |
@@ -84,7 +84,6 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           export FV3_DACEMODE=BuildAndRun
           export PACE_FLOAT_PRECISION=64
-          export PACE_TEST_N_THRESHOLD_SAMPLES=0
           export OMP_NUM_THREADS=10
           export PACE_LOGLEVEL=Debug
           pytest \

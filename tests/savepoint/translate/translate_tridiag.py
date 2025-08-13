@@ -6,8 +6,8 @@ from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.stencils.basic_operations import copy_defn
-from pySHiELD._config import TRACER_DIM, FloatFieldTracer
-from pySHiELD.stencils.pbl.tridiag import tridi2, tridin, tridit
+from pyshield._config import TRACER_DIM, FloatFieldTracer
+from pyshield.stencils.pbl.tridiag import tridi2, tridin, tridit
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
