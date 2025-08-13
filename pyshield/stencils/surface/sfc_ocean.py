@@ -1,4 +1,4 @@
-from gt4py.cartesian.gtscript import FORWARD, computation, interval, sqrt
+from ndsl.dsl.gt4py import FORWARD, computation, interval, sqrt
 
 import ndsl.constants as constants
 import pyshield.constants as physcons

@@ -1,4 +1,5 @@
 from ndsl import Namelist, StencilFactory
+from ndsl.dsl.typing import Bool, Int, Float
 from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -77,11 +78,12 @@ class TranslateSurfaceSeaIce_iter1(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
         inputs.pop("u1")
         inputs.pop("v1")
+        print(f"mom4 ice is {inputs["sice_mom4ice"]}")
         self.compute_func = SurfaceSeaIce(
             self.stencil_factory,
-            mom4ice=inputs.pop("sice_mom4ice"),
-            lsm=inputs.pop("sice_lsm"),
-            dt_atmos=inputs.pop("sice_delt"),
+            mom4ice=Bool(inputs.pop("sice_mom4ice")),
+            lsm=Int(inputs.pop("sice_lsm")),
+            dt_atmos=Float(inputs.pop("sice_delt")),
         )
         self.compute_func(**inputs)
         return self.slice_output(inputs)

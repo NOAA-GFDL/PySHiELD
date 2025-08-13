@@ -67,6 +67,7 @@ class TranslateSurfaceExchange_iter1(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
+        inputs.pop("z0s_max")
         self.compute_func = SurfaceExchange(
             self.stencil_factory,
             inputs.pop("ivegsrc"),
@@ -76,7 +77,6 @@ class TranslateSurfaceExchange_iter1(TranslatePhysicsFortranData2Py):
             inputs.pop("do_z0_moon"),
             inputs.pop("redrag"),
             inputs.pop("wind_th_hwrf"),
-            inputs.pop("z0s_max"),
         )
         self.compute_func(**inputs)
         return self.slice_output(inputs)

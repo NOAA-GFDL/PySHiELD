@@ -1,5 +1,5 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import FORWARD, computation, interval
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import FORWARD, computation, interval
 
 import ndsl.constants as constants
 import pyshield.constants as physcons
@@ -19,7 +19,7 @@ from pyshield._config import FloatFieldTracer
 from pyshield.functions.physics_functions import fpvs
 
 
-@gtscript.function
+@gtfunction
 def ice3lay(
     fice,
     hfi,

@@ -1,5 +1,5 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import FORWARD, computation, exp, interval, log, sqrt
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import FORWARD, computation, exp, interval, log, sqrt
 
 import ndsl.constants as constants
 import pyshield.constants as physcons
@@ -20,7 +20,7 @@ from pyshield._config import FloatFieldTracer
 from pyshield.functions.physics_functions import fpvsx
 
 
-@gtscript.function
+@gtfunction
 def monin_obukhov_similarity(
     z1: FloatFieldIJ,
     snwdph: FloatFieldIJ,
@@ -158,7 +158,7 @@ def monin_obukhov_similarity(
     return rb, fm, fh, fm10, fh2, cm, ch, stress, ustar
 
 
-@gtscript.function
+@gtfunction
 def cal_z0_hwrf15(ws10m):
     # coded by Kun Gao (Kun.Gao@noaa.gov)
     # originally developed by URI/GFDL
@@ -204,7 +204,7 @@ def cal_z0_hwrf15(ws10m):
     return z0
 
 
-@gtscript.function
+@gtfunction
 def cal_zt_hwrf15(ws10m):
     # coded by Kun Gao (Kun.Gao@noaa.gov)
     # originally developed by URI/GFDL
@@ -265,7 +265,7 @@ def cal_zt_hwrf15(ws10m):
     return zt
 
 
-@gtscript.function
+@gtfunction
 def cal_z0_hwrf17(ws10m):
     # coded by Kun Gao (Kun.Gao@noaa.gov)
     p13 = -1.296521881682694e-02
@@ -311,7 +311,7 @@ def cal_z0_hwrf17(ws10m):
     return z0
 
 
-@gtscript.function
+@gtfunction
 def cal_zt_hwrf17(ws10m):
     # coded by Kun Gao (Kun.Gao@noaa.gov)
     p00 = 1.100000000000000e-04
@@ -377,7 +377,7 @@ def cal_zt_hwrf17(ws10m):
     return zt
 
 
-@gtscript.function
+@gtfunction
 def cal_z0_moon(ws10m):
     # coded by Kun Gao (Kun.Gao@noaa.gov)
     charnock = 0.014
