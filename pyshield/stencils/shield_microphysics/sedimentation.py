@@ -310,11 +310,11 @@ def sedi_melt_stencil(
 ):
     from __externals__ import k_end, li00, mode, tau_mlt, timestep
 
-    if mode == "ice":
+    if mode == 0:  # ice
         q_melt = qice
-    elif mode == "snow":
+    elif mode == 1:  # snow
         q_melt = qsnow
-    elif mode == "graupel":
+    elif mode == 2:  # graupel
         q_melt = qgraupel
     else:  # Default to graupel I guess?
         q_melt = qgraupel
@@ -368,9 +368,9 @@ def sedi_melt_stencil(
                                 qrain[0, 0, lev] += sink
 
                             # these may be redundant depending on how dace copies?
-                            if mode == "ice":
+                            if mode == 0:
                                 qice[0, 0, 0] = q_melt[0, 0, 0]
-                            elif mode == "snow":
+                            elif mode == 1:
                                 qsnow[0, 0, 0] = q_melt[0, 0, 0]
                             else:
                                 qgraupel[0, 0, 0] = q_melt[0, 0, 0]
