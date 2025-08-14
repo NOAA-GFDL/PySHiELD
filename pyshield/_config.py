@@ -8,8 +8,8 @@ import f90nml
 import ndsl.constants as constants
 import ndsl.namelist as nml
 import pyshield.constants as physcons
-from ndsl.dsl.typing import Bool, Float, Int
 from ndsl import MetaEnumStr
+from ndsl.dsl.typing import Bool, Float, Int
 
 
 DEFAULT_INT = Int(0)
@@ -628,11 +628,11 @@ class MicroPhysicsConfig:
 
         # scaled constants to reduce 32 bit floating errors
         self.lv00 = (constants.HLV - self.d0_vap * physcons.TICE0) / self.c_air
-        self.li00 = (constants.HLF - constants.DC_ICE * physcons.TICE0) / self.c_air
+        self.li00 = (constants.HLF - physcons.DC_ICE * physcons.TICE0) / self.c_air
         self.li20 = self.lv00 + self.li00
 
         self.d1_vap = self.d0_vap / self.c_air
-        self.d1_ice = constants.DC_ICE / self.c_air
+        self.d1_ice = physcons.DC_ICE / self.c_air
 
         self.c1_vap = self.c_vap / self.c_air
         self.c1_liq = physcons.C_LIQ / self.c_air
@@ -1362,14 +1362,14 @@ class MicroPhysicsConfig:
 
         if self.do_new_acc_water:
             self.cracw = (
-                constants.PI ** 2 * self.n0r_sig * self.n0w_sig * physcons.RHO_W / 24.0
+                constants.PI**2 * self.n0r_sig * self.n0w_sig * physcons.RHO_W / 24.0
             )
             self.csacw = (
-                constants.PI ** 2 * self.n0s_sig * self.n0w_sig * physcons.RHO_W / 24.0
+                constants.PI**2 * self.n0s_sig * self.n0w_sig * physcons.RHO_W / 24.0
             )
             if self.do_hail:
                 self.cgacw = (
-                    constants.PI ** 2
+                    constants.PI**2
                     * self.n0h_sig
                     * self.n0w_sig
                     * physcons.RHO_W
@@ -1377,7 +1377,7 @@ class MicroPhysicsConfig:
                 )
             else:
                 self.cgacw = (
-                    constants.PI ** 2
+                    constants.PI**2
                     * self.n0g_sig
                     * self.n0w_sig
                     * physcons.RHO_W
@@ -1386,14 +1386,14 @@ class MicroPhysicsConfig:
 
         if self.do_new_acc_ice:
             self.craci = (
-                constants.PI ** 2 * self.n0r_sig * self.n0i_sig * physcons.RHO_I / 24.0
+                constants.PI**2 * self.n0r_sig * self.n0i_sig * physcons.RHO_I / 24.0
             )
             self.csaci = (
-                constants.PI ** 2 * self.n0s_sig * self.n0i_sig * physcons.RHO_I / 24.0
+                constants.PI**2 * self.n0s_sig * self.n0i_sig * physcons.RHO_I / 24.0
             )
             if self.do_hail:
                 self.cgaci = (
-                    constants.PI ** 2
+                    constants.PI**2
                     * self.n0h_sig
                     * self.n0i_sig
                     * physcons.RHO_I
@@ -1401,7 +1401,7 @@ class MicroPhysicsConfig:
                 )
             else:
                 self.cgaci = (
-                    constants.PI ** 2
+                    constants.PI**2
                     * self.n0g_sig
                     * self.n0i_sig
                     * physcons.RHO_I
@@ -1418,24 +1418,24 @@ class MicroPhysicsConfig:
         self.cgaci = self.cgaci * self.c_pgaci
 
         self.cracs = (
-            constants.PI ** 2 * self.n0r_sig * self.n0s_sig * physcons.RHO_S / 24.0
+            constants.PI**2 * self.n0r_sig * self.n0s_sig * physcons.RHO_S / 24.0
         )
         self.csacr = (
-            constants.PI ** 2 * self.n0s_sig * self.n0r_sig * physcons.RHO_R / 24.0
+            constants.PI**2 * self.n0s_sig * self.n0r_sig * physcons.RHO_R / 24.0
         )
         if self.do_hail:
             self.cgacs = (
-                constants.PI ** 2 * self.n0h_sig * self.n0s_sig * physcons.RHO_S / 24.0
+                constants.PI**2 * self.n0h_sig * self.n0s_sig * physcons.RHO_S / 24.0
             )
             self.cgacr = (
-                constants.PI ** 2 * self.n0h_sig * self.n0r_sig * physcons.RHO_R / 24.0
+                constants.PI**2 * self.n0h_sig * self.n0r_sig * physcons.RHO_R / 24.0
             )
         else:
             self.cgacs = (
-                constants.PI ** 2 * self.n0g_sig * self.n0s_sig * physcons.RHO_S / 24.0
+                constants.PI**2 * self.n0g_sig * self.n0s_sig * physcons.RHO_S / 24.0
             )
             self.cgacr = (
-                constants.PI ** 2 * self.n0g_sig * self.n0r_sig * physcons.RHO_R / 24.0
+                constants.PI**2 * self.n0g_sig * self.n0r_sig * physcons.RHO_R / 24.0
             )
 
         self.cracs *= self.c_pracs
@@ -1635,7 +1635,7 @@ class MicroPhysicsConfig:
         self.cgfr_1 = (
             1.0e2
             / 36
-            * constants.PI ** 2
+            * constants.PI**2
             * self.n0r_sig
             * physcons.RHO_R
             * math.gamma(6 + self.mur)
@@ -1643,6 +1643,7 @@ class MicroPhysicsConfig:
             * math.exp(-3.0 * math.log(self.expor))
         )
         self.cgfr_2 = 0.66
+
 
 @dataclasses.dataclass
 class PhysicsConfig:
