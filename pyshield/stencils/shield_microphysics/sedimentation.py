@@ -395,8 +395,8 @@ def sedi_melt_stencil(
                                 qsnow[0, 0, 0],
                                 qgraupel[0, 0, 0],
                             )
-                            temperature[0, 0, 0] = (
-                                temperature[0, 0, 0] * cvm[0, 0, 0]
+                            temperature[0, 0, lev] = (
+                                temperature[0, 0, lev] * cvm[0, 0, lev]
                             ) / cvm_tmp
                         lev += 1
 
