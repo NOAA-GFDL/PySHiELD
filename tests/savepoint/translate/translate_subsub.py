@@ -1,7 +1,7 @@
 import ndsl.stencils.basic_operations as basic  # noqa
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun  # noqa
-from ndsl.dsl.gt4py import __INLINED, FORWARD, computation, exp  # noqa
+from ndsl.dsl.gt4py import FORWARD, computation, exp  # noqa
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log  # noqa
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -203,7 +203,7 @@ def vertical_subgrid_processes(
                 qvapor, qliquid, qrain, qice, qsnow, qgraupel, temperature
             )
 
-            if __INLINED(not do_warm_rain_mp):
+            if not do_warm_rain_mp:
                 (
                     qvapor,
                     qliquid,
@@ -268,7 +268,7 @@ def vertical_subgrid_processes(
                 reevap,
             )
 
-            # if __INLINED(not do_warm_rain_mp):
+            # if (not do_warm_rain_mp):
             #     (
             #         qvapor,
             #         qliquid,
@@ -298,7 +298,7 @@ def vertical_subgrid_processes(
             #         tcp3,
             #     )
 
-            #     if __INLINED(do_wbf):
+            #     if (do_wbf):
             #         (
             #             qvapor,
             #             qliquid,

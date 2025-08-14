@@ -2,7 +2,7 @@ import ndsl.constants as constants
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl.dsl.gt4py import __INLINED, FORWARD, computation, exp
+from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -84,7 +84,7 @@ def perform_instant_processes(
     )
 
     if tin > (t_sub + 6.0):
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsi, dqdt = physfun.iqs(tin, density)
         else:
             qsi, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
@@ -182,7 +182,7 @@ def cloud_condensation_evaporation(
     fac_l2v = 1.0 - exp(-timestep / tau_l2v)
     fac_v2l = 1.0 - exp(-timestep / tau_v2l)
 
-    if __INLINED(do_mp_table_emulation):
+    if do_mp_table_emulation:
         qsw, dqdt = physfun.wqs(temperature, density)
     else:
         qsw, dqdt = physfun.sat_spec_hum_water(temperature, density)
@@ -350,7 +350,7 @@ def wegener_bergeron_findeisen(
     from __externals__ import do_mp_table_emulation, qi0_crt, tau_wbf, timestep
 
     tc = physcons.TICE0 - temperature
-    if __INLINED(do_mp_table_emulation):
+    if do_mp_table_emulation:
         qsw, dqdt = physfun.wqs(temperature, density)
         qsi, dqdt = physfun.iqs(temperature, density)
     else:
@@ -546,7 +546,7 @@ def deposit_and_sublimate_ice(
 
     if temperature < physcons.TICE0:
         pidep = 0.0
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsi, dqdt = physfun.iqs(temperature, density)
         else:
             qsi, dqdt = physfun.sat_spec_hum_water_ice(temperature, density)
@@ -699,7 +699,7 @@ def deposit_and_sublimate_snow(
 
     if qsnow > physcons.QCMIN:
         tin = temperature
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsi, dqdt = physfun.iqs(tin, density)
         else:
             qsi, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
@@ -824,7 +824,7 @@ def deposit_and_sublimate_graupel(
 
     if qgraupel > physcons.QCMIN:
         tin = temperature
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsi, dqdt = physfun.iqs(tin, density)
         else:
             qsi, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
@@ -955,7 +955,7 @@ def vertical_subgrid_processes(
                 qvapor, qliquid, qrain, qice, qsnow, qgraupel, temperature
             )
 
-            if __INLINED(not do_warm_rain_mp):
+            if not do_warm_rain_mp:
                 (
                     qvapor,
                     qliquid,
@@ -1026,7 +1026,7 @@ def vertical_subgrid_processes(
                     )
                     n += 1
 
-            if __INLINED(not do_warm_rain_mp):
+            if not do_warm_rain_mp:
                 (
                     qvapor,
                     qliquid,
@@ -1056,7 +1056,7 @@ def vertical_subgrid_processes(
                     tcp3,
                 )
 
-                if __INLINED(do_wbf):
+                if do_wbf:
                     (
                         qvapor,
                         qliquid,

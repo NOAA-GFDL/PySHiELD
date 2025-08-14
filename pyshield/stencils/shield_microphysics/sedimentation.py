@@ -2,7 +2,6 @@ import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import (
-    __INLINED,
     BACKWARD,
     FORWARD,
     PARALLEL,
@@ -113,7 +112,7 @@ def calc_terminal_velocity_rsg(
     from __externals__ import const_v
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(const_v):
+        if const_v:
             v_terminal = v_fac
         else:
             if q < physcons.QFMIN:
@@ -140,7 +139,7 @@ def calc_terminal_velocity_ice(
 
     with computation(PARALLEL), interval(...):
 
-        if __INLINED(constant_v):
+        if constant_v:
             v_terminal = v_fac
         else:
             if qice < physcons.QFMIN:

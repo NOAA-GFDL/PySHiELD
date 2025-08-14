@@ -1,7 +1,6 @@
-from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, interval, min, max
-
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import FORWARD, computation, interval, max, min
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, IntField
 from ndsl.namelist import Namelist
@@ -37,7 +36,7 @@ def calc_table_values(
     from __externals__ import do_mp_table_emulation
 
     with computation(FORWARD), interval(...):
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             wqs, dwdt = physfun.wqs(temp, den)
             iqs, didt = physfun.iqs(temp, den)
         else:

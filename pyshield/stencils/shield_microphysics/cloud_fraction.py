@@ -1,6 +1,6 @@
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl.dsl.gt4py import __INLINED, PARALLEL, computation, exp
+from ndsl.dsl.gt4py import PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, log10
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -26,19 +26,19 @@ def cloud_scheme_1(
 
     if (rh > rh_thres) and (qpz > physcons.QCMIN):
         dq = h_var * qpz
-        if __INLINED(do_cld_adj):
+        if do_cld_adj:
             q_plus = qpz + dq * f_dq_p * min(
                 1.0, max(0.0, (pz - 200.0e2) / (1000.0e2 - 200.0e2))
             )
         else:
             q_plus = qpz + dq * f_dq_p
         q_minus = qpz - dq * f_dq_m
-        if __INLINED(icloud_f == 2):
+        if icloud_f == 2:
             if qstar < qpz:
                 qa = 1.0
             else:
                 qa = 0.0
-        elif __INLINED(icloud_f == 3):
+        elif icloud_f == 3:
             if qstar < qpz:
                 qa = 1.0
             else:
@@ -54,7 +54,7 @@ def cloud_scheme_1(
                 qa = 1.0
             else:
                 if qstar < q_plus:
-                    if __INLINED(icloud_f == 0):
+                    if icloud_f == 0:
                         qa = (q_plus - qstar) / (dq * f_dq_p + dq * f_dq_m)
                     else:  # icloud_f == 1:
                         qa = (q_plus - qstar) / (
@@ -211,14 +211,14 @@ def cloud_fraction(
         # Combine water species
         ice = q_solid
         q_solid = qice
-        if __INLINED(rad_snow):
+        if rad_snow:
             q_solid += qsnow
-            if __INLINED(rad_graupel):
+            if rad_graupel:
                 q_solid += qgraupel
 
         liq = q_liq
         q_liq = qliquid
-        if __INLINED(rad_rain):
+        if rad_rain:
             q_liq += qrain
 
         q_cond = q_liq + q_solid
@@ -233,17 +233,17 @@ def cloud_fraction(
         )
 
         if tin <= t_wfr:
-            if __INLINED(do_mp_table_emulation):
+            if do_mp_table_emulation:
                 qstar, dqdt = physfun.iqs(tin, density)
             else:
                 qstar, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
         elif tin >= physcons.TICE0:
-            if __INLINED(do_mp_table_emulation):
+            if do_mp_table_emulation:
                 qstar, dqdt = physfun.wqs(tin, density)
             else:
                 qstar, dqdt = physfun.sat_spec_hum_water(tin, density)
         else:
-            if __INLINED(do_mp_table_emulation):
+            if do_mp_table_emulation:
                 qsi, dqdt = physfun.iqs(tin, density)
                 qsw, dqdt = physfun.wqs(tin, density)
             else:
@@ -258,7 +258,7 @@ def cloud_fraction(
         # Cloud schemes
         rh = qpz / qstar
 
-        if __INLINED(cfflag == 1):
+        if cfflag == 1:
             qa = cloud_scheme_1(
                 qpz,
                 qstar,
@@ -268,14 +268,14 @@ def cloud_fraction(
                 rh,
                 h_var,
             )
-        elif __INLINED(cfflag == 2):
+        elif cfflag == 2:
             qa = cloud_scheme_2(
                 qstar,
                 q_cond,
                 qa,
                 rh,
             )
-        elif __INLINED(cfflag == 3):
+        elif cfflag == 3:
             qa = cloud_scheme_3(
                 q_cond,
                 q_liq,

@@ -1,7 +1,7 @@
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl.dsl.gt4py import __INLINED, FORWARD, computation, exp
+from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -248,7 +248,7 @@ def fast_microphysics(
             qvapor, qliquid, qrain, qice, qsnow, qgraupel, temp
         )
 
-        if __INLINED((not do_warm_rain_mp) and fast_fr_mlt):
+        if (not do_warm_rain_mp) and fast_fr_mlt:
             cond = 0.0
             dep = 0.0
             reevap = 0.0
@@ -350,7 +350,7 @@ def fast_microphysics(
         condensation += cond * convt
         evaporation += reevap * convt
 
-        if __INLINED((not do_warm_rain_mp) and fast_fr_mlt):
+        if (not do_warm_rain_mp) and fast_fr_mlt:
             (
                 qvapor,
                 qliquid,
@@ -380,7 +380,7 @@ def fast_microphysics(
                 tcpk,
                 tcp3,
             )
-            if __INLINED(do_wbf):
+            if do_wbf:
                 (
                     qvapor,
                     qliquid,
@@ -502,7 +502,7 @@ def fast_microphysics(
 
         qliquid, qrain = autoconvert_water_to_rain_simple(qliquid, qrain, temp)
 
-        if __INLINED((not do_warm_rain_mp) and fast_dep_sub):
+        if (not do_warm_rain_mp) and fast_dep_sub:
             (
                 qvapor,
                 qliquid,

@@ -1,9 +1,14 @@
-from gt4py.cartesian.gtscript import __INLINED, PARALLEL, computation, interval
-
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl import (
+    GridIndexing,
+    Namelist,
+    QuantityFactory,
+    StencilFactory,
+    SubtileGridSizer,
+)
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl import GridIndexing, StencilFactory, SubtileGridSizer, QuantityFactory, Namelist
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pyshield._config import MicroPhysicsConfig, PhysicsConfig
 from pyshield.stencils.shield_microphysics.cloud_fraction import (  # noqa
@@ -66,14 +71,14 @@ def cloud_fraction_test(
         # Combine water species
         ice = q_solid
         q_solid = qice
-        if __INLINED(rad_snow):
+        if rad_snow:
             q_solid += qsnow
-            if __INLINED(rad_graupel):
+            if rad_graupel:
                 q_solid += qgraupel
 
         liq = q_liq
         q_liq = qliquid
-        if __INLINED(rad_rain):
+        if rad_rain:
             q_liq += qrain
 
         q_cond = q_liq + q_solid
@@ -104,7 +109,7 @@ def cloud_fraction_test(
         # Cloud schemes
         rh = qpz / qstar
 
-        if __INLINED(cfflag == 1):
+        if cfflag == 1:
             qa = cloud_scheme_1(
                 qpz,
                 qstar,
@@ -114,14 +119,14 @@ def cloud_fraction_test(
                 rh,
                 h_var,
             )
-        elif __INLINED(cfflag == 2):
+        elif cfflag == 2:
             qa = cloud_scheme_2(
                 qstar,
                 q_cond,
                 qa,
                 rh,
             )
-        elif __INLINED(cfflag == 3):
+        elif cfflag == 3:
             qa = cloud_scheme_3(
                 q_cond,
                 q_liq,

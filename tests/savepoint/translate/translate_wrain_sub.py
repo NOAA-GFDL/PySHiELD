@@ -1,12 +1,6 @@
 import math
 
-from gt4py.cartesian.gtscript import (  # noqa
-    __INLINED,
-    FORWARD,
-    PARALLEL,
-    computation,
-    interval,
-)
+from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval  # noqa
 
 import ndsl.constants as constants
 import pyshield.constants as physcons
@@ -196,7 +190,7 @@ class RainFunction:
         if config.tau_revp > 1.0e-6:
             self._fac_revap = 1.0 - math.exp(-timestep / config.tau_revp)
 
-        fac_rc = (4.0 / 3.0) * constants.PI * physcons.RHO_W * config.rthresh ** 3
+        fac_rc = (4.0 / 3.0) * constants.PI * physcons.RHO_W * config.rthresh**3
         aone = 2.0 / 9.0 * (3.0 / 4.0) ** (4.0 / 3.0) / constants.PI ** (1.0 / 3.0)
         cpaut = config.c_paut * aone * constants.GRAV / physcons.VISD
 
@@ -403,7 +397,11 @@ class TranslateWRainSubFunc(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "ws_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "ws_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "ws_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "ws_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "ws_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "cloud_condensation_nuclei": {
                 "serialname": "ws_ccn",
                 "kend": namelist.npz,

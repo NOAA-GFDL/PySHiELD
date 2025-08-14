@@ -3,7 +3,7 @@ import math
 import ndsl.constants as constants
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl.dsl.gt4py import __INLINED, FORWARD, PARALLEL, computation, exp, interval, log
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp, interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
@@ -77,7 +77,7 @@ def evaporate_rain(
 
         # calculate supersaturation and subgrid variability of water
         qpz = qvapor + qliquid
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsat, dqdt = physfun.wqs(tin, density)
         else:
             qsat, dqdt = physfun.sat_spec_hum_water(tin, density)
@@ -193,7 +193,7 @@ def accrete_rain(
         ):
             qden = qrain * density
 
-            if __INLINED(do_new_acc_water):
+            if do_new_acc_water:
                 sink = timestep * physfun.accretion_3d(
                     vterminal_rain,
                     vterminal_water,
@@ -245,14 +245,14 @@ def autoconvert_water_rain(
     # linear_prof
     with computation(FORWARD):
         with interval(0, 1):
-            if __INLINED((irain_f == 0) and (z_slope_liq)):
+            if (irain_f == 0) and (z_slope_liq):
                 dl = 0.0
         with interval(1, None):
-            if __INLINED((irain_f == 0) and (z_slope_liq)):
+            if (irain_f == 0) and (z_slope_liq):
                 dq = 0.5 * (qliquid - qliquid[0, 0, -1])
     with computation(FORWARD):
         with interval(1, -1):
-            if __INLINED((irain_f == 0) and (z_slope_liq)):
+            if (irain_f == 0) and (z_slope_liq):
                 # Use twice the strength of the
                 # positive definiteness limiter (lin et al 1994)
                 dl = 0.5 * min(abs(dq + dq[0, 0, 1]), 0.5 * qliquid)
@@ -262,11 +262,11 @@ def autoconvert_water_rain(
                     else:  # Local minimum
                         dl = 0.0
         with interval(-1, None):
-            if __INLINED((irain_f == 0) and (z_slope_liq)):
+            if (irain_f == 0) and (z_slope_liq):
                 dl = 0.0
     with computation(PARALLEL), interval(...):
-        if __INLINED(irain_f == 0):
-            if __INLINED(z_slope_liq):
+        if irain_f == 0:
+            if z_slope_liq:
                 # Impose a presumed background horizontal variability that is
                 # proportional to the value itself
                 dl = max(max(dl, h_var * qliquid), 0.0)
@@ -274,10 +274,10 @@ def autoconvert_water_rain(
                 dl = max(0.0, h_var * qliquid)
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(irain_f == 0):
+        if irain_f == 0:
             # rest of praut
             if (temperature > t_wfr) and (qliquid > physcons.QCMIN):
-                if __INLINED(do_psd_water_num):
+                if do_psd_water_num:
                     cloud_condensation_nuclei = physfun.calc_particle_concentration(
                         qliquid, density, pcaw, pcbw, muw
                     )
@@ -303,7 +303,7 @@ def autoconvert_water_rain(
                     qrain += sink
         else:  # if irain_f == 1:
             if (temperature > t_wfr) and (qliquid > physcons.QCMIN):
-                if __INLINED(do_psd_water_num):
+                if do_psd_water_num:
                     cloud_condensation_nuclei = physfun.calc_particle_concentration(
                         qliquid, density, pcaw, pcbw, muw
                     )

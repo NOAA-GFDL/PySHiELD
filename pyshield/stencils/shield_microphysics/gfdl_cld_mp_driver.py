@@ -6,15 +6,7 @@ import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl import QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import (
-    __INLINED,
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    interval,
-    sqrt,
-)
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
@@ -88,12 +80,12 @@ def convert_virtual_to_true_temperature_and_calc_total_energy(
     from __externals__ import c_air, consv_te, do_inline_mp, hydrostatic
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(do_inline_mp):
+        if do_inline_mp:
             q_cond = qliquid + qrain + qice + qsnow + qgraupel
             temperature = temperature / (1 + constants.ZVIR * qvapor * (1.0 - q_cond))
 
-        if __INLINED(consv_te):
-            if __INLINED(hydrostatic):
+        if consv_te:
+            if hydrostatic:
                 total_energy = -c_air * temperature * delp
             else:
                 total_energy = (
@@ -169,13 +161,13 @@ def moist_total_energy_and_water(
         q_liq = qliquid + qrain
         q_solid = qice + qsnow + qgraupel
         q_cond = q_liq + q_solid
-        if __INLINED(moist_q):
+        if moist_q:
             con = 1.0 - (qvapor + q_cond)
             cvm = con + qvapor * c1_vap + q_liq * c1_liq + q_solid * c1_ice
         else:
             cvm = 1.0 + qvapor * c1_vap + q_liq * c1_liq + q_solid * c1_ice
         tot_energy = (cvm * temperature + lv00 * qvapor - li00 * q_solid) * c_air
-        if __INLINED(hydrostatic):
+        if hydrostatic:
             tot_energy = tot_energy + 0.5 * (ua**2 + va**2)
         else:
             tot_energy = tot_energy + 0.5 * (ua**2 + va**2 + wa**2)
@@ -216,7 +208,7 @@ def convert_specific_to_mass_mixing_ratios_and_calculate_densities(
     from __externals__ import do_inline_mp
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(do_inline_mp):
+        if do_inline_mp:
             con_r8 = 1.0 - (qvapor + qliquid + qrain + qice + qsnow + qgraupel)
         else:
             con_r8 = 1.0 - qvapor
@@ -260,7 +252,7 @@ def cloud_nuclei_subgrid_and_relative_humidity(
     from __externals__ import ccn_l, ccn_o, dw_land, dw_ocean, prog_ccn, rh_inc, rh_inr
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(prog_ccn):
+        if prog_ccn:
             # boucher and lohmann (1995)
             nl = min(
                 1.0, abs(geopotential_surface_height / (10.0 * constants.GRAV))
@@ -497,7 +489,7 @@ def update_temperature_pre_delp_q(
     from __externals__ import c1_ice, c1_liq, c1_vap, c_air, do_sedi_uv, do_sedi_w
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(do_sedi_uv):
+        if do_sedi_uv:
             c8 = (
                 1.0
                 + qvapor * c1_vap
@@ -507,7 +499,7 @@ def update_temperature_pre_delp_q(
             tzuv = 0.5 * (u0**2 + v0**2 - (ua**2 + va**2)) / c8
             temperature += tzuv
 
-        if __INLINED(do_sedi_w):
+        if do_sedi_w:
             c8 = (
                 1.0
                 + qvapor * c1_vap
@@ -564,7 +556,7 @@ def convert_mass_mixing_to_specific_ratios_and_update_temperatures(
 
     with computation(PARALLEL), interval(...):
         # convert mass mixing ratios back to specific ratios
-        if __INLINED(do_inline_mp):
+        if do_inline_mp:
             q_cond = qliquid + qrain + qice + qsnow + qgraupel
             con = 1.0 + qvapor + q_cond
         else:
@@ -600,14 +592,14 @@ def convert_mass_mixing_to_specific_ratios_and_update_temperatures(
 
         # momentum transportation during sedimentation
         # update temperature after delp and q update
-        if __INLINED(do_sedi_uv):
+        if do_sedi_uv:
             temperature = temperature - tzuv
             tzuv = (
                 (0.5 * (u0**2 + v0**2) * dp0 - 0.5 * (ua**2 + va**2) * delp) / c8 / delp
             )
             temperature = temperature + tzuv
 
-        if __INLINED(do_sedi_w):
+        if do_sedi_w:
             temperature = temperature - tzw
             tzw = (0.5 * (w0**2) * dp0 - 0.5 * (wa**2) * delp) / c8 / delp
             temperature = temperature + tzw
@@ -638,8 +630,8 @@ def calculate_total_energy_change_and_convert_temp(
     )
 
     with computation(PARALLEL), interval(...):
-        if __INLINED(consv_te):
-            if __INLINED(hydrostatic):
+        if consv_te:
+            if hydrostatic:
                 te = te + c_air * temperature * delp
             else:
                 te = (
@@ -660,9 +652,9 @@ def calculate_total_energy_change_and_convert_temp(
 
         # If microphysics is inlined in the dycore convert to virtual temperature,
         # otherwise update temp based on heat capacities
-        if __INLINED(do_inline_mp):
+        if do_inline_mp:
             q_cond = qliquid + qrain + qice + qsnow + qgraupel
-            if __INLINED(cp_heating):
+            if cp_heating:
                 con_r8 = 1.0 - (qvapor + q_cond)
                 c8 = (
                     con_r8

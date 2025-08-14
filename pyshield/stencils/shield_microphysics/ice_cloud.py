@@ -1,7 +1,7 @@
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl.dsl.gt4py import __INLINED, FORWARD, PARALLEL, computation, exp
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
@@ -226,7 +226,7 @@ def melt_snow(
         psacw = 0.0
         qden = qsnow * density
         if qliquid > physcons.QCMIN:
-            if __INLINED(do_new_acc_water):
+            if do_new_acc_water:
                 psacw = physfun.accretion_3d(
                     vterminal_s,
                     vterminal_w,
@@ -276,7 +276,7 @@ def melt_snow(
             )
 
         tin = temperature
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsi, dqdt = physfun.iqs(tin, density)
         else:
             qsi, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
@@ -408,7 +408,7 @@ def melt_graupel(
         pgacw = 0.0
         qden = qgraupel * density
         if qliquid > physcons.QCMIN:
-            if __INLINED(do_new_acc_water):
+            if do_new_acc_water:
                 pgacw = physfun.accretion_3d(
                     vterminal_g,
                     vterminal_w,
@@ -446,7 +446,7 @@ def melt_graupel(
             )
 
         tin = temperature
-        if __INLINED(do_mp_table_emulation):
+        if do_mp_table_emulation:
             qsi, dqdt = physfun.iqs(tin, density)
         else:
             qsi, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
@@ -555,7 +555,7 @@ def accrete_snow_with_ice(
         sink = 0.0
         qden = qsnow * density
         if qsnow > physcons.QCMIN:
-            if __INLINED(do_new_acc_ice):
+            if do_new_acc_ice:
                 sink = timestep * physfun.accretion_3d(
                     vterminal_s,
                     vterminal_i,
@@ -651,7 +651,7 @@ def accrete_graupel_with_ice(
         qden = qgraupel * density
 
         if qgraupel > physcons.QCMIN:
-            if __INLINED(do_new_acc_ice):
+            if do_new_acc_ice:
                 sink = timestep * physfun.accretion_3d(
                     vterminal_g,
                     vtermainal_i,
@@ -1091,15 +1091,15 @@ def ice_cloud(
 
     with computation(FORWARD):
         with interval(0, 1):
-            if __INLINED(z_slope_ice):
+            if z_slope_ice:
                 # linear_prof
                 di = 0.0
         with interval(1, None):
-            if __INLINED(z_slope_ice):
+            if z_slope_ice:
                 dq = 0.5 * (qice - qice[0, 0, -1])
     with computation(FORWARD):
         with interval(1, -1):
-            if __INLINED(z_slope_ice):
+            if z_slope_ice:
                 # Use twice the strength of the
                 # positive definiteness limiter (lin et al 1994)
                 di = 0.5 * min(abs(dq + dq[0, 0, +1]), 0.5 * qice[0, 0, 0])
@@ -1109,10 +1109,10 @@ def ice_cloud(
                     else:  # Local minimum
                         di = 0.0
         with interval(-1, None):
-            if __INLINED(z_slope_ice):
+            if z_slope_ice:
                 di = 0.0
     with computation(PARALLEL), interval(...):
-        if __INLINED(z_slope_ice):
+        if z_slope_ice:
             # Impose a presumed background horizontal variability that is
             # proportional to the value itself
             di = max(di, max(0.0, h_var * qice))

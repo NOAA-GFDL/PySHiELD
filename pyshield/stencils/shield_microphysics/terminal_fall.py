@@ -4,7 +4,7 @@ import ndsl.constants as constants
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import __INLINED, BACKWARD, FORWARD, PARALLEL, computation, interval
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
 from ndsl.initialization.allocator import QuantityFactory
@@ -35,7 +35,7 @@ def prep_terminal_fall(
             no_fall = 0.0
     with computation(FORWARD), interval(...):
         if no_fall == 0.0:
-            if __INLINED(do_sedi_w):
+            if do_sedi_w:
                 dm = delp * (1.0 + qvapor + qliquid + qrain + qice + qsnow + qgraupel)
             tot_e_initial += physfun.calc_moist_total_energy(
                 qvapor,
@@ -277,7 +277,7 @@ def update_energy_wind_heat_post_fall(
         tmp_energy2 = 0.0
 
     with computation(FORWARD), interval(1, None):
-        if __INLINED(do_sedi_uv):
+        if do_sedi_uv:
             if no_fall == 0.0:
                 ua = (delp * ua + flux[0, 0, -1] * ua[0, 0, -1]) / (
                     delp + flux[0, 0, -1]
@@ -288,12 +288,12 @@ def update_energy_wind_heat_post_fall(
 
     with computation(FORWARD):
         with interval(0, 1):
-            if __INLINED(do_sedi_w):
+            if do_sedi_w:
                 if no_fall == 0.0:
                     wa = wa + flux * v_terminal / dm
 
         with interval(1, None):
-            if __INLINED(do_sedi_w):
+            if do_sedi_w:
                 if no_fall == 0.0:
                     wa = (
                         dm * wa
@@ -318,7 +318,7 @@ def update_energy_wind_heat_post_fall(
 
     # sedi_heat
     with computation(FORWARD), interval(1, None):
-        if __INLINED(do_sedi_heat):
+        if do_sedi_heat:
             if no_fall == 0.0:
                 dgz = -0.5 * constants.GRAV * (delz[0, 0, -1] + delz)
                 cv0 = dm * (
@@ -329,7 +329,7 @@ def update_energy_wind_heat_post_fall(
                 ) + cw * (flux - flux[0, 0, -1])
 
     with computation(FORWARD), interval(1, None):
-        if __INLINED(do_sedi_heat):
+        if do_sedi_heat:
             if no_fall == 0.0:
                 temperature = (
                     cv0 * temperature
