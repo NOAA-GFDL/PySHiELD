@@ -1,7 +1,8 @@
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.dsl.typing import Int
 from ndsl.initialization.allocator import QuantityFactory
+from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from ndsl.quantity import Quantity
 from pyshield import PhysicsConfig
@@ -11,6 +12,7 @@ from pyshield.stencils.shield_microphysics.sedimentation import (
     calc_terminal_velocity_rsg,
     init_zeros_heat_cap_latent_heat_precip,
     sedi_melt,
+    sedi_melt_stencil,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -243,6 +245,7 @@ class SediMelt:
     def __init__(
         self,
         stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
         config,
         timestep,
     ):
@@ -262,6 +265,57 @@ class SediMelt:
         self.c1_vap = config.c1_vap
         self.c1_liq = config.c1_liq
         self.c1_ice = config.c1_ice
+        self._k_mask = quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            units="unknown",
+            dtype=Int,
+        )
+
+        for k in range(self._idx.domain[2] + 1):
+            self._k_mask.data[:, :, k] = k
+
+        self._sedi_melt_ice = stencil_factory.from_origin_domain(
+            func=sedi_melt_stencil,
+            externals={
+                "c1_vap": config.c1_vap,
+                "c1_liq": config.c1_liq,
+                "c1_ice": config.c1_ice,
+                "li00": config.li00,
+                "timestep": self._timestep,
+                "mode": "ice",
+                "tau_mlt": config.tau_imlt,
+            },
+            origin=self._idx.origin_compute(),
+            domain=self._idx.domain_compute(),
+        )
+        self._sedi_melt_snow = stencil_factory.from_origin_domain(
+            func=sedi_melt_stencil,
+            externals={
+                "c1_vap": config.c1_vap,
+                "c1_liq": config.c1_liq,
+                "c1_ice": config.c1_ice,
+                "li00": config.li00,
+                "timestep": self._timestep,
+                "mode": "snow",
+                "tau_mlt": config.tau_smlt,
+            },
+            origin=self._idx.origin_compute(),
+            domain=self._idx.domain_compute(),
+        )
+        self._sedi_melt_graupel = stencil_factory.from_origin_domain(
+            func=sedi_melt_stencil,
+            externals={
+                "c1_vap": config.c1_vap,
+                "c1_liq": config.c1_liq,
+                "c1_ice": config.c1_ice,
+                "li00": config.li00,
+                "timestep": self._timestep,
+                "mode": "graupel",
+                "tau_mlt": config.tau_gmlt,
+            },
+            origin=self._idx.origin_compute(),
+            domain=self._idx.domain_compute(),
+        )
 
     def __call__(
         self,
@@ -281,103 +335,165 @@ class SediMelt:
         vterminal,
         column_rain,
         mode: str,
+        stencil: bool = False,
     ):
         if self.config.do_sedi_melt:
-            if mode == "ice":
-                sedi_melt(
-                    qvapor,
-                    qliquid,
-                    qrain,
-                    qice,
-                    qsnow,
-                    qgraupel,
-                    cvm,
-                    temperature,
-                    delp,
-                    z_edge,
-                    z_terminal,
-                    z_surface,
-                    self._timestep,
-                    vterminal,
-                    column_rain,
-                    self.config.tau_imlt,
-                    icpk,
-                    self.li00,
-                    self.c1_vap,
-                    self.c1_liq,
-                    self.c1_ice,
-                    self._ks,
-                    self._ke,
-                    self._is_,
-                    self._ie,
-                    self._js,
-                    self._je,
-                    mode,
-                )
-            elif mode == "snow":
-                sedi_melt(
-                    qvapor,
-                    qliquid,
-                    qrain,
-                    qice,
-                    qsnow,
-                    qgraupel,
-                    cvm,
-                    temperature,
-                    delp,
-                    z_edge,
-                    z_terminal,
-                    z_surface,
-                    self._timestep,
-                    vterminal,
-                    column_rain,
-                    self.config.tau_smlt,
-                    icpk,
-                    self.li00,
-                    self.c1_vap,
-                    self.c1_liq,
-                    self.c1_ice,
-                    self._ks,
-                    self._ke,
-                    self._is_,
-                    self._ie,
-                    self._js,
-                    self._je,
-                    mode,
-                )
-            elif mode == "graupel":
-                sedi_melt(
-                    qvapor,
-                    qliquid,
-                    qrain,
-                    qice,
-                    qsnow,
-                    qgraupel,
-                    cvm,
-                    temperature,
-                    delp,
-                    z_edge,
-                    z_terminal,
-                    z_surface,
-                    self._timestep,
-                    vterminal,
-                    column_rain,
-                    self.config.tau_gmlt,
-                    icpk,
-                    self.li00,
-                    self.c1_vap,
-                    self.c1_liq,
-                    self.c1_ice,
-                    self._ks,
-                    self._ke,
-                    self._is_,
-                    self._ie,
-                    self._js,
-                    self._je,
-                    mode,
-                )
+            if stencil:
+                if mode == "ice":
+                    self._sedi_melt_ice(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        cvm,
+                        temperature,
+                        delp,
+                        z_edge,
+                        z_terminal,
+                        z_surface,
+                        vterminal,
+                        column_rain,
+                        icpk,
+                        self._k_mask,
+                    )
+                elif mode == "snow":
+                    self._sedi_melt_snow(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        cvm,
+                        temperature,
+                        delp,
+                        z_edge,
+                        z_terminal,
+                        z_surface,
+                        vterminal,
+                        column_rain,
+                        icpk,
+                        self._k_mask,
+                    )
+                elif mode == "graupel":
+                    self._sedi_melt_graupel(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        cvm,
+                        temperature,
+                        delp,
+                        z_edge,
+                        z_terminal,
+                        z_surface,
+                        vterminal,
+                        column_rain,
+                        icpk,
+                        self._k_mask,
+                    )
+                else:
+                    raise ValueError(f"sedi_melt mode {mode} not ice, snow, or graupel")
             else:
-                raise ValueError(f"sedi_melt mode {mode} not ice, snow, or graupel")
+                if mode == "ice":
+                    sedi_melt(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        cvm,
+                        temperature,
+                        delp,
+                        z_edge,
+                        z_terminal,
+                        z_surface,
+                        self._timestep,
+                        vterminal,
+                        column_rain,
+                        self.config.tau_imlt,
+                        icpk,
+                        self.li00,
+                        self.c1_vap,
+                        self.c1_liq,
+                        self.c1_ice,
+                        self._ks,
+                        self._ke,
+                        self._is_,
+                        self._ie,
+                        self._js,
+                        self._je,
+                        mode,
+                    )
+                elif mode == "snow":
+                    sedi_melt(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        cvm,
+                        temperature,
+                        delp,
+                        z_edge,
+                        z_terminal,
+                        z_surface,
+                        self._timestep,
+                        vterminal,
+                        column_rain,
+                        self.config.tau_smlt,
+                        icpk,
+                        self.li00,
+                        self.c1_vap,
+                        self.c1_liq,
+                        self.c1_ice,
+                        self._ks,
+                        self._ke,
+                        self._is_,
+                        self._ie,
+                        self._js,
+                        self._je,
+                        mode,
+                    )
+                elif mode == "graupel":
+                    sedi_melt(
+                        qvapor,
+                        qliquid,
+                        qrain,
+                        qice,
+                        qsnow,
+                        qgraupel,
+                        cvm,
+                        temperature,
+                        delp,
+                        z_edge,
+                        z_terminal,
+                        z_surface,
+                        self._timestep,
+                        vterminal,
+                        column_rain,
+                        self.config.tau_gmlt,
+                        icpk,
+                        self.li00,
+                        self.c1_vap,
+                        self.c1_liq,
+                        self.c1_ice,
+                        self._ks,
+                        self._ke,
+                        self._is_,
+                        self._ie,
+                        self._js,
+                        self._je,
+                        mode,
+                    )
+                else:
+                    raise ValueError(f"sedi_melt mode {mode} not ice, snow, or graupel")
 
 
 class TranslateSedimentation(TranslatePhysicsFortranData2Py):
@@ -430,7 +546,11 @@ class TranslateSedimentation(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "sd_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "sd_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "sd_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "sd_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "sd_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "ua": {"serialname": "sd_u", "kend": namelist.npz, "shield": True},
             "va": {"serialname": "sd_v", "kend": namelist.npz, "shield": True},
             "wa": {"serialname": "sd_w", "kend": namelist.npz, "shield": True},
@@ -439,9 +559,21 @@ class TranslateSedimentation(TranslatePhysicsFortranData2Py):
                 "kend": namelist.npz,
                 "shield": True,
             },
-            "preflux_rain": {"serialname": "sd_pfr", "kend": namelist.npz, "shield": True},
-            "preflux_ice": {"serialname": "sd_pfi", "kend": namelist.npz, "shield": True},
-            "preflux_snow": {"serialname": "sd_pfs", "kend": namelist.npz, "shield": True},
+            "preflux_rain": {
+                "serialname": "sd_pfr",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "preflux_ice": {
+                "serialname": "sd_pfi",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "preflux_snow": {
+                "serialname": "sd_pfs",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "preflux_graupel": {
                 "serialname": "sd_pfg",
                 "kend": namelist.npz,
@@ -551,7 +683,11 @@ class TranslateSediMelt(TranslatePhysicsFortranData2Py):
             "qsnow": {"serialname": "sm_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "sm_qg", "kend": namelist.npz, "shield": True},
             "cvm": {"serialname": "sm_cv", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "sm_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "sm_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "delp": {"serialname": "sm_dp", "kend": namelist.npz, "shield": True},
             "z_edge": {"serialname": "sm_ze", "kend": namelist.npz + 1, "shield": True},
             "z_terminal": {
@@ -570,7 +706,11 @@ class TranslateSediMelt(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "sm_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "sm_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "sm_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "sm_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "sm_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "cvm": {"serialname": "sm_cv", "kend": namelist.npz, "shield": True},
             "column_rain": {"serialname": "sm_r1", "shield": True},
         }
@@ -579,13 +719,28 @@ class TranslateSediMelt(TranslatePhysicsFortranData2Py):
         pconf = PhysicsConfig.from_namelist(namelist)
         self.config = pconf.microphysics
 
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npy - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        self.quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
 
         inputs["mode"] = "snow"
+        inputs["stencil"] = True
 
         compute_func = SediMelt(
             self.stencil_factory,
+            self.quantity_factory,
             self.config,
             timestep=inputs.pop("dt"),
         )
@@ -608,12 +763,24 @@ class TranslateCalcVTIce(TranslatePhysicsFortranData2Py):
             "qfall": {"serialname": "vti_qi", "kend": namelist.npz, "shield": True},
             "density": {"serialname": "vti_den", "shield": True},
             "density_factor": {"serialname": "vti_denfac", "shield": True},
-            "temperature": {"serialname": "vti_pt", "kend": namelist.npz, "shield": True},
-            "vterminal": {"serialname": "vti_vti", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "vti_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "vterminal": {
+                "serialname": "vti_vti",
+                "kend": namelist.npz,
+                "shield": True,
+            },
         }
 
         self.out_vars = {
-            "vterminal": {"serialname": "vti_vti", "kend": namelist.npz, "shield": True},
+            "vterminal": {
+                "serialname": "vti_vti",
+                "kend": namelist.npz,
+                "shield": True,
+            },
         }
 
         self.stencil_factory = stencil_factory
@@ -648,12 +815,24 @@ class TranslateCalcVTSnow(TranslatePhysicsFortranData2Py):
             "qfall": {"serialname": "vts_qs", "kend": namelist.npz, "shield": True},
             "density": {"serialname": "vts_den", "shield": True},
             "density_factor": {"serialname": "vts_denfac", "shield": True},
-            "temperature": {"serialname": "vts_pt", "kend": namelist.npz, "shield": True},
-            "vterminal": {"serialname": "vts_vts", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "vts_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "vterminal": {
+                "serialname": "vts_vts",
+                "kend": namelist.npz,
+                "shield": True,
+            },
         }
 
         self.out_vars = {
-            "vterminal": {"serialname": "vts_vts", "kend": namelist.npz, "shield": True},
+            "vterminal": {
+                "serialname": "vts_vts",
+                "kend": namelist.npz,
+                "shield": True,
+            },
         }
 
         self.stencil_factory = stencil_factory
@@ -691,16 +870,32 @@ class TranslateInitSed(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "is_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "is_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "is_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "is_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "is_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "icpk": {"serialname": "is_icpk", "kend": namelist.npz, "shield": True},
             "preflux_water": {
                 "serialname": "is_pfw",
                 "kend": namelist.npz,
                 "shield": True,
             },
-            "preflux_rain": {"serialname": "is_pfr", "kend": namelist.npz, "shield": True},
-            "preflux_ice": {"serialname": "is_pfi", "kend": namelist.npz, "shield": True},
-            "preflux_snow": {"serialname": "is_pfs", "kend": namelist.npz, "shield": True},
+            "preflux_rain": {
+                "serialname": "is_pfr",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "preflux_ice": {
+                "serialname": "is_pfi",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "preflux_snow": {
+                "serialname": "is_pfs",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "preflux_graupel": {
                 "serialname": "is_pfg",
                 "kend": namelist.npz,
@@ -745,9 +940,21 @@ class TranslateInitSed(TranslatePhysicsFortranData2Py):
                 "kend": namelist.npz,
                 "shield": True,
             },
-            "preflux_rain": {"serialname": "is_pfr", "kend": namelist.npz, "shield": True},
-            "preflux_ice": {"serialname": "is_pfi", "kend": namelist.npz, "shield": True},
-            "preflux_snow": {"serialname": "is_pfs", "kend": namelist.npz, "shield": True},
+            "preflux_rain": {
+                "serialname": "is_pfr",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "preflux_ice": {
+                "serialname": "is_pfi",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "preflux_snow": {
+                "serialname": "is_pfs",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "preflux_graupel": {
                 "serialname": "is_pfg",
                 "kend": namelist.npz,
