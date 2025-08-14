@@ -401,6 +401,7 @@ class TranslateMPFull(TranslatePhysicsFortranData2Py):
             inputs.pop("dt"),
             inputs.pop("convt"),
         )
+        inputs["last_step"] = True
 
         compute_func(**inputs)
 

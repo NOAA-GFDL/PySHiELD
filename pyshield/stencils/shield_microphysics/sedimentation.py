@@ -310,27 +310,29 @@ def sedi_melt_stencil(
 ):
     from __externals__ import k_end, li00, mode, tau_mlt, timestep
 
-    if mode == 0:  # ice
-        q_melt = qice
-    elif mode == 1:  # snow
-        q_melt = qsnow
-    elif mode == 2:  # graupel
-        q_melt = qgraupel
-    else:  # Default to graupel I guess?
-        q_melt = qgraupel
+    with computation(PARALLEL), interval(...):
+        if mode == 0:  # ice
+            q_melt = qice
+        elif mode == 1:  # snow
+            q_melt = qsnow
+        elif mode == 2:  # graupel
+            q_melt = qgraupel
+        else:  # Default to graupel I guess?
+            q_melt = qgraupel
     with computation(BACKWARD):
         with interval(1, -1):
             lev = 1
             if v_terminal >= 1.0e-10:
                 if q_melt > physcons.QCMIN:
                     while (
-                        (k_mask[0, 0, lev] <= k_end)
+                        (lev > k_end - k_mask[0, 0, 0])
                         and (q_melt[0, 0, 0] >= physcons.QCMIN)
                         and (z_terminal[0, 0, 1] < z_edge[0, 0, lev])
                     ):
                         if (z_terminal[0, 0, 0] < z_edge[0, 0, lev + 1]) and (
                             temperature[0, 0, lev] > physcons.TICE0
                         ):
+                            tmp_temp = temperature[0, 0, lev]
                             cvm[0, 0, 0] = physfun.moist_heat_capacity(
                                 qvapor,
                                 qliquid,
@@ -356,7 +358,7 @@ def sedi_melt_stencil(
                             sink = min(
                                 q_melt[0, 0, 0] * delp[0, 0, 0] / delp[0, 0, lev],
                                 dtime
-                                * (temperature[0, 0, lev] - physcons.TICE0)
+                                * (tmp_temp - physcons.TICE0)
                                 / icpk[0, 0, lev],
                             )
                             q_melt[0, 0, 0] = q_melt[0, 0, 0] - (
@@ -365,7 +367,8 @@ def sedi_melt_stencil(
                             if z_terminal[0, 0, 0] < z_surface:
                                 r1 += sink * delp[0, 0, lev]
                             else:
-                                qrain[0, 0, lev] += sink
+                                tmp_qrain = qrain[0, 0, lev]
+                                qrain[0, 0, lev] = tmp_qrain + sink
 
                             # these may be redundant depending on how dace copies?
                             if mode == 0:
@@ -396,7 +399,7 @@ def sedi_melt_stencil(
                                 qgraupel[0, 0, 0],
                             )
                             temperature[0, 0, lev] = (
-                                temperature[0, 0, lev] * cvm[0, 0, lev]
+                                tmp_temp * cvm[0, 0, lev]
                             ) / cvm_tmp
                         lev += 1
 
@@ -576,8 +579,9 @@ class Sedimentation:
         )
 
         if self.config.do_sedi_melt:
-            self._sedi_melt_ice = stencil_factory.from_origin_domain(
+            self._sedi_melt_ice = stencil_factory.from_dims_halo(
                 func=sedi_melt_stencil,
+                compute_dims=[X_DIM, Y_DIM, Z_DIM],
                 externals={
                     "c1_vap": config.c1_vap,
                     "c1_liq": config.c1_liq,
@@ -588,8 +592,6 @@ class Sedimentation:
                     "tau_mlt": config.tau_imlt,
                     "k_end": config.npz,
                 },
-                origin=self._idx.origin_compute(),
-                domain=self._idx.domain_compute(),
             )
             self._sedi_melt_snow = stencil_factory.from_origin_domain(
                 func=sedi_melt_stencil,

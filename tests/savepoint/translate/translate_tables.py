@@ -43,7 +43,7 @@ def calc_table_values(
             wqs, dwdt = physfun.sat_spec_hum_water(temp, den)
             iqs, didt = physfun.sat_spec_hum_water_ice(temp, den)
 
-        ap1 = 10.0 * max(temp - (physcons.TICE0 - 160.0)) + 1
+        ap1 = 10.0 * max(temp - (physcons.TICE0 - 160.0), 0.0) + 1
         ap1 = min(ap1, 2621.0)
         it1 = ap1
         it2 = ap1 - 0.5
@@ -131,9 +131,6 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
             "didt": {"serialname": "tab_diq", "shield": True},
             "temp": {"serialname": "tab_pt", "shield": True},
             "den": {"serialname": "tab_den", "shield": True},
-            "ap1": {"serialname": "tc_ap1", "shield": True},
-            "it1": {"serialname": "tc_it1", "shield": True},
-            "it2": {"serialname": "tc_it2", "shield": True},
         }
 
         self.out_vars = {
@@ -143,9 +140,6 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
             "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "shield": True},
             "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
             "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
-            "ap1": {"serialname": "tc_ap1", "kend": namelist.npz, "shield": True},
-            "it1": {"serialname": "tc_it1", "kend": namelist.npz, "shield": True},
-            "it2": {"serialname": "tc_it2", "kend": namelist.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
@@ -181,6 +175,9 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
             "didt": {"serialname": "tab_diq", "shield": True},
             "temp2": {"serialname": "tab_pt", "shield": True},
             "den": {"serialname": "tab_den", "shield": True},
+            "ap1": {"serialname": "tc_ap1", "shield": True},
+            "it1": {"serialname": "tc_it1", "shield": True},
+            "it2": {"serialname": "tc_it2", "shield": True},
         }
 
         self.out_vars = {
@@ -190,6 +187,9 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
             "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "shield": True},
             "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
             "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
+            "ap1": {"serialname": "tc_ap1", "shield": True},
+            "it1": {"serialname": "tc_it1", "shield": True},
+            "it2": {"serialname": "tc_it2", "shield": True},
         }
 
         self.max_error = 1.5e-14  # 10^-25 absolute errors at the top of the tables
