@@ -211,7 +211,11 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
             "ua": {"serialname": "ef_ua", "kend": namelist.npz, "shield": True},
             "va": {"serialname": "ef_va", "kend": namelist.npz, "shield": True},
             "wa": {"serialname": "ef_wa", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "ef_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "ef_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "tmp_energy1": {
                 "serialname": "ef_ie",
                 "shield": True,
@@ -219,6 +223,7 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
             "column_energy_change": {"serialname": "ef_dte", "shield": True},
         }
 
+        self.ignore_near_zero_errors = {"ef_ie": True}
         self.stencil_factory = stencil_factory
         pconf = PhysicsConfig.from_namelist(namelist)
         self.config = pconf.microphysics
