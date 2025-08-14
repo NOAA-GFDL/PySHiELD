@@ -1,4 +1,7 @@
-from gt4py.cartesian.gtscript import (
+import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.gt4py import (
     __INLINED,
     BACKWARD,
     FORWARD,
@@ -9,10 +12,6 @@ from gt4py.cartesian.gtscript import (
     log,
     log10,
 )
-
-import pyshield.constants as physcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, Int, IntField
 from ndsl.initialization.allocator import QuantityFactory

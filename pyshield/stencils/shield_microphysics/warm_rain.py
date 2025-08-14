@@ -1,18 +1,9 @@
 import math
 
-from gt4py.cartesian.gtscript import (
-    __INLINED,
-    FORWARD,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-    log,
-)
-
 import ndsl.constants as constants
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import __INLINED, FORWARD, PARALLEL, computation, exp, interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
@@ -348,7 +339,7 @@ class WarmRain:
         if config.tau_revp > 1.0e-6:
             self._fac_revap = 1.0 - math.exp(-timestep / config.tau_revp)
 
-        fac_rc = (4.0 / 3.0) * constants.PI * physcons.RHO_W * config.rthresh ** 3
+        fac_rc = (4.0 / 3.0) * constants.PI * physcons.RHO_W * config.rthresh**3
         aone = 2.0 / 9.0 * (3.0 / 4.0) ** (4.0 / 3.0) / constants.PI ** (1.0 / 3.0)
         cpaut = config.c_paut * aone * constants.GRAV / physcons.VISD
 

@@ -1,16 +1,9 @@
-from gt4py.cartesian import gtscript  # noqa
-from gt4py.cartesian.gtscript import (  # noqa
-    __INLINED,
-    FORWARD,
-    computation,
-    exp,
-    interval,
-    log,
-)
-
-import pyshield.constants as physcons
 import ndsl.stencils.basic_operations as basic  # noqa
+import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun  # noqa
+from ndsl.dsl.gt4py import __INLINED, FORWARD, computation, exp  # noqa
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log  # noqa
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
@@ -28,7 +21,7 @@ from pyshield.stencils.shield_microphysics.subgrid_z_proc import (  # noqa
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
-@gtscript.function
+@gtfunction
 def perform_instant_processes_test(
     qvapor,
     qliquid,
@@ -704,7 +697,11 @@ class TranslateSubgridZSubs(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "szs_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "szs_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "szs_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "szs_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "szs_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "cloud_condensation_nuclei": {
                 "serialname": "szs_ccn",
                 "kend": namelist.npz,
@@ -717,7 +714,11 @@ class TranslateSubgridZSubs(TranslatePhysicsFortranData2Py):
             },
             "cond": {"serialname": "szs_cond", "kend": namelist.npz, "shield": True},
             "dep": {"serialname": "szs_dep", "kend": namelist.npz, "shield": True},
-            "reevap": {"serialname": "szs_reevap", "kend": namelist.npz, "shield": True},
+            "reevap": {
+                "serialname": "szs_reevap",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "sub": {"serialname": "szs_sub", "kend": namelist.npz, "shield": True},
             "cvm": {"serialname": "szs_cvm", "kend": namelist.npz, "shield": True},
             "lcpk": {"serialname": "szs_lcpk", "kend": namelist.npz, "shield": True},

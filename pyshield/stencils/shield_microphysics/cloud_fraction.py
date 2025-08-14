@@ -1,23 +1,15 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import (
-    __INLINED,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-    log,
-    log10,
-)
-
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import __INLINED, PARALLEL, computation, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log, log10
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
 from ..._config import MicroPhysicsConfig
 
 
-@gtscript.function
+@gtfunction
 def cloud_scheme_1(
     qpz,
     qstar,
@@ -79,7 +71,7 @@ def cloud_scheme_1(
     return qa
 
 
-@gtscript.function
+@gtfunction
 def cloud_scheme_2(
     qstar,
     q_cond,
@@ -109,7 +101,7 @@ def cloud_scheme_2(
     return qa
 
 
-@gtscript.function
+@gtfunction
 def cloud_scheme_3(
     q_cond,
     q_liquid,
@@ -141,7 +133,7 @@ def cloud_scheme_3(
     return qa
 
 
-@gtscript.function
+@gtfunction
 def cloud_scheme_4(
     q_cond,
     qa,
@@ -158,14 +150,14 @@ def cloud_scheme_4(
     elif gam > 2.0:
         qa10 = 1.0
     else:
-        qa10 = -0.1754 + 0.9811 * gam - 0.2223 * gam ** 2 + 0.0104 * gam ** 3
+        qa10 = -0.1754 + 0.9811 * gam - 0.2223 * gam**2 + 0.0104 * gam**3
         qa10 = max(0.0, min(1.0, qa10))
     if gam < 0.12:
         qa100 = 0.0
     elif gam > 1.85:
         qa100 = 1.0
     else:
-        qa100 = -0.0913 + 0.7213 * gam + 0.1060 * gam ** 2 - 0.0946 * gam ** 3
+        qa100 = -0.0913 + 0.7213 * gam + 0.1060 * gam**2 - 0.0946 * gam**3
         qa100 = max(0.0, min(1.0, qa100))
 
     qa = qa10 + ((log10(gsize / 1000.0)) - 1) * (qa100 - qa10)

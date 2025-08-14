@@ -1,9 +1,9 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, exp, interval
-
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import __INLINED, FORWARD, computation, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 
@@ -20,7 +20,7 @@ from .subgrid_z_proc import (
 )
 
 
-@gtscript.function
+@gtfunction
 def freeze_rain_to_graupel_simple(
     qvapor,
     qliquid,
@@ -92,7 +92,7 @@ def freeze_rain_to_graupel_simple(
     )
 
 
-@gtscript.function
+@gtfunction
 def melt_snow_simple(
     qvapor,
     qliquid,
@@ -165,7 +165,7 @@ def melt_snow_simple(
     )
 
 
-@gtscript.function
+@gtfunction
 def autoconvert_water_to_rain_simple(
     qliquid,
     qrain,
@@ -187,7 +187,7 @@ def autoconvert_water_to_rain_simple(
     return qliquid, qrain
 
 
-@gtscript.function
+@gtfunction
 def autoconvert_ice_to_snow_simple(qice, qsnow, temp, density):
     """
     Cloud ice to snow autoconversion, simple version

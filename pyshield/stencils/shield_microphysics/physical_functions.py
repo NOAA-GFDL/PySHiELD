@@ -1,12 +1,12 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import exp, floor, log, sqrt
-
-import ndsl.stencils.basic_operations as basic
 import ndsl.constants as constants
+import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
+from ndsl.dsl.gt4py import exp, floor
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import log, sqrt
 
 
-@gtscript.function
+@gtfunction
 def calc_particle_concentration(tracer, density, pca, pcb, mu):
     """
     pc Part of cal_pc_ed_oe_rr_tv in Fortran
@@ -15,7 +15,7 @@ def calc_particle_concentration(tracer, density, pca, pcb, mu):
     return pca / pcb * exp(mu / (mu + 3) * log(6 * density * tracer))
 
 
-@gtscript.function
+@gtfunction
 def calc_effective_diameter(tracer, density, eda, edb, mu):
     """
     ed Part of cal_pc_ed_oe_rr_tv in Fortran
@@ -24,7 +24,7 @@ def calc_effective_diameter(tracer, density, eda, edb, mu):
     return eda / edb * exp(1.0 / (mu + 3) * log(6 * density * tracer))
 
 
-@gtscript.function
+@gtfunction
 def calc_optical_extinction(tracer, density, oea, oeb, mu):
     """
     oe Part of cal_pc_ed_oe_rr_tv in Fortran
@@ -33,7 +33,7 @@ def calc_optical_extinction(tracer, density, oea, oeb, mu):
     return oea / oeb * exp((mu + 2) / (mu + 3) * log(6 * density * tracer))
 
 
-@gtscript.function
+@gtfunction
 def calc_radar_reflectivity(tracer, density, rra, rrb, mu):
     """
     rr Part of cal_pc_ed_oe_rr_tv in Fortran
@@ -42,7 +42,7 @@ def calc_radar_reflectivity(tracer, density, rra, rrb, mu):
     return rra / rrb * exp((mu + 6) / (mu + 3) * log(6 * density * tracer))
 
 
-@gtscript.function
+@gtfunction
 def calc_terminal_velocity(tracer, density, tva, tvb, mu, blin):
     """
     mass-weighted terminal velocity
@@ -52,12 +52,12 @@ def calc_terminal_velocity(tracer, density, tva, tvb, mu, blin):
     return tva / tvb * exp(blin / (mu + 3) * log(6 * density * tracer))
 
 
-@gtscript.function
+@gtfunction
 def accretion_2d(qden, denfac, c, blin, mu):
     return denfac * c * exp((2 + mu + blin) / (mu + 3) * log(6 * qden))
 
 
-@gtscript.function
+@gtfunction
 def accretion_3d(
     v1,
     v2,
@@ -95,7 +95,7 @@ def accretion_3d(
     return accrete * tmp
 
 
-@gtscript.function
+@gtfunction
 def calc_heat_cap_and_latent_heat_coeff(
     qvapor,
     qliquid,
@@ -135,7 +135,7 @@ def calc_heat_cap_and_latent_heat_coeff(
     return q_liq, q_solid, cvm, te, lcpk, icpk, tcpk, tcp3
 
 
-@gtscript.function
+@gtfunction
 def update_hydrometeors_and_temperatures(
     qvapor,
     qliquid,
@@ -202,7 +202,7 @@ def update_hydrometeors_and_temperatures(
     )
 
 
-@gtscript.function
+@gtfunction
 def table0(temp):
     """
     Saturation water vapor pressure table 0, water only
@@ -218,7 +218,7 @@ def table0(temp):
     )
 
 
-@gtscript.function
+@gtfunction
 def table2(temp):
     """
     Saturation water vapor pressure table 2, water and ice
@@ -243,7 +243,7 @@ def table2(temp):
     return return_val
 
 
-@gtscript.function
+@gtfunction
 def sat_spec_hum_water(temp, density):
     """
     qs_core with table 0 in microphysics
@@ -254,7 +254,7 @@ def sat_spec_hum_water(temp, density):
     return q, dqdt
 
 
-@gtscript.function
+@gtfunction
 def sat_spec_hum_water_ice(temperature, density):
     temp = max(physcons.TICE0 - 160.0, min(temperature, physcons.TICE0 + 102.0))
     q = table2(temp) / (constants.RVGAS * temperature * density)
@@ -271,20 +271,20 @@ def sat_spec_hum_water_ice(temperature, density):
     return q, dqdt
 
 
-@gtscript.function
+@gtfunction
 def temperature_index(temperature):
     tmin = physcons.TICE0 - 160.0
     return floor(10.0 * (temperature - tmin)) / 10.0 + tmin
 
 
-@gtscript.function
+@gtfunction
 def table0_delta(int_temperature):
     tmax = physcons.TICE0 - 160.0 + 262.0
     int_temperature = min(int_temperature, tmax)
     return max(0.0, table0(int_temperature + 0.1) - table0(int_temperature))
 
 
-@gtscript.function
+@gtfunction
 def lookup_0(temperature):
     int_temperature = temperature_index(temperature)
     return table0(int_temperature) + 10 * (
@@ -292,14 +292,14 @@ def lookup_0(temperature):
     ) * table0_delta(int_temperature)
 
 
-@gtscript.function
+@gtfunction
 def table2_delta(int_temperature):
     tmax = physcons.TICE0 - 160.0 + 262.0
     int_temperature = min(int_temperature, tmax)
     return max(0.0, table2(int_temperature + 0.1) - table2(int_temperature))
 
 
-@gtscript.function
+@gtfunction
 def lookup_2(temperature):
     int_temperature = temperature_index(temperature)
     return table2(int_temperature) + 10 * (
@@ -307,7 +307,7 @@ def lookup_2(temperature):
     ) * table2_delta(int_temperature)
 
 
-@gtscript.function
+@gtfunction
 def wqs(temperature, density):
     tmin = physcons.TICE0 - 160.0
     temp_limit = min(tmin + 262.1, max(tmin, temperature))
@@ -324,7 +324,7 @@ def wqs(temperature, density):
     return qsat, dqdt
 
 
-@gtscript.function
+@gtfunction
 def iqs(temperature, density):
     tmin = physcons.TICE0 - 160.0
     temp_limit = min(tmin + 262.1, max(tmin, temperature))
@@ -341,7 +341,7 @@ def iqs(temperature, density):
     return qsat, dqdt
 
 
-@gtscript.function
+@gtfunction
 def moist_heat_capacity(qvapor, qliquid, qrain, qice, qsnow, qgraupel):
 
     from __externals__ import c1_ice, c1_liq, c1_vap
@@ -351,7 +351,7 @@ def moist_heat_capacity(qvapor, qliquid, qrain, qice, qsnow, qgraupel):
     return 1.0 + qvapor * c1_vap + q_liq * c1_liq + q_solid * c1_ice
 
 
-@gtscript.function
+@gtfunction
 def vent_coeff(qden, density_factor, c1, c2, blin, mu):
     """
     Ventilation coefficient, Lin et al. (1983)
@@ -362,7 +362,7 @@ def vent_coeff(qden, density_factor, c1, c2, blin, mu):
     ) / exp((1 + mu) / (mu + 3) * log(6 * qden))
 
 
-@gtscript.function
+@gtfunction
 def melting_function(
     tc,
     dq,
@@ -394,7 +394,7 @@ def melting_function(
     )
 
 
-@gtscript.function
+@gtfunction
 def sublimation_function(
     t2, dq, qden, qsat, density, density_factor, cpk, cvm, c1, c2, c3, c4, c5, blin, mu
 ):
@@ -413,7 +413,7 @@ def sublimation_function(
     )
 
 
-@gtscript.function
+@gtfunction
 def calc_moist_total_energy(
     qvapor,
     qliquid,

@@ -1,5 +1,12 @@
 import numpy as np
-from gt4py.cartesian.gtscript import (
+
+import ndsl.constants as constants
+import ndsl.stencils.basic_operations as basic
+import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl import QuantityFactory
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import (
     __INLINED,
     BACKWARD,
     FORWARD,
@@ -8,13 +15,6 @@ from gt4py.cartesian.gtscript import (
     interval,
     sqrt,
 )
-
-import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
-import pyshield.constants as physcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
-from ndsl import QuantityFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
@@ -120,7 +120,7 @@ def calc_sedimentation_energy_loss(
     if (present(te_loss)) conditional
     """
     with computation(FORWARD), interval(-1, None):
-        energy_loss = column_energy_change * gsize ** 2.0
+        energy_loss = column_energy_change * gsize**2.0
 
 
 def moist_total_energy_and_water(
@@ -176,11 +176,11 @@ def moist_total_energy_and_water(
             cvm = 1.0 + qvapor * c1_vap + q_liq * c1_liq + q_solid * c1_ice
         tot_energy = (cvm * temperature + lv00 * qvapor - li00 * q_solid) * c_air
         if __INLINED(hydrostatic):
-            tot_energy = tot_energy + 0.5 * (ua ** 2 + va ** 2)
+            tot_energy = tot_energy + 0.5 * (ua**2 + va**2)
         else:
-            tot_energy = tot_energy + 0.5 * (ua ** 2 + va ** 2 + wa ** 2)
-        tot_energy = constants.RGRAV * tot_energy * delp * gsize ** 2.0
-        tot_water = constants.RGRAV * (qvapor + q_cond) * delp * gsize ** 2.0
+            tot_energy = tot_energy + 0.5 * (ua**2 + va**2 + wa**2)
+        tot_energy = constants.RGRAV * tot_energy * delp * gsize**2.0
+        tot_water = constants.RGRAV * (qvapor + q_cond) * delp * gsize**2.0
 
     with computation(FORWARD), interval(-1, None):
         total_energy_bot = (
@@ -190,12 +190,12 @@ def moist_total_energy_and_water(
             / 86400
             + sen * timestep
             + stress * timestep
-        ) * gsize ** 2.0
+        ) * gsize**2.0
         total_water_bot = (
             (vapor + water + rain + ice + snow + graupel)
             * timestep
             / 86400
-            * gsize ** 2.0
+            * gsize**2.0
         )
 
 
@@ -264,10 +264,10 @@ def cloud_nuclei_subgrid_and_relative_humidity(
             # boucher and lohmann (1995)
             nl = min(
                 1.0, abs(geopotential_surface_height / (10.0 * constants.GRAV))
-            ) * (10.0 ** 2.24 * (qnl * density * 1.0e9) ** 0.257) + (
+            ) * (10.0**2.24 * (qnl * density * 1.0e9) ** 0.257) + (
                 1.0 - min(1.0, abs(geopotential_surface_height) / (10 * constants.GRAV))
             ) * (
-                10.0 ** 2.06 * (qnl * density * 1.0e9) ** 0.48
+                10.0**2.06 * (qnl * density * 1.0e9) ** 0.48
             )
             ni = qni
             cloud_condensation_nuclei = (max(10.0, nl) * 1.0e6) / density
@@ -504,7 +504,7 @@ def update_temperature_pre_delp_q(
                 + (qliquid + qrain) * c1_liq
                 + (qice + qsnow + qgraupel) * c1_ice
             ) * c_air
-            tzuv = 0.5 * (u0 ** 2 + v0 ** 2 - (ua ** 2 + va ** 2)) / c8
+            tzuv = 0.5 * (u0**2 + v0**2 - (ua**2 + va**2)) / c8
             temperature += tzuv
 
         if __INLINED(do_sedi_w):
@@ -514,7 +514,7 @@ def update_temperature_pre_delp_q(
                 + (qliquid + qrain) * c1_liq
                 + (qice + qsnow + qgraupel) * c1_ice
             ) * c_air
-            tzw = 0.5 * (w0 ** 2 - wa ** 2) / c8
+            tzw = 0.5 * (w0**2 - wa**2) / c8
             temperature += tzw
 
 
@@ -603,15 +603,13 @@ def convert_mass_mixing_to_specific_ratios_and_update_temperatures(
         if __INLINED(do_sedi_uv):
             temperature = temperature - tzuv
             tzuv = (
-                (0.5 * (u0 ** 2 + v0 ** 2) * dp0 - 0.5 * (ua ** 2 + va ** 2) * delp)
-                / c8
-                / delp
+                (0.5 * (u0**2 + v0**2) * dp0 - 0.5 * (ua**2 + va**2) * delp) / c8 / delp
             )
             temperature = temperature + tzuv
 
         if __INLINED(do_sedi_w):
             temperature = temperature - tzw
-            tzw = (0.5 * (w0 ** 2) * dp0 - 0.5 * (wa ** 2) * delp) / c8 / delp
+            tzw = (0.5 * (w0**2) * dp0 - 0.5 * (wa**2) * delp) / c8 / delp
             temperature = temperature + tzw
 
 

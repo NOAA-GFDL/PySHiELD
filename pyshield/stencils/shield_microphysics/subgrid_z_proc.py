@@ -1,17 +1,17 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import __INLINED, FORWARD, computation, exp, interval, log
-
 import ndsl.constants as constants
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import __INLINED, FORWARD, computation, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 
 from ..._config import MicroPhysicsConfig
 
 
-@gtscript.function
+@gtfunction
 def perform_instant_processes(
     qvapor,
     qliquid,
@@ -144,7 +144,7 @@ def perform_instant_processes(
     )
 
 
-@gtscript.function
+@gtfunction
 def cloud_condensation_evaporation(
     qvapor,
     qliquid,
@@ -255,7 +255,7 @@ def cloud_condensation_evaporation(
     )
 
 
-@gtscript.function
+@gtfunction
 def complete_freeze(
     qvapor,
     qliquid,
@@ -325,7 +325,7 @@ def complete_freeze(
     )
 
 
-@gtscript.function
+@gtfunction
 def wegener_bergeron_findeisen(
     qvapor,
     qliquid,
@@ -416,7 +416,7 @@ def wegener_bergeron_findeisen(
     )
 
 
-@gtscript.function
+@gtfunction
 def freeze_bigg(
     qvapor,
     qliquid,
@@ -453,7 +453,7 @@ def freeze_bigg(
             / (physcons.RHO_W * cloud_condensation_nuclei)
             * timestep
             * (exp(0.66 * tc) - 1.0)
-            * qliquid ** 2.0
+            * qliquid**2.0
         )
         sink = min(qliquid, min(sink, tc / icpk))
 
@@ -503,7 +503,7 @@ def freeze_bigg(
     )
 
 
-@gtscript.function
+@gtfunction
 def deposit_and_sublimate_ice(
     qvapor,
     qliquid,
@@ -589,7 +589,7 @@ def deposit_and_sublimate_ice(
                     qsi
                     * density
                     * (tcpk * cvm) ** 2
-                    / (physcons.TCOND * constants.RVGAS * temperature ** 2)
+                    / (physcons.TCOND * constants.RVGAS * temperature**2)
                     + 1.0 / physcons.VDIFU
                 )
             )
@@ -658,7 +658,7 @@ def deposit_and_sublimate_ice(
     )
 
 
-@gtscript.function
+@gtfunction
 def deposit_and_sublimate_snow(
     qvapor,
     qliquid,
@@ -783,7 +783,7 @@ def deposit_and_sublimate_snow(
     )
 
 
-@gtscript.function
+@gtfunction
 def deposit_and_sublimate_graupel(
     qvapor,
     qliquid,

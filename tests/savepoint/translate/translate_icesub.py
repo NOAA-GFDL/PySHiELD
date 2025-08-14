@@ -1,15 +1,9 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import (  # noqa
-    __INLINED,
-    FORWARD,
-    PARALLEL,
-    computation,
-    interval,
-)
-
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import interval  # noqa
+from ndsl.dsl.gt4py import __INLINED, FORWARD, PARALLEL, computation  # noqa
+from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
@@ -30,7 +24,7 @@ from pyshield.stencils.shield_microphysics.ice_cloud import (  # noqa
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
-@gtscript.function
+@gtfunction
 def melt_snow_test(
     qvapor,
     qliquid,
@@ -773,7 +767,11 @@ class TranslateIceSubFunc(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "isub_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "isub_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "isub_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "isub_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "isub_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "cvm": {"serialname": "isub_cvm", "kend": namelist.npz, "shield": True},
             "te8": {"serialname": "isub_te8", "kend": namelist.npz, "shield": True},
             "lcpk": {"serialname": "isub_lcpk", "kend": namelist.npz, "shield": True},

@@ -1,24 +1,16 @@
-from gt4py.cartesian import gtscript
-from gt4py.cartesian.gtscript import (
-    __INLINED,
-    FORWARD,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-    log,
-)
-
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
+from ndsl.dsl.gt4py import __INLINED, FORWARD, PARALLEL, computation, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
 from ..._config import MicroPhysicsConfig
 
 
-@gtscript.function
+@gtfunction
 def melt_cloud_ice(
     qvapor,
     qliquid,
@@ -94,7 +86,7 @@ def melt_cloud_ice(
     )
 
 
-@gtscript.function
+@gtfunction
 def freeze_cloud_water(
     qvapor,
     qliquid,
@@ -170,7 +162,7 @@ def freeze_cloud_water(
     )
 
 
-@gtscript.function
+@gtfunction
 def melt_snow(
     qvapor,
     qliquid,
@@ -359,7 +351,7 @@ def melt_snow(
     )
 
 
-@gtscript.function
+@gtfunction
 def melt_graupel(
     qvapor,
     qliquid,
@@ -528,7 +520,7 @@ def melt_graupel(
     )
 
 
-@gtscript.function
+@gtfunction
 def accrete_snow_with_ice(
     qice,
     qsnow,
@@ -591,7 +583,7 @@ def accrete_snow_with_ice(
     return qice, qsnow
 
 
-@gtscript.function
+@gtfunction
 def autoconvert_ice_to_snow(
     qice,
     qsnow,
@@ -630,7 +622,7 @@ def autoconvert_ice_to_snow(
     return qice, qsnow, di, temperature
 
 
-@gtscript.function
+@gtfunction
 def accrete_graupel_with_ice(
     qice, qgraupel, temperature, density, density_factor, vtermainal_i, vterminal_g
 ):
@@ -687,7 +679,7 @@ def accrete_graupel_with_ice(
     return qice, qgraupel
 
 
-@gtscript.function
+@gtfunction
 def accrete_snow_with_rain_and_freeze_to_graupel(
     qvapor,
     qliquid,
@@ -801,7 +793,7 @@ def accrete_snow_with_rain_and_freeze_to_graupel(
     )
 
 
-@gtscript.function
+@gtfunction
 def accrete_graupel_with_snow(
     qsnow,
     qgraupel,
@@ -851,7 +843,7 @@ def accrete_graupel_with_snow(
     return qsnow, qgraupel
 
 
-@gtscript.function
+@gtfunction
 def autoconvert_snow_to_graupel(
     qsnow,
     qgraupel,
@@ -882,7 +874,7 @@ def autoconvert_snow_to_graupel(
     return qsnow, qgraupel
 
 
-@gtscript.function
+@gtfunction
 def accrete_graupel_with_cloud_water_and_rain(
     qvapor,
     qliquid,
