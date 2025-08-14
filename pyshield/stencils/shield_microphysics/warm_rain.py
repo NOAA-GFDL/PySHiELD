@@ -361,7 +361,7 @@ class WarmRain:
                 "li00": config.li00,
                 "li20": config.li20,
                 "lv00": config.lv00,
-                "tice": constants.TICE0,
+                "tice": physcons.TICE0,
                 "c1": config.crevp_1,
                 "c2": config.crevp_2,
                 "c3": config.crevp_3,

@@ -3,7 +3,7 @@ import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
 from ndsl.dsl.gt4py import exp, floor
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import log, max, min, sqrt
+from ndsl.dsl.gt4py import log, sqrt
 
 
 @gtfunction
@@ -211,7 +211,7 @@ def table0(temp):
     """
     return constants.E00 * exp(
         (
-            constants.DC_VAP * log(temp / physcons.TICE0)
+            physcons.DC_VAP * log(temp / physcons.TICE0)
             + physcons.LV0 * (temp - physcons.TICE0) / (temp * physcons.TICE0)
         )
         / constants.RVGAS
@@ -250,7 +250,7 @@ def sat_spec_hum_water(temp, density):
     compute the saturated specific humidity, core function
     """
     q = table0(temp) / (constants.RVGAS * temp * density)
-    dqdt = q * (constants.DC_VAP + physcons.LV0 / temp) / (constants.RVGAS * temp)
+    dqdt = q * (physcons.DC_VAP + physcons.LV0 / temp) / (constants.RVGAS * temp)
     return q, dqdt
 
 
@@ -265,7 +265,7 @@ def sat_spec_hum_water_ice(temperature, density):
     else:
         dqdt = (
             q
-            * (constants.DC_VAP + physcons.LV0 / temp)
+            * (physcons.DC_VAP + physcons.LV0 / temp)
             / (constants.RVGAS * temperature)
         )
     return q, dqdt

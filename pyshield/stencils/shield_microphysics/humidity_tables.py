@@ -30,7 +30,7 @@ class HumiditySaturationTables:
             fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
             fac1 = fac0 * physcons.LV0
             fac2 = (
-                constants.DC_VAP * np.log(tem / physcons.TICE0) + fac1
+                physcons.DC_VAP * np.log(tem / physcons.TICE0) + fac1
             ) / constants.RVGAS
             self.table0[i] = constants.E00 * np.exp(fac2)
             if i > 0:
