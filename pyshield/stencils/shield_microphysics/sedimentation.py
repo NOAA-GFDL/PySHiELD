@@ -316,8 +316,8 @@ def sedi_melt_stencil(
         q_melt = qsnow
     elif mode == "graupel":
         q_melt = qgraupel
-    else:
-        raise ValueError(f"sedi_melt mode {mode} not ice, snow, or graupel")
+    else:  # Default to graupel I guess?
+        q_melt = qgraupel
     with computation(BACKWARD):
         with interval(1, -1):
             lev = 1
