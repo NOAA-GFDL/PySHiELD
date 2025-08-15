@@ -615,12 +615,12 @@ class SurfaceExchange:
         self._sfc_diff = stencil_factory.from_origin_domain(
             sfc_diff,
             externals={
-                "do_z0_hwrf15": do_z0_hwrf15,
-                "do_z0_hwrf17": do_z0_hwrf17,
-                "do_z0_hwrf17_hwonly": do_z0_hwrf17_hwonly,
-                "do_z0_moon": do_z0_moon,
+                "do_z0_hwrf15": bool(do_z0_hwrf15),
+                "do_z0_hwrf17": bool(do_z0_hwrf17),
+                "do_z0_hwrf17_hwonly": bool(do_z0_hwrf17_hwonly),
+                "do_z0_moon": bool(do_z0_moon),
                 "ivegsrc": ivegsrc,
-                "redrag": redrag,
+                "redrag": bool(redrag),
                 "wind_th_hwrf": wind_th_hwrf,
                 "z0s_max": physcons.Z0S_MAX,
             },

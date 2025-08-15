@@ -468,7 +468,7 @@ class SurfaceSeaIce:
             sfc_sice,
             externals={
                 "delt": dt_atmos,
-                "mom4ice": mom4ice,
+                "mom4ice": bool(mom4ice),
                 "lsm": lsm,
             },
             origin=grid_indexing.origin_compute(),
