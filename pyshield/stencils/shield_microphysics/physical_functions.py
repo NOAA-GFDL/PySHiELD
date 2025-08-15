@@ -1,9 +1,8 @@
 import ndsl.constants as constants
 import ndsl.stencils.basic_operations as basic
 import pyshield.constants as physcons
-from ndsl.dsl.gt4py import exp, floor
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import log, sqrt
+from ndsl.dsl.gt4py import exp, floor, log, sqrt, min, max
 
 
 @gtfunction

@@ -95,6 +95,16 @@ Microph:
       mph_udt: 1e-8
       mph_vdt: 1e-8
 
+Microphysics3:
+  - backend: numpy
+    ignore_near_zero_errors:
+      mp_qv: 1e-20
+      mp_ql: 1e-20
+      mp_qr: 1e-20
+      mp_qi: 1e-20
+      mp_qs: 1e-20
+      mp_qg: 1e-20
+
 Sedimentation:
   - backend: numpy
     ignore_near_zero_errors:

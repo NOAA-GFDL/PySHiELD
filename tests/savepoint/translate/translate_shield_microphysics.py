@@ -83,7 +83,7 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             "cappa": {"serialname": "mp_cappa", "kend": namelist.npz, "shield": True},
             "adj_vmr": {"serialname": "mp_adj_vmr", "kend": namelist.npz, "shield": True},
             "total_energy": {"serialname": "mp_te", "kend": namelist.npz, "shield": True},
-            "column_energy_change": {"serialname": "mp_dte", "shield": True},
+            # "column_energy_change": {"serialname": "mp_dte", "shield": True},
             "preflux_water": {
                 "serialname": "mp_prefluxw",
                 "kend": namelist.npz,
@@ -277,21 +277,33 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
 
         microphysics(
             microphysics_state,
-            timestep=inputs["timestep"],
             last_step=inputs["last_step"],
         )
 
         # copy microphysics state back to inputs
-        inputs["column_water"] = microphysics_state.column_water
-        inputs["column_rain"] = microphysics_state.column_rain
-        inputs["column_ice"] = microphysics_state.column_ice
-        inputs["column_snow"] = microphysics_state.column_snow
+        inputs["qvapor"] = microphysics_state.qvapor
+        inputs["qliquid"] = microphysics_state.qliquid
+        inputs["qrain"] = microphysics_state.qrain
+        inputs["qice"] = microphysics_state.qice
+        inputs["qsnow"] = microphysics_state.qsnow
+        inputs["qgraupel"] = microphysics_state.qgraupel
+        inputs["qcld"] = microphysics_state.qcld
+        inputs["pt"] = microphysics_state.pt
+        inputs["ua"] = microphysics_state.ua
+        inputs["va"] = microphysics_state.va
+        inputs["wa"] = microphysics_state.wa
+        inputs["delz"] = microphysics_state.delz
+        inputs["delp"] = microphysics_state.delp
+        inputs["column_water"][:] = microphysics_state.column_water
+        inputs["column_rain"][:] = microphysics_state.column_rain
+        inputs["column_ice"][:] = microphysics_state.column_ice
+        inputs["column_snow"][:] = microphysics_state.column_snow
         inputs["column_graupel"] = microphysics_state.column_graupel
-        inputs["condensation"] = microphysics_state.condensation
-        inputs["deposition"] = microphysics_state.deposition
-        inputs["sublimation"] = microphysics_state.sublimation
-        inputs["evaporation"] = microphysics_state.evaporation
-        inputs["column_energy_change"] = microphysics_state.column_energy_change
+        inputs["condensation"][:] = microphysics_state.condensation
+        inputs["deposition"][:] = microphysics_state.deposition
+        inputs["sublimation"][:] = microphysics_state.sublimation
+        inputs["evaporation"][:] = microphysics_state.evaporation
+        # inputs["column_energy_change"][:] = microphysics_state.column_energy_change
         inputs["adj_vmr"] = microphysics_state.adj_vmr
         inputs["particle_concentration_w"] = microphysics_state.particle_concentration_w
         inputs["effective_diameter_w"] = microphysics_state.effective_diameter_w

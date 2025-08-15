@@ -914,7 +914,7 @@ class Microphysics:
             stencil_factory.from_origin_domain(
                 func=convert_virtual_to_true_temperature_and_calc_total_energy,
                 externals={
-                    "consv_te": consv_te,
+                    "consv_te": bool(consv_te),
                     "do_inline_mp": self.do_inline_mp,
                     "hydrostatic": self.config.hydrostatic,
                     "c_air": self.config.c_air,
@@ -932,7 +932,7 @@ class Microphysics:
                 func=moist_total_energy_and_water,
                 externals={
                     "hydrostatic": self.config.hydrostatic,
-                    "moist_q": True,
+                    "moist_q": bool(True),
                     "c1_vap": self.config.c1_vap,
                     "c1_liq": self.config.c1_liq,
                     "c1_ice": self.config.c1_ice,
@@ -949,7 +949,7 @@ class Microphysics:
                 func=moist_total_energy_and_water,
                 externals={
                     "hydrostatic": self.config.hydrostatic,
-                    "moist_q": False,
+                    "moist_q": bool(False),
                     "c1_vap": self.config.c1_vap,
                     "c1_liq": self.config.c1_liq,
                     "c1_ice": self.config.c1_ice,

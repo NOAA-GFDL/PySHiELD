@@ -266,6 +266,7 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
             "qsw": {"serialname": "cf_qsw", "shield": True},
             "dqwdt": {"serialname": "cf_dqwdt", "shield": True},
         }
+        # self.max_error = 1.0e-12
 
         self.out_vars = {
             "qa": {"serialname": "cf_qa", "kend": namelist.npz, "shield": True},
@@ -293,11 +294,6 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
-
-        # inputs.pop("qsi")
-        # inputs.pop("dqidt")
-        # inputs.pop("qsw")
-        # inputs.pop("dqwdt")
 
         compute_func = CloudFractionTest(
             self.stencil_factory,
