@@ -83,7 +83,7 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             "cappa": {"serialname": "mp_cappa", "kend": namelist.npz, "shield": True},
             "adj_vmr": {"serialname": "mp_adj_vmr", "kend": namelist.npz, "shield": True},
             "total_energy": {"serialname": "mp_te", "kend": namelist.npz, "shield": True},
-            # "column_energy_change": {"serialname": "mp_dte", "shield": True},
+            "column_energy_change": {"serialname": "mp_dte", "shield": True},
             "preflux_water": {
                 "serialname": "mp_prefluxw",
                 "kend": namelist.npz,
@@ -303,7 +303,7 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
         inputs["deposition"][:] = microphysics_state.deposition
         inputs["sublimation"][:] = microphysics_state.sublimation
         inputs["evaporation"][:] = microphysics_state.evaporation
-        # inputs["column_energy_change"][:] = microphysics_state.column_energy_change
+        inputs["column_energy_change"] = microphysics_state.column_energy_change
         inputs["adj_vmr"] = microphysics_state.adj_vmr
         inputs["particle_concentration_w"] = microphysics_state.particle_concentration_w
         inputs["effective_diameter_w"] = microphysics_state.effective_diameter_w
