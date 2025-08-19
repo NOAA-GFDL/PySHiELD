@@ -49,6 +49,8 @@ class TranslateSurfaceOcean_iter1(TranslatePhysicsFortranData2Py):
             self.stencil_factory,
         )
         self.make_storage_data_input_vars(inputs)
+        inputs["qvapor"] = inputs["q1"][:, :, :, 0]
+        inputs.pop("q1")
         self.compute_func(**inputs)
         return self.slice_output(inputs)
 

@@ -67,6 +67,8 @@ class TranslateSurfaceExchange_iter1(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
+        inputs["qvapor"] = inputs["q1"][:, :, :, 0]
+        inputs.pop("q1")
         inputs.pop("z0s_max")
         self.compute_func = SurfaceExchange(
             self.stencil_factory,

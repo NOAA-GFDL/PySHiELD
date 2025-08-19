@@ -6,7 +6,6 @@ import pyshield.constants as physcons
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import BoolFieldIJ, FloatField, FloatFieldIJ, IntFieldIJ
-from pyshield._config import FloatFieldTracer
 from pyshield.functions.physics_functions import fpvs
 
 
@@ -15,7 +14,7 @@ def sfc_ocean(
     u1: FloatField,
     v1: FloatField,
     t1: FloatField,
-    q1: FloatFieldTracer,
+    qvapor: FloatField,
     tskin: FloatFieldIJ,
     cm: FloatFieldIJ,
     ch: FloatFieldIJ,
@@ -35,7 +34,7 @@ def sfc_ocean(
     with computation(FORWARD), interval(0, 1):
         if (islimsk == 0) and (flag_iter):
             wind = max(sqrt(u1**2 + v1**2) + max(0.0, min(ddvel, 30)), 1.0)
-            q0 = max(q1[0, 0, 0][0], 1.0e-8)
+            q0 = max(qvapor[0, 0, 0], 1.0e-8)
             rho = prsl1 / (constants.RDGAS * t1 * (1.0 + constants.ZVIR * q0))
 
             qss = fpvs(tskin)
@@ -81,7 +80,7 @@ class SurfaceOcean:
         u1: FloatField,
         v1: FloatField,
         t1: FloatField,
-        q1: FloatFieldTracer,
+        qvapor: FloatField,
         tskin: FloatFieldIJ,
         cm: FloatFieldIJ,
         ch: FloatFieldIJ,
@@ -159,7 +158,7 @@ class SurfaceOcean:
             u1,
             v1,
             t1,
-            q1,
+            qvapor,
             tskin,
             cm,
             ch,
