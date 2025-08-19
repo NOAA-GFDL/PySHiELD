@@ -1,7 +1,6 @@
-from ndsl.dsl.gt4py import PARALLEL, FORWARD, computation, interval
-
 import ndsl.constants as constants
 from ndsl.constants import X_DIM, Y_DIM
+from ndsl.dsl.gt4py import FORWARD, computation, interval
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -127,14 +126,16 @@ def update_guess_and_soil_1(
             if islmsk > 0:
                 stsoil = stc1
 
+
 def post_loop(
-        qsfc: FloatFieldIJ,
-        qss: FloatFieldIJ,
-        ddvel: FloatFieldIJ,
-    ):
+    qsfc: FloatFieldIJ,
+    qss: FloatFieldIJ,
+    ddvel: FloatFieldIJ,
+):
     with computation(FORWARD), interval(0, 1):
         ddvel = 0.0
         qsfc = qss
+
 
 class SurfaceLayer:
     def __init__(

@@ -5,8 +5,8 @@ import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
-from ndsl.constants import X_DIM, Y_DIM
-from ndsl.dsl.typing import Float, Int, Bool
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.typing import Bool, Float, Int
 
 
 @dataclass()
@@ -222,7 +222,11 @@ class SurfaceState:
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
-                dtype = _field.metadata["type"] if "type" in _field.metadata.keys() else Float
+                dtype = (
+                    _field.metadata["type"]
+                    if "type" in _field.metadata.keys()
+                    else Float
+                )
                 initial_arrays[_field.name] = quantity_factory.zeros(
                     _field.metadata["dims"],
                     _field.metadata["units"],

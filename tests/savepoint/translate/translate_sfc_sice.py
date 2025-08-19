@@ -1,5 +1,5 @@
 from ndsl import Namelist, StencilFactory
-from ndsl.dsl.typing import Bool, Int, Float
+from ndsl.dsl.typing import Bool, Float, Int
 from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 

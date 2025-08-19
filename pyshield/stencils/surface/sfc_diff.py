@@ -1,8 +1,8 @@
-from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import FORWARD, computation, exp, interval, log, sqrt
-
 import ndsl.constants as constants
 import pyshield.constants as physcons
+from ndsl.dsl.gt4py import FORWARD, computation, exp
+from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
