@@ -1,11 +1,14 @@
 import subprocess
-from setuptools import setup
-from setuptools.command.install import install
 
-class CustomInstall(install):
+from setuptools import setup
+from setuptools.command.build import build
+
+
+class CustomInstall(build):
     def run(self):
-        subprocess.run(["mamba","install","pyrte_rrtmgp"])
-        install.run(self)
+        print("INSTALLING PYRTE-RRTMGP\n!!!\n!!!\n!!!")
+        subprocess.run(["conda", "install", "pyrte_rrtmgp"])
+        build.run(self)
 
 
 setup(
