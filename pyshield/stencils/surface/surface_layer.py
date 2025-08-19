@@ -1,4 +1,4 @@
-from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.gt4py import PARALLEL, FORWARD, computation, interval
 
 import ndsl.constants as constants
 from ndsl.constants import X_DIM, Y_DIM
@@ -17,7 +17,6 @@ from ndsl.dsl.typing import (
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
 from pyshield._config import SurfaceConfig
-from pyshield.functions.set_sfc_params import set_sfc_arrays
 from pyshield.stencils.surface.sfc_diff import SurfaceExchange
 from pyshield.stencils.surface.sfc_ocean import SurfaceOcean
 from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
@@ -27,6 +26,11 @@ from pyshield.stencils.surface.sfc_state import SurfaceState
 def init_step_vars(
     tsfc: FloatFieldIJ,
     phil: FloatField,
+    prsik: FloatField,
+    prslk: FloatField,
+    vfrac: FloatFieldIJ,
+    sfcemis: FloatFieldIJ,
+    adjsfcdlw: FloatFieldIJ,
     tsurf: FloatFieldIJ,
     flag_guess: BoolFieldIJ,
     flag_iter: BoolFieldIJ,
@@ -46,8 +50,12 @@ def init_step_vars(
     zlvl: FloatFieldIJ,
     smcwlt2: FloatFieldIJ,
     smcref2: FloatFieldIJ,
+    ddvel: FloatFieldIJ,
+    work3: FloatFieldIJ,
+    sigmaf: FloatFieldIJ,
+    gabsbdlw: FloatFieldIJ,
 ):
-    with computation(PARALLEL), interval(-1, None):
+    with computation(FORWARD), interval(-1, None):
         tsurf = tsfc
         flag_guess = False
         flag_iter = True
@@ -64,38 +72,69 @@ def init_step_vars(
         snohf = 0.0
         qss = 0.0
         gflx = 0.0
+        ddvel = 0.0
         zlvl = phil * constants.RGRAV
         smcwlt2 = 0.0
         smcref2 = 0.0
+        work3 = prsik / prslk
+        sigmaf = max(vfrac, 0.01)
+        gabsbdlw = sfcemis * adjsfcdlw
 
 
-def update_guess_0(
+def update_guess_and_soil_0(
     wind: FloatFieldIJ,
     iteration: Int,
     flag_guess: BoolFieldIJ,
+    stsoil: FloatField,
+    stc0: FloatFieldIJ,
+    stc1: FloatFieldIJ,
+    slmsk: IntFieldIJ,
 ):
-    with computation(PARALLEL), interval(0, 1):
-        if (iteration == 0) and (wind < 2.0):
-            flag_guess[0, 0] = True
+    with computation(FORWARD):
+        with interval(0, 1):
+            if (iteration == 0) and (wind < 2.0):
+                flag_guess[0, 0] = True
+            if slmsk > 0:
+                stc0 = stsoil
+        with interval(1, 2):
+            if slmsk > 0:
+                stc1 = stsoil
 
 
-def update_guess_1(
+def update_guess_and_soil_1(
     wind: FloatFieldIJ,
     iteration: Int,
     flag_guess: BoolFieldIJ,
     flag_iter: BoolFieldIJ,
+    stsoil,
+    stc0,
+    stc1,
     islmsk: IntFieldIJ,
 ):
     from __externals__ import nsstm_coupling
 
-    with computation(PARALLEL), interval(0, 1):
-        flag_iter = False
-        flag_guess = False
+    with computation(FORWARD):
+        with interval(0, 1):
+            flag_iter = False
+            flag_guess = False
 
-        if (iteration == 0) and (wind < 2.0):
-            if (islmsk == 1) or ((islmsk == 0) and (nsstm_coupling > 0)):
-                flag_iter = True
+            if (iteration == 0) and (wind < 2.0):
+                if (islmsk == 1) or ((islmsk == 0) and (nsstm_coupling > 0)):
+                    flag_iter = True
+            if islmsk > 0:
+                stsoil = stc0
+        with interval(1, 2):
+            if islmsk > 0:
+                stsoil = stc1
 
+def post_loop(
+        qsfc: FloatFieldIJ,
+        qss: FloatFieldIJ,
+        ddvel: FloatFieldIJ,
+    ):
+    with computation(FORWARD), interval(0, 1):
+        ddvel = 0.0
+        qsfc = qss
 
 class SurfaceLayer:
     def __init__(
@@ -106,14 +145,6 @@ class SurfaceLayer:
     ):
         grid_indexing = stencil_factory.grid_indexing
 
-        islmsk = set_sfc_arrays(config.sfc_data)
-        self._islmsk = quantity_factory.from_array(
-            islmsk,
-            [X_DIM, Y_DIM],
-            units="None",
-            dtype=Int,
-        )
-
         def make_quantity_2d() -> Quantity:
             return quantity_factory.zeros(
                 [X_DIM, Y_DIM],
@@ -121,7 +152,35 @@ class SurfaceLayer:
                 dtype=Float,
             )
 
+        self._tsurf = make_quantity_2d()
         self._cdq = make_quantity_2d()
+        self._ddvel = make_quantity_2d()
+        self._drain = make_quantity_2d()
+        self._ep1d = make_quantity_2d()
+        self._runof = make_quantity_2d()
+        self._evap = make_quantity_2d()
+        self._evbs = make_quantity_2d()
+        self._evcw = make_quantity_2d()
+        self._trans = make_quantity_2d()
+        self._sbsno = make_quantity_2d()
+        self._snowc = make_quantity_2d()
+        self._snohf = make_quantity_2d()
+        self._qss = make_quantity_2d()
+        self._gflx = make_quantity_2d()
+        self._zlvl = make_quantity_2d()
+        self._smcwlt2 = make_quantity_2d()
+        self._smcref2 = make_quantity_2d()
+        self._work3 = make_quantity_2d()
+        self._sigmaf = make_quantity_2d()
+        self._cd = make_quantity_2d()
+        self._fm10 = make_quantity_2d()
+        self._fh2 = make_quantity_2d()
+        self._cmm = make_quantity_2d()
+        self._chh = make_quantity_2d()
+        self._gabsbdlw = make_quantity_2d()
+        self._stc0 = make_quantity_2d()
+        self._stc1 = make_quantity_2d()
+        self._snowmt = make_quantity_2d()
 
         self._flag_guess = quantity_factory.zeros(
             [X_DIM, Y_DIM],
@@ -150,8 +209,8 @@ class SurfaceLayer:
             redrag=config.redrag,
             wind_th_hwrf=config.wind_th_hwrf,
         )
-        self._update_guess_0 = stencil_factory.from_origin_domain(
-            update_guess_0,
+        self._update_guess_and_soil_0 = stencil_factory.from_origin_domain(
+            update_guess_and_soil_0,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -164,9 +223,14 @@ class SurfaceLayer:
             lsm=config.lsm,
             dt_atmos=config.dt_atmos,
         )
-        self._update_guess_1 = stencil_factory.from_origin_domain(
-            update_guess_1,
+        self._update_guess_and_soil_1 = stencil_factory.from_origin_domain(
+            update_guess_and_soil_1,
             externals={"nsstm_coupling": config.nstf_name[0]},
+            origin=grid_indexing.origin_compute(),
+            domain=grid_indexing.domain_compute(),
+        )
+        self._post_loop = stencil_factory.from_origin_domain(
+            post_loop,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -177,53 +241,50 @@ class SurfaceLayer:
         u1: FloatField,
         v1: FloatField,
         t1: FloatField,
+        prsl1: FloatField,
+        prsik: FloatField,
+        prslk: FloatField,
         qvapor: FloatField,
-        ddvel: FloatFieldIJ,
-        tsurf: FloatFieldIJ,
-        tsfc: FloatFieldIJ,
-        prslki: FloatFieldIJ,
-        prsl1: FloatFieldIJ,
-        z0rl: FloatFieldIJ,
-        z1: FloatFieldIJ,
-        shdmax: FloatFieldIJ,
-        sigmaf: FloatFieldIJ,
-        ustar: FloatFieldIJ,
-        snowdepth: FloatFieldIJ,
-        ztrl: FloatFieldIJ,
-        cm: FloatFieldIJ,
-        ch: FloatFieldIJ,
+        phil: FloatField,
         rb: FloatFieldIJ,
         stress: FloatFieldIJ,
-        fm: FloatFieldIJ,
-        fh: FloatFieldIJ,
-        wind: FloatFieldIJ,
-        fm10: FloatFieldIJ,
-        fh2: FloatFieldIJ,
-        islimsk: IntFieldIJ,
-        vegtype: IntFieldIJ,
+        ps: FloatFieldIJ,
+        hflx: FloatFieldIJ,
+        adjsfcdlw: FloatFieldIJ,
+        adjsfcdsw: FloatFieldIJ,
+        adjsfcnsw: FloatFieldIJ,
     ):
         self._init_step_vars(
-            tsfc,
+            state.tsfc,
             phil,
-            tsurf,
+            prsik,
+            prslk,
+            state.vfrac,
+            state.sfcemis,
+            adjsfcdlw,
+            self._tsurf,
             self._flag_guess,
             self._flag_iter,
-            drain,
-            ep1d,
-            runof,
+            self._drain,
+            self._ep1d,
+            self._runof,
             hflx,
-            evap,
-            evbs,
-            evcw,
-            trans,
-            sbsno,
-            snowc,
-            snohf,
-            qss,
-            gflx,
-            zlvl,
-            smcwlt2,
-            smcref2,
+            self._evap,
+            self._evbs,
+            self._evcw,
+            self._trans,
+            self._sbsno,
+            self._snowc,
+            self._snohf,
+            self._qss,
+            self._gflx,
+            self._zlvl,
+            self._smcwlt2,
+            self._smcref2,
+            self._ddvel,
+            self._work3,
+            self._sigmaf,
+            self._gabsbdlw,
         )
         for iteration in range(2):
             self._exchange(
@@ -231,33 +292,41 @@ class SurfaceLayer:
                 v1,
                 t1,
                 qvapor,
-                ddvel,
-                tsurf,
-                tsfc,
-                prslki,
+                self._ddvel,
+                self._tsurf,
+                state.tsfc,
+                self._work3,
                 prsl1,
-                z0rl,
-                z1,
-                shdmax,
-                sigmaf,
-                ustar,
-                snowdepth,
-                ztrl,
-                cm,
-                ch,
+                state.zorl,
+                self._zlvl,
+                state.shdmax,
+                self._sigmaf,
+                state.uustar,
+                state.snowd,
+                state.ztrl,
+                self._cd,
+                self._cdq,
                 rb,
                 stress,
-                fm,
-                fh,
-                wind,
-                fm10,
-                fh2,
-                islimsk,
-                vegtype,
-                flag_iter,
+                state.ffmm,
+                state.ffhh,
+                state.wind,
+                self._fm10,
+                self._fh2,
+                state.slmsk,
+                state.vegtype,
+                self._flag_iter,
             )
 
-            self._update_guess_0(state.wind, iteration, self._flag_guess)
+            self._update_guess_and_soil_0(
+                state.wind,
+                iteration,
+                self._flag_guess,
+                state.stc,
+                self._stc0,
+                self._stc1,
+                state.slmsk,
+            )
 
             self._sfc_ocean(
                 ps,
@@ -265,20 +334,20 @@ class SurfaceLayer:
                 v1,
                 t1,
                 qvapor,
-                tskin,
-                cm,
-                ch,
+                state.tsfc,
+                self._cd,
+                self._cdq,
                 prsl1,
-                prslki,
-                ddvel,
-                qsurf,
-                cmm,
-                chh,
-                gflux,
-                evap,
+                self._work3,
+                self._ddvel,
+                self._qss,
+                self._cmm,
+                self._chh,
+                self._gflx,
+                self._evap,
                 hflx,
-                ep,
-                islimsk,
+                self._ep1d,
+                state.slmsk,
                 self._flag_iter,
             )
 
@@ -286,43 +355,52 @@ class SurfaceLayer:
 
             self._sfc_sice(
                 ps,
-                wind,
+                state.wind,
                 t1,
                 qvapor,
-                sfcemis,
-                dlwflx,
-                sfcnsw,
-                sfcdsw,
-                srflag,
-                cm,
-                ch,
+                state.sfcemis,
+                self._gabsbdlw,
+                adjsfcnsw,
+                adjsfcdsw,
+                state.srflag,
+                self._cd,
+                self._cdq,
                 prsl1,
-                prslki,
-                islimsk,
+                self._work3,
+                state.slmsk,
                 self._flag_iter,
-                hice,
-                fice,
-                tice,
-                weasd,
-                tskin,
-                tprcp,
-                stc0,
-                stc1,
-                ep,
-                snwdph,
-                qsurf,
-                cmm,
-                chh,
-                evap,
+                state.hice,
+                state.fice,
+                state.tisfc,
+                state.weasd,
+                state.tsfc,
+                state.tprcp,
+                self._stc0,
+                self._stc1,
+                self._ep1d,
+                state.snowd,
+                self._qss,
+                self._cmm,
+                self._chh,
+                self._evap,
                 hflx,
-                gflux,
-                snowmt,
+                self._gflx,
+                self._snowmt,
             )
 
-            self._update_guess_1(
+            self._update_guess_and_soil_1(
                 state.wind,
                 iteration,
                 self._flag_guess,
                 self._flag_iter,
-                self._islmsk,
+                state.stc,
+                self._stc0,
+                self._stc1,
+                state.slmsk,
             )
+
+        self._post_loop(
+            state.qsfc,
+            self._qss,
+            self._ddvel,
+        )

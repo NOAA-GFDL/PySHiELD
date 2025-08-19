@@ -6,7 +6,7 @@ import xarray as xr
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM
-from ndsl.dsl.typing import Float
+from ndsl.dsl.typing import Float, Int, Bool
 
 
 @dataclass()
@@ -20,7 +20,25 @@ class SurfaceState:
         }
     )
 
-    snowdepth: Quantity = field(
+    stc: Quantity = field(
+        metadata={
+            "name": "soil_temperature_content",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "K",
+            "intent": "inout",
+        }
+    )
+
+    qsfc: Quantity = field(
+        metadata={
+            "name": "surface_specific_humidity",
+            "dims": [X_DIM, Y_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
+
+    snowd: Quantity = field(
         metadata={
             "name": "snow_depth_water_equivalent",
             "dims": [X_DIM, Y_DIM],
@@ -29,7 +47,7 @@ class SurfaceState:
         }
     )
 
-    z0rl: Quantity = field(
+    zorl: Quantity = field(
         metadata={
             "name": "composite_surface_roughness",
             "dims": [X_DIM, Y_DIM],
@@ -56,6 +74,144 @@ class SurfaceState:
         }
     )
 
+    uustar: Quantity = field(
+        metadata={
+            "name": "boundary_layer_param",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+
+    slmsk: Quantity = field(
+        metadata={
+            "name": "sea_land_ice_mask",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "in",
+            "type": Int,
+        }
+    )
+
+    vegtype: Quantity = field(
+        metadata={
+            "name": "vegetation_type",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "in",
+            "type": Int,
+        }
+    )
+
+    vfrac: Quantity = field(
+        metadata={
+            "name": "vegetation_fraction",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "in",
+        }
+    )
+
+    shdmax: Quantity = field(
+        metadata={
+            "name": "max_fractional_green_vegetation_cover",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "in",
+        }
+    )
+
+    ffmm: Quantity = field(
+        metadata={
+            "name": "fm_PBL_parameter",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    ffhh: Quantity = field(
+        metadata={
+            "name": "fh_PBL_parameter",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    f10m: Quantity = field(
+        metadata={
+            "name": "sigma1_10m_wind_ratio",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    sfcemis: Quantity = field(
+        metadata={
+            "name": "sfc_lw_emissivity_fraction",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    srflag: Quantity = field(
+        metadata={
+            "name": "rain_snow_precipitation_flag",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+            "type": Bool,
+        }
+    )
+
+    hice: Quantity = field(
+        metadata={
+            "name": "sea_ice_thickness",
+            "dims": [X_DIM, Y_DIM],
+            "units": "unknown",
+            "intent": "inout",
+        }
+    )
+
+    fice: Quantity = field(
+        metadata={
+            "name": "ice_fraction_over_open_water_grid",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    tisfc: Quantity = field(
+        metadata={
+            "name": "surface_temperature_over_ice_fraction",
+            "dims": [X_DIM, Y_DIM],
+            "units": "K",
+            "intent": "inout",
+        }
+    )
+
+    weasd: Quantity = field(
+        metadata={
+            "name": "water_equiv_accumulated_snow_depth",
+            "dims": [X_DIM, Y_DIM],
+            "units": "kg/m**2",
+            "intent": "inout",
+        }
+    )
+
+    tprcp: Quantity = field(
+        metadata={
+            "name": "total_precip",
+            "dims": [X_DIM, Y_DIM],
+            "units": "unknown",
+            "intent": "out",
+        }
+    )
+
     quantity_factory: InitVar[QuantityFactory]
 
     @classmethod
@@ -66,10 +222,11 @@ class SurfaceState:
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
+                dtype = _field.metadata["type"] if "type" in _field.metadata.keys() else Float
                 initial_arrays[_field.name] = quantity_factory.zeros(
                     _field.metadata["dims"],
                     _field.metadata["units"],
-                    dtype=Float,
+                    dtype=dtype,
                 )
         return cls(
             **initial_arrays,
