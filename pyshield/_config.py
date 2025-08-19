@@ -5,16 +5,16 @@ from typing import List, Optional, Tuple
 import f90nml
 
 from ndsl import MetaEnumStr
-from ndsl.dsl.typing import Float, Int, set_4d_field_size
+from ndsl.dsl.typing import Bool, Float, Int, set_4d_field_size
 from ndsl.namelist import Namelist, NamelistDefaults
 
 
 # TODO: This is a hack
 FloatFieldTracer = set_4d_field_size(9, Float)
 
-DEFAULT_FLOAT = 0.0
-DEFAULT_INT = 0
-DEFAULT_BOOL = False
+DEFAULT_FLOAT = Float(0.0)
+DEFAULT_INT = Int(0)
+DEFAULT_BOOL = Bool(False)
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 
 
@@ -25,17 +25,19 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 
 @dataclasses.dataclass
 class SurfaceConfig:
-    do_z0_hwrf15: bool = DEFAULT_BOOL
-    do_z0_hwrf17: bool = DEFAULT_BOOL
-    do_z0_hwrf17_hwonly: bool = DEFAULT_BOOL
-    do_z0_moon: bool = DEFAULT_BOOL
+    do_z0_hwrf15: Bool = DEFAULT_BOOL
+    do_z0_hwrf17: Bool = DEFAULT_BOOL
+    do_z0_hwrf17_hwonly: Bool = DEFAULT_BOOL
+    do_z0_moon: Bool = DEFAULT_BOOL
     dt_atmos: Float = DEFAULT_FLOAT
-    mom4ice: bool = DEFAULT_BOOL
-    ivegsrc: int = DEFAULT_INT
+    mom4ice: Bool = DEFAULT_BOOL
+    ivegsrc: Int = DEFAULT_INT
     lsm: Int = DEFAULT_INT
-    redrag: bool = DEFAULT_BOOL
+    redrag: Bool = DEFAULT_BOOL
     wind_th_hwrf: Float = DEFAULT_FLOAT
-    nstf_name: tuple[int, int, int, int, int] = (0, 0, 1, 0, 5)
+    nstf_name: tuple[Int, Int, Int, Int, Int] = (
+        Int(0), Int(0), Int(1), Int(0), Int(5)
+    )
     """
     nstf_name contains the NSSTM related parameters:
     nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
@@ -55,32 +57,32 @@ class SurfaceConfig:
 @dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: Float = DEFAULT_FLOAT
-    hydrostatic: bool = DEFAULT_BOOL
+    hydrostatic: Bool = DEFAULT_BOOL
     npx: Int = DEFAULT_INT
     npy: Int = DEFAULT_INT
     npz: Int = DEFAULT_INT
     nwat: Int = DEFAULT_INT
     schemes: List = None
-    do_qa: bool = DEFAULT_BOOL
-    do_z0_hwrf15: bool = DEFAULT_BOOL
-    do_z0_hwrf17: bool = DEFAULT_BOOL
-    do_z0_hwrf17_hwonly: bool = DEFAULT_BOOL
-    do_z0_moon: bool = DEFAULT_BOOL
+    do_qa: Bool = DEFAULT_BOOL
+    do_z0_hwrf15: Bool = DEFAULT_BOOL
+    do_z0_hwrf17: Bool = DEFAULT_BOOL
+    do_z0_hwrf17_hwonly: Bool = DEFAULT_BOOL
+    do_z0_moon: Bool = DEFAULT_BOOL
     c_cracw: Float = NamelistDefaults.c_cracw
     c_paut: Float = NamelistDefaults.c_paut
     c_pgacs: Float = NamelistDefaults.c_pgacs
     c_psaci: Float = NamelistDefaults.c_psaci
     ccn_l: Float = NamelistDefaults.ccn_l
     ccn_o: Float = NamelistDefaults.ccn_o
-    const_vg: bool = NamelistDefaults.const_vg
-    const_vi: bool = NamelistDefaults.const_vi
-    const_vr: bool = NamelistDefaults.const_vr
-    const_vs: bool = NamelistDefaults.const_vs
+    const_vg: Bool = NamelistDefaults.const_vg
+    const_vi: Bool = NamelistDefaults.const_vi
+    const_vr: Bool = NamelistDefaults.const_vr
+    const_vs: Bool = NamelistDefaults.const_vs
     vs_fac: Float = NamelistDefaults.vs_fac
     vg_fac: Float = NamelistDefaults.vg_fac
     vi_fac: Float = NamelistDefaults.vi_fac
     vr_fac: Float = NamelistDefaults.vr_fac
-    de_ice: bool = NamelistDefaults.de_ice
+    de_ice: Bool = NamelistDefaults.de_ice
     layout: Tuple[Int, Int] = NamelistDefaults.layout
     # gfdl_cloud_microphys.F90
     tau_imlt: Float = NamelistDefaults.tau_imlt  # cloud ice melting
@@ -101,10 +103,10 @@ class PhysicsConfig:
         NamelistDefaults.qi_lim
     )  # cloud ice limiter to prevent large ice build up
     qi0_max: Float = NamelistDefaults.qi0_max  # max cloud ice value (by other sources)
-    rad_snow: bool = (
+    rad_snow: Bool = (
         NamelistDefaults.rad_snow
     )  # consider snow in cloud fraction calculation
-    rad_rain: bool = (
+    rad_rain: Bool = (
         NamelistDefaults.rad_rain
     )  # consider rain in cloud fraction calculation
     dw_ocean: Float = NamelistDefaults.dw_ocean  # base value for ocean
@@ -118,44 +120,46 @@ class PhysicsConfig:
         NamelistDefaults.tau_l2v
     )  # cloud water to water vapor (evaporation)
     c2l_ord: Int = NamelistDefaults.c2l_ord
-    do_sedi_heat: bool = NamelistDefaults.do_sedi_heat
-    do_sedi_w: bool = NamelistDefaults.do_sedi_w
-    fast_sat_adj: bool = NamelistDefaults.fast_sat_adj
+    do_sedi_heat: Bool = NamelistDefaults.do_sedi_heat
+    do_sedi_w: Bool = NamelistDefaults.do_sedi_w
+    fast_sat_adj: Bool = NamelistDefaults.fast_sat_adj
     qc_crt: Float = NamelistDefaults.qc_crt
-    fix_negative: bool = NamelistDefaults.fix_negative
+    fix_negative: Bool = NamelistDefaults.fix_negative
     irain_f: Int = NamelistDefaults.irain_f
     mp_time: Float = NamelistDefaults.mp_time
-    prog_ccn: bool = NamelistDefaults.prog_ccn
+    prog_ccn: Bool = NamelistDefaults.prog_ccn
     qi0_crt: Float = NamelistDefaults.qi0_crt
     qs0_crt: Float = NamelistDefaults.qs0_crt
     rh_inc: Float = NamelistDefaults.rh_inc
     rh_inr: Float = NamelistDefaults.rh_inr
     # rh_ins: Any
     rthresh: Float = NamelistDefaults.rthresh
-    sedi_transport: bool = NamelistDefaults.sedi_transport
+    sedi_transport: Bool = NamelistDefaults.sedi_transport
     # use_ccn: Any
-    use_ppm: bool = NamelistDefaults.use_ppm
+    use_ppm: Bool = NamelistDefaults.use_ppm
     vg_max: Float = NamelistDefaults.vg_max
     vi_max: Float = NamelistDefaults.vi_max
     vr_max: Float = NamelistDefaults.vr_max
     vs_max: Float = NamelistDefaults.vs_max
-    z_slope_ice: bool = NamelistDefaults.z_slope_ice
-    z_slope_liq: bool = NamelistDefaults.z_slope_liq
+    z_slope_ice: Bool = NamelistDefaults.z_slope_ice
+    z_slope_liq: Bool = NamelistDefaults.z_slope_liq
     tice: Float = NamelistDefaults.tice
     alin: Float = NamelistDefaults.alin
     clin: Float = NamelistDefaults.clin
-    mom4ice: bool = NamelistDefaults.mom4ice
+    mom4ice: Bool = NamelistDefaults.mom4ice
     lsm: Int = NamelistDefaults.lsm
-    redrag: bool = NamelistDefaults.redrag
+    redrag: Bool = NamelistDefaults.redrag
     wind_th_hwrf: Float = DEFAULT_FLOAT
-    ivegsrc: int = 2
+    ivegsrc: Int = Int(2)
     """
     Source for veg and soil categories:
     ivegsrc = 0 => USGS
     ivegsrc = 1 => IGBP (20 category)
     ivegsrc = 2 => UMD (13 category)
     """
-    nstf_name: tuple[int, int, int, int, int] = (0, 0, 1, 0, 5)
+    nstf_name: tuple[Int, Int, Int, Int, Int] = (
+        Int(0), Int(0), Int(1), Int(0), Int(5)
+    )
     """
     nstf_name contains the NSSTM related parameters:
     nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
@@ -171,7 +175,7 @@ class PhysicsConfig:
     TODO: implement per-tile
     """
     namelist_override: Optional[str] = None
-    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
+    daily_mean: Bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
     def __post_init__(self):
         if self.schemes is None:
