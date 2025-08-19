@@ -54,7 +54,7 @@ def init_step_vars(
     sigmaf: FloatFieldIJ,
     gabsbdlw: FloatFieldIJ,
 ):
-    with computation(FORWARD), interval(-1, None):
+    with computation(FORWARD), interval(0, 1):
         tsurf = tsfc
         flag_guess = False
         flag_iter = True
