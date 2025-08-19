@@ -80,7 +80,6 @@ class TranslateSurfaceSeaIce_iter1(TranslatePhysicsFortranData2Py):
         inputs.pop("q1")
         inputs.pop("u1")
         inputs.pop("v1")
-        print(f"mom4 ice is {inputs["sice_mom4ice"]}")
         self.compute_func = SurfaceSeaIce(
             self.stencil_factory,
             mom4ice=Bool(inputs.pop("sice_mom4ice")),
