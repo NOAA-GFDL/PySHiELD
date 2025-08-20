@@ -299,7 +299,7 @@ class SurfaceLayer:
             self._work3,
             self._sigmaf,
             self._gabsbdlw,
-            self._prsl1
+            self._prsl1,
         )
         for iteration in range(2):
             self._exchange(

@@ -1,9 +1,11 @@
-import pytest
 from pathlib import Path
-from pyshield.stencils.surface import SurfaceLayer, SurfaceState
-from pyshield import PhysicsConfig, PhysicsState, PHYSICS_PACKAGES
-import pyshield.constants as physcons
 
+import numpy as np
+import pytest
+import xarray as xr
+
+import ndsl.constants as constants
+import pyshield.constants as physcons
 from ndsl import (
     CompilationConfig,
     GridIndexing,
@@ -15,7 +17,8 @@ from ndsl import (
     SubtileGridSizer,
     TileCommunicator,
 )
-from ndsl.dsl.typing import Int, Float
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.typing import Float, Int
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -24,11 +27,9 @@ from ndsl.grid import (
     MetricTerms,
     VerticalGridData,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
-import ndsl.constants as constants
+from pyshield import PHYSICS_PACKAGES, PhysicsConfig, PhysicsState
+from pyshield.stencils.surface import SurfaceLayer, SurfaceState
 
-import numpy as np
-import xarray as xr
 
 def states_from_fortran_restarts(
     dycore_datafile: Path,
@@ -41,7 +42,7 @@ def states_from_fortran_restarts(
     stencil_factory: StencilFactory,
     schemes: PHYSICS_PACKAGES,
 ):
-    pk0inv = (1. / physcons.P00) ** constants.KAPPA
+    pk0inv = (1.0 / physcons.P00) ** constants.KAPPA
     dycore_data = xr.open_dataset(dycore_datafile)
     phys_data = xr.open_dataset(phys_datafile)
     tracer_data = xr.open_dataset(tracer_datafile)
@@ -59,15 +60,23 @@ def states_from_fortran_restarts(
             )
     state.delz.field[:, :, :] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
     state.phii.field[:, :, -1] = dycore_data.phis.data[0, :, :].transpose()
-    for k in range(npz-2, -1, -1):
-        state.phii.field[:, :, k] = state.phii.field[:, :, k + 1] + (state.delz.field[:, :, k] * constants.GRAV)
-    state.phil.field[:, :, :] = 0.5 * (state.phii.field[:, :, :-1] + state.phii.field[:, :, 1:])
+    for k in range(npz - 2, -1, -1):
+        state.phii.field[:, :, k] = state.phii.field[:, :, k + 1] + (
+            state.delz.field[:, :, k] * constants.GRAV
+        )
+    state.phil.field[:, :, :] = 0.5 * (
+        state.phii.field[:, :, :-1] + state.phii.field[:, :, 1:]
+    )
     state.prsi.field[:] = buff_3d[:, :, :]
     state.delp.field[:] = dycore_data.delp.data[0, :, :, :].transpose(2, 1, 0)
     state.prsik.field[:] = np.log(state.prsi.field[:])
     state.prsik.field[:, :, 0] = (ak.data[0] / physcons.P00) ** constants.KAPPA
-    state.prsik.field[:, :, -1] = np.exp(constants.KAPPA * state.prsik.field[:, :, -1]) * pk0inv
-    state.prslk.field[:] = np.exp(constants.KAPPA * np.log(state.delp.field[:]/physcons.P00))
+    state.prsik.field[:, :, -1] = (
+        np.exp(constants.KAPPA * state.prsik.field[:, :, -1]) * pk0inv
+    )
+    state.prslk.field[:] = np.exp(
+        constants.KAPPA * np.log(state.delp.field[:] / physcons.P00)
+    )
     state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
     state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
     state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
@@ -87,7 +96,9 @@ def states_from_fortran_restarts(
     sstate.snowd.field[:] = sfc_data.snwdph.data[0, :, :].transpose()
     sstate.ffhh.field[:] = sfc_data.ffhh.data[0, :, :].transpose()
     sstate.ffmm.field[:] = sfc_data.ffmm.data[0, :, :].transpose()
-    sstate.wind.field[:] = np.sqrt(state.ua.field[:, :, -1] ** 2.0 + state.va.field[:, :, -1] ** 2.0)
+    sstate.wind.field[:] = np.sqrt(
+        state.ua.field[:, :, -1] ** 2.0 + state.va.field[:, :, -1] ** 2.0
+    )
     sstate.stc.field[:] = sfc_data.stc.data[0, :, :, :].transpose(2, 1, 0)
     sstate.srflag.field[:] = sfc_data.srflag.data[0, :, :].transpose()
     sstate.hice.field[:] = sfc_data.hice.data[0, :, :].transpose()
@@ -97,6 +108,7 @@ def states_from_fortran_restarts(
     sstate.weasd.field[:] = sfc_data.sheleg.data[0, :, :].transpose()
 
     return state, sstate
+
 
 def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     n_halo = 3
@@ -157,6 +169,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     )
     return quantity_factory, qf_soil, stencil_factory, grid_data
 
+
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 def test_sfc_runs(restart_path: Path):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
@@ -170,23 +183,30 @@ def test_sfc_runs(restart_path: Path):
         nx=48, ny=48, nz=91, nzsoil=4, etafile=etafile
     )
     state, sstate = states_from_fortran_restarts(
-        dycore_path, physics_path, tracer_path, sfc_path,
-        grid_data.ak, quantity_factory, qf_soil, stencil_factory, schemes
+        dycore_path,
+        physics_path,
+        tracer_path,
+        sfc_path,
+        grid_data.ak,
+        quantity_factory,
+        qf_soil,
+        stencil_factory,
+        schemes,
     )
 
     def make_quantity_2d() -> Quantity:
-            return quantity_factory.zeros(
-                [X_DIM, Y_DIM],
-                units="unknown",
-                dtype=Float,
-            )
+        return quantity_factory.zeros(
+            [X_DIM, Y_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
     def make_quantity_3d() -> Quantity:
-            return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
-                units="unknown",
-                dtype=Float,
-            )
+        return quantity_factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM],
+            units="unknown",
+            dtype=Float,
+        )
 
     rb = make_quantity_2d()
     stress = make_quantity_2d()
@@ -218,4 +238,21 @@ def test_sfc_runs(restart_path: Path):
     prsik.field[:] = state.prsik.field[:, :, ::-1]
 
     sfc = SurfaceLayer(stencil_factory, quantity_factory, config.surface)
-    sfc(sstate, ua, va, pt, delp, prsik, prslk, qvapor, phil, rb, stress, ps, hflx, adjsfcdlw, adjsfcdsw, adjsfcnsw)
+    sfc(
+        sstate,
+        ua,
+        va,
+        pt,
+        delp,
+        prsik,
+        prslk,
+        qvapor,
+        phil,
+        rb,
+        stress,
+        ps,
+        hflx,
+        adjsfcdlw,
+        adjsfcdsw,
+        adjsfcnsw,
+    )

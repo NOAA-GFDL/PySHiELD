@@ -1,6 +1,6 @@
 import dataclasses
 from enum import Enum, unique
-from typing import List, Optional, Tuple, Sequence
+from typing import List, Optional, Sequence, Tuple
 
 import f90nml
 

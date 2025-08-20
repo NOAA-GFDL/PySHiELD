@@ -1,5 +1,5 @@
-from .surface_layer import SurfaceLayer
 from .sfc_state import SurfaceState
+from .surface_layer import SurfaceLayer
 
 
 """
