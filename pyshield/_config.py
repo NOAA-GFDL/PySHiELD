@@ -1,6 +1,6 @@
 import dataclasses
 from enum import Enum, unique
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Sequence
 
 import f90nml
 
@@ -31,7 +31,7 @@ class SurfaceConfig:
     lsm: int = DEFAULT_INT
     redrag: bool = DEFAULT_BOOL
     wind_th_hwrf: float = DEFAULT_FLOAT
-    nstf_name: tuple[int, int, int, int, int] = (0, 0, 1, 0, 5)
+    nstf_name: Sequence[int] = (0, 0, 1, 0, 5)
     """
     nstf_name contains the NSSTM related parameters:
     nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
@@ -151,7 +151,7 @@ class PhysicsConfig:
     ivegsrc = 1 => IGBP (20 category)
     ivegsrc = 2 => UMD (13 category)
     """
-    nstf_name: tuple[int, int, int, int, int] = (0, 0, 1, 0, 5)
+    nstf_name: Sequence[int] = (0, 0, 1, 0, 5)
     """
     nstf_name contains the NSSTM related parameters:
     nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
@@ -186,6 +186,10 @@ class PhysicsConfig:
             physics_config = self.from_f90nml(f90_nml)
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
+        if not isinstance(self.nstf_name, tuple):
+            self.nstf_name = tuple(self.nstf_name)
+        if len(self.nstf_name) != 5:
+            raise IndexError(f"nstf_name must have 5 elements, got {self.nstf_name}")
 
     @classmethod
     def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "PhysicsConfig":
