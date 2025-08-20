@@ -1,3 +1,4 @@
+import pytest
 from pathlib import Path
 from pyshield.stencils.surface import SurfaceLayer, SurfaceState
 from pyshield import PhysicsConfig, PhysicsState, PHYSICS_PACKAGES
@@ -23,7 +24,7 @@ from ndsl.grid import (
     MetricTerms,
     VerticalGridData,
 )
-from ndsl.constants import X_DIM, Y_DIM
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 import ndsl.constants as constants
 
 import numpy as np
@@ -68,7 +69,6 @@ def states_from_fortran_restarts(
     state.prsik.field[:, :, -1] = np.exp(constants.KAPPA * state.prsik.field[:, :, -1]) * pk0inv
     state.prslk.field[:] = np.exp(constants.KAPPA * np.log(state.delp.field[:]/physcons.P00))
     state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
-    state.tsfc.field[:] = phys_data.ts_clim_iano.data[0, :, :].transpose()
     state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
     state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
     state.qice.view[:] = tracer_data.ice_wat.data[0, :, :, :].transpose(2, 1, 0)
@@ -88,7 +88,7 @@ def states_from_fortran_restarts(
     sstate.ffhh.field[:] = sfc_data.ffhh.data[0, :, :].transpose()
     sstate.ffmm.field[:] = sfc_data.ffmm.data[0, :, :].transpose()
     sstate.wind.field[:] = np.sqrt(state.ua.field[:, :, -1] ** 2.0 + state.va.field[:, :, -1] ** 2.0)
-    sstate.stc = sfc_data.stc.data[0, :, :, :].transpose(2, 1, 0)
+    sstate.stc.field[:] = sfc_data.stc.data[0, :, :, :].transpose(2, 1, 0)
     sstate.srflag.field[:] = sfc_data.srflag.data[0, :, :].transpose()
     sstate.hice.field[:] = sfc_data.hice.data[0, :, :].transpose()
     sstate.fice.field[:] = sfc_data.fice.data[0, :, :].transpose()
@@ -121,7 +121,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     soil_sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
         ny_tile=ny,
-        nz=nz,
+        nz=nzsoil,
         n_halo=n_halo,
         extra_dim_lengths={},
         layout=(1, 1),
@@ -157,7 +157,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     )
     return quantity_factory, qf_soil, stencil_factory, grid_data
 
-
+@pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 def test_sfc_runs(restart_path: Path):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
@@ -167,7 +167,7 @@ def test_sfc_runs(restart_path: Path):
     config = PhysicsConfig()
     schemes = config.schemes
     quantity_factory, qf_soil, stencil_factory, grid_data = setup_infrastructure(
-        nx=48, ny=48, nz=91, nzsoil=4
+        nx=48, ny=48, nz=91, nzsoil=4, etafile=etafile
     )
     state, sstate = states_from_fortran_restarts(
         dycore_path, physics_path, tracer_path, sfc_path,
@@ -180,14 +180,42 @@ def test_sfc_runs(restart_path: Path):
                 units="unknown",
                 dtype=Float,
             )
+
+    def make_quantity_3d() -> Quantity:
+            return quantity_factory.zeros(
+                [X_DIM, Y_DIM, Z_DIM],
+                units="unknown",
+                dtype=Float,
+            )
+
     rb = make_quantity_2d()
     stress = make_quantity_2d()
     ps = make_quantity_2d()
-    ps.field[:] = state.prsi[:, :, -1]
+    ps.field[:] = state.prsi.field[:, :, -1]
     hflx = make_quantity_2d()
     adjsfcdlw = make_quantity_2d()
     adjsfcdsw = make_quantity_2d()
     adjsfcnsw = make_quantity_2d()
+    ua = make_quantity_3d()
+    ua.field[:] = state.ua.field[:, :, ::-1]
+    va = make_quantity_3d()
+    va.field[:] = state.va.field[:, :, ::-1]
+    pt = make_quantity_3d()
+    pt.field[:] = state.pt.field[:, :, ::-1]
+    delp = make_quantity_3d()
+    delp.field[:] = state.delp.field[:, :, ::-1]
+    prslk = make_quantity_3d()
+    prslk.field[:] = state.prslk.field[:, :, ::-1]
+    qvapor = make_quantity_3d()
+    qvapor.field[:] = state.qvapor.field[:, :, ::-1]
+    phil = make_quantity_3d()
+    phil.field[:] = state.phil.field[:, :, ::-1]
+    prsik = quantity_factory.zeros(
+        [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+        units="unknown",
+        dtype=Float,
+    )
+    prsik.field[:] = state.prsik.field[:, :, ::-1]
 
     sfc = SurfaceLayer(stencil_factory, quantity_factory, config.surface)
-    sfc(sstate, state.ua, state.va, state.pt, state.delp, state.prsik, state.prslk, state.qvapor, state.phil, rb, stress, ps, hflx, adjsfcdlw, adjsfcdsw, adjsfcnsw)
+    sfc(sstate, ua, va, pt, delp, prsik, prslk, qvapor, phil, rb, stress, ps, hflx, adjsfcdlw, adjsfcdsw, adjsfcnsw)

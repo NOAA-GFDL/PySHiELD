@@ -25,6 +25,7 @@ from pyshield.stencils.surface.sfc_state import SurfaceState
 def init_step_vars(
     tsfc: FloatFieldIJ,
     phil: FloatField,
+    prsl: FloatField,
     prsik: FloatField,
     prslk: FloatField,
     vfrac: FloatFieldIJ,
@@ -53,6 +54,7 @@ def init_step_vars(
     work3: FloatFieldIJ,
     sigmaf: FloatFieldIJ,
     gabsbdlw: FloatFieldIJ,
+    prsl1: FloatFieldIJ,
 ):
     with computation(FORWARD), interval(0, 1):
         tsurf = tsfc
@@ -78,6 +80,7 @@ def init_step_vars(
         work3 = prsik / prslk
         sigmaf = max(vfrac, 0.01)
         gabsbdlw = sfcemis * adjsfcdlw
+        prsl1 = prsl
 
 
 def update_guess_and_soil_0(
@@ -94,10 +97,10 @@ def update_guess_and_soil_0(
             if (iteration == 0) and (wind < 2.0):
                 flag_guess[0, 0] = True
             if slmsk > 0:
-                stc0 = stsoil
+                stc0 = stsoil[0, 0, 0]
         with interval(1, 2):
             if slmsk > 0:
-                stc1 = stsoil
+                stc1 = stsoil[0, 0, 0]
 
 
 def update_guess_and_soil_1(
@@ -105,9 +108,9 @@ def update_guess_and_soil_1(
     iteration: Int,
     flag_guess: BoolFieldIJ,
     flag_iter: BoolFieldIJ,
-    stsoil,
-    stc0,
-    stc1,
+    stsoil: FloatField,
+    stc0: FloatFieldIJ,
+    stc1: FloatFieldIJ,
     islmsk: IntFieldIJ,
 ):
     from __externals__ import nsstm_coupling
@@ -150,6 +153,9 @@ class SurfaceLayer:
                 f"got {config.nstf_name[0]}"
             )
         grid_indexing = stencil_factory.grid_indexing
+        origin = grid_indexing.origin_compute()
+        domain_atm = grid_indexing.domain_compute()
+        domain_soil = (domain_atm[0], domain_atm[1], config.lsoil)
 
         def make_quantity_2d() -> Quantity:
             return quantity_factory.zeros(
@@ -187,6 +193,7 @@ class SurfaceLayer:
         self._stc0 = make_quantity_2d()
         self._stc1 = make_quantity_2d()
         self._snowmt = make_quantity_2d()
+        self._prsl1 = make_quantity_2d()
 
         self._flag_guess = quantity_factory.zeros(
             [X_DIM, Y_DIM],
@@ -218,7 +225,7 @@ class SurfaceLayer:
         self._update_guess_and_soil_0 = stencil_factory.from_origin_domain(
             update_guess_and_soil_0,
             origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            domain=domain_soil,
         )
         self._sfc_ocean = SurfaceOcean(
             stencil_factory=stencil_factory,
@@ -233,7 +240,7 @@ class SurfaceLayer:
             update_guess_and_soil_1,
             externals={"nsstm_coupling": config.nstf_name[0]},
             origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            domain=domain_soil,
         )
         self._post_loop = stencil_factory.from_origin_domain(
             post_loop,
@@ -263,6 +270,7 @@ class SurfaceLayer:
         self._init_step_vars(
             state.tsfc,
             phil,
+            prsl1,
             prsik,
             prslk,
             state.vfrac,
@@ -291,6 +299,7 @@ class SurfaceLayer:
             self._work3,
             self._sigmaf,
             self._gabsbdlw,
+            self._prsl1
         )
         for iteration in range(2):
             self._exchange(
@@ -302,7 +311,7 @@ class SurfaceLayer:
                 self._tsurf,
                 state.tsfc,
                 self._work3,
-                prsl1,
+                self._prsl1,
                 state.zorl,
                 self._zlvl,
                 state.shdmax,
@@ -343,7 +352,7 @@ class SurfaceLayer:
                 state.tsfc,
                 self._cd,
                 self._cdq,
-                prsl1,
+                self._prsl1,
                 self._work3,
                 self._ddvel,
                 self._qss,
@@ -371,7 +380,7 @@ class SurfaceLayer:
                 state.srflag,
                 self._cd,
                 self._cdq,
-                prsl1,
+                self._prsl1,
                 self._work3,
                 state.slmsk,
                 self._flag_iter,

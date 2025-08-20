@@ -72,6 +72,7 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
         inputs["omga"] = copy.deepcopy(storage)
         inputs["prsi"] = copy.deepcopy(storage)
         inputs["prsik"] = copy.deepcopy(storage)
+        inputs["prslk"] = copy.deepcopy(storage)
         sizer = SubtileGridSizer.from_tile_params(
             nx_tile=self.namelist.npx - 1,
             ny_tile=self.namelist.npy - 1,

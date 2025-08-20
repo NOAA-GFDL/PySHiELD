@@ -31,6 +31,7 @@ class SurfaceConfig:
     lsm: int = DEFAULT_INT
     redrag: bool = DEFAULT_BOOL
     wind_th_hwrf: float = DEFAULT_FLOAT
+    lsoil: int = 4
     nstf_name: Sequence[int] = (0, 0, 1, 0, 5)
     """
     nstf_name contains the NSSTM related parameters:
@@ -40,11 +41,6 @@ class SurfaceConfig:
     nstf_name(4) : zsea1 in mm
     nstf_name(5) : zsea2 in mm
     TODO: implement via namelist?
-    """
-    sfc_data: str = "~/INPUT/sfc_data.nc"
-    """
-    path to surface data files
-    TODO: implement per-tile
     """
 
 
@@ -60,7 +56,7 @@ class PhysicsConfig:
     do_qa: bool = DEFAULT_BOOL
     do_z0_hwrf15: bool = DEFAULT_BOOL
     do_z0_hwrf17: bool = DEFAULT_BOOL
-    do_z0_hwrf17_hwonly: bool = DEFAULT_BOOL
+    do_z0_hwrf17_hwonly: bool = True
     do_z0_moon: bool = DEFAULT_BOOL
     c_cracw: float = NamelistDefaults.c_cracw
     c_paut: float = NamelistDefaults.c_paut
@@ -144,6 +140,7 @@ class PhysicsConfig:
     lsm: int = NamelistDefaults.lsm
     redrag: bool = NamelistDefaults.redrag
     wind_th_hwrf: float = DEFAULT_FLOAT
+    lsoil: int = 4
     ivegsrc: int = 2
     """
     Source for veg and soil categories:
@@ -160,11 +157,6 @@ class PhysicsConfig:
     nstf_name(4) : zsea1 in mm
     nstf_name(5) : zsea2 in mm
     TODO: implement via namelist?
-    """
-    sfc_data: str = "~/INPUT/sfc_data.nc"
-    """
-    path to surface data files
-    TODO: implement per-tile
     """
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
@@ -279,5 +271,4 @@ class PhysicsConfig:
             wind_th_hwrf=self.wind_th_hwrf,
             ivegsrc=self.ivegsrc,
             nstf_name=self.nstf_name,
-            sfc_data=self.sfc_data,
         )
