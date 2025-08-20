@@ -270,7 +270,15 @@ class PhysicsState:
         metadata={
             "name": "log_interface_pressure",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "Pa",
+            "units": "",
+            "intent": "inout",
+        }
+    )
+    prslk: Quantity = field(
+        metadata={
+            "name": "Exner_function",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
             "intent": "inout",
         }
     )
