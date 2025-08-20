@@ -144,6 +144,11 @@ class SurfaceLayer:
         quantity_factory: QuantityFactory,
         config: SurfaceConfig,
     ):
+        if config.nstf_name[0] > 0:
+            raise NotImplementedError(
+                "NSSTM is not implemented, nstf_name[0] must be 0, "
+                f"got {config.nstf_name[0]}"
+            )
         grid_indexing = stencil_factory.grid_indexing
 
         def make_quantity_2d() -> Quantity:
