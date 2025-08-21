@@ -56,7 +56,7 @@ class RadiationState:
         metadata={
             "name": "cosine_zenith_angle",
             "dims": [X_DIM, Y_DIM],
-            "units": "none",
+            "units": "",
             "intent": "inout",
         }
     )
@@ -80,7 +80,7 @@ class RadiationState:
         metadata={
             "name": "specific_humidity",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "kg/kg",
+            "units": "mol/mol",
             "intent": "in",
         }
     )
@@ -104,7 +104,7 @@ class RadiationState:
         metadata={
             "name": "ozone_mixing_ratio",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "kg/kg",
+            "units": "mol/mol",
             "intent": "in",
         }
     )
@@ -128,7 +128,7 @@ class RadiationState:
         metadata={
             "name": "cloud_liquid_water_path",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "",
+            "units": "g/m**2",
             "intent": "inout",
         }
     )
@@ -136,7 +136,7 @@ class RadiationState:
         metadata={
             "name": "cloud_ice_path",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "",
+            "units": "g/m**2",
             "intent": "inout",
         }
     )
@@ -144,7 +144,7 @@ class RadiationState:
         metadata={
             "name": "cloud_liquid_water_radius",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "",
+            "units": "micron",
             "intent": "inout",
         }
     )
@@ -152,7 +152,7 @@ class RadiationState:
         metadata={
             "name": "cloud_ice_radius",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "",
+            "units": "micron",
             "intent": "inout",
         }
     )
@@ -160,7 +160,7 @@ class RadiationState:
         metadata={
             "name": "longwave_flux_up",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -168,7 +168,7 @@ class RadiationState:
         metadata={
             "name": "longwave_flux_down",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -176,7 +176,7 @@ class RadiationState:
         metadata={
             "name": "shortwave_flux_up",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -184,7 +184,7 @@ class RadiationState:
         metadata={
             "name": "shortwave_flux_down",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -192,7 +192,7 @@ class RadiationState:
         metadata={
             "name": "clearsky_longwave_flux_up",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -200,7 +200,7 @@ class RadiationState:
         metadata={
             "name": "clearsky_longwave_flux_down",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -208,7 +208,7 @@ class RadiationState:
         metadata={
             "name": "clearsky_shortwave_flux_up",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -216,7 +216,7 @@ class RadiationState:
         metadata={
             "name": "clearsky_shortwave_flux_down",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "",
+            "units": "W/m**2",
             "intent": "out",
         }
     )
@@ -224,7 +224,7 @@ class RadiationState:
         metadata={
             "name": "longwave_heating_rate",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "",
+            "units": "degK/s",
             "intent": "out",
         }
     )
@@ -232,7 +232,7 @@ class RadiationState:
         metadata={
             "name": "shortwave_heating_rate",
             "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "",
+            "units": "degK/s",
             "intent": "out",
         }
     )

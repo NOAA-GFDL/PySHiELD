@@ -100,23 +100,26 @@ def copy_to_radiation(
             rad_prsi = prsi[0, 0, level_flip]
             rad_prsl = prsl[0, 0, layer_flip]
             rad_tlyr = pt[0, 0, layer_flip]
+            # Convert gases to molar mixing ratio
             qv = qvapor[0, 0, layer_flip]
             rad_qvapor = (qv / (1.0 - qv)) * (physcons.MMDRY / physcons.MMVAP)
-            rad_qliquid = qliquid[0, 0, layer_flip]
-            rad_qice = qice[0, 0, layer_flip]
             qo3 = qo3mr[0, 0, layer_flip]
             rad_qo3mr = qo3 * physcons.MMDRY / physcons.MMO3
+            rad_qliquid = qliquid[0, 0, layer_flip]
+            rad_qice = qice[0, 0, layer_flip]
+
             rad_qcld = qcld[0, 0, layer_flip]
         with interval(1, None):
             rad_prsi = prsi[0, 0, level_flip]
             rad_prsl = prsl[0, 0, layer_flip]
             rad_tlyr = pt[0, 0, layer_flip]
+            # Convert gases to molar mixing ratio
             qv = qvapor[0, 0, layer_flip]
             rad_qvapor = (qv / (1.0 - qv)) * (physcons.MMDRY / physcons.MMVAP)
-            rad_qliquid = qliquid[0, 0, layer_flip]
-            rad_qice = qice[0, 0, layer_flip]
             qo3 = qo3mr[0, 0, layer_flip]
             rad_qo3mr = qo3 * physcons.MMDRY / physcons.MMO3
+            rad_qliquid = qliquid[0, 0, layer_flip]
+            rad_qice = qice[0, 0, layer_flip]
             rad_qcld = qcld[0, 0, layer_flip]
 
 
