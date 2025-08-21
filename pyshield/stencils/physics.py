@@ -727,6 +727,8 @@ class Physics:
                 self._level_flip,
             )
 
+        # TODO: call interpolate radiation here.
+
         # Do physics schemes here:
         if self._gfs_microphysics:
             ndsl_log.info("calling GFS microphysics")

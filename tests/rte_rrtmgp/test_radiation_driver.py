@@ -8,7 +8,6 @@ from examples.notebook.utilities import (
     fortran_restart_to_radstate,
     setup_infrastructure,
 )
-from pyshield._config import PhysicsConfig
 from pyshield.physics_state import SurfaceState
 from pyshield.radiation import RadiationConfig, RadiationState, RTE_RRTMGPDriver
 from pyshield.stencils.physics import calc_sigma
@@ -24,11 +23,6 @@ def test_rte_rrtmgp(datapath: Path):
     nx = 48
     ny = 48
     nz = 91
-    npx = nx + 1
-    npy = ny + 1
-    npz = nz + 1
-    levels = np.arange(npz)
-    layers = np.arange(nz)
 
     date = datetime.datetime(2020, 1, 1, 12, tzinfo=datetime.timezone.utc)
     quantity_factory, stencil_factory, grid_data = setup_infrastructure(
@@ -36,7 +30,6 @@ def test_rte_rrtmgp(datapath: Path):
     )
     grid_data.lon_agrid.field[:] = grid_data.lon.field[:-1, :-1]
     grid_data.lat_agrid.field[:] = grid_data.lat.field[:-1, :-1]
-    conf = PhysicsConfig
     radconf = RadiationConfig(
         deltsw=3600.0,
         delt_rad=3600.0,
