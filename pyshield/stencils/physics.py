@@ -479,7 +479,7 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
-        rad_config: RadiationConfig,
+        rad_config: RadiationConfig = None,
         pre_radiation=False,
         hydro_delp=False,
     ):
@@ -580,6 +580,10 @@ class Physics:
                 domain=grid_indexing.domain_compute(),
             )
         if "RTE_RRTMGP" in schemes:
+            if not rad_config:
+                raise ValueError(
+                    "You must specify a radiation configuration to use RTE-RRTMGP"
+                )
             self._rterrtmgp = True
             sigma = calc_sigma(grid_data.ak.data, grid_data.bk.data, 0)
             self._copy_to_radiation = stencil_factory.from_origin_domain(
