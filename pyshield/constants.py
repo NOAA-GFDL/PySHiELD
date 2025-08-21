@@ -23,6 +23,14 @@ P_REF = 101325.0  # reference surface pressure
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
 CPH2O2 = 4.2e6
 
+# Constants used in radiation
+MMDRY = 2.89644e-2
+"""Molar mass of dry air in kg/mol"""
+MMVAP = 1.80153e-2
+"""Molar mass of water vapor in kg/mol"""
+MMO3 = 4.7997e-2
+"""Molar mass of ozone in kg/mol"""
+
 # Constants used in interpolating radiation onto physics timestep:
 F_EPS = 0.0001
 
