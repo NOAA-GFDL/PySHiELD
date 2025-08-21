@@ -11,7 +11,7 @@ from ndsl.namelist import Namelist, NamelistDefaults
 DEFAULT_INT = 0
 DEFAULT_FLOAT = 0.0
 DEFAULT_BOOL = False
-DEFAULT_SCHEMES = ["GFS_microphysics", "RTE_RRTMGP"]
+DEFAULT_SCHEMES = ["GFS_microphysics"]
 
 
 @unique
