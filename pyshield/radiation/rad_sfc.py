@@ -54,6 +54,7 @@ def sfc_init(
 ):
     # Initialization of surface albedo section
     # physparam::ialbflg
+    # - -2: using prescribed ocean, land, ice albedos for SW
     # - -1: using constant albedo for SW
     # -  0: using climatology surface albedo scheme for SW
     # -  1: using MODIS based land surface albedo for SW

@@ -335,6 +335,7 @@ def ozone_update(
     """
     Ozone portion of gas_update fortran routine. Computes O3 climatology parameters
     """
+    # TODO: Add support for non-prognostic Ozone.
     k1oz = 0
     k2oz = 0
     facoz = 0.0
