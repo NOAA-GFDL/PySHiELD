@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 
 import f90nml
 
+import pyshield.constants as physcons
 from ndsl import MetaEnumStr
 from ndsl.namelist import Namelist, NamelistDefaults
 
@@ -115,7 +116,8 @@ class PhysicsConfig:
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
     prescribe_sst: bool = DEFAULT_BOOL
-    peak_sst: float = 293.95
+    max_sst: float = 293.95
+    min_sst: float = physcons.TICE
 
     def __post_init__(self):
         if self.schemes is None:

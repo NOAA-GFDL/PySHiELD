@@ -38,10 +38,10 @@ def flip_field_k(
 
 
 def set_sst(tsea, gridlat):
-    from __externals__ import tmax
+    from __externals__ import tmax, tmin
 
     with computation(FORWARD), interval(0, 1):
-        tsea = tmax * (1.0 - sin(gridlat) ** 2)
+        tsea = tmax - ((tmax - tmin) * sin(gridlat) ** 2)
 
 
 def calc_p_lay_hydro(
@@ -545,7 +545,10 @@ class Physics:
         if self._prescribe_sst:
             self._set_sst = stencil_factory.from_origin_domain(
                 func=set_sst,
-                externals={"tmax": namelist.peak_sst},
+                externals={
+                    "tmax": namelist.max_sst,
+                    "tmin": namelist.min_sst,
+                },
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
