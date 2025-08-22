@@ -151,9 +151,12 @@ class RadiationConfig:
     deltsw: Float
     delt_rad: Float
     date: datetime.datetime
+    solar_constant_file: Path
+    input_dir: Path
+    aerosol_file: Path
     fhswr: Float
     fhlwr: Float
-    isolar: Int
+    isolar: Int = 0
     """
     Solar constant computation
         0: use the old fixed solar constant in "physcon"
@@ -210,10 +213,7 @@ class RadiationConfig:
         1: input SFC emissivity type map from "semis_file"
         2: SFC emissivity from land model
     """
-    ldisable_radiation_quasi_sea_ice: bool
-    solar_constant_file: Path
-    input_dir: Path
-    aerosol_file: Path
+    ldisable_radiation_quasi_sea_ice: bool = False
     daily_mean: bool = False
     fixed_sollat: bool = False
     sollat: Float = 0.0
@@ -687,10 +687,9 @@ class RTE_RRTMGPDriver:
         self, state: RadiationState, sfc_state: SurfaceState, date: datetime.datetime
     ):
         """
-        Method to prepare radiation inputs for flux calculations. Goes through
-        the same steps as step_radiation but stops before calling RTE-RRTMGP and returns
-        the xarray dataset to use for RTE-RRTMGP calls. Primarily Useful to debug calls
-        to the radiation solver.
+        Method to prepare radiation inputs for flux calculations. Updates solar, gas,
+        and surface variables, gathers the necessary atmospheric data, and packages it
+        as an xarray dataset that can be ingested by pyRTE-RRTMGP.
 
         Args:
             state (RadiationState): input state containing atmospheric information
@@ -699,7 +698,8 @@ class RTE_RRTMGPDriver:
             date (datetime.datetime): datetime for radiation calculations
 
         Returns:
-            xarray.Dataset: _description_
+            radx: (xarray.Dataset): An xarray dataset ready to be passed into
+                pyRTE-RRTMGP
         """
         self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
@@ -709,11 +709,20 @@ class RTE_RRTMGPDriver:
     def step_radiation(
         self, state: RadiationState, sfc_state: SurfaceState, date: datetime.datetime
     ):
+        """
+        Method to compute radiative fluxes for a given atmospheric and surface state
+        at a given date and time. The Radiation State is updated with longwave and
+        shortwave fluxes and heating rates in-place.
+
+        Args:
+            state (RadiationState): input state containing atmospheric information,
+                will be updated with radiative fluxes and heating rates
+            sfc_state (SurfaceState): contains surface properties such as
+                surface type, snow cover, etc.
+            date (datetime.datetime): datetime for radiation calculations
+        """
         self.solhr = date.hour + date.minute / 60.0 + date.second / 3600.0
-        self._accumulate_radiation_inputs(state, sfc_state, date)
-        radx = state.to_rterrtmgp_xr()
-        self._assign_constant_gases(radx)
-        is_day = state.mu0.data[:] > 0.0
+        radx = self.prep_radiation(state, sfc_state, date)
 
         # Do SW fluxes:
         sw_optics = self._gas_optics_sw.compute(
