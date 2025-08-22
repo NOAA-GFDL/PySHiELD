@@ -7,9 +7,6 @@ import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import GridSizer
-from ndsl.quantity import Quantity
 from pyshield._config import PHYSICS_PACKAGES
 from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
 from pyshield.stencils.shield_microphysics import SHiELDMicrophysicsState
@@ -296,9 +293,9 @@ class PhysicsState:
     ):
         # storage for tendency variables not in PhysicsState
         if "SHiELD_microphysics" in [scheme.value for scheme in schemes]:
-            self.shield_microphysics: Optional[
-                SHiELDMicrophysicsState
-            ] = SHiELDMicrophysicsState.init_zeros(quantity_factory)
+            self.shield_microphysics: Optional[SHiELDMicrophysicsState] = (
+                SHiELDMicrophysicsState.init_zeros(quantity_factory)
+            )
             self.shield_microphysics.pt = self.pt
             self.shield_microphysics.qvapor = self.qvapor
             self.shield_microphysics.qliquid = self.qliquid
@@ -321,27 +318,27 @@ class PhysicsState:
                 "unknown",
                 dtype=Float,
             )
-            self.gfs_microphysics: Optional[
-                GFSMicrophysicsState
-            ] = GFSMicrophysicsState(
-                pt=self.pt,
-                qvapor=self.qvapor,
-                qliquid=self.qliquid,
-                qrain=self.qrain,
-                qice=self.qice,
-                qsnow=self.qsnow,
-                qgraupel=self.qgraupel,
-                qcld=self.qcld,
-                ua=self.ua,
-                va=self.va,
-                delp=self.delp,
-                delz=self.delz,
-                omga=self.omga,
-                delprsi=self.delprsi,
-                wmp=self.wmp,
-                dz=self.dz,
-                tendency=tendency,
-                land=self.land,
+            self.gfs_microphysics: Optional[GFSMicrophysicsState] = (
+                GFSMicrophysicsState(
+                    pt=self.pt,
+                    qvapor=self.qvapor,
+                    qliquid=self.qliquid,
+                    qrain=self.qrain,
+                    qice=self.qice,
+                    qsnow=self.qsnow,
+                    qgraupel=self.qgraupel,
+                    qcld=self.qcld,
+                    ua=self.ua,
+                    va=self.va,
+                    delp=self.delp,
+                    delz=self.delz,
+                    omga=self.omga,
+                    delprsi=self.delprsi,
+                    wmp=self.wmp,
+                    dz=self.dz,
+                    tendency=tendency,
+                    land=self.land,
+                )
             )
         else:
             self.microphysics = None

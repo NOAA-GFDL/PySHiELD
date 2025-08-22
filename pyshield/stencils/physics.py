@@ -8,13 +8,13 @@ from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
-
-from .gfs_microphysics import Microphysics as GFS_Microphysics
-from .shield_microphysics import Microphysics as SHiELD_Microphysics
 from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
 from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
+
+from .gfs_microphysics import Microphysics as GFS_Microphysics
+from .shield_microphysics import Microphysics as SHiELD_Microphysics
 
 
 def interpolate_radiation(

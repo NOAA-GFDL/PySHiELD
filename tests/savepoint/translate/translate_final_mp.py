@@ -1,5 +1,5 @@
+from ndsl import Namelist, QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl import StencilFactory, SubtileGridSizer, QuantityFactory, Namelist
 from pyshield import PhysicsConfig
 from pyshield.stencils.shield_microphysics.cloud_fraction import CloudFraction
 from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (
@@ -37,7 +37,9 @@ class PostMP:
         self._tzuv = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
         self._tzw = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
         self._qcon = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
-        self._cappa = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        self._cappa = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+        )
 
         if config.do_hail:
             pcag = config.pcah
@@ -533,7 +535,9 @@ class FinalCalcs:
         self.do_sedi_w = config.do_sedi_w
 
         self._qcon = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
-        self._cappa = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        self._cappa = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+        )
 
         if config.consv_checker:
             self._moist_total_energy_and_water_mq = stencil_factory.from_origin_domain(
@@ -908,7 +912,11 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
             "va": {"serialname": "fin_va", "kend": namelist.npz, "shield": True},
             "wa": {"serialname": "fin_wa", "kend": namelist.npz, "shield": True},
             "column_energy_change": {"serialname": "fin_dte", "shield": True},
-            "adj_vmr": {"serialname": "fin_adj_vmr", "kend": namelist.npz, "shield": True},
+            "adj_vmr": {
+                "serialname": "fin_adj_vmr",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "total_energy_moist_end": {
                 "serialname": "fin_ew",
                 "kend": namelist.npz,
@@ -933,7 +941,11 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
             },
             "total_energy_bot_dry_end": {"serialname": "fin_bed", "shield": True},
             "total_water_bot_dry_end": {"serialname": "fin_bwd", "shield": True},
-            "total_energy": {"serialname": "fin_te", "kend": namelist.npz, "shield": True},
+            "total_energy": {
+                "serialname": "fin_te",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "column_energy_loss": {"serialname": "fin_te_loss", "shield": True},
         }
 
@@ -959,7 +971,9 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
 
-        compute_func = FinalCalcs(self.stencil_factory, self.quantity_factory, self.config, consv_te=False)
+        compute_func = FinalCalcs(
+            self.stencil_factory, self.quantity_factory, self.config, consv_te=False
+        )
 
         compute_func(**inputs)
 

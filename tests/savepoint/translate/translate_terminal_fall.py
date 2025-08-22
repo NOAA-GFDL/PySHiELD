@@ -1,6 +1,6 @@
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
+from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
 from pyshield.stencils.shield_microphysics.terminal_fall import TerminalFall
@@ -45,7 +45,11 @@ class TranslateTerminalFall(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "tf_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "tf_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "tf_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "tf_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "tf_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "ua": {"serialname": "tf_ua", "kend": namelist.npz, "shield": True},
             "va": {"serialname": "tf_va", "kend": namelist.npz, "shield": True},
             "wa": {"serialname": "tf_wa", "kend": namelist.npz, "shield": True},

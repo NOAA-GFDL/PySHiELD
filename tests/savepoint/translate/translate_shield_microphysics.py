@@ -1,6 +1,6 @@
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
+from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
 from pyshield.stencils.shield_microphysics import Microphysics
@@ -81,8 +81,16 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             "column_graupel": {"serialname": "mp_graupel", "shield": True},
             "qcon": {"serialname": "mp_q_con", "kend": namelist.npz, "shield": True},
             "cappa": {"serialname": "mp_cappa", "kend": namelist.npz, "shield": True},
-            "adj_vmr": {"serialname": "mp_adj_vmr", "kend": namelist.npz, "shield": True},
-            "total_energy": {"serialname": "mp_te", "kend": namelist.npz, "shield": True},
+            "adj_vmr": {
+                "serialname": "mp_adj_vmr",
+                "kend": namelist.npz,
+                "shield": True,
+            },
+            "total_energy": {
+                "serialname": "mp_te",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "column_energy_change": {"serialname": "mp_dte", "shield": True},
             "preflux_water": {
                 "serialname": "mp_prefluxw",

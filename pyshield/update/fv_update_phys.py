@@ -8,8 +8,9 @@ from ndsl import (
     orchestrate,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp, interval, log
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
 from ndsl.stencils.c2l_ord import CubedToLatLon

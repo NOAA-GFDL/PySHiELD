@@ -42,7 +42,11 @@ class TranslateIceCloud(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "ic_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "ic_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "ic_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "ic_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "ic_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
         }
 
         self.stencil_factory = stencil_factory

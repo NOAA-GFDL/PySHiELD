@@ -46,7 +46,11 @@ class TranslateSubgridZProc(TranslatePhysicsFortranData2Py):
             "qice": {"serialname": "sz_qi", "kend": namelist.npz, "shield": True},
             "qsnow": {"serialname": "sz_qs", "kend": namelist.npz, "shield": True},
             "qgraupel": {"serialname": "sz_qg", "kend": namelist.npz, "shield": True},
-            "temperature": {"serialname": "sz_pt", "kend": namelist.npz, "shield": True},
+            "temperature": {
+                "serialname": "sz_pt",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "cloud_condensation_nuclei": {
                 "serialname": "sz_ccn",
                 "kend": namelist.npz,

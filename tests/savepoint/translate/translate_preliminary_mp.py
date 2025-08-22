@@ -1,8 +1,8 @@
 import ndsl.stencils.basic_operations as basic
 from ndsl.constants import X_DIM, Y_DIM
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.initialization.allocator import QuantityFactory
+from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
 from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (
@@ -415,7 +415,11 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
             "qrain0": {"serialname": "pre_qr0", "kend": namelist.npz, "shield": True},
             "qice0": {"serialname": "pre_qi0", "kend": namelist.npz, "shield": True},
             "qsnow0": {"serialname": "pre_qs0", "kend": namelist.npz, "shield": True},
-            "qgraupel0": {"serialname": "pre_qg0", "kend": namelist.npz, "shield": True},
+            "qgraupel0": {
+                "serialname": "pre_qg0",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "dp0": {"serialname": "pre_dp0", "kend": namelist.npz, "shield": True},
             "pt0": {"serialname": "pre_pt0", "kend": namelist.npz, "shield": True},
             "u0": {"serialname": "pre_u0", "kend": namelist.npz, "shield": True},
@@ -423,7 +427,11 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
             "w0": {"serialname": "pre_w0", "kend": namelist.npz, "shield": True},
             "column_energy_change": {"serialname": "pre_dte", "shield": True},
             "cond": {"serialname": "pre_cond", "shield": True},
-            "adj_vmr": {"serialname": "pre_adj_vmr", "kend": namelist.npz, "shield": True},
+            "adj_vmr": {
+                "serialname": "pre_adj_vmr",
+                "kend": namelist.npz,
+                "shield": True,
+            },
             "total_energy_wet_begin": {
                 "serialname": "pre_ew0",
                 "kend": namelist.npz,

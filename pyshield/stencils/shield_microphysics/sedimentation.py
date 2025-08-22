@@ -357,9 +357,7 @@ def sedi_melt_stencil(
                             dtime = min(1.0, dtime / tau_mlt)
                             sink = min(
                                 q_melt[0, 0, 0] * delp[0, 0, 0] / delp[0, 0, lev],
-                                dtime
-                                * (tmp_temp - physcons.TICE0)
-                                / icpk[0, 0, lev],
+                                dtime * (tmp_temp - physcons.TICE0) / icpk[0, 0, lev],
                             )
                             q_melt[0, 0, 0] = q_melt[0, 0, 0] - (
                                 sink * delp[0, 0, lev] / delp[0, 0, 0]
