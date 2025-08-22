@@ -30,7 +30,7 @@ QME5 = 1.0e-7
 QME6 = 1.0e-7
 
 
-def calc_tlvl(
+def calc_tlvl_gfs(
     plyr: FloatField,
     plvl: FloatField,
     tgrs: FloatField,
@@ -41,7 +41,7 @@ def calc_tlvl(
     tlvl: FloatField,
 ):
     """
-    Calculates interface(level) temperatures neede for radiation
+    Calculates interface(level) temperatures needed for radiation as in the gfs physics
     """
     with computation(FORWARD):
         with interval(0, 1):
@@ -59,6 +59,29 @@ def calc_tlvl(
             ) / (log(plyr) - log(plyr[0, 0, -1]))
         with interval(-1, None):
             tlvl = tgrs[0, 0, -1]
+
+
+def calc_tlvl_am5(
+    plyr: FloatField,
+    plvl: FloatField,
+    tlyr: FloatField,
+    tskin: FloatFieldIJ,
+    tlvl: FloatField,
+):
+    """
+    Calculates interface(level) temperatures needed for radiation as in the am5 physics
+    Assumes k=0 at the top of the atmosphere
+    """
+    with computation(FORWARD):
+        with interval(0, 1):
+            tlvl = tlyr
+        with interval(1, -1):
+            tlvl = (
+                (plyr[0, 0, -1] * tlyr[0, 0, -1] * (plvl - plyr))
+                + (plyr * tlyr * (plyr[0, 0, -1] - plvl))
+            ) / (plvl * (plyr[0, 0, -1] - plyr))
+        with interval(-1, None):
+            tlvl = tskin
 
 
 def calc_heating(
@@ -346,7 +369,7 @@ class RTE_RRTMGPDriver:
         )
 
         self._calc_tlvl = stencil_factory.from_origin_domain(
-            func=calc_tlvl,
+            func=calc_tlvl_gfs,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
