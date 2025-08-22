@@ -154,12 +154,12 @@ def interpolate_radiation(
     xlon: FloatFieldIJ,
     coszen: FloatFieldIJ,
     t_sea: FloatFieldIJ,
-    t_surface: FloatFieldIJ,
-    t_surface_longwave: FloatFieldIJ,
+    t_surface: FloatField,
+    t_surface_longwave: FloatField,
     sfcemis: FloatFieldIJ,
-    sfcdlw: FloatFieldIJ,
+    sfcdlw: FloatField,
     sfcnsw: FloatFieldIJ,
-    sfcdsw: FloatFieldIJ,
+    sfcdsw: FloatField,
     sfcnirbmu: FloatFieldIJ,
     sfcnirdfu: FloatFieldIJ,
     sfcvisbmu: FloatFieldIJ,
@@ -198,7 +198,9 @@ def interpolate_radiation(
         calc time interval into model's more frequent time steps.
         Assumes k=0 is the surface
         Fortran name is dcyc2t3
-        !  ====================  defination of variables  ====================  !
+        TODO: t_surface, t_surface_longwave, and fluxes should all be true
+        2D variables ideally
+    !  ====================  defination of variables  ====================  !
     !                                                                       !
     !  inputs:                                                              !
     !     solhr        - real, forecast time in 24-hour form (hr)           !
