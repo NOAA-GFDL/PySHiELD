@@ -6,9 +6,8 @@ import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp, interval, log, sin
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import interval, log, sin
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int, IntFieldK
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
@@ -150,8 +149,7 @@ def copy_from_radiation(
 
 
 def interpolate_radiation(
-    sinlat: FloatFieldIJ,
-    coslat: FloatFieldIJ,
+    latitude: FloatFieldIJ,
     xlon: FloatFieldIJ,
     coszen: FloatFieldIJ,
     t_sea: FloatFieldIJ,
@@ -258,6 +256,8 @@ def interpolate_radiation(
     from __externals__ import daily_mean
 
     with computation(FORWARD), interval(0, 1):
+        sinlat = sin(latitude)
+        coslat = cos(latitude)
         cns = constants.PI * (solhr - 12.0) / 12.0 + slag
 
         # adjust sfc downward lw flux to account for t changes in layer 1
@@ -514,10 +514,38 @@ class Physics:
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        def make_quantity_2d():
+            return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
 
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
+        self._dtdt = make_quantity()
+        self._dtdtc = make_quantity()
+        self._adjsfcdlw = make_quantity_2d()
+        self._adjsfculw = make_quantity_2d()
+        self._adjsfcnsw = make_quantity_2d()
+        self._adjsfcdsw = make_quantity_2d()
+        self._adjnirbmu = make_quantity_2d()
+        self._adjnirdfu = make_quantity_2d()
+        self._adjvisbmu = make_quantity_2d()
+        self._adjvisdfu = make_quantity_2d()
+        self._adjnirbmd = make_quantity_2d()
+        self._adjnirdfd = make_quantity_2d()
+        self._adjvisbmd = make_quantity_2d()
+        self._adjvisdfd = make_quantity_2d()
+        self._xcosz = make_quantity_2d()
+        self._xmu = make_quantity_2d()
+
+        # TODO: Eventually these should come from radiation or be stripped
+        self._sfcnirbmu = make_quantity_2d()
+        self._sfcnirdfu = make_quantity_2d()
+        self._sfcvisbmu = make_quantity_2d()
+        self._sfcvisdfu = make_quantity_2d()
+        self._sfcnirbmd = make_quantity_2d()
+        self._sfcnirdfd = make_quantity_2d()
+        self._sfcvisbmd = make_quantity_2d()
+        self._sfcvisdfd = make_quantity_2d()
 
         self._level_flip = quantity_factory.zeros(
             dims=[Z_INTERFACE_DIM], units="", dtype=Int
@@ -730,7 +758,50 @@ class Physics:
                 self._level_flip,
             )
 
-        # TODO: call interpolate radiation here.
+        self._interpolate_radiation(
+            self._gridlat,
+            self._gridlon,
+            radiation_state.mu0,
+            sfc_state.tskin,
+            radiation_state.tlyr,  # Should be lowest physics state temp.
+            radiation_state.tlyr,
+            sfc_state.sfcemis,
+            radiation_state.flwd,
+            radiation_state.fswn,
+            radiation_state.fswd,
+            self._sfcnirbmu,
+            self._sfcnirdfu,
+            self._sfcvisbmu,
+            self._sfcvisdfu,
+            self._sfcnirbmd,
+            self._sfcnirdfd,
+            self._sfcvisbmd,
+            self._sfcvisdfd,
+            radiation_state.hrtsw,
+            radiation_state.hrtsw_clr,
+            radiation_state.hrtlw,
+            radiation_state.hrtlw_clr,
+            self._dtdt,
+            self._dtdtc,
+            self._adjsfcdlw,
+            self._adjsfculw,
+            self._adjsfcnsw,
+            self._adjsfcdsw,
+            self._adjnirbmu,
+            self._adjnirdfu,
+            self._adjvisbmu,
+            self._adjvisdfu,
+            self._adjnirbmd,
+            self._adjnirdfd,
+            self._adjvisbmd,
+            self._adjvisdfd,
+            self._xcosz,
+            self._xmu,
+            self._radiation.solhr,
+            self._radiation.slag,
+            self._radiation.sdec,
+            self._radiation.cdec,
+        )
 
         # Do physics schemes here:
         if self._gfs_microphysics:

@@ -188,6 +188,14 @@ class RadiationState:
             "intent": "out",
         }
     )
+    fswn: Quantity = field(
+        metadata={
+            "name": "net_sfc_shortwave_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "W/m**2",
+            "intent": "out",
+        }
+    )
     flwu_clr: Quantity = field(
         metadata={
             "name": "clearsky_longwave_flux_up",
@@ -231,6 +239,22 @@ class RadiationState:
     hrtsw: Quantity = field(
         metadata={
             "name": "shortwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "degK/s",
+            "intent": "out",
+        }
+    )
+    hrtlw_clr: Quantity = field(
+        metadata={
+            "name": "clearsky_longwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "degK/s",
+            "intent": "out",
+        }
+    )
+    hrtsw_clr: Quantity = field(
+        metadata={
+            "name": "clearsky_shortwave_heating_rate",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "degK/s",
             "intent": "out",

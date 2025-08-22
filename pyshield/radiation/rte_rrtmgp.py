@@ -13,6 +13,7 @@ import ndsl.constants as constants
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, log
+from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ, Int
 from pyshield.physics_state import SurfaceState
 
@@ -29,6 +30,25 @@ QMIN = 1.0e-10
 QME5 = 1.0e-7
 QME6 = 1.0e-7
 
+
+@gtfunction
+def calc_heating_rate(flux_up, flux_down, p_lev):
+    """
+    Calculates heating rates based on pressures and fluxes,
+    assuming k increases with height
+
+    Args:
+        flux_up: upward flux
+        flux_down: downward flux
+        p_lev: model interface pressure
+    Returns:
+        heating_rate: layer heating rate
+    """
+    return (
+        (flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0])
+        * GRAV
+        / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
+    )
 
 def calc_tlvl_gfs(
     plyr: FloatField,
@@ -84,28 +104,36 @@ def calc_tlvl_am5(
             tlvl = tskin
 
 
-def calc_heating(
-    flux_up: FloatField,
-    flux_down: FloatField,
+def calc_net_flux_and_heating(
+    sw_flux_up: FloatField,
+    sw_flux_down: FloatField,
+    lw_flux_up: FloatField,
+    lw_flux_down: FloatField,
+    sw_flux_up_clear: FloatField,
+    sw_flux_down_clear: FloatField,
+    lw_flux_up_clear: FloatField,
+    lw_flux_down_clear: FloatField,
+    sw_flux_net: FloatFieldIJ,
     p_lev: FloatField,
-    heating_rate: FloatField,
+    sw_heating_rate: FloatField,
+    lw_heating_rate: FloatField,
+    sw_heating_rate_clear: FloatField,
+    lw_heating_rate_clear: FloatField,
 ):
     """
-    Calculates heating rates based on pressures and fluxes,
-    assuming k increases with height
-
-    Args:
-        flux_up: upward flux
-        flux_down: downward flux
-        p_lev: model interface pressure
-        heating_rate: layer heating rate
+    Calculates heating rates and net shortwave surface flux
     """
-    with computation(PARALLEL), interval(0, -1):
-        heating_rate = (
-            (flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0])
-            * GRAV
-            / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
-        )
+    with computation(FORWARD), interval(0, 1):
+        sw_flux_net = sw_flux_down - sw_flux_up
+        sw_heating_rate = calc_heating_rate(sw_flux_up, sw_flux_down, p_lev)
+        lw_heating_rate = calc_heating_rate(lw_flux_up, lw_flux_down, p_lev)
+        sw_heating_rate_clear = calc_heating_rate(sw_flux_up_clear, sw_flux_down_clear, p_lev)
+        lw_heating_rate_clear = calc_heating_rate(lw_flux_up_clear, lw_flux_down_clear, p_lev)
+    with computation(PARALLEL), interval(1, -1):
+        sw_heating_rate = calc_heating_rate(sw_flux_up, sw_flux_down, p_lev)
+        lw_heating_rate = calc_heating_rate(lw_flux_up, lw_flux_down, p_lev)
+        sw_heating_rate_clear = calc_heating_rate(sw_flux_up_clear, sw_flux_down_clear, p_lev)
+        lw_heating_rate_clear = calc_heating_rate(lw_flux_up_clear, lw_flux_down_clear, p_lev)
 
 
 @dataclasses.dataclass
@@ -219,7 +247,7 @@ class RTE_RRTMGPDriver:
         self.ldisable_radiation_quasi_sea_ice = config.ldisable_radiation_quasi_sea_ice
         self._first_step = True
 
-        self.solhr = ihr
+        self.solhr = ihr + config.date.minute / 60.0 + config.date.second / 3600.0
         self.slag = 0.0
         self.sdec = 0.0
         self.cdec = 0.0
@@ -438,8 +466,8 @@ class RTE_RRTMGPDriver:
                     domain=grid_indexing.domain_compute(),
                 )
 
-        self._calc_heating = stencil_factory.from_origin_domain(
-            func=calc_heating,
+        self._calc_net_flux_and_heating = stencil_factory.from_origin_domain(
+            func=calc_net_flux_and_heating,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -671,6 +699,7 @@ class RTE_RRTMGPDriver:
     def step_radiation(
         self, state: RadiationState, sfc_state: SurfaceState, date: datetime.datetime
     ):
+        self.solhr = date.hour + date.minute / 60.0 + date.second / 3600.0
         self._accumulate_radiation_inputs(state, sfc_state, date)
         radx = state.to_rterrtmgp_xr()
         self._assign_constant_gases(radx)
@@ -737,17 +766,21 @@ class RTE_RRTMGPDriver:
         )
         state.flwu.view[:] = fluxes_lw.lw_flux_up.data.reshape(state.flwu.view[:].shape)
 
-        self._calc_heating(
+        self._calc_net_flux_and_heating(
             state.fswu,
             state.fswd,
-            state.prsi,
-            state.hrtsw,
-        )
-        self._calc_heating(
             state.flwu,
             state.flwd,
+            state.fswu_clr,
+            state.fswd_clr,
+            state.flwu_clr,
+            state.flwd_clr,
+            state.fswn,
             state.prsi,
+            state.hrtsw,
             state.hrtlw,
+            state.hrtsw_clr,
+            state.hrtlw_clr,
         )
 
         if self._first_step:
