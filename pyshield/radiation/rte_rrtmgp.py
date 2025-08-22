@@ -12,8 +12,9 @@ from pyrte_rrtmgp.rrtmgp_data_files import CloudOpticsFiles, GasOpticsFiles
 import ndsl.constants as constants
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, log
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation
 from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ, Int
 from pyshield.physics_state import SurfaceState
 
@@ -49,6 +50,7 @@ def calc_heating_rate(flux_up, flux_down, p_lev):
         * GRAV
         / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
     )
+
 
 def calc_tlvl_gfs(
     plyr: FloatField,
@@ -127,13 +129,21 @@ def calc_net_flux_and_heating(
         sw_flux_net = sw_flux_down - sw_flux_up
         sw_heating_rate = calc_heating_rate(sw_flux_up, sw_flux_down, p_lev)
         lw_heating_rate = calc_heating_rate(lw_flux_up, lw_flux_down, p_lev)
-        sw_heating_rate_clear = calc_heating_rate(sw_flux_up_clear, sw_flux_down_clear, p_lev)
-        lw_heating_rate_clear = calc_heating_rate(lw_flux_up_clear, lw_flux_down_clear, p_lev)
+        sw_heating_rate_clear = calc_heating_rate(
+            sw_flux_up_clear, sw_flux_down_clear, p_lev
+        )
+        lw_heating_rate_clear = calc_heating_rate(
+            lw_flux_up_clear, lw_flux_down_clear, p_lev
+        )
     with computation(PARALLEL), interval(1, -1):
         sw_heating_rate = calc_heating_rate(sw_flux_up, sw_flux_down, p_lev)
         lw_heating_rate = calc_heating_rate(lw_flux_up, lw_flux_down, p_lev)
-        sw_heating_rate_clear = calc_heating_rate(sw_flux_up_clear, sw_flux_down_clear, p_lev)
-        lw_heating_rate_clear = calc_heating_rate(lw_flux_up_clear, lw_flux_down_clear, p_lev)
+        sw_heating_rate_clear = calc_heating_rate(
+            sw_flux_up_clear, sw_flux_down_clear, p_lev
+        )
+        lw_heating_rate_clear = calc_heating_rate(
+            lw_flux_up_clear, lw_flux_down_clear, p_lev
+        )
 
 
 @dataclasses.dataclass

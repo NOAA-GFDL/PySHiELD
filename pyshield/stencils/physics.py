@@ -6,8 +6,9 @@ import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
-from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp, interval, log, sin
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
+from ndsl.dsl.gt4py import interval, log, sin
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int, IntFieldK
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
@@ -514,6 +515,7 @@ class Physics:
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+
         def make_quantity_2d():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
 
