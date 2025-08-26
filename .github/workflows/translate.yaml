@@ -70,7 +70,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
           pip3 install .[ndsl,pyfv3,test]
-          pip list
+          conda list
 
       - name: Download data
         run: |
