@@ -8,7 +8,12 @@ class CustomInstall(install):
     def run(self):
         print("INSTALLING PYRTE-RRTMGP\n!!!\n!!!\n!!!")
         try:
-            result = subprocess.run(["conda", "install", "pyrte_rrtmgp"], check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                ["conda", "install", "pyrte_rrtmgp"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             print("pyRTE-RRTMGP install successful\n\n\n")
             print("STDOUT:", result.stdout)
             print("STDERR:", result.stderr)
@@ -17,7 +22,7 @@ class CustomInstall(install):
             print("STDOUT:", e.stdout)
             print("STDERR:", e.stderr)
         except FileNotFoundError:
-            print("Error: 'conda' command not found. Ensure Anaconda/Miniconda is installed in the PATH")
+            print("Error: 'conda' command not found.")
         install.run(self)
 
 
