@@ -8,7 +8,7 @@ class CustomInstall(install):
     def run(self):
         print("INSTALLING PYRTE-RRTMGP\n!!!\n!!!\n!!!")
         try:
-            result = subprocess.run(["mamba", "install", "pyrte_rrtmgp"], check=True, capture_output=True, text=True)
+            result = subprocess.run(["conda", "install", "pyrte_rrtmgp"], check=True, capture_output=True, text=True)
             print("pyRTE-RRTMGP install successful\n\n\n")
             print("STDOUT:", result.stdout)
             print("STDERR:", result.stderr)
