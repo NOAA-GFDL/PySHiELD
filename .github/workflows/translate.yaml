@@ -26,6 +26,8 @@ concurrency:
 jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/noaa-gfdl/miniforge:mpich
     steps:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
@@ -35,14 +37,6 @@ jobs:
           repository: NOAA-GFDL/PySHiELD
           path: pySHiELD
           ref: develop
-
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install mpi (MPICH flavor)
-        run: pip install mpich
 
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_trigger }}
