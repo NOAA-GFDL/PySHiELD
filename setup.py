@@ -14,7 +14,7 @@ class CustomInstall(install):
                 capture_output=True,
                 text=True,
             )
-            print("pyRTE-RRTMGP install successful\n\n\n")
+            print("pyRTE-RRTMGP install successful\n")
             print("STDOUT:", result.stdout)
             print("STDERR:", result.stderr)
         except subprocess.CalledProcessError as e:
