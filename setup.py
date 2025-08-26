@@ -6,7 +6,7 @@ from setuptools.command.install import install
 
 class CustomInstall(install):
     def run(self):
-        print("INSTALLING PYRTE-RRTMGP\n!!!\n!!!\n!!!")
+        print("INSTALLING PYRTE-RRTMGP\n")
         try:
             result = subprocess.run(
                 ["conda", "install", "conda-forge::pyrte_rrtmgp"],
