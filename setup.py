@@ -1,11 +1,10 @@
 import subprocess
 
 from setuptools import setup
-# from setuptools.command.install import install
-from setuptools.command.build import build
+from setuptools.command.install import install
 
 
-class CustomInstall(build):
+class CustomInstall(install):
     def run(self):
         print("INSTALLING PYRTE-RRTMGP\n!!!\n!!!\n!!!")
         try:
@@ -24,9 +23,9 @@ class CustomInstall(build):
             print("STDERR:", e.stderr)
         except FileNotFoundError:
             print("Error: 'conda' command not found.")
-        build.run(self)
+        install.run(self)
 
 
 setup(
-    cmdclass={"build": CustomInstall},
+    cmdclass={"install": CustomInstall},
 )
