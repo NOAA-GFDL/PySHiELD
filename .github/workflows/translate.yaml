@@ -85,6 +85,12 @@ jobs:
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
 
+      - name: Physics Scheme Integration Tests
+        run: |
+          cd ${GITHUB_WORKSPACE}/pySHiELD
+          pytest \
+            -v -s ./tests/integration
+
       - name: Orchestrated dace:cpu Translate Test
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
