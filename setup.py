@@ -9,7 +9,7 @@ class CustomInstall(install):
         print("INSTALLING PYRTE-RRTMGP\n!!!\n!!!\n!!!")
         try:
             result = subprocess.run(
-                ["conda", "install", "pyrte_rrtmgp"],
+                ["conda", "install", "conda-forge::pyrte_rrtmgp"],
                 check=True,
                 capture_output=True,
                 text=True,
