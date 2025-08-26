@@ -68,9 +68,8 @@ jobs:
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          # pip install --upgrade pip setuptools wheel
-          # pip install -v .[ndsl,pyfv3,test]
-          conda install pyrte_rrtmgp
+          pip install --upgrade pip setuptools wheel
+          pip install -v .[ndsl,pyfv3,test]
 
       - name: pip list
         run: pip list
