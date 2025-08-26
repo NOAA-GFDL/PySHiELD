@@ -27,7 +27,7 @@ jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/noaa-gfdl/miniforge:mpich
+      image: ghcr.io/noaa-gfdl/fre-cli:miniconda24.7.1_gcc14.2.0
     steps:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
