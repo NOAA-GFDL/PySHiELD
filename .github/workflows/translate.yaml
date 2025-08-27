@@ -84,8 +84,8 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
           pip install .[ndsl,pyfv3,test]
-          pip install coverage==7.10.5
-          conda remove sqlite
+          # pip install coverage==7.10.5
+          # conda remove sqlite
 
       - name: pip list
         shell: bash -l {0}
