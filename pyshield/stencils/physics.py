@@ -247,7 +247,7 @@ def atmos_phys_driver_statein(
         prsik = pktop
 
 
-def prepare_microphysics(
+def prepare_gfs_microphysics(
     dz: FloatField,
     phii: FloatField,
     wmp: FloatField,
@@ -339,6 +339,94 @@ def update_physics_state_with_tendencies(
         physics_updated_va = forward_euler(va, vdt, dt)
 
 
+def prepare_shield_microphysics(
+    water: FloatFieldIJ,
+    rain: FloatFieldIJ,
+    ice: FloatFieldIJ,
+    snow: FloatFieldIJ,
+    graupel: FloatFieldIJ,
+    prefluxw: FloatFieldIJ,
+    prefluxr: FloatFieldIJ,
+    prefluxi: FloatFieldIJ,
+    prefluxs: FloatFieldIJ,
+    prefluxg: FloatFieldIJ,
+    qnl1: FloatFieldIJ,
+    qni1: FloatFieldIJ,
+):
+    with computation(FORWARD), interval(0, 1):
+        water = 0.0
+        rain = 0.0
+        ice = 0.0
+        snow = 0.0
+        graupel = 0.0
+        prefluxw = 0.0
+        prefluxr = 0.0
+        prefluxi = 0.0
+        prefluxs = 0.0
+        prefluxg = 0.0
+        qnl1 = 0.0
+        qni1 = 0.0
+
+
+def post_shield_mp(
+    delp: FloatField,
+    delz: FloatField,
+    ua: FloatField,
+    va: FloatField,
+    wa: FloatField,
+    pt: FloatField,
+    qvapor: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    qcloud: FloatField,
+    physics_delp: FloatField,
+    physics_delz: FloatField,
+    physics_ua: FloatField,
+    physics_va: FloatField,
+    physics_wa: FloatField,
+    physics_pt: FloatField,
+    physics_qvapor: FloatField,
+    physics_qliquid: FloatField,
+    physics_qrain: FloatField,
+    physics_qice: FloatField,
+    physics_qsnow: FloatField,
+    physics_qgraupel: FloatField,
+    physics_qcloud: FloatField,
+    water: FloatFieldIJ,
+    rain: FloatFieldIJ,
+    ice: FloatFieldIJ,
+    snow: FloatFieldIJ,
+    graupel: FloatFieldIJ,
+    rain1: FloatFieldIJ,
+):
+    from __externals__ import dtp
+    with computation(FORWARD), interval(0, 1):
+        tem = dtp * physcons.CON_P001 * physcons.CON_DAY
+        water = water * tem
+        rain = rain * tem
+        ice = ice * tem
+        snow = snow * tem
+        graupel = graupel * tem
+        rain1 = water + rain + ice + snow + graupel
+    with computation(PARALLEL), interval(...):
+        physics_delp = delp
+        physics_delz = delz
+        physics_ua = ua
+        physics_va = va
+        physics_wa = wa
+        physics_pt = pt
+        physics_qvapor = qvapor
+        physics_qliquid = qliquid
+        physics_qrain = qrain
+        physics_qice = qice
+        physics_qsnow = qsnow
+        physics_qgraupel = qgraupel
+        physics_qcloud = qcloud
+
+
 class Physics:
     def __init__(
         self,
@@ -366,10 +454,12 @@ class Physics:
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         self._pre_radiation = pre_radiation
+        self._dt_phys = namelist.dt_atmos
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
 
+        self._rain1 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
@@ -410,8 +500,8 @@ class Physics:
                 )  # TODO: We should consider a ConfigurationError exception for this
             self._microphysics = "GFS"
             ndsl_log.info("GFS microphysics selected")
-            self._prepare_microphysics = stencil_factory.from_origin_domain(
-                func=prepare_microphysics,
+            self._prepare_gfs_microphysics = stencil_factory.from_origin_domain(
+                func=prepare_gfs_microphysics,
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
@@ -428,8 +518,21 @@ class Physics:
         elif "SHiELD_microphysics" in schemes:
             ndsl_log.info("SHiELD microphysics selected")
             self._microphysics = "SHiELD"
+            self._prepare_shield_microphysics = stencil_factory.from_origin_domain(
+                func=prepare_shield_microphysics,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
             self._shield_microphysics = SHiELD_Microphysics(
                 stencil_factory, quantity_factory, grid_data, namelist.microphysics
+            )
+            self._post_shield_microphysics = stencil_factory.from_origin_domain(
+                func=post_shield_mp,
+                externals={
+                "dtp": self._dt_phys,
+            },
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
             )
         else:
             ndsl_log.info("No microphysics selected")
@@ -479,7 +582,7 @@ class Physics:
         )
         if self._microphysics:
             if self._microphysics == "GFS":
-                self._prepare_microphysics(
+                self._prepare_gfs_microphysics(
                     physics_state.dz,
                     physics_state.phii,
                     physics_state.wmp,
@@ -538,9 +641,57 @@ class Physics:
                     timestep,
                 )
             elif self._microphysics == "SHiELD":
+                self._prepare_shield_microphysics(
+                    physics_state.shield_microphysics.column_water,
+                    physics_state.shield_microphysics.column_rain,
+                    physics_state.shield_microphysics.column_ice,
+                    physics_state.shield_microphysics.column_snow,
+                    physics_state.shield_microphysics.column_graupel,
+                    physics_state.shield_microphysics.preflux_water,
+                    physics_state.shield_microphysics.preflux_rain,
+                    physics_state.shield_microphysics.preflux_ice,
+                    physics_state.shield_microphysics.preflux_snow,
+                    physics_state.shield_microphysics.preflux_graupel,
+                    physics_state.shield_microphysics.qcloud_cond_nuclei,
+                    physics_state.shield_microphysics.qcloud_ice_nuclei,
+                )
                 self._shield_microphysics(
                     physics_state.shield_microphysics,
                     last_step=True,
+                )
+                self._post_shield_microphysics(
+                    physics_state.shield_microphysics.delp,
+                    physics_state.shield_microphysics.delz,
+                    physics_state.shield_microphysics.ua,
+                    physics_state.shield_microphysics.va,
+                    physics_state.shield_microphysics.wa,
+                    physics_state.shield_microphysics.pt,
+                    physics_state.shield_microphysics.qvapor,
+                    physics_state.shield_microphysics.qliquid,
+                    physics_state.shield_microphysics.qrain,
+                    physics_state.shield_microphysics.qice,
+                    physics_state.shield_microphysics.qsnow,
+                    physics_state.shield_microphysics.qgraupel,
+                    physics_state.shield_microphysics.qcld,
+                    physics_state.delp,
+                    physics_state.delz,
+                    physics_state.ua,
+                    physics_state.va,
+                    physics_state.w,
+                    physics_state.pt,
+                    physics_state.qvapor,
+                    physics_state.qliquid,
+                    physics_state.qrain,
+                    physics_state.qice,
+                    physics_state.qsnow,
+                    physics_state.qgraupel,
+                    physics_state.qcld,
+                    physics_state.shield_microphysics.column_water,
+                    physics_state.shield_microphysics.column_rain,
+                    physics_state.shield_microphysics.column_ice,
+                    physics_state.shield_microphysics.column_snow,
+                    physics_state.shield_microphysics.column_graupel,
+                    self._rain1,
                 )
             else:
                 raise NotImplementedError(
