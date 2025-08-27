@@ -42,7 +42,7 @@ jobs:
           python-version: 3.11
           conda-remove-defaults: true
           auto-update-conda: true
-          auto-activate: false
+          auto-activate-base: false
           activate-environment: pyshield_test_env
 
       - name: Install mpi (MPICH flavor)
@@ -102,7 +102,9 @@ jobs:
           which python
           python --version
           which pip
+          pip --version
           which conda
+          conda --version
 
       - name: Download data
         shell: bash -l {0}
