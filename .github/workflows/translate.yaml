@@ -83,6 +83,12 @@ jobs:
       - name: conda list
         run: conda list
 
+      - name: whichs
+        run: |
+          which python
+          which pip
+          which conda
+
       - name: Download data
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
