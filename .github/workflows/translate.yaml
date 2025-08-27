@@ -39,7 +39,7 @@ jobs:
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          environment-file: ${GITHUB_WORKSPACE}/pySHiELD/environment.yaml
+          environment-file: ../environment.yaml
           python-version: 3.11.13
           conda-remove-defaults: true
           auto-activate-base: false
