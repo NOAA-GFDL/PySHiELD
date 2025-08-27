@@ -190,7 +190,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.phii,
             physics_state.phil,
         )
-        physics._prepare_microphysics(
+        physics._prepare_gfs_microphysics(
             physics_state.dz,
             physics_state.phii,
             physics_state.wmp,
