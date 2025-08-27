@@ -2,6 +2,7 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
+from pyfv3 import DynamicalCoreConfig
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pyshield.update import update_atmos_state
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -13,6 +14,8 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         # using top level namelist rather than PhysicsConfig
         # because DycoreToPhysics needs some dycore info
         self.namelist = PhysicsConfig.from_namelist(namelist)
+        self.fv3_namelist = DynamicalCoreConfig.from_namelist(namelist)
+        self.dycore_only = namelist.dycore_only
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},
@@ -148,9 +151,9 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         dycore_to_physics = update_atmos_state.DycoreToPhysics(
             self.stencil_factory,
             self.grid.quantity_factory,
-            self.namelist,
+            self.fv3_namelist,
             do_dry_convective_adjust=False,
-            dycore_only=self.namelist.dycore_only,
+            dycore_only=self.dycore_only,
         )
         dycore_to_physics(dycore_state=physics_state, physics_state=physics_state)
         physics._atmos_phys_driver_statein(
