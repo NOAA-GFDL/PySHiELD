@@ -36,13 +36,14 @@ jobs:
           path: pySHiELD
           ref: develop
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: '3.11'
-
-      - name: Install mpi (MPICH flavor)
-        run: pip install mpich
+          python-version: 3.11
+          auto-update-conda: true
+          auto-activate-base: false
+          activate-environment: pyshield_test_env
+          shell: bash
 
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_trigger }}
@@ -71,6 +72,7 @@ jobs:
           pip3 install .[pyfv3,test]
 
       - name: Install pySHiELD packages
+        shell: bash -l {1}
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
@@ -78,12 +80,15 @@ jobs:
           pip install -v .[ndsl,pyfv3,test]
 
       - name: pip list
+        shell: bash -l {1}
         run: pip list
 
       - name: conda list
+        shell: bash -l {1}
         run: conda list
 
       - name: whichs
+        shell: bash -l {1}
         run: |
           which python
           which pip
