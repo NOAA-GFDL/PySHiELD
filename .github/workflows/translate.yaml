@@ -44,7 +44,7 @@ jobs:
           auto-update-conda: true
           auto-activate: false
           activate-environment: pyshield_test_env
-      
+
       - name: Install mpi (MPICH flavor)
         shell: bash -l {0}
         run: pip install mpich
@@ -84,7 +84,8 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
-          pip install -v .[ndsl,pyfv3,test]
+          pip install .[ndsl,pyfv3,test]
+          conda update sqlite
 
       - name: pip list
         shell: bash -l {0}
