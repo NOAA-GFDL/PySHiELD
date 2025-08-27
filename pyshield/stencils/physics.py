@@ -403,6 +403,7 @@ def post_shield_mp(
     rain1: FloatFieldIJ,
 ):
     from __externals__ import dtp
+
     with computation(FORWARD), interval(0, 1):
         tem = dtp * physcons.CON_P001 * physcons.CON_DAY
         water = water * tem
@@ -529,8 +530,8 @@ class Physics:
             self._post_shield_microphysics = stencil_factory.from_origin_domain(
                 func=post_shield_mp,
                 externals={
-                "dtp": self._dt_phys,
-            },
+                    "dtp": self._dt_phys,
+                },
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
