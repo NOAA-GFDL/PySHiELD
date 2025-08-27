@@ -39,8 +39,7 @@ jobs:
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: 3.11
-          conda-version: 25.1.1
+          python-version: 3.11.13
           conda-remove-defaults: true
           auto-activate-base: false
           activate-environment: pyshield_test_env
