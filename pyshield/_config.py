@@ -21,6 +21,7 @@ DEFAULT_SCHEMES = ["GFS_microphysics"]
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
+    SHiELD_microphysics = "SHiELD_microphysics"
 
 
 # Global set of physics namelist defaults
