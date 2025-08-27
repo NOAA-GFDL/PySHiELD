@@ -43,7 +43,6 @@ jobs:
           auto-update-conda: true
           auto-activate-base: false
           activate-environment: pyshield_test_env
-          shell: bash
 
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_trigger }}
@@ -72,7 +71,7 @@ jobs:
           pip3 install .[pyfv3,test]
 
       - name: Install pySHiELD packages
-        shell: bash -l {1}
+        shell: bash -l {0}
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
@@ -80,15 +79,15 @@ jobs:
           pip install -v .[ndsl,pyfv3,test]
 
       - name: pip list
-        shell: bash -l {1}
+        shell: bash -l {0}
         run: pip list
 
       - name: conda list
-        shell: bash -l {1}
+        shell: bash -l {0}
         run: conda list
 
       - name: whichs
-        shell: bash -l {1}
+        shell: bash -l {0}
         run: |
           which python
           which pip
