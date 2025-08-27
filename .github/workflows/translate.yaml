@@ -85,7 +85,7 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install .[ndsl,pyfv3,test]
           # pip install coverage==7.10.5
-          # conda remove sqlite
+          conda remove sqlite
 
       - name: pip list
         shell: bash -l {0}
