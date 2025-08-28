@@ -406,13 +406,19 @@ class PhysicsState:
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
                 dims = _field.metadata["dims"]
-                quantity = Quantity(
-                    storages[_field.name],
-                    dims,
-                    _field.metadata["units"],
-                    origin=sizer.get_origin(dims),
-                    extent=sizer.get_extent(dims),
-                )
+                if _field.name in storages.keys():
+                    quantity = Quantity(
+                        storages[_field.name],
+                        dims,
+                        _field.metadata["units"],
+                        origin=sizer.get_origin(dims),
+                        extent=sizer.get_extent(dims),
+                    )
+                else:
+                    quantity = quantity_factory.zeros(
+                        dims,
+                        _field.metadata["units"],
+                    )
                 inputs[_field.name] = quantity
         return cls(**inputs, quantity_factory=quantity_factory, schemes=schemes)
 
@@ -602,13 +608,19 @@ class SurfaceState:
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
                 dims = _field.metadata["dims"]
-                quantity = Quantity(
-                    storages[_field.name],
-                    dims,
-                    _field.metadata["units"],
-                    origin=sizer.get_origin(dims),
-                    extent=sizer.get_extent(dims),
-                )
+                if _field.name in storages.keys():
+                    quantity = Quantity(
+                        storages[_field.name],
+                        dims,
+                        _field.metadata["units"],
+                        origin=sizer.get_origin(dims),
+                        extent=sizer.get_extent(dims),
+                    )
+                else:
+                    quantity = quantity_factory.zeros(
+                        dims,
+                        _field.metadata["units"],
+                    )
                 inputs[_field.name] = quantity
         return cls(
             **inputs,
