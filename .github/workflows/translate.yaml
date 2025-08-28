@@ -43,6 +43,7 @@ jobs:
           conda-remove-defaults: true
           auto-activate-base: false
           activate-environment: pyshield_test_env
+          shell: bash
 
       - name: Install mpi (MPICH flavor)
         shell: bash -l {0}
