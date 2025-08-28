@@ -94,6 +94,16 @@ jobs:
       - name: conda list
         run: conda list
 
+      - name: whichs
+        run: |
+          which python
+          python --version
+          which pip
+          pip --version
+          which conda
+          conda --version
+          which pyrte_rrtmgp
+
       - name: Download data
         shell: bash -l {0}
         run: |
