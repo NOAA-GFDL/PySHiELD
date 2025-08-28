@@ -90,12 +90,15 @@ jobs:
           conda remove sqlite
 
       - name: pip list
+        shell: bash -l {0}
         run: pip list
 
       - name: conda list
+        shell: bash -l {0}
         run: conda list
 
       - name: whichs
+        shell: bash -l {0}
         run: |
           which python
           python --version
