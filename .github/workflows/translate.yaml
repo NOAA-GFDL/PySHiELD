@@ -46,9 +46,12 @@ jobs:
 
       - name: Install mpi (MPICH flavor)
         shell: bash -l {0}
+        # install numpy==1.26.4 before such that it's already satisfied and we don't install numpy2
         run: |
           pip list
           pip install mpich
+          pip list
+          pip install numpy==1.26.4
           pip list
 
       - name: External trigger remove existing component in pySHiELD/develop
