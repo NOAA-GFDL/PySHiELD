@@ -43,7 +43,6 @@ jobs:
           conda-remove-defaults: true
           auto-activate-base: false
           activate-environment: pyshield_test_env
-          shell: bash
 
       - name: Install mpi (MPICH flavor)
         shell: bash -l {0}
@@ -68,6 +67,8 @@ jobs:
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: external trigger Install packages for NDSL component
         shell: bash -l {0}
@@ -77,6 +78,8 @@ jobs:
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[pyfv3,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: Install pySHiELD packages
         shell: bash -l {0}
@@ -84,7 +87,6 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
-          pip install netcdf4==1.7.2
           pip install -v .[ndsl,pyfv3,test]
           pip install numpy==1.26.4
           conda remove sqlite
