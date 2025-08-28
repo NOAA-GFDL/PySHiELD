@@ -87,28 +87,9 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
-          pip install -v .[ndsl,pyfv3,test]
+          pip install .[ndsl,pyfv3,test]
           pip install numpy==1.26.4
           conda remove sqlite
-
-      - name: pip list
-        shell: bash -l {0}
-        run: pip list
-
-      - name: conda list
-        shell: bash -l {0}
-        run: conda list
-
-      - name: whichs
-        shell: bash -l {0}
-        run: |
-          which python
-          python --version
-          which pip
-          pip --version
-          which conda
-          conda --version
-          which pyrte_rrtmgp
 
       - name: Download data
         shell: bash -l {0}
