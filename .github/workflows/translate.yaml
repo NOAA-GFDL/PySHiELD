@@ -87,6 +87,12 @@ jobs:
           pip install numpy==1.26.4
           conda remove sqlite
 
+      - name: pip list
+        run: pip list
+
+      - name: conda list
+        run: conda list
+
       - name: Download data
         shell: bash -l {0}
         run: |
