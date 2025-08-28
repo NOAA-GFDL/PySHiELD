@@ -83,7 +83,8 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
-          pip install .[ndsl,pyfv3,test]
+          pip install netcdf4==1.7.2
+          pip install -vv .[ndsl,pyfv3,test]
           pip install numpy==1.26.4
           conda remove sqlite
 
