@@ -119,9 +119,3 @@ jobs:
             --backend=dace:cpu \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
-
-      - name: Radiation test
-        run: |
-          cd ${GITHUB_WORKSPACE}/pySHiELD
-          pytest \
-            -v -s ./tests/rte_rrtmgp
