@@ -40,7 +40,7 @@ class SurfaceState:
 
     snowd: Quantity = field(
         metadata={
-            "name": "snow_depth_water_equivalent",
+            "name": "snow_depth",
             "dims": [X_DIM, Y_DIM],
             "units": "mm",
             "intent": "inout",

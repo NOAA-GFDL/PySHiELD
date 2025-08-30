@@ -282,6 +282,14 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    pgr: Quantity = field(
+        metadata={
+            "name": "ground_pressure",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "in",
+        }
+    )
     land: Quantity = field(
         metadata={
             "name": "land_mask",

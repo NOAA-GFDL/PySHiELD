@@ -1,17 +1,18 @@
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int, IntFieldK
 from ndsl.grid import GridData
 from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
 from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics
+from pyshield.stencils.surface import SurfaceLayer, SurfaceState
 
 
 def interpolate_radiation(
@@ -182,6 +183,7 @@ def atmos_phys_driver_statein(
     qcld: FloatField,
     pt: FloatField,
     dm: FloatField,
+    pgr: FloatFieldIJ,
 ):
     from __externals__ import nwat, pk0inv, pktop, ptop
 
@@ -224,6 +226,7 @@ def atmos_phys_driver_statein(
 
     with computation(PARALLEL), interval(-1, None):
         prsik = log(prsi)
+        pgr = prsi
 
     with computation(PARALLEL), interval(0, 1):
         prsik = log(ptop)
@@ -242,6 +245,43 @@ def atmos_phys_driver_statein(
 
     with computation(PARALLEL), interval(0, 1):
         prsik = pktop
+
+
+def flip_fields(
+    u: FloatField,
+    v: FloatField,
+    t: FloatField,
+    q: FloatField,
+    prsl: FloatField,
+    prsi: FloatField,
+    prsik: FloatField,
+    prslk: FloatField,
+    phil: FloatField,
+    phii: FloatField,
+    u1: FloatField,
+    v1: FloatField,
+    t1: FloatField,
+    q1: FloatField,
+    prsl1: FloatField,
+    prsi1: FloatField,
+    prsik1: FloatField,
+    prslk1: FloatField,
+    phil1: FloatField,
+    phii1: FloatField,
+    level_flip: IntFieldK,
+    layer_flip: IntFieldK,
+):
+    with computation(PARALLEL), interval(...):
+        u1 = u[0, 0, layer_flip]
+        v1 = v[0, 0, layer_flip]
+        t1 = t[0, 0, layer_flip]
+        q1 = q[0, 0, layer_flip]
+        prsl1 = prsl[0, 0, layer_flip]
+        prsi1 = prsi[0, 0, level_flip]
+        prslk1 = prslk[0, 0, layer_flip]
+        prsik1 = prsik[0, 0, level_flip]
+        phil1 = phil[0, 0, layer_flip]
+        phii1 = phii[0, 0, level_flip]
 
 
 def prepare_microphysics(
@@ -358,18 +398,54 @@ class Physics:
         )
 
         grid_indexing = stencil_factory.grid_indexing
+        nz = grid_indexing.domain[2]
+        npz = nz + 1
         self._setup_statein()
         self._ptop = grid_data.ptop
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         self._pre_radiation = pre_radiation
+        self._timestep = namelist.dt_atmos
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
 
-        self._prsik = make_quantity()
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
+        self._u1 = make_quantity()
+        self._v1 = make_quantity()
+        self._t1 = make_quantity()
+        self._prsl1 = make_quantity()
+        self._prsi1 = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+        )
+        self._prsik1 = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+        )
+        self._prslk1 = make_quantity()
+        self._qvapor1 = make_quantity()
+        self._phil1 = make_quantity()
+        self._phii1 = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+        )
+        self._rb = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._stress = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._hflx = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._adjsfcdlw = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._adjsfcdsw = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._adjsfcnsw = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+
+        self._level_flip = quantity_factory.zeros(
+            dims=[Z_INTERFACE_DIM], units="", dtype=Int
+        )
+        self._layer_flip = quantity_factory.zeros(
+            dims=[Z_INTERFACE_DIM], units="", dtype=Int
+        )
+        for k in range(npz):
+            self._level_flip.data[k] = npz - 1 - 2 * k
+            if k < nz:
+                self._layer_flip.data[k] = nz - 1 - 2 * k
+
         self._get_prs_fv3 = stencil_factory.from_origin_domain(
             func=get_prs_fv3,
             origin=grid_indexing.origin_full(),
@@ -391,6 +467,11 @@ class Physics:
                 "pktop": self._pktop,
             },
         )
+        self._flip_fields = stencil_factory.from_origin_domain(
+            func=flip_fields,
+            origin=grid_indexing.origin_full(),
+            domain=grid_indexing.domain_full(),
+        )
         if not self._pre_radiation:
             self._interpolate_radiation = stencil_factory.from_origin_domain(
                 func=interpolate_radiation,
@@ -400,6 +481,14 @@ class Physics:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
+        if "SFC_layer" in schemes:
+            self._sfc_layer = True
+            self._sfc = SurfaceLayer(
+                stencil_factory,
+                quantity_factory,
+                namelist.surface,
+            )
+
         if "GFS_microphysics" in schemes:
             self._gfs_microphysics = True
             self._prepare_microphysics = stencil_factory.from_origin_domain(
@@ -426,9 +515,16 @@ class Physics:
         self._nwat = 6  # spec.namelist.nwat
         self._p00 = 1.0e5
 
-    def __call__(self, physics_state: PhysicsState, timestep: float):
+    def __call__(
+        self,
+        physics_state: PhysicsState,
+        timestep: float = 0.0,
+        surface_state: SurfaceState = None,
+    ):
+        if timestep == 0.0:
+            timestep = self._timestep
         self._atmos_phys_driver_statein(
-            self._prsik,
+            physics_state.prsik,
             physics_state.phii,
             physics_state.prsi,
             physics_state.delz,
@@ -444,6 +540,7 @@ class Physics:
             physics_state.qcld,
             physics_state.pt,
             self._dm3d,
+            physics_state.pgr,
         )
         self._get_prs_fv3(
             physics_state.phii,
@@ -461,6 +558,51 @@ class Physics:
             physics_state.phii,
             physics_state.phil,
         )
+        self._flip_fields(
+            physics_state.ua,
+            physics_state.va,
+            physics_state.pt,
+            physics_state.qvapor,
+            physics_state.delp,
+            physics_state.prsi,
+            physics_state.prsik,
+            physics_state.prslk,
+            physics_state.phil,
+            physics_state.phii,
+            self._u1,
+            self._v1,
+            self._t1,
+            self._qvapor1,
+            self._prsl1,
+            self._prsi1,
+            self._prsik1,
+            self._prslk1,
+            self._phil1,
+            self._phii1,
+            self._level_flip,
+            self._layer_flip,
+        )
+        if self._sfc_layer:
+            if not surface_state:
+                raise ValueError("You must pass a surface state to run surface schemes")
+            self._sfc(
+                surface_state,
+                self._u1,
+                self._v1,
+                self._t1,
+                self._prsl1,
+                self._prsik1,
+                self._prslk1,
+                self._qvapor1,
+                self._phil1,
+                self._rb,
+                self._stress,
+                physics_state.pgr,
+                self._hflx,
+                self._adjsfcdlw,
+                self._adjsfcdsw,
+                self._adjsfcnsw,
+            )
         if self._gfs_microphysics:
             self._prepare_microphysics(
                 physics_state.dz,
