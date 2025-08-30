@@ -1,15 +1,3 @@
-from ndsl.dsl.gt4py import (
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-    sqrt,
-)
-
-import ndsl.constants as constants
-from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM, Z_INTERFACE_DIM
 import pyshield.constants as physcons
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -17,24 +5,15 @@ from ndsl import (
     CompilationConfig,
     GridIndexing,
     NullComm,
-    Quantity,
     QuantityFactory,
     StencilConfig,
     StencilFactory,
     SubtileGridSizer,
     TileCommunicator,
 )
-from ndsl.dsl.typing import (
-    Bool,
-    BoolField,
-    BoolFieldIJ,
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    Int,
-    IntField,
-    IntFieldIJ,
-)
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.typing import Float, FloatField, Int
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 
 
@@ -75,8 +54,10 @@ def sample_4d_stencil(
     q_out: FloatField,
 ):
     from __externals__ import ntke
+
     with computation(PARALLEL), interval(...):
         q_out = max(q_in[0, 0, 0][ntke], physcons.TKMIN)
+
 
 class SampleCalculation:
     def __init__(
@@ -90,13 +71,14 @@ class SampleCalculation:
             },
             compute_dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM],
         )
-    
+
     def __call__(
         self,
         q_in: FloatFieldTracer,
         q_out: FloatField,
     ):
         self._test_calc(q_in, q_out)
+
 
 def test_4d_stencil_call():
     ntracers = 9
@@ -112,9 +94,9 @@ def test_4d_stencil_call():
         dtype=Float,
     )
     q_in = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
-            units="unknown",
-            dtype=Float,
-        )
+        [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+        units="unknown",
+        dtype=Float,
+    )
     calc = SampleCalculation(stencil_factory)
     calc(q_in, q_out)
