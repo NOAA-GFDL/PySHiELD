@@ -224,7 +224,7 @@ def atmos_phys_driver_statein(
         qo3mr = qo3mr / delp
         qsgs_tke = qsgs_tke / delp
 
-    with computation(PARALLEL), interval(-1, None):
+    with computation(FORWARD), interval(-1, None):
         prsik = log(prsi)
         pgr = prsi
 
