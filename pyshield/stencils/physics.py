@@ -488,7 +488,8 @@ class Physics:
                 quantity_factory,
                 namelist.surface,
             )
-
+        else:
+            self._sfc_layer = False
         if "GFS_microphysics" in schemes:
             self._gfs_microphysics = True
             self._prepare_microphysics = stencil_factory.from_origin_domain(
