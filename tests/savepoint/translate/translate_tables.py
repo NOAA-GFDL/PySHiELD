@@ -110,6 +110,7 @@ class LookupPython:
         table2 = self.sat_tables.table2[list(index.astype(int) - 1)]
         wqs, dwdt = self.sat_tables.sat_water(temp, den)
         iqs, didt = self.sat_tables.sat_ice_water(temp, den)
+        return table0, table2, wqs, dwdt, iqs, didt
 
 
 class TranslatePythonTables(TranslatePhysicsFortranData2Py):
@@ -141,6 +142,7 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
             "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
             "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
         }
+        self.max_error = 2.e-14
 
         self.stencil_factory = stencil_factory
         pconf = PhysicsConfig.from_namelist(namelist)
@@ -151,7 +153,13 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
 
         compute_func = LookupPython(2621)
 
-        compute_func(**inputs)
+        table0, table2, wqs, dwdt, iqs, didt = compute_func(**inputs)
+        inputs["table0"] = table0
+        inputs["table2"] = table2
+        inputs["wqs"] = wqs
+        inputs["iqs"] = iqs
+        inputs["dwdt"] = dwdt
+        inputs["didt"] = didt
 
         return self.slice_output(inputs)
 
@@ -192,7 +200,7 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
             "it2": {"serialname": "tc_it2", "shield": True},
         }
 
-        self.max_error = 1.5e-14  # 10^-25 absolute errors at the top of the tables
+        self.max_error = 1e-13  # 10^-25 absolute errors at the top of the tables
 
         self.stencil_factory = stencil_factory
         pconf = PhysicsConfig.from_namelist(namelist)

@@ -274,7 +274,7 @@ def sat_spec_hum_water_ice(temperature, density):
 @gtfunction
 def temperature_index(temperature):
     tmin = physcons.TICE0 - 160.0
-    return floor(10.0 * (temperature - tmin)) / 10.0 + tmin
+    return floor(10.0 * (temperature - tmin)) / 10.0 + tmin 
 
 
 @gtfunction
