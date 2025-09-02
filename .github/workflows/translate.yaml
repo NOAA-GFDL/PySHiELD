@@ -26,11 +26,8 @@ concurrency:
 jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/noaa-gfdl/miniforge:mpich
     steps:
-
-      - name: external trigger Checkout pySHiELD
+      - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
         uses: actions/checkout@v4
         with:
@@ -39,6 +36,23 @@ jobs:
           path: pySHiELD
           ref: develop
 
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: 3.11.13
+          conda-remove-defaults: true
+          auto-activate-base: false
+          activate-environment: pyshield_test_env
+
+      - name: Install mpi (MPICH flavor)
+        shell: bash -l {0}
+        run: pip install mpich
+
+      - name: External trigger remove existing component in pySHiELD/develop
+        shell: bash -l {0}
+        if: ${{ inputs.component_trigger }}
+        run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
+
       - name: Checkout hash that triggered CI
         uses: actions/checkout@v4
         with:
@@ -46,29 +60,39 @@ jobs:
           path: pySHiELD/${{inputs.component_name}}
 
       - name: external trigger Install packages for FV3 component
+        shell: bash -l {0}
         if: ${{contains(inputs.component_name, 'FV3')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: external trigger Install packages for NDSL component
+        shell: bash -l {0}
         if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[pyfv3,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: Install pySHiELD packages
+        shell: bash -l {0}
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip3 install --upgrade pip setuptools wheel
-          pip3 install .[ndsl,pyfv3,test]
+          pip install --upgrade pip setuptools wheel
+          pip install .[ndsl,pyfv3,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: Download data
+        shell: bash -l {0}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           mkdir -p test_data
@@ -77,6 +101,7 @@ jobs:
           tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
 
       - name: Numpy Translate Test
+        shell: bash -l {0}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
@@ -86,6 +111,7 @@ jobs:
             ./tests/savepoint
 
       - name: Orchestrated dace:cpu Translate Test
+        shell: bash -l {0}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           export FV3_DACEMODE=BuildAndRun
