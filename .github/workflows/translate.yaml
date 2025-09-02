@@ -67,6 +67,8 @@ jobs:
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: external trigger Install packages for NDSL component
         shell: bash -l {0}
@@ -76,6 +78,8 @@ jobs:
           pip3 install --upgrade pip setuptools wheel
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[pyfv3,test]
+          pip install numpy==1.26.4
+          conda remove sqlite
 
       - name: Install pySHiELD packages
         shell: bash -l {0}
