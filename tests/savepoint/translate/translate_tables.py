@@ -142,7 +142,7 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
             "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
             "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
         }
-        self.max_error = 2.e-14
+        self.max_error = 2.0e-14
 
         self.stencil_factory = stencil_factory
         pconf = PhysicsConfig.from_namelist(namelist)
