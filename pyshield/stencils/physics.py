@@ -507,6 +507,7 @@ class Physics:
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         self._pre_radiation = pre_radiation
+        self._timestep = namelist.dt_atmos
         self._prescribe_sst = namelist.prescribe_sst
         self._gridlon = grid_data.lon_agrid
         self._gridlat = grid_data.lat_agrid
@@ -670,11 +671,13 @@ class Physics:
     def __call__(
         self,
         physics_state: PhysicsState,
-        radiation_state: RadiationState,
-        sfc_state: SurfaceState,
-        date: datetime.datetime,
-        timestep: float,
+        timestep: float = 0.0,
+        radiation_state: RadiationState = None,
+        sfc_state: SurfaceState = None,
+        date: datetime.datetime = None,
     ):
+        if timestep == 0.0:
+            timestep = self._timestep
         do_radiation = (self._nsteps % self._nsswr == 0) or (
             self._nsteps % self._nslwr == 0
         )
@@ -721,6 +724,12 @@ class Physics:
 
         # Call radiation if timestep is right
         if do_radiation and self._rterrtmgp:
+            if not sfc_state:
+                raise ValueError("You must pass a surface state to run radiation")
+            if not radiation_state:
+                raise ValueError("You must pass a radiation state to run radiation")
+            if not date:
+                raise ValueError("You must pass a date to run radiation")
             self._copy_to_radiation(
                 physics_state.prsi,
                 physics_state.delp,
