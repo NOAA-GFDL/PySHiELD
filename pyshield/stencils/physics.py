@@ -874,6 +874,7 @@ class Physics:
                 physics_state.physics_updated_va,
                 timestep,
             )
+        self._nsteps += 1
 
     def test_flip_layer(self, q_in, q_out):
         self._flip_field_k(q_in, q_out, self._layer_flip)

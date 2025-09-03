@@ -24,10 +24,14 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 @dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: float = 1.0
-    fhswr: float = DEFAULT_FLOAT
-    fhlwr: float = DEFAULT_FLOAT
+    fhswr: float = 3600.0
+    """frequency for shortwave radiation (secs)"""
+    fhlwr: float = 3600.0
+    """frequency for longwave radiation (secs)"""
     nsswr: int = DEFAULT_INT
+    """frequency for shortwave radiation (timesteps)"""
     nslwr: int = DEFAULT_INT
+    """frequency for longwave radiation (timesteps)"""
     hydrostatic: bool = DEFAULT_BOOL
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
