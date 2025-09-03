@@ -23,7 +23,7 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 
 @dataclasses.dataclass
 class PhysicsConfig:
-    dt_atmos: float = DEFAULT_FLOAT
+    dt_atmos: float = 1.0
     fhswr: float = DEFAULT_FLOAT
     fhlwr: float = DEFAULT_FLOAT
     nsswr: int = DEFAULT_INT
