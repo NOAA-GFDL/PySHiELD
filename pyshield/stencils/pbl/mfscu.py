@@ -242,6 +242,8 @@ def mfscu_s5(
         mrady = mrad[0, 0]
         if flg[0, 0]:
             mradx = krad[0, 0]
+        else:
+            mradx = 0
 
     with computation(BACKWARD):
         with interval(...):
