@@ -75,7 +75,7 @@ class Tridi2:
         idx = stencil_factory.grid_indexing
         quantity_factory.set_extra_dim_lengths(
             **{
-                TRACER_DIM: 8,
+                TRACER_DIM: 9,
             }
         )
         self._tridi2 = stencil_factory.from_origin_domain(
@@ -147,7 +147,7 @@ class TridiN:
         idx = stencil_factory.grid_indexing
         quantity_factory.set_extra_dim_lengths(
             **{
-                TRACER_DIM: 8,
+                TRACER_DIM: 9,
             }
         )
         self._ntke = ntke
@@ -200,7 +200,6 @@ class TridiN:
 
         for n in range(0, int(nt1)):
             dim_n = n if n < self._ntke else n + 1
-            breakpoint()
             self._tridin(al, ad, self._cu, self._r1, self._r2, au, f1, f2, int(dim_n))
 
 
