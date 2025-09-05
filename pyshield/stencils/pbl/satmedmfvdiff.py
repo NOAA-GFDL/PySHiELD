@@ -136,6 +136,7 @@ def init_turbulence(
         xkzm_ml,
         xkzm_mo,
         xkzm_s,
+        xkzminv
     )
 
     with computation(FORWARD), interval(0, 1):
@@ -275,14 +276,14 @@ def init_turbulence(
         tem3 = (tvx[0, 0, 1] - tvx[0, 0, 0]) * rdzt[0, 0, 0]
         if cap_k0_land:
             if tem3 > 1.0e-5:
-                xkzo[0, 0, 0] = min(xkzo[0, 0, 0], physcons.XKZINV)
-                xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], physcons.XKZINV)
+                xkzo[0, 0, 0] = min(xkzo[0, 0, 0], xkzminv)
+                xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], xkzminv)
         else:
             # kgao note: do not apply upper-limiter over land and sea ice points
             # (consistent with change in satmedmfdifq.f in Jun 2020)
             if (tem3 > 0.0) and (islimsk == 0):
-                xkzo[0, 0, 0] = min(xkzo[0, 0, 0], physcons.XKZINV)
-                xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], physcons.XKZINV)
+                xkzo[0, 0, 0] = min(xkzo[0, 0, 0], xkzminv)
+                xkzmo[0, 0, 0] = min(xkzmo[0, 0, 0], xkzminv)
 
     with computation(FORWARD), interval(0, -1):
         #  Compute empirical cloud fraction based on Xu & Randall (1996, JAS)
@@ -1760,6 +1761,7 @@ class ScaleAwareTKEMoistEDMF:
                 "xkzm_ml": config.xkzm_ml,
                 "xkzm_mo": config.xkzm_mo,
                 "xkzm_s": config.xkzm_s,
+                "xkzminv": config.xkzminv,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, 1)),

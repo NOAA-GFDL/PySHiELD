@@ -111,6 +111,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
         config.ntcw = int(inputs.pop("pbl_ntcw") - 1)
         config.ntiw = int(inputs.pop("pbl_ntiw") - 1)
         config.ntke = int(inputs.pop("pbl_ntke") - 1)
+        config.xkzminv = 1.0
         print("tracers: ", config.ntracers, config.ntcw, config.ntiw, config.ntke)
         inputs.pop("pbl_dtp")
         inputs.pop("pbl_dspheat")

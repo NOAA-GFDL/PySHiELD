@@ -125,6 +125,7 @@ class InitTurb:
                 "xkzm_ml": config.xkzm_ml,
                 "xkzm_mo": config.xkzm_mo,
                 "xkzm_s": config.xkzm_s,
+                "xkzminv": config.xkzminv,
             },
             origin=idx.origin_compute(),
             domain=idx.domain_compute(add=(0, 0, 1)),
@@ -2713,6 +2714,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
         config.ntcw = int(inputs.pop("ntcw") - 1)
         config.ntiw = int(inputs.pop("ntiw") - 1)
         config.ntke = config.ntracers - 1
+        config.xkzminv = 1.0
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["lcld"] = inputs["lcld"].astype(int)
