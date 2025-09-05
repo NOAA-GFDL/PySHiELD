@@ -451,6 +451,10 @@ class Physics:
             return self.quantity_factory.zeros(
                 dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
             )
+        def make_quantity_2d():
+            return self.quantity_factory.zeros(
+                dims=[X_DIM, Y_DIM], units="unknown"
+            )
 
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
@@ -545,10 +549,10 @@ class Physics:
             dtype=Float,
         )
 
-        self._dusfc = make_quantity()
-        self._dvsfc = make_quantity()
-        self._dtsfc = make_quantity()
-        self._dqsfc = make_quantity()
+        self._dusfc = make_quantity_2d()
+        self._dvsfc = make_quantity_2d()
+        self._dtsfc = make_quantity_2d()
+        self._dqsfc = make_quantity_2d()
 
         if "SATM_EDMF" in schemes:
             self._u1 = make_quantity()
