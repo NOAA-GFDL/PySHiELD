@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: 'recursive'
           repository: NOAA-GFDL/PySHiELD
@@ -54,7 +54,7 @@ jobs:
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
       - name: Checkout hash that triggered CI
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
