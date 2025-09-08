@@ -65,7 +65,7 @@ jobs:
           lookup-only: true  # don't actually download the cache
 
       - name: Download test data (if not already cached)
-        if: steps.cache-restore.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p pySHiELD/test_data && cd pySHiELD/test_data
           wget ${{ env.TEST_DATA_URL }}
