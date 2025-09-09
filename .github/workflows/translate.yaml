@@ -26,10 +26,14 @@ concurrency:
 jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
+    env:
+      TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
+      TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
+
     steps:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: 'recursive'
           repository: NOAA-GFDL/PySHiELD
@@ -54,7 +58,7 @@ jobs:
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
       - name: Checkout hash that triggered CI
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
@@ -91,13 +95,21 @@ jobs:
           pip install numpy==1.26.4
           conda remove sqlite
 
-      - name: Download data
+      # Only restore (don't save) caches on PRs. New caches created from PRs won't be
+      # accessible from other PRs, see workflows/create_cache.yaml.
+      - name: Restore test_data (if cached)
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ env.TEST_DATA_PATH }}
+          path: pySHiELD/test_data
+
+      - name: Download data (if not cached)
+        if: steps.cache-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          cd ${GITHUB_WORKSPACE}/pySHiELD
-          mkdir -p test_data
-          cd test_data
-          wget https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz
+          mkdir -p pySHiELD/test_data && cd pySHiELD/test_data
+          wget ${{ env.TEST_DATA_URL }}
           tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
 
       - name: Numpy Translate Test
@@ -105,7 +117,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
-            -v -s --data_path=./test_data/8.1.3/c12_6ranks_baroclinic/physics \
+            -v -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=numpy \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
@@ -119,7 +131,7 @@ jobs:
           export OMP_NUM_THREADS=10
           export PACE_LOGLEVEL=Debug
           pytest \
-            -vvv -x -s --data_path=./test_data/8.1.3/c12_6ranks_baroclinic/physics \
+            -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=dace:cpu \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
