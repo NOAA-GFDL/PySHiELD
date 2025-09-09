@@ -4,8 +4,7 @@ from typing import List, Optional, Tuple
 
 import f90nml
 
-from ndsl import Namelist
-from ndsl import MetaEnumStr
+from ndsl import MetaEnumStr, Namelist
 
 
 DEFAULT_INT = 0
@@ -133,8 +132,8 @@ class PhysicsConfig:
     @classmethod
     def from_namelist(
         cls, namelist: Namelist, target_groups=None
-    ) -> "DynamicalCoreConfig":
-        """This creates a DynamicalCoreConfig using the input namelist. 
+    ) -> "PhysicsConfig":
+        """This creates a PhysicsConfig using the input namelist.
         Duplicate of from_f90nml.
         """
         return cls.from_f90nml(namelist, target_groups=target_groups)
@@ -149,7 +148,7 @@ class PhysicsConfig:
             target_groups - If None, then the DEFAULT_NML_GROUPS will be used to populate the dataclass fields.
         """
         namelist = Namelist(namelist)
-          if target_groups is None:
+        if target_groups is None:
             groups = DEFAULT_NML_GROUPS
         else:
             groups = target_groups
