@@ -5,7 +5,6 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, log10, max, min
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-
 from pyshield._config import MicroPhysicsConfig
 
 
