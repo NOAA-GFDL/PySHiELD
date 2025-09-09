@@ -53,6 +53,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
+        self.max_error = 1e-200
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
@@ -83,12 +84,17 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
             dims=[X_DIM, Y_DIM],
             units="",
         )
+        dt2=inputs["dt2"],
+        ntcw=int(inputs["ntcw"]),
+        ntrac1=int(inputs["ntrac1"]),
+        kmpbl=int(inputs["kmpbl"]),
+        print(dt2, ntcw, ntrac1, kmpbl)
 
         compute_func = PBLMassFlux(
             self.stencil_factory,
             quantity_factory,
             dt2=inputs.pop("dt2"),
-            ntcw=int(inputs.pop("ntcw")),
+            ntcw=int(inputs.pop("ntcw")) - 1,
             ntrac1=int(inputs.pop("ntrac1")),
             kmpbl=int(inputs.pop("kmpbl")),
         )

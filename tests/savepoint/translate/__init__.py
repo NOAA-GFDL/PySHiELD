@@ -19,6 +19,7 @@ from .translate_pbl_subtests import (
     TranslatePBLAML,
     TranslatePBLInit,
     TranslatePrandtl,
+    TranslateSCUEnd,
     TranslateStratocumulus,
     TranslateThermalPBL,
     TranslateTKEPredict,

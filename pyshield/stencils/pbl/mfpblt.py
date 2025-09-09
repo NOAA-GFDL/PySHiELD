@@ -44,7 +44,7 @@ def init_mfpbl(
         if cnvflg[0, 0]:
             buo = 0.0
             wu2 = 0.0
-            qtx = q1[0, 0, 0][0] + q1[0, 0, 0][ntcw - 1]
+            qtx = q1[0, 0, 0][0] + q1[0, 0, 0][ntcw]
 
     with computation(FORWARD), interval(0, 1):
         kpblx = 0
@@ -319,11 +319,11 @@ def mfpblt_s2(
                     qlu = dq / (1.0 + (physcons.EL2ORC * qs / (tlu**2)))
                     qtu = qs + qlu
                     qcko[0, 0, 0][0] = qs
-                    qcko[0, 0, 0][ntcw - 1] = qlu
+                    qcko[0, 0, 0][ntcw] = qlu
                     tcko = tlu + physcons.ELOCP * qlu
                 else:
                     qcko[0, 0, 0][0] = qtu[0, 0, 0]
-                    qcko[0, 0, 0][ntcw - 1] = 0.0
+                    qcko[0, 0, 0][ntcw] = 0.0
                     qcko_track = 1
                     tcko = tlu
 
@@ -445,7 +445,7 @@ class PBLMassFlux:
             domain=(idx.iec, idx.jec, kmpbl),
         )
 
-        if (self._ntcw > 2) or (self._ntrac1 > self._ntcw):
+        if (self._ntcw > 1) or (self._ntrac1 > self._ntcw):
             self._tracer_updraft = stencil_factory.from_origin_domain(
                 func=tracer_updraft,
                 origin=idx.origin_compute(),
@@ -572,8 +572,8 @@ class PBLMassFlux:
             zm,
         )
 
-        if self._ntcw > 2:
-            for n in range(1, self._ntcw - 1):
+        if self._ntcw > 1:
+            for n in range(1, self._ntcw):
                 self._tracer_updraft(
                     cnvflg,
                     kpbl,
@@ -584,8 +584,8 @@ class PBLMassFlux:
                     zl,
                     n,
                 )
-        if self._ntrac1 > self._ntcw:
-            for n in range(self._ntcw, self._ntrac1):
+        if self._ntrac1 > self._ntcw + 1:
+            for n in range(self._ntcw + 1, self._ntrac1):
                 self._tracer_updraft(
                     cnvflg,
                     kpbl,

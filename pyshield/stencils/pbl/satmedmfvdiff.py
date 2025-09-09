@@ -684,15 +684,16 @@ def compute_prandtl_num_exchange_coeff(
     with computation(PARALLEL), interval(...):
         ptem = 0.0
         if k_mask[0, 0, 0] < kpbl[0, 0]:
+            tem = phih[0, 0] / phim[0, 0]
             ptem = (
                 -3.0
                 * (max(zi[0, 0, 1] - physcons.SFCFRAC * hpbl[0, 0], 0.0) ** 2.0)
-                / (hpbl[0, 0] ** 2.0)
+                / hpbl[0, 0] ** 2.0
             )
             if pcnvflg[0, 0]:
-                prn = 1.0 + ((phih[0, 0] / phim[0, 0]) - 1.0) * exp(ptem)
+                prn = 1.0 + (tem - 1.0) * exp(ptem)
             else:
-                prn = phih[0, 0] / phim[0, 0]
+                prn = tem
 
             prn = min(prn, physcons.PRMAX)
             prn = max(prn, physcons.PRMIN)
