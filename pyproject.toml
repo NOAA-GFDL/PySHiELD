@@ -39,8 +39,9 @@ extras = [
   "pyshield[pyfv3]",
   "pyshield[dev]"
 ]
-ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
-pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@develop"]
+# TODO: Revert ndsl, pyfv3 back to GFDL develop (not jjuyeonkim) after merging https://github.com/NOAA-GFDL/NDSL/issues/64
+ndsl = ["ndsl @ git+https://github.com/jjuyeonkim/NDSL.git@20250908_namelist_2"]
+pyfv3 = ["pyfv3 @ git+https://github.com/jjuyeonkim/PyFV3.git@20250908_namelist_2"]
 test = [
   "pytest",
   "pytest-subtests",
