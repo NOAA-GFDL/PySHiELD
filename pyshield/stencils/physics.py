@@ -1,3 +1,5 @@
+from shallow_convection import ScaleAwareMassFluxShallowConvection
+
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
@@ -399,6 +401,13 @@ class Physics:
                 },
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
+            )
+        if "SAMF_SHALCONV" in schemes:
+            self._samf_shalconv = True
+            self._samf_shallow_convection = ScaleAwareMassFluxShallowConvection(
+                stencil_factory=stencil_factory,
+                quantity_factory=quantity_factory,
+                config=namelist.shalconv,
             )
         if "GFS_microphysics" in schemes:
             self._gfs_microphysics = True

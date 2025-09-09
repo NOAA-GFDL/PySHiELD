@@ -20,7 +20,6 @@ from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import (
     Bool,
-    BoolField,
     BoolFieldIJ,
     Float,
     FloatField,
