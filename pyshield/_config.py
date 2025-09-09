@@ -130,9 +130,7 @@ class PhysicsConfig:
 
     # TODO: Consider removing from_namelist or from_f90nml. Duplicates.
     @classmethod
-    def from_namelist(
-        cls, namelist: Namelist, target_groups=None
-    ) -> "PhysicsConfig":
+    def from_namelist(cls, namelist: Namelist, target_groups=None) -> "PhysicsConfig":
         """This creates a PhysicsConfig using the input namelist.
         Duplicate of from_f90nml.
         """
@@ -145,7 +143,8 @@ class PhysicsConfig:
         """This creates a PhysicsConfig using the input namelist.
         Args:
             namelist
-            target_groups - If None, then the DEFAULT_NML_GROUPS will be used to populate the dataclass fields.
+            target_groups - If None, then the DEFAULT_NML_GROUPS will be used
+                            to populate the dataclass fields.
         """
         namelist = Namelist(namelist)
         if target_groups is None:
