@@ -84,10 +84,10 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
             dims=[X_DIM, Y_DIM],
             units="",
         )
-        dt2=inputs["dt2"],
-        ntcw=int(inputs["ntcw"]),
-        ntrac1=int(inputs["ntrac1"]),
-        kmpbl=int(inputs["kmpbl"]),
+        dt2 = (inputs["dt2"],)
+        ntcw = (int(inputs["ntcw"]),)
+        ntrac1 = (int(inputs["ntrac1"]),)
+        kmpbl = (int(inputs["kmpbl"]),)
         print(dt2, ntcw, ntrac1, kmpbl)
 
         compute_func = PBLMassFlux(

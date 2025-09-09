@@ -451,10 +451,9 @@ class Physics:
             return self.quantity_factory.zeros(
                 dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
             )
+
         def make_quantity_2d():
-            return self.quantity_factory.zeros(
-                dims=[X_DIM, Y_DIM], units="unknown"
-            )
+            return self.quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
 
         self._prsik = make_quantity()
         self._dm3d = make_quantity()
@@ -632,6 +631,7 @@ class Physics:
             physics_state.phii,
             physics_state.phil,
         )
+        # TODO: This can be uncommented once radiation is merged
         # if self._satm_edmf:
         #     self._pbl(
         #         physics_state.kpbl,
