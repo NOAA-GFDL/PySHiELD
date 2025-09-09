@@ -4,13 +4,19 @@ from typing import List, Optional, Tuple
 
 import f90nml
 
+from ndsl import Namelist
 from ndsl import MetaEnumStr
-from ndsl.namelist import Namelist, NamelistDefaults
 
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
+DEFAULT_NML_GROUPS = (
+    "main_nml",
+    "coupler_nml",
+    "gfdl_cloud_microphysics_nml",
+    "integ_phys_nml",
+)  # TODO Double-check for any additional groups
 
 
 @unique
@@ -28,84 +34,80 @@ class PhysicsConfig:
     nwat: int = DEFAULT_INT
     schemes: List = None
     do_qa: bool = DEFAULT_BOOL
-    c_cracw: float = NamelistDefaults.c_cracw
-    c_paut: float = NamelistDefaults.c_paut
-    c_pgacs: float = NamelistDefaults.c_pgacs
-    c_psaci: float = NamelistDefaults.c_psaci
-    ccn_l: float = NamelistDefaults.ccn_l
-    ccn_o: float = NamelistDefaults.ccn_o
-    const_vg: bool = NamelistDefaults.const_vg
-    const_vi: bool = NamelistDefaults.const_vi
-    const_vr: bool = NamelistDefaults.const_vr
-    const_vs: bool = NamelistDefaults.const_vs
-    vs_fac: float = NamelistDefaults.vs_fac
-    vg_fac: float = NamelistDefaults.vg_fac
-    vi_fac: float = NamelistDefaults.vi_fac
-    vr_fac: float = NamelistDefaults.vr_fac
-    de_ice: bool = NamelistDefaults.de_ice
-    layout: Tuple[int, int] = NamelistDefaults.layout
+    c_cracw: float = 0.8  # Rain accretion efficiency
+    c_paut: float = (
+        0.5  # Autoconversion cloud water to rain (use 0.5 to reduce autoconversion
+    )
+    c_pgacs: float = 0.01  # Snow to graupel "accretion" eff. (was 0.1 in zetac)
+    c_psaci: float = 0.05  # Accretion: cloud ice to snow (was 0.1 in zetac)
+    ccn_l: float = 300.0  # CCN over land (cm^-3)
+    ccn_o: float = 100.0  # CCN over ocean (cm^-3)
+    const_vg: bool = False  # Fall velocity tuning constant of graupel
+    const_vi: bool = False  # Fall velocity tuning constant of ice
+    const_vr: bool = False  # Fall velocity tuning constant of rain water
+    const_vs: bool = False  # Fall velocity tuning constant of snow
+    vs_fac: float = 1.0  # if const_vs: 1.
+    vg_fac: float = 1.0  # if const_vg: 2.
+    vi_fac: float = 1.0  # if const_vi: 1/3
+    vr_fac: float = 1.0  # if const_vr: 4.
+    de_ice: bool = (
+        False  # To prevent excessive build-up of cloud ice from external sources
+    )
+    layout: Tuple[int, int] = (1, 1)
     # gfdl_cloud_microphys.F90
-    tau_imlt: float = NamelistDefaults.tau_imlt  # cloud ice melting
-    tau_i2s: float = NamelistDefaults.tau_i2s  # cloud ice to snow auto - conversion
-    tau_g2v: float = NamelistDefaults.tau_g2v  # graupel sublimation
-    tau_v2g: float = (
-        NamelistDefaults.tau_v2g
-    )  # graupel deposition -- make it a slow process
-    ql_mlt: float = (
-        NamelistDefaults.ql_mlt
-    )  # max value of cloud water allowed from melted cloud ice
-    qs_mlt: float = NamelistDefaults.qs_mlt  # max cloud water due to snow melt
-    t_sub: float = NamelistDefaults.t_sub  # min temp for sublimation of cloud ice
-    qi_gen: float = (
-        NamelistDefaults.qi_gen
-    )  # max cloud ice generation during remapping step
-    qi_lim: float = (
-        NamelistDefaults.qi_lim
-    )  # cloud ice limiter to prevent large ice build up
-    qi0_max: float = NamelistDefaults.qi0_max  # max cloud ice value (by other sources)
-    rad_snow: bool = (
-        NamelistDefaults.rad_snow
-    )  # consider snow in cloud fraction calculation
-    rad_rain: bool = (
-        NamelistDefaults.rad_rain
-    )  # consider rain in cloud fraction calculation
-    dw_ocean: float = NamelistDefaults.dw_ocean  # base value for ocean
-    dw_land: float = (
-        NamelistDefaults.dw_land
-    )  # base value for subgrid deviation / variability over land
+    tau_imlt: float = 600.0  # cloud ice melting
+    tau_i2s: float = 1000.0  # cloud ice to snow auto - conversion
+    tau_g2v: float = 1200.0  # graupel sublimation
+    tau_v2g: float = 21600.0  # graupel deposition -- make it a slow process
+    ql_mlt: float = 2.0e-3  # max value of cloud water allowed from melted cloud ice
+    qs_mlt: float = 1.0e-6  # max cloud water due to snow melt
+    t_sub: float = 184.0  # min temp for sublimation of cloud ice
+    qi_gen: float = 1.82e-6  # max cloud ice generation during remapping step
+    qi_lim: float = 1.0  # cloud ice limiter to prevent large ice build up
+    qi0_max: float = 1.0e-4  # max cloud ice value (by other sources)
+    rad_snow: bool = True  # consider snow in cloud fraction calculation
+    rad_rain: bool = True  # consider rain in cloud fraction calculation
+    dw_ocean: float = 0.10  # base value for ocean
+    dw_land: float = 0.15  # base value for subgrid deviation / variability over land
     # cloud scheme 0 - ?
     # 1: old fvgfs gfdl) mp implementation
     # 2: binary cloud scheme (0 / 1)
-    tau_l2v: float = (
-        NamelistDefaults.tau_l2v
-    )  # cloud water to water vapor (evaporation)
-    c2l_ord: int = NamelistDefaults.c2l_ord
-    do_sedi_heat: bool = NamelistDefaults.do_sedi_heat
-    do_sedi_w: bool = NamelistDefaults.do_sedi_w
-    fast_sat_adj: bool = NamelistDefaults.fast_sat_adj
-    qc_crt: float = NamelistDefaults.qc_crt
-    fix_negative: bool = NamelistDefaults.fix_negative
-    irain_f: int = NamelistDefaults.irain_f
-    mp_time: float = NamelistDefaults.mp_time
-    prog_ccn: bool = NamelistDefaults.prog_ccn
-    qi0_crt: float = NamelistDefaults.qi0_crt
-    qs0_crt: float = NamelistDefaults.qs0_crt
-    rh_inc: float = NamelistDefaults.rh_inc
-    rh_inr: float = NamelistDefaults.rh_inr
+    tau_l2v: float = 300.0  # cloud water to water vapor (evaporation)
+    c2l_ord: int = 4
+    do_sedi_heat: bool = False  # Transport of heat in sedimentation
+    do_sedi_w: bool = True  # Transport of vertical motion in sedimentation
+    fast_sat_adj: bool = True
+    qc_crt: float = (
+        5.0e-8  # Minimum condensate mixing ratio to allow partial cloudiness
+    )
+    fix_negative: bool = True  # Fix negative water species
+    irain_f: int = 0  # Cloud water to rain auto conversion scheme
+    mp_time: float = 225.0  # Maximum microphysics timestep (sec)
+    prog_ccn: bool = False  # Do prognostic ccn (yi ming's method)
+    qi0_crt: float = 8e-05  # Cloud ice to snow autoconversion threshold
+    qs0_crt: float = (
+        0.003  # Snow to graupel density threshold (0.6e-3 in purdue lin scheme)
+    )
+    rh_inc: float = (
+        0.2  # RH increment for complete evaporation of cloud water and cloud ice
+    )
+    rh_inr: float = 0.3  # RH increment for minimum evaporation of rain
     # rh_ins: Any
-    rthresh: float = NamelistDefaults.rthresh
-    sedi_transport: bool = NamelistDefaults.sedi_transport
+    rthresh: float = 1e-05  # Critical cloud drop radius (micrometers)
+    sedi_transport: bool = True  # Transport of momentum in sedimentation
     # use_ccn: Any
-    use_ppm: bool = NamelistDefaults.use_ppm
-    vg_max: float = NamelistDefaults.vg_max
-    vi_max: float = NamelistDefaults.vi_max
-    vr_max: float = NamelistDefaults.vr_max
-    vs_max: float = NamelistDefaults.vs_max
-    z_slope_ice: bool = NamelistDefaults.z_slope_ice
-    z_slope_liq: bool = NamelistDefaults.z_slope_liq
-    tice: float = NamelistDefaults.tice
-    alin: float = NamelistDefaults.alin
-    clin: float = NamelistDefaults.clin
+    use_ppm: bool = False  # Use ppm fall scheme
+    vg_max: float = 16.0  # Maximum fall speed for graupel
+    vi_max: float = 1.0  # Maximum fall speed for ice
+    vr_max: float = 16.0  # Maximum fall speed for rain
+    vs_max: float = 2.0  # Maximum fall speed for snow
+    z_slope_ice: bool = True  # Use linear mono slope for autoconversions
+    z_slope_liq: bool = True  # Use linear mono slope for autoconversions
+    tice: float = (
+        273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
+    )
+    alin: float = 842.0  # value for 'a' in lin1983
+    clin: float = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
@@ -127,76 +129,34 @@ class PhysicsConfig:
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
 
+    # TODO: Consider removing from_namelist or from_f90nml. Duplicates.
     @classmethod
-    def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "PhysicsConfig":
-        namelist = Namelist.from_f90nml(f90_namelist)
-        return self.from_namelist(namelist)
+    def from_namelist(
+        cls, namelist: Namelist, target_groups=None
+    ) -> "DynamicalCoreConfig":
+        """This creates a DynamicalCoreConfig using the input namelist. 
+        Duplicate of from_f90nml.
+        """
+        return cls.from_f90nml(namelist, target_groups=target_groups)
 
     @classmethod
-    def from_namelist(cls, namelist: Namelist) -> "PhysicsConfig":
-        return cls(
-            dt_atmos=namelist.dt_atmos,
-            hydrostatic=namelist.hydrostatic,
-            npx=namelist.npx,
-            npy=namelist.npy,
-            npz=namelist.npz,
-            nwat=namelist.nwat,
-            do_qa=namelist.do_qa,
-            c_cracw=namelist.c_cracw,
-            c_paut=namelist.c_paut,
-            c_pgacs=namelist.c_pgacs,
-            c_psaci=namelist.c_psaci,
-            ccn_l=namelist.ccn_l,
-            ccn_o=namelist.ccn_o,
-            const_vg=namelist.const_vg,
-            const_vi=namelist.const_vi,
-            const_vr=namelist.const_vr,
-            const_vs=namelist.const_vs,
-            vs_fac=namelist.vs_fac,
-            vg_fac=namelist.vg_fac,
-            vi_fac=namelist.vi_fac,
-            vr_fac=namelist.vr_fac,
-            de_ice=namelist.de_ice,
-            layout=namelist.layout,
-            tau_imlt=namelist.tau_imlt,
-            tau_i2s=namelist.tau_i2s,
-            tau_g2v=namelist.tau_g2v,
-            tau_v2g=namelist.tau_v2g,
-            ql_mlt=namelist.ql_mlt,
-            qs_mlt=namelist.qs_mlt,
-            t_sub=namelist.t_sub,
-            qi_gen=namelist.qi_gen,
-            qi_lim=namelist.qi_lim,
-            qi0_max=namelist.qi0_max,
-            rad_snow=namelist.rad_snow,
-            rad_rain=namelist.rad_rain,
-            dw_ocean=namelist.dw_ocean,
-            dw_land=namelist.dw_land,
-            tau_l2v=namelist.tau_l2v,
-            c2l_ord=namelist.c2l_ord,
-            do_sedi_heat=namelist.do_sedi_heat,
-            do_sedi_w=namelist.do_sedi_w,
-            fast_sat_adj=namelist.fast_sat_adj,
-            qc_crt=namelist.qc_crt,
-            fix_negative=namelist.fix_negative,
-            irain_f=namelist.irain_f,
-            mp_time=namelist.mp_time,
-            prog_ccn=namelist.prog_ccn,
-            qi0_crt=namelist.qi0_crt,
-            qs0_crt=namelist.qs0_crt,
-            rh_inc=namelist.rh_inc,
-            rh_inr=namelist.rh_inr,
-            rthresh=namelist.rthresh,
-            sedi_transport=namelist.sedi_transport,
-            use_ppm=namelist.use_ppm,
-            vg_max=namelist.vg_max,
-            vi_max=namelist.vi_max,
-            vr_max=namelist.vr_max,
-            vs_max=namelist.vs_max,
-            z_slope_ice=namelist.z_slope_ice,
-            z_slope_liq=namelist.z_slope_liq,
-            tice=namelist.tice,
-            alin=namelist.alin,
-            clin=namelist.clin,
-            daily_mean=namelist.daily_mean,
-        )
+    def from_f90nml(
+        cls, namelist: f90nml.Namelist, target_groups=None
+    ) -> "PhysicsConfig":
+        """This creates a PhysicsConfig using the input namelist.
+        Args:
+            namelist
+            target_groups - If None, then the DEFAULT_NML_GROUPS will be used to populate the dataclass fields.
+        """
+        namelist = Namelist(namelist)
+          if target_groups is None:
+            groups = DEFAULT_NML_GROUPS
+        else:
+            groups = target_groups
+        namelist_dict = namelist.namelist_groups_to_flatish_dict(groups)
+        namelist_dict = {
+            key: value
+            for key, value in namelist_dict.items()
+            if key in cls.__dataclass_fields__  # type: ignore
+        }
+        return cls(**namelist_dict)

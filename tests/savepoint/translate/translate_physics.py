@@ -47,7 +47,7 @@ def transform_dwind_serialized_data(data, grid_indexing: GridIndexing, backend: 
 class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, stencil_factory)
-        self.namelist = PhysicsConfig.from_namelist(namelist)
+        self.config = PhysicsConfig.from_f90nml(namelist)
 
     def transform_physics_serialized_data(self, data, roll_zero, index_order):
         if isinstance(data, np.ndarray):
