@@ -1,16 +1,7 @@
-from gt4py.cartesian.gtscript import (
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    exp,
-    interval,
-    sqrt,
-)
-
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, exp, interval, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -1536,10 +1527,6 @@ class ScaleAwareTKEMoistEDMF:
         grid_area: Float,
         config: PBLConfig,
     ):
-        # assert config.ntracers == config.ntke, (
-        #     "PBL scheme satmedmfvdif requires ntracer "
-        #     f"({config.ntracers}) == ntke ({config.ntke})"
-        # )
         if config.do_dk_hb19:
             raise NotImplementedError("do_dk_hb19 has not been implemented")
 
@@ -1960,16 +1947,16 @@ class ScaleAwareTKEMoistEDMF:
         dv: FloatField,
         du: FloatField,
         tdt: FloatField,
-        rtg: FloatFieldTracer,  # FloatField with extra data dimension
+        rtg: FloatFieldTracer,
         hpbl: FloatFieldIJ,
-        u1: FloatField,  # ix
-        v1: FloatField,  # ix
-        t1: FloatField,  # ix
-        q1: FloatFieldTracer,  # FloatField with extra data dimension
-        hsw: FloatField,  # ix
-        hlw: FloatField,  # ix
+        u1: FloatField,
+        v1: FloatField,
+        t1: FloatField,
+        q1: FloatFieldTracer,
+        hsw: FloatField,
+        hlw: FloatField,
         xmu: FloatFieldIJ,
-        psk: FloatFieldIJ,  # ix
+        psk: FloatFieldIJ,
         rbsoil: FloatFieldIJ,
         zorl: FloatFieldIJ,
         tsea: FloatFieldIJ,
@@ -1981,12 +1968,12 @@ class ScaleAwareTKEMoistEDMF:
         heat: FloatFieldIJ,
         stress: FloatFieldIJ,
         spd1: FloatFieldIJ,
-        prsi: FloatField,  # ix
-        delta: FloatField,  # ix, Fortran name is del
-        prsl: FloatField,  # ix
-        prslk: FloatField,  # ix
-        phii: FloatField,  # ix
-        phil: FloatField,  # ix
+        prsi: FloatField,
+        delta: FloatField,  # Fortran name is del
+        prsl: FloatField,
+        prslk: FloatField,
+        phii: FloatField,
+        phil: FloatField,
         dusfc: FloatFieldIJ,
         dvsfc: FloatFieldIJ,
         dtsfc: FloatFieldIJ,
@@ -2191,7 +2178,7 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         for n in range(self._ntracers):
-            dim_n = n  # if n < self._ntke else n + 1
+            dim_n = n
             if dim_n != self._ntke:
                 self._compute_mass_flux_tracer_prelim(
                     self._qcdo,
@@ -2206,7 +2193,7 @@ class ScaleAwareTKEMoistEDMF:
             self._pcnvflg,
             self._zl,
             self._zm,
-            q1,  # I, J, K, ntracer field
+            q1,
             u1,
             v1,
             self._plyr,
@@ -2220,7 +2207,7 @@ class ScaleAwareTKEMoistEDMF:
             self._buou,
             self._xmf,
             self._tcko,
-            self._qcko,  # I, J, K, ntracer field
+            self._qcko,
             self._ucko,
             self._vcko,
             self._xlamue,
@@ -2231,7 +2218,7 @@ class ScaleAwareTKEMoistEDMF:
             self._scuflg,
             self._zl,
             self._zm,
-            q1,  # I, J, K, ntracer field
+            q1,
             u1,
             v1,
             self._plyr,
@@ -2248,7 +2235,7 @@ class ScaleAwareTKEMoistEDMF:
             self._buod,
             self._xmfd,
             self._tcdo,
-            self._qcdo,  # I, J, K, ntracer field
+            self._qcdo,
             self._ucdo,
             self._vcdo,
             self._xlamde,
@@ -2431,7 +2418,7 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         for n in range(self._ntracers):
-            dim_n = n  # if n < self._ntke else n + 1
+            dim_n = n
             if dim_n != self._ntke:
                 if dim_n > 0:
                     if self._ntrac1 >= 2:

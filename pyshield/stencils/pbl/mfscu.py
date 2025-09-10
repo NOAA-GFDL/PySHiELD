@@ -1,15 +1,7 @@
-from gt4py.cartesian.gtscript import (
-    BACKWARD,
-    FORWARD,
-    PARALLEL,
-    computation,
-    interval,
-    sqrt,
-)
-
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -655,7 +647,7 @@ class StratocumulusMassFlux:
         cnvflg: BoolFieldIJ,
         zl: FloatField,
         zm: FloatField,
-        q1: FloatFieldTracer,  # I, J, K, ntracer field
+        q1: FloatFieldTracer,
         u1: FloatField,
         v1: FloatField,
         plyr: FloatField,
@@ -672,7 +664,7 @@ class StratocumulusMassFlux:
         buo: FloatField,
         xmfd: FloatField,
         tcdo: FloatField,
-        qcdo: FloatFieldTracer,  # I, J, K, ntracer field
+        qcdo: FloatFieldTracer,
         ucdo: FloatField,
         vcdo: FloatField,
         xlamde: FloatField,
@@ -734,10 +726,6 @@ class StratocumulusMassFlux:
             return
 
         self._set_zm_mrad(self._zm_mrad, zm, mrad, k_mask)
-
-        # for i in range(self._im):
-        #     for j in range(self._jm):
-        #         self._zm_mrad.view[i, j] = zm.view[i, j, mrad.view[i, j] - 1]
 
         self._mfscu_s2(
             zl,
@@ -803,10 +791,6 @@ class StratocumulusMassFlux:
             return
 
         self._set_zm_mrad(self._zm_mrad, zm, mrad, k_mask)
-
-        # for i in range(self._im):
-        #     for j in range(self._jm):
-        #         self._zm_mrad.view[i, j] = zm.view[i, j, mrad.view[i, j] - 1]
 
         self._mfscu_s6(
             zl,

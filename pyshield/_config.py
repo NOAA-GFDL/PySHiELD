@@ -32,27 +32,49 @@ class PBLConfig:
     dt_atmos: int = DEFAULT_INT
     hydrostatic: bool = DEFAULT_BOOL
     isatmedmf: int = NamelistDefaults.isatmedmf
+    """flag for scale-aware turbulent moist edmf scheme"""
     xkzm_h: float = NamelistDefaults.xkzm_h
+    """Background vertical diffusion for heat q over ocean"""
     xkzm_m: float = NamelistDefaults.xkzm_m
+    """Background vertical diffusion for momentum over ocean"""
     xkzm_hl: float = NamelistDefaults.xkzm_hl
+    """Background vertical diffusion for heat q over land"""
     xkzm_ml: float = NamelistDefaults.xkzm_ml
+    """Background vertical diffusion for momentum over land"""
     xkzm_hi: float = NamelistDefaults.xkzm_hi
+    """Background vertical diffusion for heat q over ice"""
     xkzm_mi: float = NamelistDefaults.xkzm_mi
+    """Background vertical diffusion for momentum over ice"""
     xkzm_ho: float = NamelistDefaults.xkzm_ho
+    """Background vertical diffusion for heat q over ocean"""
     xkzm_mo: float = NamelistDefaults.xkzm_mo
+    """Background vertical diffusion for momentum over ocean"""
     xkzminv: float = NamelistDefaults.xkzminv
+    """Diffusivity in inversion layers"""
     xkzm_s: float = NamelistDefaults.xkzm_s
+    """Sigma threshold for background momentum diffusion"""
     xkzm_lim: float = NamelistDefaults.xkzm_lim
+    """Background diffusion limit"""
     xkgdx: float = NamelistDefaults.xkgdx
+    """Background vertical diffusion threshold"""
     do_dk_hb19: bool = DEFAULT_BOOL
+    """Flag to use HB19 background diffusion formula in satmedmf"""
     rlmn: float = NamelistDefaults.rlmn
+    """Lower limit on aymptotic mixing length in satmedmf"""
     rlmx: float = NamelistDefaults.rlmx
+    """Upper limit on aymptotic mixing length in satmedmf"""
     ntracers: int = int(len(tracer_variables))
+    """Number of tracers"""
     ntiw: int = DEFAULT_INT
+    """Tracer index of ice water"""
     ntcw: int = DEFAULT_INT
+    """Tracer index of cloud water"""
     ntke: int = DEFAULT_INT
+    """Tracer index of subgrid turbulent kinetic energy"""
     dspheat: bool = NamelistDefaults.dspheat
+    """Flag for dissipative heating"""
     cap_k0_land: bool = NamelistDefaults.cap_k0_land
+    """Flag to apply limiter on background diffusivity in inversion layer over land"""
 
     def __post_init__(self):
         if self.isatmedmf != 0:
@@ -95,40 +117,39 @@ class PhysicsConfig:
     de_ice: bool = NamelistDefaults.de_ice
     layout: Tuple[int, int] = NamelistDefaults.layout
     # gfdl_cloud_microphys.F90
-    tau_imlt: float = NamelistDefaults.tau_imlt  # cloud ice melting
-    tau_i2s: float = NamelistDefaults.tau_i2s  # cloud ice to snow auto - conversion
-    tau_g2v: float = NamelistDefaults.tau_g2v  # graupel sublimation
-    tau_v2g: float = (
-        NamelistDefaults.tau_v2g
-    )  # graupel deposition -- make it a slow process
-    ql_mlt: float = (
-        NamelistDefaults.ql_mlt
-    )  # max value of cloud water allowed from melted cloud ice
-    qs_mlt: float = NamelistDefaults.qs_mlt  # max cloud water due to snow melt
-    t_sub: float = NamelistDefaults.t_sub  # min temp for sublimation of cloud ice
-    qi_gen: float = (
-        NamelistDefaults.qi_gen
-    )  # max cloud ice generation during remapping step
-    qi_lim: float = (
-        NamelistDefaults.qi_lim
-    )  # cloud ice limiter to prevent large ice build up
-    qi0_max: float = NamelistDefaults.qi0_max  # max cloud ice value (by other sources)
-    rad_snow: bool = (
-        NamelistDefaults.rad_snow
-    )  # consider snow in cloud fraction calculation
-    rad_rain: bool = (
-        NamelistDefaults.rad_rain
-    )  # consider rain in cloud fraction calculation
-    dw_ocean: float = NamelistDefaults.dw_ocean  # base value for ocean
-    dw_land: float = (
-        NamelistDefaults.dw_land
-    )  # base value for subgrid deviation / variability over land
+    tau_imlt: float = NamelistDefaults.tau_imlt
+    """cloud ice melting"""
+    tau_i2s: float = NamelistDefaults.tau_i2s
+    """cloud ice to snow auto - conversion"""
+    tau_g2v: float = NamelistDefaults.tau_g2v
+    """graupel sublimation"""
+    tau_v2g: float = NamelistDefaults.tau_v2g
+    """graupel deposition -- make it a slow process"""
+    ql_mlt: float = NamelistDefaults.ql_mlt
+    """max value of cloud water allowed from melted cloud ice"""
+    qs_mlt: float = NamelistDefaults.qs_mlt
+    """max cloud water due to snow melt"""
+    t_sub: float = NamelistDefaults.t_sub
+    """min temp for sublimation of cloud ice"""
+    qi_gen: float = NamelistDefaults.qi_gen
+    """max cloud ice generation during remapping step"""
+    qi_lim: float = NamelistDefaults.qi_lim
+    """cloud ice limiter to prevent large ice build up"""
+    qi0_max: float = NamelistDefaults.qi0_max
+    """max cloud ice value (by other sources)"""
+    rad_snow: bool = NamelistDefaults.rad_snow
+    """consider snow in cloud fraction calculation"""
+    rad_rain: bool = NamelistDefaults.rad_rain
+    """consider rain in cloud fraction calculation"""
+    dw_ocean: float = NamelistDefaults.dw_ocean
+    """base value for ocean"""
+    dw_land: float = NamelistDefaults.dw_land
+    """base value for subgrid deviation / variability over land"""
     # cloud scheme 0 - ?
     # 1: old fvgfs gfdl) mp implementation
     # 2: binary cloud scheme (0 / 1)
-    tau_l2v: float = (
-        NamelistDefaults.tau_l2v
-    )  # cloud water to water vapor (evaporation)
+    tau_l2v: float = NamelistDefaults.tau_l2v
+    """cloud water to water vapor (evaporation)"""
     c2l_ord: int = NamelistDefaults.c2l_ord
     do_sedi_heat: bool = NamelistDefaults.do_sedi_heat
     do_sedi_w: bool = NamelistDefaults.do_sedi_w

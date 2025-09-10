@@ -1,8 +1,7 @@
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval, sqrt
-
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
@@ -457,7 +456,7 @@ class PBLMassFlux:
         cnvflg: BoolFieldIJ,
         zl: FloatField,
         zm: FloatField,
-        q1: FloatFieldTracer,  # I, J, K, ntracer field
+        q1: FloatFieldTracer,
         u1: FloatField,
         v1: FloatField,
         plyr: FloatField,
@@ -471,7 +470,7 @@ class PBLMassFlux:
         buo: FloatField,
         xmf: FloatField,
         tcko: FloatField,
-        qcko: FloatFieldTracer,  # I, J, K, ntracer field
+        qcko: FloatFieldTracer,
         ucko: FloatField,
         vcko: FloatField,
         xlamue: FloatField,
