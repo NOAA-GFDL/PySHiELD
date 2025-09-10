@@ -1,85 +1,90 @@
 from ndsl import constants
+from ndsl.dsl.typing import Float
 
 
 # Alternative Units and Precision in Physics:
-CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
-CPH2O2 = 4.2e6
+CPH2O1 = Float(4.218e3)
+"""Specific heat of water in J/kg/K"""
+CPH2O2 = Float(4.2e6)
+"""Specific heat of water in mJ/kg/K with reduced precision"""
 
 # Driver constants
-HOCP = constants.HLV / constants.CP_AIR
-QMIN = 1.0e-10
-RAINMIN = 1.0e-13
-P850 = 85000.0
-EPSQ = 1.0e-20
-HSUB = constants.HLV + constants.HLF
-CZMIN = 0.0001  # cos(89.994)
-ZERO = 0.0e0
-ALBDF = 0.06
-CON_P001 = 0.001e0
-CON_DAY = 86400.0
-TF = 258.16
-TCRF = 1.0 / (constants.TICE - TF)
-CONT = constants.CP_AIR / constants.GRAV
-CONQ = constants.HLV / constants.GRAV
+HOCP = Float(constants.HLV / constants.CP_AIR)
+QMIN = Float(1.0e-10)
+RAINMIN = Float(1.0e-13)
+P850 = Float(85000.0)
+EPSQ = Float(1.0e-20)
+HSUB = Float(constants.HLV + constants.HLF)
+CZMIN = Float(0.0001)
+"""cos(89.994)"""
+ZERO = Float(0.0e0)
+ALBDF = Float(0.06)
+CON_P001 = Float(0.001e0)
+CON_DAY = Float(86400.0)
+TF = Float(258.16)
+TCRF = Float(1.0 / (constants.TICE - TF))
+CONT = Float(constants.CP_AIR / constants.GRAV)
+CONQ = Float(constants.HLV / constants.GRAV)
 
 # Constants used in interpolating radiation onto physics timestep:
-F_EPS = 0.0001
+F_EPS = Float(0.0001)
 
 # Constants used for turbulence schemes
-A1 = 0.12
-A2 = 0.5
-A11 = 0.2
-A22 = 1.0
-B1 = 0.5
-CK0 = 0.4
-CK1 = 0.15
-CH0 = 0.4
-CH1 = 0.15
-CE0 = 0.4
-CM = 1.0
-F1 = 0.15
-DW2MIN = 1.0e-4
-DKMAX = 1000.0
-XKGDX = 25000.0  # background vertical diffusion threshold
-PBL_QMIN = 1.0e-8
-QLMIN = 1.0e-12
-ZFMIN = 1.0e-8
-QLCR = 3.5e-5
-ZSTBLMAX = 2500.0
-ELMFAC = 1.0
-ELEFAC = 1.0
-CQL = 100.0
-RBCR = 0.25
-ZOLCRU = -0.02
-TDZMIN = 1.0e-3
-F0 = 1.0e-4
-CRBMIN = 0.15
-CRBMAX = 0.35
-VK = 0.4
-RIMIN = -100.0
-GAMCRT = 3.0
-GAMCRQ = 0.0
-SFCFRAC = 0.1
-APHI16 = 16.0
-APHI5 = 5.0
-WFAC = 7.0
-CFAC = 4.5
-H1 = 0.33333333
-RLMN = 30.0
-RLMX = 300.0
-ELMX = 300.0
-PRMIN = 0.25
-PRMAX = 4.0
-PRTKE = 1.0
-PRSCU = 0.67
-RCHCK = 1.5
-CDTN = 25.0
-TKMIN = 1.0e-9
-DSPFAC = 0.5
-DSPMAX = 10.0
-ELOCP = constants.HLV / constants.CP_AIR
-EL2ORC = constants.HLV * constants.HLV / (constants.RVGAS * constants.CP_AIR)
-ALP = 1.0
-PGCON = 0.55
-CLDTIME = 500.0
-ACTEI = 0.7
+A1 = Float(0.12)
+A2 = Float(0.5)
+A11 = Float(0.2)
+A22 = Float(1.0)
+B1 = Float(0.5)
+CK0 = Float(0.4)
+CK1 = Float(0.15)
+CH0 = Float(0.4)
+CH1 = Float(0.15)
+CE0 = Float(0.4)
+CM = Float(1.0)
+F1 = Float(0.15)
+DW2MIN = Float(1.0e-4)
+DKMAX = Float(1000.0)
+XKGDX = Float(25000.0)
+"""background vertical diffusion threshold"""
+PBL_QMIN = Float(1.0e-8)
+QLMIN = Float(1.0e-12)
+ZFMIN = Float(1.0e-8)
+QLCR = Float(3.5e-5)
+ZSTBLMAX = Float(2500.0)
+ELMFAC = Float(1.0)
+ELEFAC = Float(1.0)
+CQL = Float(100.0)
+RBCR = Float(0.25)
+ZOLCRU = Float(-0.02)
+TDZMIN = Float(1.0e-3)
+F0 = Float(1.0e-4)
+CRBMIN = Float(0.15)
+CRBMAX = Float(0.35)
+VK = Float(0.4)
+RIMIN = Float(-100.0)
+GAMCRT = Float(3.0)
+GAMCRQ = Float(0.0)
+SFCFRAC = Float(0.1)
+APHI16 = Float(16.0)
+APHI5 = Float(5.0)
+WFAC = Float(7.0)
+CFAC = Float(4.5)
+H1 = Float(0.33333333)
+RLMN = Float(30.0)
+RLMX = Float(300.0)
+ELMX = Float(300.0)
+PRMIN = Float(0.25)
+PRMAX = Float(4.0)
+PRTKE = Float(1.0)
+PRSCU = Float(0.67)
+RCHCK = Float(1.5)
+CDTN = Float(25.0)
+TKMIN = Float(1.0e-9)
+DSPFAC = Float(0.5)
+DSPMAX = Float(10.0)
+ELOCP = Float(constants.HLV / constants.CP_AIR)
+EL2ORC = Float(constants.HLV * constants.HLV / (constants.RVGAS * constants.CP_AIR))
+ALP = Float(1.0)
+PGCON = Float(0.55)
+CLDTIME = Float(500.0)
+ACTEI = Float(0.7)
