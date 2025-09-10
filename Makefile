@@ -2,7 +2,7 @@ MakefileSHELL=/bin/bash
 CWD=$(shell pwd)
 CMD ?= bash
 DEV ?=y
-ROOT_DIR ?= /pySHiELD
+ROOT_DIR ?= /pyshield
 IMAGE_NAME ?= noaa-gfdl/pyshield
 
 NUM_RANKS ?=6
