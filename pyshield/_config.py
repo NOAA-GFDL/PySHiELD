@@ -22,16 +22,31 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 @dataclasses.dataclass
 class SurfaceConfig:
     do_z0_hwrf15: bool = DEFAULT_BOOL
+    """flag to use z0 scheme from 2015 HWRF"""
     do_z0_hwrf17: bool = DEFAULT_BOOL
+    """flag to use z0 scheme from 2017 HWRF"""
     do_z0_hwrf17_hwonly: bool = DEFAULT_BOOL
+    """flag to use z0 scheme from 2017 HWRF only under high wind"""
     do_z0_moon: bool = DEFAULT_BOOL
+    """flag to use z0 scheme from Moon et al. 2007"""
     dt_atmos: float = DEFAULT_FLOAT
     mom4ice: bool = DEFAULT_BOOL
+    """Flag to enable mom4 sea-ice"""
     ivegsrc: int = DEFAULT_INT
+    """
+    Source of vegetation data:
+     - 0: USGS
+     - 1: IGBP (20 category)
+     - 2: UMD (13 category)
+    """
     lsm: int = DEFAULT_INT
+    """LSM selection. 1=NOAH, 2=NOAH MP"""
     redrag: bool = DEFAULT_BOOL
+    """flag for reduced drag coefficient over sea"""
     wind_th_hwrf: float = DEFAULT_FLOAT
+    """Wind speed threshold when z0 level off as in HWRF"""
     lsoil: int = 4
+    """Number of soil levels"""
     nstf_name: Sequence[int] = (0, 0, 1, 0, 5)
     """
     nstf_name contains the NSSTM related parameters:
@@ -139,7 +154,7 @@ class PhysicsConfig:
     mom4ice: bool = NamelistDefaults.mom4ice
     lsm: int = NamelistDefaults.lsm
     redrag: bool = NamelistDefaults.redrag
-    wind_th_hwrf: float = DEFAULT_FLOAT
+    wind_th_hwrf: float = 33.0
     lsoil: int = 4
     ivegsrc: int = 2
     """
