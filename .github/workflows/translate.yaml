@@ -26,6 +26,9 @@ concurrency:
 jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
     env:
       TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
@@ -49,11 +52,9 @@ jobs:
           activate-environment: pyshield_test_env
 
       - name: Install mpi (MPICH flavor)
-        shell: bash -l {0}
         run: pip install mpich
 
       - name: External trigger remove existing component in pySHiELD/develop
-        shell: bash -l {0}
         if: ${{ inputs.component_trigger }}
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
@@ -64,7 +65,6 @@ jobs:
           path: pySHiELD/${{inputs.component_name}}
 
       - name: external trigger Install packages for FV3 component
-        shell: bash -l {0}
         if: ${{contains(inputs.component_name, 'FV3')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
@@ -72,10 +72,8 @@ jobs:
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
           pip install numpy==1.26.4
-          conda remove sqlite
 
       - name: external trigger Install packages for NDSL component
-        shell: bash -l {0}
         if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
@@ -83,17 +81,14 @@ jobs:
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[pyfv3,test]
           pip install numpy==1.26.4
-          conda remove sqlite
 
       - name: Install pySHiELD packages
-        shell: bash -l {0}
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
           pip install .[ndsl,pyfv3,test]
           pip install numpy==1.26.4
-          conda remove sqlite
 
       # Only restore (don't save) caches on PRs. New caches created from PRs won't be
       # accessible from other PRs, see workflows/create_cache.yaml.
@@ -106,14 +101,12 @@ jobs:
 
       - name: Download data (if not cached)
         if: steps.cache-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
         run: |
           mkdir -p pySHiELD/test_data && cd pySHiELD/test_data
           wget ${{ env.TEST_DATA_URL }}
           tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
 
       - name: Numpy Translate Test
-        shell: bash -l {0}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
@@ -123,7 +116,7 @@ jobs:
             ./tests/savepoint
 
       - name: Orchestrated dace:cpu Translate Test
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           export FV3_DACEMODE=BuildAndRun
