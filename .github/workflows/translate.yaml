@@ -127,9 +127,9 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           export FV3_DACEMODE=BuildAndRun
-          export PACE_FLOAT_PRECISION=64
+          export NDSL_LITERAL_PRECISION=64
           export OMP_NUM_THREADS=10
-          export PACE_LOGLEVEL=Debug
+          export NDSL_LOGLEVEL=Debug
           pytest \
             -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=dace:cpu \
