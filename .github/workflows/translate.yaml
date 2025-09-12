@@ -26,9 +26,9 @@ concurrency:
 jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -el {0}
+    # defaults:
+    #   run:
+    #     shell: bash -el {0}
     env:
       TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
