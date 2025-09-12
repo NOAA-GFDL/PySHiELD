@@ -1,94 +1,96 @@
 import math
 
 import ndsl.constants as constants
+from ndsl.dsl.typing import Float
 
 
 # Driver constants
-HOCP = constants.HLV / constants.CP_AIR
-QMIN = 1.0e-10
-RAINMIN = 1.0e-13
-P850 = 85000.0
-EPSQ = 1.0e-20
-HSUB = constants.HLV + constants.HLF
-CZMIN = 0.0001  # cos(89.994)
-ZERO = 0.0e0
-ALBDF = 0.06
-CON_P001 = 0.001e0
-CON_DAY = 86400.0
-TF = 258.16
-TCRF = 1.0 / (constants.TICE - TF)
-CONT = constants.CP_AIR / constants.GRAV
-CONQ = constants.HLV / constants.GRAV
+HOCP = Float(constants.HLV / constants.CP_AIR)
+QMIN = Float(1.0e-10)
+RAINMIN = Float(1.0e-13)
+P850 = Float(85000.0)
+EPSQ = Float(1.0e-20)
+HSUB = Float(constants.HLV + constants.HLF)
+CZMIN = Float(0.0001)
+"""cos(89.994)"""
+ZERO = Float(0.0e0)
+ALBDF = Float(0.06)
+CON_P001 = Float(0.001e0)
+CON_DAY = Float(86400.0)
+TF = Float(258.16)
+TCRF = Float(1.0 / (constants.TICE - TF))
+CONT = Float(constants.CP_AIR / constants.GRAV)
+CONQ = Float(constants.HLV / constants.GRAV)
 
 # Alternative Units and Precision in Physics:
-CPH2O1 = 4.218e3
+CPH2O1 = Float(4.218e3)
 """Specific heat of water in J/kg/K"""
-CPH2O2 = 4.2e6
+CPH2O2 = Float(4.2e6)
 
 # Constants used in interpolating radiation onto physics timestep:
-F_EPS = 0.0001
+F_EPS = Float(0.0001)
 
 # SHiELD Microphysics constants
-TICE0 = constants.TICE - 0.01
+TICE0 = Float(constants.TICE - 0.01)
 
-C_ICE = 2.106e3
+C_ICE = Float(2.106e3)
 """Heat capacity of ice at 0 degrees Celsius"""
-C_LIQ = 4.218e3
+C_LIQ = Float(4.218e3)
 """Heat capacity of water at 0 degrees Celsius"""
-DC_ICE = C_LIQ - C_ICE
+DC_ICE = Float(C_LIQ - C_ICE)
 """Isobaric heating / cooling (J/kg/K)"""
-DC_VAP = constants.CP_VAP - C_LIQ
+DC_VAP = Float(constants.CP_VAP - C_LIQ)
 """Isobaric heating / cooling (J/kg/K)"""
-D2ICE = DC_VAP + DC_ICE
+D2ICE = Float(DC_VAP + DC_ICE)
 """Isobaric heating / cooling (J/kg/K)"""
-LV0 = constants.HLV - DC_VAP * TICE0
+LV0 = Float(constants.HLV - DC_VAP * TICE0)
 """3148711.3338762247, evaporation latent heat coefficient at 0 degrees Kelvin"""
-LI00 = constants.HLF - DC_ICE * TICE0
+LI00 = Float(constants.HLF - DC_ICE * TICE0)
 """-242413.92000000004, fusion latent heat coefficient at 0 degrees Kelvin"""
-LI2 = LV0 + LI00
+LI2 = Float(LV0 + LI00)
 """2906297.413876225, sublimation latent heat coefficient at 0 degrees Kelvin"""
-LI0 = constants.HLF - DC_ICE * TICE0
+LI0 = Float(constants.HLF - DC_ICE * TICE0)
 
-RHO_0 = 1.0
+RHO_0 = Float(1.0)
 """reference air density (kg/m^3), ref: IFS"""
-RHO_W = 1.0e3
+RHO_W = Float(1.0e3)
 """density of cloud water (kg/m^3)"""
-RHO_I = 9.17e2
+RHO_I = Float(9.17e2)
 """density of cloud ice (kg/m^3)"""
-RHO_R = 1.0e3
+RHO_R = Float(1.0e3)
 """density of rain (Lin et al. 1983) (kg/m^3)"""
-RHO_S = 1.0e2
+RHO_S = Float(1.0e2)
 """density of snow (Lin et al. 1983) (kg/m^3)"""
-RHO_G = 4.0e2
+RHO_G = Float(4.0e2)
 """density of graupel (Rutledge and Hobbs 1984) (kg/m^3)"""
-RHO_H = 9.17e2
+RHO_H = Float(9.17e2)
 """density of hail (Lin et al. 1983) (kg/m^3)"""
 
-VISD = 1.717e-5
+VISD = Float(1.717e-5)
 """dynamics viscosity of air at 0 deg C and 1000 hPa (Mason, 1971) (kg/m/s)"""
-VISK = 1.35e-5
+VISK = Float(1.35e-5)
 """kinematic viscosity of air at 0 deg C  and 1000 hPa (Mason, 1971) (m^2/s)"""
-VDIFU = 2.25e-5
+VDIFU = Float(2.25e-5)
 """diffusivity of water vapor in air at 0 deg C  and 1000 hPa (Mason, 1971) (m^2/s)"""
-TCOND = 2.40e-2
+TCOND = Float(2.40e-2)
 """thermal conductivity of air at 0 C and 1000 hPa (Mason, 1971) (J/m/s/K)"""
-SCM3 = math.exp(1.0 / 3 * math.log(VISK / VDIFU))
+SCM3 = Float(math.exp(1.0 / 3 * math.log(VISK / VDIFU)))
 """Schmidt number, Sc ** (1 / 3) Lin et al. (1983)"""
 
-QCMIN = 1.0e-15
+QCMIN = Float(1.0e-15)
 """min value for cloud condensates (kg/kg)"""
-QFMIN = 1.0e-8
+QFMIN = Float(1.0e-8)
 """min value for sedimentation (kg/kg)"""
-DT_FR = 8.0
+DT_FR = Float(8.0)
 """t_wfr - dt_fr: minimum temperature water can exist (Moore and Molinero 2011)"""
-CDG = 3.15121
+CDG = Float(3.15121)
 """drag coefficient of graupel (Locatelli and Hobbs, 1974)"""
-CDH = 0.5
+CDH = Float(0.5)
 """drag coefficient of hail (Heymsfield and Wright, 2014)"""
 
-DZ_MIN_FLIP = 1.0e-2
+DZ_MIN_FLIP = Float(1.0e-2)
 """used for correcting flipped height (m)"""
 
 # Terminal Velocity Parameters, Lin et al. (1983)
-GCON = (4.0 * constants.GRAV * RHO_G / (3.0 * CDG * RHO_0)) ** 0.5
-HCON = (4.0 * constants.GRAV * RHO_H / (3.0 * CDH * RHO_0)) ** 0.5
+GCON = Float((4.0 * constants.GRAV * RHO_G / (3.0 * CDG * RHO_0)) ** 0.5)
+HCON = Float((4.0 * constants.GRAV * RHO_H / (3.0 * CDH * RHO_0)) ** 0.5)
