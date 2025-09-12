@@ -116,7 +116,6 @@ jobs:
             ./tests/savepoint
 
       - name: Orchestrated dace:cpu Translate Test
-        shell: bash -el {0}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           export FV3_DACEMODE=BuildAndRun
