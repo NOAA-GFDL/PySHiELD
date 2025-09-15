@@ -10,18 +10,18 @@ from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
 
 
-CCR = 1.3e-6  # iteration limit
-CYEAR = 365.25  # days of year
-SVT6 = 78.035  # days between perihelion passage and march equinox of 1900
-TPP = 1.55  # days between epoch and perihelion passage of 1900
-CZLIMT = 0.0001  # ~ cos(89.99427)
-JDOR = 2415020  # jd of epoch which is january 0, 1900 at 12 hours ut
-HRDAY = 1.0 / 24.0  # 1 hour in days
-MINDAY = 1.0 / 1440.0  # 1 minute in days
-SECDAY = 1.0 / 86400.0  # 1 second in days
+CCR = Float(1.3e-6)  # iteration limit
+CYEAR = Float(365.25)  # days of year
+SVT6 = Float(78.035)  # days between perihelion passage and march equinox of 1900
+TPP = Float(1.55)  # days between epoch and perihelion passage of 1900
+CZLIMT = Float(0.0001)  # ~ cos(89.99427)
+JDOR = Float(2415020)  # jd of epoch which is january 0, 1900 at 12 hours ut
+HRDAY = Float(1.0 / 24.0)  # 1 hour in days
+MINDAY = Float(1.0 / 1440.0)  # 1 minute in days
+SECDAY = Float(1.0 / 86400.0)  # 1 second in days
 
-CON_SOLR = 1.3608e3
-CON_SOLR_OLD = 1.3660e3
+CON_SOLR = Float(1.3608e3)  # Default Solar constant
+CON_SOLR_OLD = Float(1.3660e3)  # Previous default Solar constant
 SMON_SAV = [CON_SOLR for i in range(12)]
 
 

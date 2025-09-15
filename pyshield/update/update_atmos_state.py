@@ -8,7 +8,6 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
 from ndsl.typing import Communicator
 from pyfv3.stencils import fv_subgridz
-from pyshield.physics_state import PhysicsState
 from pyshield.update.fv_update_phys import ApplyPhysicsToDycore
 
 
@@ -180,8 +179,8 @@ class DycoreToPhysics:
 
     def __call__(
         self,
-        dycore_state: pyfv3.DycoreState,
-        physics_state: PhysicsState,
+        dycore_state,
+        physics_state,
         tendency_state=None,
         ptop: FloatFieldIJ = None,
         timestep: Optional[float] = None,
