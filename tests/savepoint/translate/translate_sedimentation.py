@@ -12,7 +12,7 @@ from pyshield.stencils.shield_microphysics.sedimentation import (
     calc_terminal_velocity_rsg,
     init_zeros_heat_cap_latent_heat_precip,
     sedi_melt,
-    sedi_melt_stencil,
+    sedi_melt_python,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -275,7 +275,7 @@ class SediMelt:
             self._k_mask.data[:, :, k] = k
 
         self._sedi_melt_ice = stencil_factory.from_origin_domain(
-            func=sedi_melt_stencil,
+            func=sedi_melt,
             externals={
                 "c1_vap": config.c1_vap,
                 "c1_liq": config.c1_liq,
@@ -290,7 +290,7 @@ class SediMelt:
             domain=self._idx.domain_compute(),
         )
         self._sedi_melt_snow = stencil_factory.from_origin_domain(
-            func=sedi_melt_stencil,
+            func=sedi_melt,
             externals={
                 "c1_vap": config.c1_vap,
                 "c1_liq": config.c1_liq,
@@ -305,7 +305,7 @@ class SediMelt:
             domain=self._idx.domain_compute(),
         )
         self._sedi_melt_graupel = stencil_factory.from_origin_domain(
-            func=sedi_melt_stencil,
+            func=sedi_melt,
             externals={
                 "c1_vap": config.c1_vap,
                 "c1_liq": config.c1_liq,
@@ -403,7 +403,7 @@ class SediMelt:
                     raise ValueError(f"sedi_melt mode {mode} not ice, snow, or graupel")
             else:
                 if mode == "ice":
-                    sedi_melt(
+                    sedi_melt_python(
                         qvapor,
                         qliquid,
                         qrain,
@@ -434,7 +434,7 @@ class SediMelt:
                         mode,
                     )
                 elif mode == "snow":
-                    sedi_melt(
+                    sedi_melt_python(
                         qvapor,
                         qliquid,
                         qrain,
@@ -465,7 +465,7 @@ class SediMelt:
                         mode,
                     )
                 elif mode == "graupel":
-                    sedi_melt(
+                    sedi_melt_python(
                         qvapor,
                         qliquid,
                         qrain,
