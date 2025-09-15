@@ -158,8 +158,8 @@ def calc_terminal_velocity_ice(
                 v_terminal = min(v_max, max(0.0, v_terminal))
 
 
-# TODO: Can this be made a stencil?
-def sedi_melt(
+# This is a pure-python version of sedi_melt kept for comparison purposes
+def sedi_melt_python(
     qvapor,
     qliquid,
     qrain,
@@ -290,7 +290,7 @@ def sedi_melt(
                             break
 
 
-def sedi_melt_stencil(
+def sedi_melt(
     qvapor: FloatField,
     qliquid: FloatField,
     qrain: FloatField,
@@ -317,8 +317,8 @@ def sedi_melt_stencil(
             q_melt = qsnow
         elif mode == 2:  # graupel
             q_melt = qgraupel
-        else:  # Default to graupel I guess?
-            q_melt = qgraupel
+        else:  # Default to ice I guess?
+            q_melt = qice
     with computation(BACKWARD):
         with interval(1, -1):
             lev = 1
@@ -578,7 +578,7 @@ class Sedimentation:
 
         if self.config.do_sedi_melt:
             self._sedi_melt_ice = stencil_factory.from_dims_halo(
-                func=sedi_melt_stencil,
+                func=sedi_melt,
                 compute_dims=[X_DIM, Y_DIM, Z_DIM],
                 externals={
                     "c1_vap": config.c1_vap,
@@ -592,7 +592,7 @@ class Sedimentation:
                 },
             )
             self._sedi_melt_snow = stencil_factory.from_origin_domain(
-                func=sedi_melt_stencil,
+                func=sedi_melt,
                 externals={
                     "c1_vap": config.c1_vap,
                     "c1_liq": config.c1_liq,
@@ -607,7 +607,7 @@ class Sedimentation:
                 domain=self._idx.domain_compute(),
             )
             self._sedi_melt_graupel = stencil_factory.from_origin_domain(
-                func=sedi_melt_stencil,
+                func=sedi_melt,
                 externals={
                     "c1_vap": config.c1_vap,
                     "c1_liq": config.c1_liq,
@@ -762,36 +762,6 @@ class Sedimentation:
         )
 
         if self.config.do_sedi_melt:
-            # sedi_melt(
-            #     qvapor.data[:],
-            #     qliquid.data[:],
-            #     qrain.data[:],
-            #     qice.data[:],
-            #     qsnow.data[:],
-            #     qgraupel.data[:],
-            #     self._cvm.data[:],
-            #     temperature.data[:],
-            #     delp.data[:],
-            #     self._z_edge.data[:],
-            #     self._z_terminal.data[:],
-            #     self._z_surface.data[:],
-            #     self._timestep,
-            #     vterminal_ice.data[:],
-            #     column_rain.data[:],
-            #     self.config.tau_imlt,
-            #     self._icpk.data[:],
-            #     self.li00,
-            #     self.c1_vap,
-            #     self.c1_liq,
-            #     self.c1_ice,
-            #     self._ks,
-            #     self._ke,
-            #     self._is_,
-            #     self._ie,
-            #     self._js,
-            #     self._je,
-            #     "ice",
-            # )
             self._sedi_melt_ice(
                 qvapor,
                 qliquid,
@@ -872,36 +842,6 @@ class Sedimentation:
         )
 
         if self.config.do_sedi_melt:
-            # sedi_melt(
-            #     qvapor.data[:],
-            #     qliquid.data[:],
-            #     qrain.data[:],
-            #     qice.data[:],
-            #     qsnow.data[:],
-            #     qgraupel.data[:],
-            #     self._cvm.data[:],
-            #     temperature.data[:],
-            #     delp.data[:],
-            #     self._z_edge.data[:],
-            #     self._z_terminal.data[:],
-            #     self._z_surface.data[:],
-            #     self._timestep,
-            #     vterminal_snow.data[:],
-            #     column_rain.data[:],
-            #     self.config.tau_smlt,
-            #     self._icpk.data[:],
-            #     self.li00,
-            #     self.c1_vap,
-            #     self.c1_liq,
-            #     self.c1_ice,
-            #     self._ks,
-            #     self._ke,
-            #     self._is_,
-            #     self._ie,
-            #     self._js,
-            #     self._je,
-            #     "snow",
-            # )
             self._sedi_melt_snow(
                 qvapor,
                 qliquid,
@@ -982,36 +922,6 @@ class Sedimentation:
         )
 
         if self.config.do_sedi_melt:
-            # sedi_melt(
-            #     qvapor.data[:],
-            #     qliquid.data[:],
-            #     qrain.data[:],
-            #     qice.data[:],
-            #     qsnow.data[:],
-            #     qgraupel.data[:],
-            #     self._cvm.data[:],
-            #     temperature.data[:],
-            #     delp.data[:],
-            #     self._z_edge.data[:],
-            #     self._z_terminal.data[:],
-            #     self._z_surface.data[:],
-            #     self._timestep,
-            #     vterminal_graupel.data[:],
-            #     column_rain.data[:],
-            #     self.config.tau_gmlt,
-            #     self._icpk.data[:],
-            #     self.li00,
-            #     self.c1_vap,
-            #     self.c1_liq,
-            #     self.c1_ice,
-            #     self._ks,
-            #     self._ke,
-            #     self._is_,
-            #     self._ie,
-            #     self._js,
-            #     self._je,
-            #     "graupel",
-            # )
             self._sedi_melt_graupel(
                 qvapor,
                 qliquid,
