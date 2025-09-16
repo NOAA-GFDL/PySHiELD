@@ -39,15 +39,6 @@ jobs:
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
 
     steps:
-      - name: External trigger Checkout pySHiELD
-        if: ${{inputs.component_trigger}}
-        uses: actions/checkout@v5
-        with:
-          submodules: 'recursive'
-          repository: jjuyeonkim/PySHiELD
-          path: pySHiELD
-          ref: 20250908_namelist_2
-
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -60,55 +51,55 @@ jobs:
         shell: bash -l {0}
         run: pip install mpich
 
-      - name: External trigger remove existing component in pySHiELD/develop
-        shell: bash -l {0}
-        if: ${{ inputs.component_trigger }}
-        run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
-
-      - name: Checkout hash that triggered CI
+      - name: Checkout pySHiELD
         uses: actions/checkout@v5
         with:
           submodules: 'recursive'
-          path: pySHiELD/${{inputs.component_name}}
+          repository: jjuyeonkim/pyshield
+          path: pySHiELD
           ref: 20250908_namelist_2
 
-      - name: external trigger Install packages for FV3 component
+      - name: Checkout pyFV3
+        uses: actions/checkout@v5
+        with:
+          submodules: 'recursive'
+          repository: jjuyeonkim/pyfv3
+          path: pySHiELD/pyFV3
+          ref: 20250908_namelist_2
+
+      - name: Install packages for FV3 component
         shell: bash -l {0}
-        if: ${{contains(inputs.component_name, 'FV3')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
-          cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
+          cd pyFV3 && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
           pip install numpy==1.26.4
 
-      - name: external trigger Install packages for NDSL component
+      - name: Checkout NDSL
+        uses: actions/checkout@v5
+        with:
+          submodules: 'recursive'
+          repository: jjuyeonkim/ndsl
+          path: pySHiELD/NDSL
+          ref: 20250908_namelist_2
+
+      - name: Install packages for NDSL component
         shell: bash -l {0}
-        if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip3 install --upgrade pip setuptools wheel
-          cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
+          cd NDSL && pip3 install .[test] && cd ..
           pip3 install .[pyfv3,test]
           pip install numpy==1.26.4
 
       - name: Install pySHiELD packages
         shell: bash -l {0}
-        if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install --upgrade pip setuptools wheel
           pip install .[ndsl,pyfv3,test]
           pip install numpy==1.26.4
-
-      # Only restore (don't save) caches on PRs. New caches created from PRs won't be
-      # accessible from other PRs, see workflows/create_cache.yaml.
-      - name: Restore test_data (if cached)
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          key: ${{ env.TEST_DATA_PATH }}
-          path: pySHiELD/test_data
 
       - name: Download data (if not cached)
         if: steps.cache-restore.outputs.cache-hit != 'true'

@@ -23,6 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
+          repository: jjuyeonkim/pyshield
           submodules: 'recursive'
           ref: 20250908_namelist_2
 
@@ -30,13 +31,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      # Only restore (don't save) caches on PRs. New caches created from PRs won't be
-      # accessible from other PRs, see workflows/create_cache.yaml.
-      - uses: actions/cache/restore@v4
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit_${{ env.pythonLocation }}_${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Install pre-commit
         run: pip install pre-commit
