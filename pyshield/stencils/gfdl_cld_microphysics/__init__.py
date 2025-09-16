@@ -1,7 +1,7 @@
 from ._config import GFDLCloudMPConfig
 from ._config import NamelistDefaults as GFDLCloudMPDefaults
+from .gfdl_cld_microphysics_state import GFDLCloudMicrophysicsState
 from .gfdl_cld_mp_driver import GFDLCloudMicrophysics
-from .shield_microphysics_state import GFDLCloudMicrophysicsState
 
 
 """

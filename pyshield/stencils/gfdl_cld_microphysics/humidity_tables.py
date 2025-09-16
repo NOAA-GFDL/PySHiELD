@@ -1,7 +1,7 @@
 import numpy as np
 
 import ndsl.constants as constants
-import pyshield.stencils.shield_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 
 
 class HumiditySaturationTables:

@@ -3,13 +3,13 @@ import math
 from gt4py.cartesian.gtscript import FORWARD, computation, interval  # noqa
 
 import ndsl.constants as constants
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.warm_rain import (  # noqa
+from pyshield.stencils.gfdl_cld_microphysics.warm_rain import (  # noqa
     accrete_rain,
     autoconvert_water_rain,
 )

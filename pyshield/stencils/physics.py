@@ -13,8 +13,8 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 
+from .gfdl_cld_microphysics import GFDLCloudMicrophysics
 from .gfs_microphysics import GFSMicrophysics
-from .shield_microphysics import GFDLCloudMicrophysics
 
 
 def interpolate_radiation(
@@ -339,7 +339,7 @@ def update_physics_state_with_tendencies(
         physics_updated_va = forward_euler(va, vdt, dt)
 
 
-def prepare_shield_microphysics(
+def prepare_gfdl_cld_microphysics(
     water: FloatFieldIJ,
     rain: FloatFieldIJ,
     ice: FloatFieldIJ,
@@ -519,15 +519,15 @@ class Physics:
         elif "GFDL_cloud_microphysics" in schemes:
             ndsl_log.info("GFDL Cloud microphysics selected")
             self._microphysics = "GFDL_CLoud"
-            self._prepare_shield_microphysics = stencil_factory.from_origin_domain(
-                func=prepare_shield_microphysics,
+            self._prepare_gfdl_cld_microphysics = stencil_factory.from_origin_domain(
+                func=prepare_gfdl_cld_microphysics,
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
-            self._shield_microphysics = GFDLCloudMicrophysics(
+            self._gfdl_cld_microphysics = GFDLCloudMicrophysics(
                 stencil_factory, quantity_factory, grid_data, config.microphysics
             )
-            self._post_shield_microphysics = stencil_factory.from_origin_domain(
+            self._post_gfdl_cld_microphysics = stencil_factory.from_origin_domain(
                 func=post_shield_mp,
                 externals={
                     "dtp": self._dt_phys,
@@ -642,38 +642,38 @@ class Physics:
                     timestep,
                 )
             elif self._microphysics == "GFDL_CLoud":
-                self._prepare_shield_microphysics(
-                    physics_state.shield_microphysics.column_water,
-                    physics_state.shield_microphysics.column_rain,
-                    physics_state.shield_microphysics.column_ice,
-                    physics_state.shield_microphysics.column_snow,
-                    physics_state.shield_microphysics.column_graupel,
-                    physics_state.shield_microphysics.preflux_water,
-                    physics_state.shield_microphysics.preflux_rain,
-                    physics_state.shield_microphysics.preflux_ice,
-                    physics_state.shield_microphysics.preflux_snow,
-                    physics_state.shield_microphysics.preflux_graupel,
-                    physics_state.shield_microphysics.qcloud_cond_nuclei,
-                    physics_state.shield_microphysics.qcloud_ice_nuclei,
+                self._prepare_gfdl_cld_microphysics(
+                    physics_state.gfdl_cld_microphysics.column_water,
+                    physics_state.gfdl_cld_microphysics.column_rain,
+                    physics_state.gfdl_cld_microphysics.column_ice,
+                    physics_state.gfdl_cld_microphysics.column_snow,
+                    physics_state.gfdl_cld_microphysics.column_graupel,
+                    physics_state.gfdl_cld_microphysics.preflux_water,
+                    physics_state.gfdl_cld_microphysics.preflux_rain,
+                    physics_state.gfdl_cld_microphysics.preflux_ice,
+                    physics_state.gfdl_cld_microphysics.preflux_snow,
+                    physics_state.gfdl_cld_microphysics.preflux_graupel,
+                    physics_state.gfdl_cld_microphysics.qcloud_cond_nuclei,
+                    physics_state.gfdl_cld_microphysics.qcloud_ice_nuclei,
                 )
-                self._shield_microphysics(
-                    physics_state.shield_microphysics,
+                self._gfdl_cld_microphysics(
+                    physics_state.gfdl_cld_microphysics,
                     last_step=True,
                 )
-                self._post_shield_microphysics(
-                    physics_state.shield_microphysics.delp,
-                    physics_state.shield_microphysics.delz,
-                    physics_state.shield_microphysics.ua,
-                    physics_state.shield_microphysics.va,
-                    physics_state.shield_microphysics.wa,
-                    physics_state.shield_microphysics.pt,
-                    physics_state.shield_microphysics.qvapor,
-                    physics_state.shield_microphysics.qliquid,
-                    physics_state.shield_microphysics.qrain,
-                    physics_state.shield_microphysics.qice,
-                    physics_state.shield_microphysics.qsnow,
-                    physics_state.shield_microphysics.qgraupel,
-                    physics_state.shield_microphysics.qcld,
+                self._post_gfdl_cld_microphysics(
+                    physics_state.gfdl_cld_microphysics.delp,
+                    physics_state.gfdl_cld_microphysics.delz,
+                    physics_state.gfdl_cld_microphysics.ua,
+                    physics_state.gfdl_cld_microphysics.va,
+                    physics_state.gfdl_cld_microphysics.wa,
+                    physics_state.gfdl_cld_microphysics.pt,
+                    physics_state.gfdl_cld_microphysics.qvapor,
+                    physics_state.gfdl_cld_microphysics.qliquid,
+                    physics_state.gfdl_cld_microphysics.qrain,
+                    physics_state.gfdl_cld_microphysics.qice,
+                    physics_state.gfdl_cld_microphysics.qsnow,
+                    physics_state.gfdl_cld_microphysics.qgraupel,
+                    physics_state.gfdl_cld_microphysics.qcld,
                     physics_state.delp,
                     physics_state.delz,
                     physics_state.ua,
@@ -687,11 +687,11 @@ class Physics:
                     physics_state.qsnow,
                     physics_state.qgraupel,
                     physics_state.qcld,
-                    physics_state.shield_microphysics.column_water,
-                    physics_state.shield_microphysics.column_rain,
-                    physics_state.shield_microphysics.column_ice,
-                    physics_state.shield_microphysics.column_snow,
-                    physics_state.shield_microphysics.column_graupel,
+                    physics_state.gfdl_cld_microphysics.column_water,
+                    physics_state.gfdl_cld_microphysics.column_rain,
+                    physics_state.gfdl_cld_microphysics.column_ice,
+                    physics_state.gfdl_cld_microphysics.column_snow,
+                    physics_state.gfdl_cld_microphysics.column_graupel,
                     self._rain1,
                 )
             else:

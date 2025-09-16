@@ -3,7 +3,7 @@ import math
 from typing import List, Tuple
 
 import ndsl.constants as constants
-import pyshield.stencils.shield_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 
 
 DEFAULT_INT = 0

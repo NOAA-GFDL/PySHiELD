@@ -2,8 +2,8 @@ import numpy as np
 
 import ndsl.constants as constants
 import ndsl.stencils.basic_operations as basic
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
@@ -14,10 +14,10 @@ from ndsl.performance.timer import NullTimer, Timer
 
 from ._config import GFDLCloudMPConfig
 from .cloud_fraction import CloudFraction
+from .gfdl_cld_microphysics_state import GFDLCloudMicrophysicsState
 from .mp_fast import FastMicrophysics
 from .mp_full import FullMicrophysics
 from .neg_adj import AdjustNegativeTracers
-from .shield_microphysics_state import GFDLCloudMicrophysicsState
 
 
 def reset_initial_values_and_make_copies(

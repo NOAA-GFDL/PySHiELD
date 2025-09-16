@@ -1,8 +1,8 @@
 from typing import Literal
 
 import ndsl.constants as constants
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory

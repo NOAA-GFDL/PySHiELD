@@ -1,8 +1,8 @@
 import math
 
 import ndsl.constants as constants
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp, interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ

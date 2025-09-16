@@ -6,7 +6,10 @@ import f90nml
 
 import ndsl.namelist as nml
 from ndsl import MetaEnumStr
-from pyshield.stencils.shield_microphysics import GFDLCloudMPConfig, GFDLCloudMPDefaults
+from pyshield.stencils.gfdl_cld_microphysics import (
+    GFDLCloudMPConfig,
+    GFDLCloudMPDefaults,
+)
 
 
 DEFAULT_INT = 0

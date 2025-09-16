@@ -1,6 +1,6 @@
 import ndsl.stencils.basic_operations as basic  # noqa
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun  # noqa
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun  # noqa
 from ndsl.dsl.gt4py import FORWARD, computation, exp  # noqa
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log  # noqa
@@ -8,7 +8,7 @@ from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.subgrid_z_proc import (  # noqa
+from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (  # noqa
     cloud_condensation_evaporation,
     complete_freeze,
     deposit_and_sublimate_graupel,

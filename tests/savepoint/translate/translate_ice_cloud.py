@@ -1,7 +1,7 @@
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.ice_cloud import IceCloud
+from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import IceCloud
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

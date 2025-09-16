@@ -3,8 +3,8 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics import GFDLCloudMicrophysics
-from pyshield.stencils.shield_microphysics.shield_microphysics_state import (
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMicrophysics
+from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_microphysics_state import (
     GFDLCloudMicrophysicsState,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

@@ -1,11 +1,11 @@
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import FORWARD, computation, interval, max, min
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, IntField
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.humidity_tables import (
+from pyshield.stencils.gfdl_cld_microphysics.humidity_tables import (
     HumiditySaturationTables,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

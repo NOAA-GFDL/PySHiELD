@@ -1,8 +1,8 @@
 from ndsl import Namelist, QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.cloud_fraction import CloudFraction
-from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (
+from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import CloudFraction
+from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calc_sedimentation_energy_loss,
     calculate_particle_properties,
     calculate_total_energy_change_and_convert_temp,

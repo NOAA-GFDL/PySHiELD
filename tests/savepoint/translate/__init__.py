@@ -7,6 +7,7 @@ from .translate_fillgfs import TranslateFillGFS
 from .translate_final_mp import TranslateFinalCalculations, TranslatePostMP
 from .translate_fpvs import TranslateFPVS
 from .translate_fv_update_phys import DycoreState, TranslateFVUpdatePhys
+from .translate_gfdl_cld_microphysics import TranslateMicrophysics3
 from .translate_ice_cloud import TranslateIceCloud
 from .translate_icesub import TranslateIceSubFunc
 from .translate_microphysics import TranslateMicroph
@@ -24,7 +25,6 @@ from .translate_sedimentation import (
     TranslateSediMelt,
     TranslateSedimentation,
 )
-from .translate_shield_microphysics import TranslateMicrophysics3
 from .translate_start_fall import TranslateEndFall, TranslateStartFall
 from .translate_subgridz import TranslateSubgridZProc
 from .translate_subsub import TranslateSubgridZSubs

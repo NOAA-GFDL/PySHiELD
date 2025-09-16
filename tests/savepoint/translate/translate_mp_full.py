@@ -4,17 +4,17 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.ice_cloud import IceCloud
-from pyshield.stencils.shield_microphysics.mp_full import (
+from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import IceCloud
+from pyshield.stencils.gfdl_cld_microphysics.mp_full import (
     FullMicrophysics,
     accumulate_state_changes,
     add_fluxes_and_surface_tracers,
 )
-from pyshield.stencils.shield_microphysics.sedimentation import Sedimentation
-from pyshield.stencils.shield_microphysics.subgrid_z_proc import (
+from pyshield.stencils.gfdl_cld_microphysics.sedimentation import Sedimentation
+from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
     VerticalSubgridProcesses,
 )
-from pyshield.stencils.shield_microphysics.warm_rain import WarmRain
+from pyshield.stencils.gfdl_cld_microphysics.warm_rain import WarmRain
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

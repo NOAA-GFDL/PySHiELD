@@ -4,7 +4,7 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield._config import GFDLCloudMPConfig, PhysicsConfig
-from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (
+from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calculate_particle_properties,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

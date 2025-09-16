@@ -3,7 +3,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.terminal_fall import (
+from pyshield.stencils.gfdl_cld_microphysics.terminal_fall import (
     prep_terminal_fall,
     update_energy_wind_heat_post_fall,
 )

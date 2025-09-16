@@ -1,6 +1,6 @@
 import ndsl.stencils.basic_operations as basic
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import interval  # noqa
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation  # noqa
 from ndsl.dsl.gt4py import function as gtfunction
@@ -8,7 +8,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics.ice_cloud import (  # noqa
+from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import (  # noqa
     accrete_graupel_with_cloud_water_and_rain,
     accrete_graupel_with_ice,
     accrete_graupel_with_snow,

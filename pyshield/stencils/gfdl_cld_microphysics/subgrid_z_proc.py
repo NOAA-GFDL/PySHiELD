@@ -1,7 +1,7 @@
 import ndsl.constants as constants
 import ndsl.stencils.basic_operations as basic
-import pyshield.stencils.shield_microphysics.constants as mpcons
-import pyshield.stencils.shield_microphysics.physical_functions as physfun
+import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
