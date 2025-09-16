@@ -1,6 +1,4 @@
-import dataclasses
 import datetime
-from pathlib import Path
 
 import numpy as np
 from pyrte_rrtmgp import rte
@@ -15,14 +13,14 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
-from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ, Int
+from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from pyshield.physics_state import SurfaceState
 
 from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import cld_init, progcld4, progcld5
 from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
-from .radiation_state import RTE_RRTMGPState
+from .state import RTE_RRTMGPState
 from ._config import RTE_RRTMGPConfig
 
 

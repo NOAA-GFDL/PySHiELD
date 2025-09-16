@@ -1,5 +1,5 @@
 from ._config import RTE_RRTMGPConfig
-from .radiation_state import RTE_RRTMGPState
+from .state import RTE_RRTMGPState
 from .rte_rrtmgp import RTE_RRTMGPDriver
 
 
