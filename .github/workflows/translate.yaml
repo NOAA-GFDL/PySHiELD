@@ -1,3 +1,10 @@
+# TODO: Revert tests back to NOAA-GFDL version (not jjuyeonkim) after
+# NDSL/issues#64's PRs close and are all merged. These PRs include:
+# https://github.com/NOAA-GFDL/NDSL/pull/218
+# https://github.com/NOAA-GFDL/PyFV3/pull/83
+# https://github.com/NOAA-GFDL/PySHiELD/pull/58
+# https://github.com/NOAA-GFDL/pace/pull/145
+#
 name: "PySHiELD translate tests"
 
 # Run these these whenever ...
@@ -17,6 +24,7 @@ on:
   push:
     branches:
       - main # ... when merging into the main branch
+      - 20250908_namelist_2
 
 # cancel running jobs if theres a newer push
 concurrency:
@@ -34,8 +42,6 @@ jobs:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
         uses: actions/checkout@v5
-        # TODO: Revert tests back to GFDL (not jjuyeonkim) after merging
-        # https://github.com/NOAA-GFDL/NDSL/issues/64
         with:
           submodules: 'recursive'
           repository: jjuyeonkim/PySHiELD
@@ -64,6 +70,7 @@ jobs:
         with:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
+          ref: 20250908_namelist_2
 
       - name: external trigger Install packages for FV3 component
         shell: bash -l {0}
@@ -74,7 +81,6 @@ jobs:
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[ndsl,test]
           pip install numpy==1.26.4
-          conda remove sqlite
 
       - name: external trigger Install packages for NDSL component
         shell: bash -l {0}
@@ -85,7 +91,6 @@ jobs:
           cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
           pip3 install .[pyfv3,test]
           pip install numpy==1.26.4
-          conda remove sqlite
 
       - name: Install pySHiELD packages
         shell: bash -l {0}
@@ -95,7 +100,6 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install .[ndsl,pyfv3,test]
           pip install numpy==1.26.4
-          conda remove sqlite
 
       # Only restore (don't save) caches on PRs. New caches created from PRs won't be
       # accessible from other PRs, see workflows/create_cache.yaml.
