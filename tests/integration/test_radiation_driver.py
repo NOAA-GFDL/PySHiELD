@@ -9,7 +9,7 @@ from examples.notebook.utilities import (
     setup_infrastructure,
 )
 from pyshield.physics_state import SurfaceState
-from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPState, RTE_RRTMGPDriver
+from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPDriver, RTE_RRTMGPState
 from pyshield.stencils.physics import calc_sigma
 
 

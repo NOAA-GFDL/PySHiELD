@@ -14,11 +14,7 @@ from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
 from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
 from pyshield.physics_state import PhysicsState, SurfaceState
-from pyshield.radiation import (
-    RTE_RRTMGPConfig,
-    RTE_RRTMGPState,
-    RTE_RRTMGPDriver,
-)
+from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPDriver, RTE_RRTMGPState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics

@@ -1,6 +1,6 @@
 from ._config import RTE_RRTMGPConfig
-from .state import RTE_RRTMGPState
 from .rte_rrtmgp import RTE_RRTMGPDriver
+from .state import RTE_RRTMGPState
 
 
 """

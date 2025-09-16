@@ -16,12 +16,12 @@ from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from pyshield.physics_state import SurfaceState
 
+from ._config import RTE_RRTMGPConfig
 from .rad_astro import coszmn, sol_init, solar_update
 from .rad_clouds import cld_init, progcld4, progcld5
 from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdown
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .state import RTE_RRTMGPState
-from ._config import RTE_RRTMGPConfig
 
 
 GRAV = 9.80665
@@ -521,7 +521,9 @@ class RTE_RRTMGPDriver:
         )
         state.sfc_emis.view[:] = self.sfcemis
 
-    def _update_inputs_if_needed(self, state: RTE_RRTMGPState, sdate: datetime.datetime):
+    def _update_inputs_if_needed(
+        self, state: RTE_RRTMGPState, sdate: datetime.datetime
+    ):
         """
         Updates input data from external sources when model date differs
         from the saved date

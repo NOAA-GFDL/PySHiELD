@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ndsl.dsl.typing import Float, Int
 
+
 @dataclasses.dataclass
 class RTE_RRTMGPConfig:
     deltsw: Float
