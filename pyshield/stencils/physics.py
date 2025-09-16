@@ -14,9 +14,9 @@ from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
 from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
 from pyshield.physics_state import PhysicsState, SurfaceState
-from pyshield.radiation.rte_rrtmgp import (
-    RadiationConfig,
-    RadiationState,
+from pyshield.radiation import (
+    RTE_RRTMGPConfig,
+    RTE_RRTMGPState,
     RTE_RRTMGPDriver,
 )
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
@@ -482,7 +482,7 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
-        rad_config: RadiationConfig = None,
+        rad_config: RTE_RRTMGPConfig = None,
         pre_radiation=False,
         hydro_delp=False,
     ):
@@ -672,7 +672,7 @@ class Physics:
         self,
         physics_state: PhysicsState,
         timestep: float = 0.0,
-        radiation_state: RadiationState = None,
+        radiation_state: RTE_RRTMGPState = None,
         sfc_state: SurfaceState = None,
         date: datetime.datetime = None,
     ):

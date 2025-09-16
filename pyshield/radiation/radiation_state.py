@@ -11,7 +11,7 @@ from ndsl.types import NumpyModule
 
 
 @dataclass()
-class RadiationState:
+class RTE_RRTMGPState:
     prsi: Quantity = field(
         metadata={
             "name": "interface_pressure",
@@ -278,7 +278,7 @@ class RadiationState:
         cls,
         quantity_factory,
         np_like: NumpyModule,
-    ) -> "RadiationState":
+    ) -> "RTE_RRTMGPState":
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
@@ -300,7 +300,7 @@ class RadiationState:
         sizer: GridSizer,
         quantity_factory: QuantityFactory,
         np_like: NumpyModule,
-    ) -> "RadiationState":
+    ) -> "RTE_RRTMGPState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():

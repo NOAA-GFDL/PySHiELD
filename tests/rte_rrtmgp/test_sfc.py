@@ -6,7 +6,7 @@ import xarray
 
 from ndsl import constants as constants
 from pyshield.radiation.rad_sfc import (
-    CONST_ALBEDO,
+    OCEAN_ALBEDO,
     IMXEMS,
     JMXEMS,
     map_sfc_to_grid,
@@ -193,7 +193,7 @@ def test_sfc_init(
             "test_data/sfc_data.tile1.nc",
             -1,
             False,
-            CONST_ALBEDO,
+            OCEAN_ALBEDO,
             id="constant_albedo",
         ),
     ],

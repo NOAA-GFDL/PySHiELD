@@ -9,7 +9,7 @@ from examples.notebook.utilities import (
     setup_infrastructure,
 )
 from pyshield.physics_state import SurfaceState
-from pyshield.radiation import RadiationConfig, RadiationState, RTE_RRTMGPDriver
+from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPState, RTE_RRTMGPDriver
 from pyshield.stencils.physics import calc_sigma
 
 
@@ -30,7 +30,7 @@ def test_rte_rrtmgp(datapath: Path):
     )
     grid_data.lon_agrid.field[:] = grid_data.lon.field[:-1, :-1]
     grid_data.lat_agrid.field[:] = grid_data.lat.field[:-1, :-1]
-    radconf = RadiationConfig(
+    radconf = RTE_RRTMGPConfig(
         deltsw=3600.0,
         delt_rad=3600.0,
         date=date,
@@ -58,7 +58,7 @@ def test_rte_rrtmgp(datapath: Path):
     gridlon = grid_data.lon_agrid
     gridlat = grid_data.lat_agrid
 
-    state = RadiationState.init_zeros(quantity_factory, np)
+    state = RTE_RRTMGPState.init_zeros(quantity_factory, np)
     sstate = SurfaceState.init_zeros(quantity_factory)
     fortran_restart_to_radstate(
         dycore_datafile=dycore_data,

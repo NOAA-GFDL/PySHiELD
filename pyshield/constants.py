@@ -23,7 +23,7 @@ P_REF = 101325.0  # reference surface pressure
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
 CPH2O2 = 4.2e6
 
-# Constants used in radiation
+# Constants used to convert units for radiation
 MMDRY = 2.89644e-2
 """Molar mass of dry air in kg/mol"""
 MMVAP = 1.80153e-2

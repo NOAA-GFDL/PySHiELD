@@ -1,11 +1,12 @@
-from .radiation_state import RadiationState
-from .rte_rrtmgp import RadiationConfig, RTE_RRTMGPDriver
+from ._config import RTE_RRTMGPConfig
+from .radiation_state import RTE_RRTMGPState
+from .rte_rrtmgp import RTE_RRTMGPDriver
 
 
 """
-RadiationConfig: Configuration class for the radiation driver
+RTE_RRTMGPConfig: Configuration class for the radiation driver
 RTE_RRTMGPDriver: Driver for the RTE_RRTMGP code
-RadiationState: Class containing the state for the RTE-RRTMGP radiation code
+RTE_RRTMGPState: Class containing the state for the RTE-RRTMGP radiation code
 """
 
-__all__ = ["RTE_RRTMGPDriver", "RadiationConfig", "RadiationState"]
+__all__ = ["RTE_RRTMGPDriver", "RTE_RRTMGPConfig", "RTE_RRTMGPState"]

@@ -24,7 +24,7 @@ from ndsl.grid import (
     VerticalGridData,
 )
 from pyshield.physics_state import PHYSICS_PACKAGES, PhysicsState, SurfaceState
-from pyshield.radiation import RadiationState
+from pyshield.radiation import RTE_RRTMGPState
 
 
 def states_from_fortran_restarts(
@@ -40,7 +40,7 @@ def states_from_fortran_restarts(
     tracer_data = xr.open_dataset(tracer_datafile)
 
     state = PhysicsState.init_zeros(quantity_factory, schemes)
-    radstate = RadiationState.init_zeros(quantity_factory, np)
+    radstate = RTE_RRTMGPState.init_zeros(quantity_factory, np)
     sstate = SurfaceState.init_zeros(quantity_factory)
 
     buff_3d = np.zeros_like(state.prsi.field)
@@ -70,7 +70,7 @@ def fortran_restart_to_radstate(
     phys_datafile: Path,
     tracer_datafile: Path,
     ak: Quantity,
-    state: RadiationState,
+    state: RTE_RRTMGPState,
 ):
     dycore_data = xr.open_dataset(dycore_datafile)
     phys_data = xr.open_dataset(phys_datafile)
