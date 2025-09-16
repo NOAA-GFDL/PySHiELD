@@ -1,5 +1,5 @@
 import ndsl.stencils.basic_operations as basic  # noqa
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun  # noqa
 from ndsl.dsl.gt4py import FORWARD, computation, exp  # noqa
 from ndsl.dsl.gt4py import function as gtfunction
@@ -53,7 +53,7 @@ def perform_instant_processes_test(
 
     # Instant deposit all water vapor to cloud ice when temperature is super low
     if temperature < t_min:
-        sink = basic.dim(qvapor, physcons.QCMIN)
+        sink = basic.dim(qvapor, mpcons.QCMIN)
         dep += sink * delp
 
         (

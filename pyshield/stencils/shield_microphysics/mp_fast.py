@@ -1,5 +1,5 @@
 import ndsl.stencils.basic_operations as basic
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
@@ -7,7 +7,7 @@ from ndsl.dsl.gt4py import interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 
-from ..._config import FastMPConfig
+from ._config import FastMPConfig
 from .ice_cloud import freeze_cloud_water, melt_cloud_ice
 from .subgrid_z_proc import (
     cloud_condensation_evaporation,
@@ -43,7 +43,7 @@ def freeze_rain_to_graupel_simple(
     from __externals__ import fac_r2g, tice
 
     tc = temp - tice
-    if (tc < 0.0) and (qrain > physcons.QCMIN):
+    if (tc < 0.0) and (qrain > mpcons.QCMIN):
         sink = (-tc * 0.025) ** 2 * qrain
         sink = min(qrain, sink, -fac_r2g * tc / icpk)
 
@@ -115,7 +115,7 @@ def melt_snow_simple(
     from __externals__ import fac_smlt, qs_mlt, tice
 
     tc = temp - tice
-    if (tc > 0.0) and (qsnow > physcons.QCMIN):
+    if (tc > 0.0) and (qsnow > mpcons.QCMIN):
         sink = (tc * 0.1) ** 2 * qsnow
         sink = min(qsnow, sink, fac_smlt * tc / icpk)
         tmp = min(sink, basic.dim(qs_mlt, qliquid))
@@ -650,7 +650,7 @@ class FastMicrophysics:
                 "li20": config.li20,
                 "d1_vap": config.d1_vap,
                 "d1_ice": config.d1_ice,
-                "tice": physcons.TICE0,
+                "tice": mpcons.TICE0,
                 "t_wfr": config.t_wfr,
                 "convt": convert_mm_day,
                 "ql_mlt": config.ql_mlt,

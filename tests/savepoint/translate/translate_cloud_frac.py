@@ -1,4 +1,4 @@
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl import (
     GridIndexing,
@@ -10,7 +10,7 @@ from ndsl import (
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from pyshield._config import MicroPhysicsConfig, PhysicsConfig
+from pyshield._config import GFDLCloudMPConfig, PhysicsConfig
 from pyshield.stencils.shield_microphysics.cloud_fraction import (  # noqa
     CloudFraction,
     cloud_scheme_1,
@@ -95,14 +95,14 @@ def cloud_fraction_test(
         if tin <= t_wfr:
             qstar = qsi
             dqdt = dqidt
-        elif tin >= physcons.TICE0:
+        elif tin >= mpcons.TICE0:
             qstar = qsw
             dqdt = dqwdt
         else:
-            if q_cond > physcons.QCMIN:
+            if q_cond > mpcons.QCMIN:
                 rqi = q_solid / q_cond
             else:
-                rqi = (physcons.TICE0 - tin) / (physcons.TICE0 - t_wfr)
+                rqi = (mpcons.TICE0 - tin) / (mpcons.TICE0 - t_wfr)
             qstar = rqi * qsi + (1.0 - rqi) * qsw
             dqdt = 0.5 * (dqidt + dqwdt)
 
@@ -147,7 +147,7 @@ class CloudFractionTest:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
     ):
         self._idx: GridIndexing = stencil_factory.grid_indexing
 
@@ -169,7 +169,7 @@ class CloudFractionTest:
                 "rad_rain": config.rad_rain,
                 "rad_snow": config.rad_snow,
                 "t_wfr": config.t_wfr,
-                "tice": physcons.TICE0,
+                "tice": mpcons.TICE0,
                 "cld_min": config.cld_min,
                 "do_cld_adj": config.do_cld_adj,
                 "f_dq_m": config.f_dq_m,

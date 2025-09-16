@@ -1608,7 +1608,7 @@ class GFSMicrophysicsState:
         self.land = land
 
 
-class Microphysics:
+class GFSMicrophysics:
     def __init__(
         self,
         stencil_factory: StencilFactory,

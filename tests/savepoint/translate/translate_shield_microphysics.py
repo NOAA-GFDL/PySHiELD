@@ -3,9 +3,9 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
 from pyshield import PhysicsConfig
-from pyshield.stencils.shield_microphysics import Microphysics
+from pyshield.stencils.shield_microphysics import GFDLCloudMicrophysics
 from pyshield.stencils.shield_microphysics.shield_microphysics_state import (
-    SHiELDMicrophysicsState,
+    GFDLCloudMicrophysicsState,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -269,13 +269,13 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
 
-        microphysics_state = SHiELDMicrophysicsState.init_from_storages(
+        microphysics_state = GFDLCloudMicrophysicsState.init_from_storages(
             inputs,
             sizer=self.sizer,
             quantity_factory=self.quantity_factory,
         )
 
-        microphysics = Microphysics(
+        microphysics = GFDLCloudMicrophysics(
             self.stencil_factory,
             self.quantity_factory,
             self.grid.grid_data,

@@ -2,7 +2,7 @@ import numpy as np
 
 import ndsl.constants as constants
 import ndsl.stencils.basic_operations as basic
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl import QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
@@ -12,12 +12,12 @@ from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.performance.timer import NullTimer, Timer
 
-from ..._config import MicroPhysicsConfig
+from ._config import GFDLCloudMPConfig
 from .cloud_fraction import CloudFraction
 from .mp_fast import FastMicrophysics
 from .mp_full import FullMicrophysics
 from .neg_adj import AdjustNegativeTracers
-from .shield_microphysics_state import SHiELDMicrophysicsState
+from .shield_microphysics_state import GFDLCloudMicrophysicsState
 
 
 def reset_initial_values_and_make_copies(
@@ -398,7 +398,7 @@ def calculate_particle_properties(
     )
 
     with computation(PARALLEL), interval(...):
-        if qliquid > physcons.QCMIN:
+        if qliquid > mpcons.QCMIN:
             pc_liquid = physfun.calc_particle_concentration(
                 qliquid, density, pcaw, pcbw, muw
             )
@@ -415,7 +415,7 @@ def calculate_particle_properties(
                 qliquid, density, tvaw, tvbw, muw, blinw
             )
 
-        if qice > physcons.QCMIN:
+        if qice > mpcons.QCMIN:
             pc_ice = physfun.calc_particle_concentration(qice, density, pcai, pcbi, mui)
             ed_ice = physfun.calc_effective_diameter(qice, density, edai, edbi, mui)
             oe_ice = physfun.calc_optical_extinction(qice, density, oeai, oebi, mui)
@@ -424,7 +424,7 @@ def calculate_particle_properties(
                 qice, density, tvai, tvbi, mui, blini
             )
 
-        if qrain > physcons.QCMIN:
+        if qrain > mpcons.QCMIN:
             pc_rain = physfun.calc_particle_concentration(
                 qrain, density, pcar, pcbr, mur
             )
@@ -435,7 +435,7 @@ def calculate_particle_properties(
                 qrain, density, tvar, tvbr, mur, blinr
             )
 
-        if qsnow > physcons.QCMIN:
+        if qsnow > mpcons.QCMIN:
             pc_snow = physfun.calc_particle_concentration(
                 qsnow, density, pcas, pcbs, mus
             )
@@ -446,7 +446,7 @@ def calculate_particle_properties(
                 qsnow, density, tvas, tvbs, mus, blins
             )
 
-        if qgraupel > physcons.QCMIN:
+        if qgraupel > mpcons.QCMIN:
             pc_graupel = physfun.calc_particle_concentration(
                 qgraupel, density, pcag, pcbg, mug
             )
@@ -665,8 +665,8 @@ def calculate_total_energy_change_and_convert_temp(
                 cp8 = (
                     con_r8 * constants.CP_AIR
                     + qvapor * constants.CP_VAP
-                    + (qliquid + qrain) * physcons.C_LIQ
-                    + (qice + qsnow + qgraupel) * physcons.C_ICE
+                    + (qliquid + qrain) * mpcons.C_LIQ
+                    + (qice + qsnow + qgraupel) * mpcons.C_ICE
                 )
                 delz = delz / temperature0
                 temperature = (
@@ -769,13 +769,13 @@ def total_energy_check(
                 print(f"GFDL-MP-MOIST TW: {moist_water_change}")
 
 
-class Microphysics:
+class GFDLCloudMicrophysics:
     def __init__(
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         grid_data: GridData,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
         full_timestep: float = None,
         do_mp_fast: bool = False,
         do_mp_full: bool = True,
@@ -1168,7 +1168,7 @@ class Microphysics:
 
     def __call__(
         self,
-        state: SHiELDMicrophysicsState,
+        state: GFDLCloudMicrophysicsState,
         last_step: Bool = True,
         timer: Timer = NullTimer(),
     ):

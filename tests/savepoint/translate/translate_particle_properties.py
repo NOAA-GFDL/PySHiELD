@@ -3,7 +3,7 @@ from ndsl.dsl.typing import FloatField
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
-from pyshield._config import MicroPhysicsConfig, PhysicsConfig
+from pyshield._config import GFDLCloudMPConfig, PhysicsConfig
 from pyshield.stencils.shield_microphysics.gfdl_cld_mp_driver import (
     calculate_particle_properties,
 )
@@ -14,7 +14,7 @@ class CalcParticleProperties:
     def __init__(
         self,
         stencil_factory: StencilFactory,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
     ):
         self._idx = stencil_factory.grid_indexing
 

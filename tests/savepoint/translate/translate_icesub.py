@@ -1,5 +1,5 @@
 import ndsl.stencils.basic_operations as basic
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import interval  # noqa
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation  # noqa
@@ -89,7 +89,7 @@ def melt_snow_test(
         timestep,
     )
 
-    tc = temperature - physcons.TICE0
+    tc = temperature - mpcons.TICE0
 
     psacw = 0.0
     psacr = 0.0
@@ -99,10 +99,10 @@ def melt_snow_test(
     sink0 = 0.0
     sink = 0.0
 
-    if (tc >= 0) and (qsnow > physcons.QCMIN):
+    if (tc >= 0) and (qsnow > mpcons.QCMIN):
         psacw = 0.0
         qden = qsnow * density
-        if qliquid > physcons.QCMIN:
+        if qliquid > mpcons.QCMIN:
             if do_new_acc_water:
                 psacw = physfun.accretion_3d(
                     vterminal_s,
@@ -123,7 +123,7 @@ def melt_snow_test(
 
         psacr = 0.0
         pracs = 0.0
-        if qrain > physcons.QCMIN:
+        if qrain > mpcons.QCMIN:
             psacr = physfun.accretion_3d(
                 vterminal_s,
                 vterminal_r,
@@ -566,7 +566,7 @@ class IceFunction:
                 "li20": config.li20,
                 "lv00": config.lv00,
                 "t_wfr": config.t_wfr,
-                "tice": physcons.TICE0,
+                "tice": mpcons.TICE0,
                 "ql_mlt": config.ql_mlt,
                 "tau_imlt": config.tau_imlt,
                 "tice_mlt": config.tice_mlt,

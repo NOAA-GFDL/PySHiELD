@@ -9,7 +9,7 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
 from pyshield._config import PHYSICS_PACKAGES
 from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
-from pyshield.stencils.shield_microphysics import SHiELDMicrophysicsState
+from pyshield.stencils.shield_microphysics import GFDLCloudMicrophysicsState
 
 
 @dataclass()
@@ -293,8 +293,8 @@ class PhysicsState:
     ):
         # storage for tendency variables not in PhysicsState
         if "SHiELD_microphysics" in [scheme.value for scheme in schemes]:
-            self.shield_microphysics: Optional[SHiELDMicrophysicsState] = (
-                SHiELDMicrophysicsState.init_zeros(quantity_factory)
+            self.shield_microphysics: Optional[GFDLCloudMicrophysicsState] = (
+                GFDLCloudMicrophysicsState.init_zeros(quantity_factory)
             )
             self.shield_microphysics.pt = self.pt
             self.shield_microphysics.qvapor = self.qvapor

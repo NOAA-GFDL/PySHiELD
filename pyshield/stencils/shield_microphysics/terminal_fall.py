@@ -1,7 +1,7 @@
 from typing import Literal
 
 import ndsl.constants as constants
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
@@ -11,7 +11,7 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.stencils.basic_operations import copy_defn
 from pyfv3.stencils.remap_profile import RemapProfile
 
-from ..._config import MicroPhysicsConfig
+from ._config import GFDLCloudMPConfig
 
 
 def prep_terminal_fall(
@@ -31,7 +31,7 @@ def prep_terminal_fall(
     from __externals__ import do_sedi_w
 
     with computation(BACKWARD), interval(...):
-        if q_fall > physcons.QFMIN:
+        if q_fall > mpcons.QFMIN:
             no_fall = 0.0
     with computation(FORWARD), interval(...):
         if no_fall == 0.0:
@@ -324,8 +324,8 @@ def update_energy_wind_heat_post_fall(
                 cv0 = dm * (
                     constants.CV_AIR
                     + qvapor * constants.CV_VAP
-                    + (qrain + qliquid) * physcons.C_LIQ
-                    + (qice + qsnow + qgraupel) * physcons.C_ICE
+                    + (qrain + qliquid) * mpcons.C_LIQ
+                    + (qice + qsnow + qgraupel) * mpcons.C_ICE
                 ) + cw * (flux - flux[0, 0, -1])
 
     with computation(FORWARD), interval(1, None):
@@ -361,7 +361,7 @@ class TerminalFall:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
         timestep: float,
     ):
         self._sedflag = config.sedflag
@@ -465,7 +465,7 @@ class TerminalFall:
                 "do_sedi_uv": config.do_sedi_uv,
                 "do_sedi_w": config.do_sedi_w,
                 "do_sedi_heat": config.do_sedi_heat,
-                "cw": physcons.C_ICE,
+                "cw": mpcons.C_ICE,
                 "c1_ice": config.c1_ice,
                 "c1_liq": config.c1_liq,
                 "c1_vap": config.c1_vap,

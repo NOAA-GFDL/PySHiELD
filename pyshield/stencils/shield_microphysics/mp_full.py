@@ -4,7 +4,7 @@ from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 from ndsl.initialization.allocator import QuantityFactory
 
-from ..._config import MicroPhysicsConfig
+from ._config import GFDLCloudMPConfig
 from .ice_cloud import IceCloud
 from .sedimentation import Sedimentation
 from .subgrid_z_proc import VerticalSubgridProcesses
@@ -76,7 +76,7 @@ class FullMicrophysics:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
         timestep: float,
         convert_mm_day: float,
     ):

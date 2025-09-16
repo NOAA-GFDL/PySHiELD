@@ -13,8 +13,8 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 
-from .gfs_microphysics import Microphysics as GFS_Microphysics
-from .shield_microphysics import Microphysics as SHiELD_Microphysics
+from .gfs_microphysics import GFSMicrophysics
+from .shield_microphysics import GFDLCloudMicrophysics
 
 
 def interpolate_radiation(
@@ -434,10 +434,10 @@ class Physics:
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         grid_data: GridData,
-        namelist: PhysicsConfig,
+        config: PhysicsConfig,
         pre_radiation=False,
     ):
-        schemes = [scheme.value for scheme in namelist.schemes]
+        schemes = [scheme.value for scheme in config.schemes]
         for scheme in schemes:
             if scheme not in PHYSICS_PACKAGES:  # type: ignore
                 raise NotImplementedError(
@@ -455,7 +455,7 @@ class Physics:
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         self._pre_radiation = pre_radiation
-        self._dt_phys = namelist.dt_atmos
+        self._dt_phys = config.dt_atmos
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -489,13 +489,13 @@ class Physics:
             self._interpolate_radiation = stencil_factory.from_origin_domain(
                 func=interpolate_radiation,
                 externals={
-                    "daily_mean": namelist.daily_mean,
+                    "daily_mean": config.daily_mean,
                 },
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
         if "GFS_microphysics" in schemes:
-            if "SHiELD_microphysics" in schemes:
+            if "GFDL_cloud_microphysics" in schemes:
                 raise ValueError(
                     f"Multiple microphysics schemes: {schemes}"
                 )  # TODO: We should consider a ConfigurationError exception for this
@@ -513,19 +513,19 @@ class Physics:
                     domain=grid_indexing.domain_compute(),
                 )
             )
-            self._gfs_microphysics = GFS_Microphysics(
-                stencil_factory, quantity_factory, grid_data, namelist=namelist
+            self._gfs_microphysics = GFSMicrophysics(
+                stencil_factory, quantity_factory, grid_data, config=config
             )
-        elif "SHiELD_microphysics" in schemes:
-            ndsl_log.info("SHiELD microphysics selected")
-            self._microphysics = "SHiELD"
+        elif "GFDL_cloud_microphysics" in schemes:
+            ndsl_log.info("GFDL Cloud microphysics selected")
+            self._microphysics = "GFDL_CLoud"
             self._prepare_shield_microphysics = stencil_factory.from_origin_domain(
                 func=prepare_shield_microphysics,
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
-            self._shield_microphysics = SHiELD_Microphysics(
-                stencil_factory, quantity_factory, grid_data, namelist.microphysics
+            self._shield_microphysics = GFDLCloudMicrophysics(
+                stencil_factory, quantity_factory, grid_data, config.microphysics
             )
             self._post_shield_microphysics = stencil_factory.from_origin_domain(
                 func=post_shield_mp,
@@ -540,9 +540,9 @@ class Physics:
             self._microphysics = None
 
     def _setup_statein(self):
-        self._NQ = 8  # state.nq_tot - spec.namelist.dnats
-        self._dnats = 1  # spec.namelist.dnats
-        self._nwat = 6  # spec.namelist.nwat
+        self._NQ = 8  # state.nq_tot - spec.config.dnats
+        self._dnats = 1  # spec.config.dnats
+        self._nwat = 6  # spec.config.nwat
         self._p00 = 1.0e5
 
     def __call__(self, physics_state: PhysicsState, timestep: float):
@@ -641,7 +641,7 @@ class Physics:
                     physics_state.physics_updated_va,
                     timestep,
                 )
-            elif self._microphysics == "SHiELD":
+            elif self._microphysics == "GFDL_CLoud":
                 self._prepare_shield_microphysics(
                     physics_state.shield_microphysics.column_water,
                     physics_state.shield_microphysics.column_rain,

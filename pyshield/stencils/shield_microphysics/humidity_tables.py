@@ -1,7 +1,7 @@
 import numpy as np
 
 import ndsl.constants as constants
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 
 
 class HumiditySaturationTables:
@@ -24,32 +24,32 @@ class HumiditySaturationTables:
     def qs_table_core(self, n: int, n_blend: int, do_smith_table: bool):
         esupc = np.zeros(n_blend)
         esbasw = 1013246.0
-        tbasw = physcons.TICE0 + 100.0
+        tbasw = mpcons.TICE0 + 100.0
         esbasi = 6107.1
-        tmin = physcons.TICE0 - self.n_min * self.delt
+        tmin = mpcons.TICE0 - self.n_min * self.delt
         # compute es over ice between - (n_min * delt) deg C and 0 deg C
         if do_smith_table:
             for i in range(self.n_min):
                 tem = tmin + self.delt * float(i)
-                a = -9.09718 * (physcons.TICE0 / tem - 1.0)
-                b = -3.56654 * np.log10(physcons.TICE0 / tem)
-                c = 0.876793 * (1.0 - tem / physcons.TICE0)
+                a = -9.09718 * (mpcons.TICE0 / tem - 1.0)
+                b = -3.56654 * np.log10(mpcons.TICE0 / tem)
+                c = 0.876793 * (1.0 - tem / mpcons.TICE0)
                 e = np.log10(esbasi)
                 self.table2[i] = 0.1 * np.exp((a + b + c + e) * np.log(10.0))
         else:
             for i in range(self.n_min):
                 tem = tmin + self.delt * float(i)
-                fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
-                fac1 = fac0 * physcons.LI2
+                fac0 = (tem - mpcons.TICE0) / (tem * mpcons.TICE0)
+                fac1 = fac0 * mpcons.LI2
                 fac2 = (
-                    physcons.D2ICE * np.log(tem / physcons.TICE0) + fac1
+                    mpcons.D2ICE * np.log(tem / mpcons.TICE0) + fac1
                 ) / constants.RVGAS
                 self.table2[i] = constants.E00 * np.exp(fac2)
         # compute es over water between - (n_blend * delt) deg C
         # and [ (n - n_min - 1) * delt] deg C
         if do_smith_table:
             for i in range(n - self.n_min + n_blend):
-                tem = physcons.TICE0 + self.delt * (float(i) - n_blend)
+                tem = mpcons.TICE0 + self.delt * (float(i) - n_blend)
                 a = -7.90298 * (tbasw / tem - 1.0)
                 b = 5.02808 * np.log10(tbasw / tem)
                 c = -1.3816e-7 * (
@@ -66,11 +66,11 @@ class HumiditySaturationTables:
                 self.table2[i + self.n_min - n_blend] = esh
         else:
             for i in range(n - self.n_min + n_blend):
-                tem = physcons.TICE0 + self.delt * (float(i) - n_blend)
-                fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
-                fac1 = fac0 * physcons.LV0
+                tem = mpcons.TICE0 + self.delt * (float(i) - n_blend)
+                fac0 = (tem - mpcons.TICE0) / (tem * mpcons.TICE0)
+                fac1 = fac0 * mpcons.LV0
                 fac2 = (
-                    physcons.DC_VAP * np.log(tem / physcons.TICE0) + fac1
+                    mpcons.DC_VAP * np.log(tem / mpcons.TICE0) + fac1
                 ) / constants.RVGAS
                 esh = constants.E00 * np.exp(fac2)
                 if i < n_blend:
@@ -80,12 +80,10 @@ class HumiditySaturationTables:
         # derive blended es over ice and supercooled water
         # between - (n_blend * delt) deg C and 0 deg C
         for i in range(n_blend):
-            tem = physcons.TICE0 + self.delt * (float(i) - n_blend)
-            wice = 1.0 / (self.delt * n_blend) * (physcons.TICE0 - tem)
+            tem = mpcons.TICE0 + self.delt * (float(i) - n_blend)
+            wice = 1.0 / (self.delt * n_blend) * (mpcons.TICE0 - tem)
             wh2o = (
-                1.0
-                / (self.delt * n_blend)
-                * (tem - physcons.TICE0 + self.delt * n_blend)
+                1.0 / (self.delt * n_blend) * (tem - mpcons.TICE0 + self.delt * n_blend)
             )
             self.table2[i + self.n_min - n_blend] = (
                 wice * self.table2[i + self.n_min - n_blend] + wh2o * esupc[i]
@@ -93,15 +91,13 @@ class HumiditySaturationTables:
 
     def _initialize_table0(self):
         # TODO: numpy-ify these init methods?
-        tmin = physcons.TICE0 - 160.0
+        tmin = mpcons.TICE0 - 160.0
 
         for i in range(self.length):
             tem = tmin + self.delt * float(i)
-            fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
-            fac1 = fac0 * physcons.LV0
-            fac2 = (
-                physcons.DC_VAP * np.log(tem / physcons.TICE0) + fac1
-            ) / constants.RVGAS
+            fac0 = (tem - mpcons.TICE0) / (tem * mpcons.TICE0)
+            fac1 = fac0 * mpcons.LV0
+            fac2 = (mpcons.DC_VAP * np.log(tem / mpcons.TICE0) + fac1) / constants.RVGAS
             self.table0[i] = constants.E00 * np.exp(fac2)
             if i > 0:
                 self.des0[i - 1] = max(0.0, self.table0[i] - self.table0[i - 1])
@@ -124,15 +120,15 @@ class HumiditySaturationTables:
         if not self._t0_init:
             self._initialize_table0
 
-        tmin = physcons.TICE0 - self.n_min * self.delt
+        tmin = mpcons.TICE0 - self.n_min * self.delt
 
         for i in range(self.length):
             if i < self.n_min:
                 tem = tmin + self.delt * float(i)
-                fac0 = (tem - physcons.TICE0) / (tem * physcons.TICE0)
-                fac1 = fac0 * physcons.LI2
+                fac0 = (tem - mpcons.TICE0) / (tem * mpcons.TICE0)
+                fac1 = fac0 * mpcons.LI2
                 fac2 = (
-                    physcons.D2ICE * np.log(tem / physcons.TICE0) + fac1
+                    mpcons.D2ICE * np.log(tem / mpcons.TICE0) + fac1
                 ) / constants.RVGAS
                 self.table2[i] = constants.E00 * np.exp(fac2)
             else:
@@ -145,7 +141,7 @@ class HumiditySaturationTables:
         self._t2_init = True
 
     def _saturation(self, temperature, density, table: int):
-        tmin = physcons.TICE0 - 160.0
+        tmin = mpcons.TICE0 - 160.0
         ap1 = 10.0 * np.maximum(0, temperature - tmin) + 1.0
         ap1 = np.minimum(self.length, ap1) - 1.0
         it = (ap1 - 0.5).astype(int)

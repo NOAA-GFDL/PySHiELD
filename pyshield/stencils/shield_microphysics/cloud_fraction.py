@@ -1,11 +1,12 @@
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, log10, max, min
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from pyshield._config import MicroPhysicsConfig
+
+from ._config import GFDLCloudMPConfig
 
 
 @gtfunction
@@ -23,7 +24,7 @@ def cloud_scheme_1(
     """
     from __externals__ import cld_min, do_cld_adj, f_dq_m, f_dq_p, icloud_f, rh_thres
 
-    if (rh > rh_thres) and (qpz > physcons.QCMIN):
+    if (rh > rh_thres) and (qpz > mpcons.QCMIN):
         dq = h_var * qpz
         if do_cld_adj:
             q_plus = qpz + dq * f_dq_p * min(
@@ -45,7 +46,7 @@ def cloud_scheme_1(
                     qa = (q_plus - qstar) / (dq * f_dq_p)
                 else:
                     qa = 0.0
-                if q_cond > physcons.QCMIN:
+                if q_cond > mpcons.QCMIN:
                     qa = max(cld_min, qa)
                 qa = min(1.0, qa)
         else:
@@ -61,7 +62,7 @@ def cloud_scheme_1(
                         )
                 else:
                     qa = 0.0
-                if q_cond > physcons.QCMIN:
+                if q_cond > mpcons.QCMIN:
                     qa = max(cld_min, qa)
                 qa = min(1.0, qa)
     else:
@@ -84,7 +85,7 @@ def cloud_scheme_2(
 
     if rh >= 1.0:
         qa = 1.0
-    elif (rh > rh_thres) and (q_cond > physcons.QCMIN):
+    elif (rh > rh_thres) and (q_cond > mpcons.QCMIN):
         qa = exp(xr_a * log(rh)) * (
             1.0
             - exp(
@@ -111,17 +112,17 @@ def cloud_scheme_3(
     """
     Park et al. 2016
     """
-    if q_cond > physcons.QCMIN:
+    if q_cond > mpcons.QCMIN:
         qa = (
             1.0
             / 50.0
             * (
                 5.77
                 * (100.0 - gsize / 1000.0)
-                * exp(1.07 * log(max(physcons.QCMIN * 1000.0, q_cond * 1000.0)))
+                * exp(1.07 * log(max(mpcons.QCMIN * 1000.0, q_cond * 1000.0)))
                 + 4.82
                 * (gsize / 1000.0 - 50.0)
-                * exp(0.94 * log(max(physcons.QCMIN * 1000.0, q_cond * 1000.0)))
+                * exp(0.94 * log(max(mpcons.QCMIN * 1000.0, q_cond * 1000.0)))
             )
         )
         qa = qa * (0.92 / 0.96 * q_liquid / q_cond + 1.0 / 0.96 * q_solid / q_cond)
@@ -142,7 +143,7 @@ def cloud_scheme_4(
     Gultepe and Isaac (2007)
     """
     # TODO: fix log10 when possible
-    sigma = 0.28 + exp(0.49 * log(max(physcons.QCMIN * 1000.0, q_cond * 1000.0)))
+    sigma = 0.28 + exp(0.49 * log(max(mpcons.QCMIN * 1000.0, q_cond * 1000.0)))
     gam = max(0.0, q_cond * 1000.0) / sigma
     if gam < 0.18:
         qa10 = 0.0
@@ -236,7 +237,7 @@ def cloud_fraction(
                 qstar, dqdt = physfun.iqs(tin, density)
             else:
                 qstar, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
-        elif tin >= physcons.TICE0:
+        elif tin >= mpcons.TICE0:
             if do_mp_table_emulation:
                 qstar, dqdt = physfun.wqs(tin, density)
             else:
@@ -248,10 +249,10 @@ def cloud_fraction(
             else:
                 qsi, dqdt = physfun.sat_spec_hum_water_ice(tin, density)
                 qsw, dqdt = physfun.sat_spec_hum_water(tin, density)
-            if q_cond > physcons.QCMIN:
+            if q_cond > mpcons.QCMIN:
                 rqi = q_solid / q_cond
             else:
-                rqi = (physcons.TICE0 - tin) / (physcons.TICE0 - t_wfr)
+                rqi = (mpcons.TICE0 - tin) / (mpcons.TICE0 - t_wfr)
             qstar = rqi * qsi + (1.0 - rqi) * qsw
 
         # Cloud schemes
@@ -294,7 +295,7 @@ class CloudFraction:
     def __init__(
         self,
         stencil_factory: StencilFactory,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
     ):
         self._idx: GridIndexing = stencil_factory.grid_indexing
 
@@ -314,7 +315,7 @@ class CloudFraction:
                 "rad_rain": config.rad_rain,
                 "rad_snow": config.rad_snow,
                 "t_wfr": config.t_wfr,
-                "tice": physcons.TICE0,
+                "tice": mpcons.TICE0,
                 "cld_min": config.cld_min,
                 "do_cld_adj": config.do_cld_adj,
                 "f_dq_m": config.f_dq_m,

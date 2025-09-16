@@ -1,4 +1,4 @@
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import FORWARD, computation, interval, max, min
 from ndsl.dsl.stencil import StencilFactory
@@ -43,7 +43,7 @@ def calc_table_values(
             wqs, dwdt = physfun.sat_spec_hum_water(temp, den)
             iqs, didt = physfun.sat_spec_hum_water_ice(temp, den)
 
-        ap1 = 10.0 * max(temp - (physcons.TICE0 - 160.0), 0.0) + 1
+        ap1 = 10.0 * max(temp - (mpcons.TICE0 - 160.0), 0.0) + 1
         ap1 = min(ap1, 2621.0)
         it1 = ap1
         it2 = ap1 - 0.5

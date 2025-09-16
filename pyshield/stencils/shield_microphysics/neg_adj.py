@@ -1,10 +1,10 @@
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 
-from ..._config import AdjustNegativeTracerConfig
+from ._config import AdjustNegativeTracerConfig
 
 
 def adjust_negative_tracers(
@@ -179,7 +179,7 @@ class AdjustNegativeTracers:
                 "li20": config.li20,
                 "d1_vap": config.d1_vap,
                 "d1_ice": config.d1_ice,
-                "tice": physcons.TICE0,
+                "tice": mpcons.TICE0,
                 "t_wfr": config.t_wfr,
                 "convt": convert_mm_day,
                 "ntimes": config.ntimes,

@@ -1,4 +1,4 @@
-import pyshield.constants as physcons
+import pyshield.stencils.shield_microphysics.constants as mpcons
 import pyshield.stencils.shield_microphysics.physical_functions as physfun
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import (
@@ -15,7 +15,7 @@ from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, Int, IntField
 from ndsl.initialization.allocator import QuantityFactory
 
-from ..._config import MicroPhysicsConfig
+from ._config import GFDLCloudMPConfig
 from .terminal_fall import TerminalFall
 
 
@@ -115,7 +115,7 @@ def calc_terminal_velocity_rsg(
         if const_v:
             v_terminal = v_fac
         else:
-            if q < physcons.QFMIN:
+            if q < mpcons.QFMIN:
                 v_terminal = 0.0
             else:
                 v_terminal = physfun.calc_terminal_velocity(
@@ -142,10 +142,10 @@ def calc_terminal_velocity_ice(
         if constant_v:
             v_terminal = v_fac
         else:
-            if qice < physcons.QFMIN:
+            if qice < mpcons.QFMIN:
                 v_terminal = 0.0
             else:
-                tc = temperature - physcons.TICE0
+                tc = temperature - mpcons.TICE0
                 if ifflag == 1:
                     v_terminal = (
                         (3.0 + log10(qice * density)) * (tc * (aa * tc + bb) + cc)
@@ -202,12 +202,12 @@ def sedi_melt_python(
             for k in range(ke - 1, ks - 1, -1):
                 if v_terminal[i, j, k] < 1.0e-10:
                     continue
-                if q_melt[i, j, k] > physcons.QCMIN:
+                if q_melt[i, j, k] > mpcons.QCMIN:
                     for m in range(k + 1, ke + 1):
                         if z_terminal[i, j, k + 1] >= z_edge[i, j, m]:
                             break
                         if (z_terminal[i, j, k] < z_edge[i, j, m + 1]) and (
-                            temperature[i, j, m] > physcons.TICE0
+                            temperature[i, j, m] > mpcons.TICE0
                         ):
                             cvm[i, j, k] = moist_heat_capacity(
                                 qvapor[i, j, k],
@@ -240,7 +240,7 @@ def sedi_melt_python(
                             sink = min(
                                 q_melt[i, j, k] * delp[i, j, k] / delp[i, j, m],
                                 dtime
-                                * (temperature[i, j, m] - physcons.TICE0)
+                                * (temperature[i, j, m] - mpcons.TICE0)
                                 / icpk[i, j, m],
                             )
                             q_melt[i, j, k] -= sink * delp[i, j, m] / delp[i, j, k]
@@ -286,7 +286,7 @@ def sedi_melt_python(
                             temperature[i, j, m] = (
                                 temperature[i, j, m] * cvm[i, j, m]
                             ) / cvm_tmp
-                        if q_melt[i, j, k] < physcons.QCMIN:
+                        if q_melt[i, j, k] < mpcons.QCMIN:
                             break
 
 
@@ -323,14 +323,14 @@ def sedi_melt(
         with interval(1, -1):
             lev = 1
             if v_terminal >= 1.0e-10:
-                if q_melt > physcons.QCMIN:
+                if q_melt > mpcons.QCMIN:
                     while (
                         (lev > k_end - k_mask[0, 0, 0])
-                        and (q_melt[0, 0, 0] >= physcons.QCMIN)
+                        and (q_melt[0, 0, 0] >= mpcons.QCMIN)
                         and (z_terminal[0, 0, 1] < z_edge[0, 0, lev])
                     ):
                         if (z_terminal[0, 0, 0] < z_edge[0, 0, lev + 1]) and (
-                            temperature[0, 0, lev] > physcons.TICE0
+                            temperature[0, 0, lev] > mpcons.TICE0
                         ):
                             tmp_temp = temperature[0, 0, lev]
                             cvm[0, 0, 0] = physfun.moist_heat_capacity(
@@ -357,7 +357,7 @@ def sedi_melt(
                             dtime = min(1.0, dtime / tau_mlt)
                             sink = min(
                                 q_melt[0, 0, 0] * delp[0, 0, 0] / delp[0, 0, lev],
-                                dtime * (tmp_temp - physcons.TICE0) / icpk[0, 0, lev],
+                                dtime * (tmp_temp - mpcons.TICE0) / icpk[0, 0, lev],
                             )
                             q_melt[0, 0, 0] = q_melt[0, 0, 0] - (
                                 sink * delp[0, 0, lev] / delp[0, 0, 0]
@@ -432,7 +432,7 @@ def calc_edge_and_terminal_height(
     with computation(FORWARD):
         with interval(1, None):
             if z_terminal >= z_terminal[0, 0, -1]:
-                z_terminal = z_terminal[0, 0, -1] - physcons.DZ_MIN_FLIP
+                z_terminal = z_terminal[0, 0, -1] - mpcons.DZ_MIN_FLIP
 
 
 def adjust_fluxes(flux: FloatField):
@@ -449,7 +449,7 @@ class Sedimentation:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        config: MicroPhysicsConfig,
+        config: GFDLCloudMPConfig,
         timestep: float,
     ):
         self._idx: GridIndexing = stencil_factory.grid_indexing

@@ -6,7 +6,7 @@ import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
 from ndsl.dsl.typing import Float
 from pyshield import PHYSICS_PACKAGES, PhysicsState
-from pyshield.stencils.gfs_microphysics import Microphysics
+from pyshield.stencils.gfs_microphysics import GFSMicrophysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -90,7 +90,7 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
             quantity_factory=quantity_factory,
             schemes=[PHYSICS_PACKAGES["GFS_microphysics"]],
         )
-        microphysics = Microphysics(
+        microphysics = GFSMicrophysics(
             self.stencil_factory, quantity_factory, self.grid.grid_data, self.namelist
         )
         microph_state = physics_state.gfs_microphysics
