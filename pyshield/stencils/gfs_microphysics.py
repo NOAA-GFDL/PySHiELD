@@ -11,8 +11,7 @@ from ndsl.dsl.dace.orchestration import dace_inhibitor
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.grid import GridData
-
-from .._config import PhysicsConfig
+from pyshield._config import PhysicsConfig
 
 
 def fields_init(
