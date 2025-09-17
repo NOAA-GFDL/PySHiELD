@@ -6,13 +6,7 @@ import xarray as xr
 
 import ndsl.constants as constants
 import pyshield.constants as physcons
-from ndsl import (
-    NullComm,
-    Quantity,
-    QuantityFactory,
-    StencilFactory,
-    TileCommunicator,
-)
+from ndsl import NullComm, Quantity, QuantityFactory, StencilFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.grid import (
     AngleGridData,
@@ -22,11 +16,13 @@ from ndsl.grid import (
     MetricTerms,
     VerticalGridData,
 )
-from pyshield import PHYSICS_PACKAGES, PhysicsConfig, PhysicsState, Physics
+from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 
 
-def setup_infrastructure(nx: int, ny: int, nz: int, nhalo: int,  etafile: Path, backend: str = "numpy"):
+def setup_infrastructure(
+    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
+):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
     )
@@ -51,6 +47,7 @@ def setup_infrastructure(nx: int, ny: int, nz: int, nhalo: int,  etafile: Path, 
         angle_data=angle_data,
     )
     return stencil_factory, quantity_factory, grid_data
+
 
 def states_from_fortran_restarts(
     dycore_datafile: Path,
@@ -121,8 +118,10 @@ def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
     ny = 48
     nz = 91
     dt = 225.0
-    
-    stencil_factory, quantity_factory, grid_data = setup_infrastructure(nx=nx, ny=ny, nz=nz, nhalo=3, etafile=etafile, backend=backend)
+
+    stencil_factory, quantity_factory, grid_data = setup_infrastructure(
+        nx=nx, ny=ny, nz=nz, nhalo=3, etafile=etafile, backend=backend
+    )
 
     state = states_from_fortran_restarts(
         dycore_path,
@@ -135,47 +134,53 @@ def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
         schemes,
     )
     config = PhysicsConfig(
-        dt_atmos = dt,
-        hydrostatic = False,
-        npx = nx + 1,
-        npy = ny + 1,
-        npz = nz + 1,
-        nwat = 6,
-        schemes = ["GFDL_cloud_microphysics"],
+        dt_atmos=dt,
+        hydrostatic=False,
+        npx=nx + 1,
+        npy=ny + 1,
+        npz=nz + 1,
+        nwat=6,
+        schemes=["GFDL_cloud_microphysics"],
     )
     config.schemes = ["GFDL_cloud_microphysics"]
     mp_config = GFDLCloudMPConfig(
-        dt_full = dt,
-        hydrostatic = False,
-        npx = nx + 1,
-        npy = ny + 1,
-        npz = nz + 1,
-        layout = (1, 1),
-        nwat = 6,
-        do_sedi_uv = True,
-        do_sedi_w = True,
-        do_sedi_heat = False,
-        rad_snow = True,
-        rad_graupel = True,
-        rad_rain = True,
-        const_vi = False,
-        const_vs = False,
-        const_vg = False,
-        const_vr = False,
-        vi_fac = 1.,
-        vs_fac = 1.,
-        vg_fac = 1.,
-        vr_fac = 1.,
-        vi_max = 1.,
-        vs_max = 2.,
-        vg_max = 12.,
-        vr_max = 12.,
-        qi_lim = 1.,
-        prog_ccn = False,
-        do_qa = True,
-        tau_l2v = 225.,
-        tau_v2l = 150.,
-        rthresh = 10.e-6,
+        dt_full=dt,
+        hydrostatic=False,
+        npx=nx + 1,
+        npy=ny + 1,
+        npz=nz + 1,
+        layout=(1, 1),
+        nwat=6,
+        do_sedi_uv=True,
+        do_sedi_w=True,
+        do_sedi_heat=False,
+        rad_snow=True,
+        rad_graupel=True,
+        rad_rain=True,
+        const_vi=False,
+        const_vs=False,
+        const_vg=False,
+        const_vr=False,
+        vi_fac=1.0,
+        vs_fac=1.0,
+        vg_fac=1.0,
+        vr_fac=1.0,
+        vi_max=1.0,
+        vs_max=2.0,
+        vg_max=12.0,
+        vr_max=12.0,
+        qi_lim=1.0,
+        prog_ccn=False,
+        do_qa=True,
+        tau_l2v=225.0,
+        tau_v2l=150.0,
+        rthresh=10.0e-6,
     )
-    physics_driver = Physics(stencil_factory, quantity_factory, grid_data, config, gfdl_cld_mp_config=mp_config)
+    physics_driver = Physics(
+        stencil_factory,
+        quantity_factory,
+        grid_data,
+        config,
+        gfdl_cld_mp_config=mp_config,
+    )
     physics_driver(state, config.dt_atmos)
