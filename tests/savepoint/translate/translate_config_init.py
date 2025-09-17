@@ -1,6 +1,6 @@
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.namelist import Namelist
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -506,8 +506,7 @@ class TranslateConfigInit(TranslatePhysicsFortranData2Py):
             "acco3": {"serialname": "ini_acco3", "kend": 10, "shield": True},
         }
 
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

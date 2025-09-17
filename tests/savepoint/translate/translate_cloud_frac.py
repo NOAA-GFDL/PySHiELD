@@ -10,7 +10,7 @@ from ndsl import (
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from pyshield._config import GFDLCloudMPConfig, PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import (  # noqa
     CloudFraction,
     cloud_scheme_1,
@@ -274,8 +274,7 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
         self.config.do_mp_table_emulation = True
         print(f"cfflag is {self.config.cfflag}")
 

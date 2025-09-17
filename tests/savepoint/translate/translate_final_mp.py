@@ -1,6 +1,6 @@
 from ndsl import Namelist, QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import CloudFraction
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calc_sedimentation_energy_loss,
@@ -951,8 +951,7 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
         self.ignore_near_zero_errors = {"fin_te_loss": True}
 
         self.sizer = SubtileGridSizer.from_tile_params(
@@ -1324,8 +1323,7 @@ class TranslatePostMP(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
         self.config.do_mp_table_emulation = True
 
         self.sizer = SubtileGridSizer.from_tile_params(

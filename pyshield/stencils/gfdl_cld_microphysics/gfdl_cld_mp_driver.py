@@ -11,13 +11,14 @@ from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.performance.timer import NullTimer, Timer
-
-from ._config import GFDLCloudMPConfig
-from .cloud_fraction import CloudFraction
-from .gfdl_cld_microphysics_state import GFDLCloudMicrophysicsState
-from .mp_fast import FastMicrophysics
-from .mp_full import FullMicrophysics
-from .neg_adj import AdjustNegativeTracers
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import CloudFraction
+from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_microphysics_state import (
+    GFDLCloudMicrophysicsState,
+)
+from pyshield.stencils.gfdl_cld_microphysics.mp_fast import FastMicrophysics
+from pyshield.stencils.gfdl_cld_microphysics.mp_full import FullMicrophysics
+from pyshield.stencils.gfdl_cld_microphysics.neg_adj import AdjustNegativeTracers
 
 
 def reset_initial_values_and_make_copies(

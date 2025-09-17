@@ -7,7 +7,7 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import (  # noqa
     accrete_graupel_with_cloud_water_and_rain,
     accrete_graupel_with_ice,
@@ -791,8 +791,7 @@ class TranslateIceSubFunc(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

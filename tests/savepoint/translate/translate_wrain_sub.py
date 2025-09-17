@@ -8,7 +8,7 @@ import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.namelist import Namelist
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.warm_rain import (  # noqa
     accrete_rain,
     autoconvert_water_rain,
@@ -427,8 +427,7 @@ class TranslateWRainSubFunc(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

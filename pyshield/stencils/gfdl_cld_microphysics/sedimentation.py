@@ -14,9 +14,8 @@ from ndsl.dsl.gt4py import (
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, Int, IntField
 from ndsl.initialization.allocator import QuantityFactory
-
-from ._config import GFDLCloudMPConfig
-from .terminal_fall import TerminalFall
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics.terminal_fall import TerminalFall
 
 
 def moist_heat_capacity(

@@ -1,6 +1,6 @@
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.namelist import Namelist
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.neg_adj import AdjustNegativeTracers
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -45,8 +45,7 @@ class TranslateNegAdjP(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        mpconfig = pconf.microphysics
+        mpconfig = GFDLCloudMPConfig.from_namelist(namelist)
         self.config = mpconfig.adjustnegative
 
     def compute(self, inputs):

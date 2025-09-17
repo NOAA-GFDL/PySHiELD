@@ -4,7 +4,7 @@ from ndsl.dsl.gt4py import FORWARD, computation, interval, max, min
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, IntField
 from ndsl.namelist import Namelist
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.humidity_tables import (
     HumiditySaturationTables,
 )
@@ -145,8 +145,7 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
         self.max_error = 2.0e-14
 
         self.stencil_factory = stencil_factory
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
@@ -203,8 +202,7 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
         self.max_error = 1e-13  # 10^-25 absolute errors at the top of the tables
 
         self.stencil_factory = stencil_factory
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
         self.config.do_mp_table_emulation = True
 
     def compute(self, inputs):

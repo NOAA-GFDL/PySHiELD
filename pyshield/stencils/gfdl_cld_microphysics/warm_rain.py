@@ -6,8 +6,7 @@ import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp, interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-
-from ._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
 
 def evaporate_rain(

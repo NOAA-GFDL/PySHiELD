@@ -10,8 +10,7 @@ from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.stencils.basic_operations import copy_defn
 from pyfv3.stencils.remap_profile import RemapProfile
-
-from ._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
 
 def prep_terminal_fall(

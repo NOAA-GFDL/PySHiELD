@@ -3,7 +3,7 @@ from ndsl.dsl.typing import FloatField
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.namelist import Namelist
-from pyshield._config import GFDLCloudMPConfig, PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calculate_particle_properties,
 )
@@ -429,8 +429,7 @@ class TranslateParticleProperties(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
 
         self.sizer = SubtileGridSizer.from_tile_params(
             nx_tile=self.namelist.npx - 1,

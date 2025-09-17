@@ -3,12 +3,13 @@ from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 from ndsl.initialization.allocator import QuantityFactory
-
-from ._config import GFDLCloudMPConfig
-from .ice_cloud import IceCloud
-from .sedimentation import Sedimentation
-from .subgrid_z_proc import VerticalSubgridProcesses
-from .warm_rain import WarmRain
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import IceCloud
+from pyshield.stencils.gfdl_cld_microphysics.sedimentation import Sedimentation
+from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
+    VerticalSubgridProcesses,
+)
+from pyshield.stencils.gfdl_cld_microphysics.warm_rain import WarmRain
 
 
 def add_fluxes_and_surface_tracers(

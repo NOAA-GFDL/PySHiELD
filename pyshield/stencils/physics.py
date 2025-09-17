@@ -12,13 +12,12 @@ from pyshield._config import PHYSICS_PACKAGES, PhysicsConfig
 from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
-
-from .gfdl_cld_microphysics import (
+from pyshield.stencils.gfdl_cld_microphysics import (
     GFDLCloudMicrophysics,
     GFDLCloudMicrophysicsState,
     GFDLCloudMPConfig,
 )
-from .gfs_microphysics import GFSMicrophysics
+from pyshield.stencils.gfs_microphysics import GFSMicrophysics
 
 
 def interpolate_radiation(

@@ -6,8 +6,7 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-
-from ._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
 
 @gtfunction

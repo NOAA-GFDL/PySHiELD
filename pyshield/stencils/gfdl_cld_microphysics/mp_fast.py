@@ -6,10 +6,12 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
-
-from ._config import FastMPConfig
-from .ice_cloud import freeze_cloud_water, melt_cloud_ice
-from .subgrid_z_proc import (
+from pyshield.stencils.gfdl_cld_microphysics._config import FastMPConfig
+from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import (
+    freeze_cloud_water,
+    melt_cloud_ice,
+)
+from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
     cloud_condensation_evaporation,
     complete_freeze,
     deposit_and_sublimate_graupel,

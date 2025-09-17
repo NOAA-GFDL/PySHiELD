@@ -1,6 +1,6 @@
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.namelist import Namelist
-from pyshield import PhysicsConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
     VerticalSubgridProcesses,
 )
@@ -69,8 +69,7 @@ class TranslateSubgridZProc(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        pconf = PhysicsConfig.from_namelist(namelist)
-        self.config = pconf.microphysics
+        self.config = GFDLCloudMPConfig.from_namelist(namelist)
         self.config.do_mp_table_emulation = True
 
     def compute(self, inputs):
