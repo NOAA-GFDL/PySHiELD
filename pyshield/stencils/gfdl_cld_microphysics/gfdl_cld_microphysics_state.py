@@ -524,5 +524,5 @@ class GFDLCloudMicrophysicsState:
                     )
         return cls(**inputs, quantity_factory=quantity_factory)
 
-    # TODO Will we want "from physics" and "from dycore" methods?
-    # Or do init_zeros and then populate?
+    # TODO Right now we init_zeros and then populate
+    # but will we want "from physics" and "from dycore" methods?
