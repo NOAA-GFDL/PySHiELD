@@ -15,7 +15,8 @@ DEFAULT_NML_GROUPS = (
     "coupler_nml",
     "gfdl_cloud_microphysics_nml",
     "integ_phys_nml",
-)  # TODO Double-check for any additional groups
+    "gfs_physics_nml",
+)
 
 
 @unique
@@ -128,29 +129,19 @@ class PhysicsConfig:
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
 
-    # TODO: Consider removing from_namelist or from_f90nml. Duplicates.
     @classmethod
     def from_namelist(cls, namelist: Namelist, target_groups=None) -> "PhysicsConfig":
-        """This creates a PhysicsConfig using the input namelist.
-        Duplicate of from_f90nml.
-        """
-        return cls.from_f90nml(namelist, target_groups=target_groups)
-
-    @classmethod
-    def from_f90nml(
-        cls, namelist: f90nml.Namelist, target_groups=None
-    ) -> "PhysicsConfig":
-        """This creates a PhysicsConfig using the input namelist.
+        """This creates a PhysicsConfig using an ndsl.Namelist
         Args:
-            namelist
+            namelist      - ndsl.Namelist
             target_groups - If None, then the DEFAULT_NML_GROUPS will be used
                             to populate the dataclass fields.
         """
-        namelist = Namelist(namelist)
         if target_groups is None:
             groups = DEFAULT_NML_GROUPS
         else:
             groups = target_groups
+
         namelist_dict = namelist.namelist_groups_to_flatish_dict(groups)
         namelist_dict = {
             key: value
@@ -158,3 +149,16 @@ class PhysicsConfig:
             if key in cls.__dataclass_fields__  # type: ignore
         }
         return cls(**namelist_dict)
+
+    @classmethod
+    def from_f90nml(
+        cls, namelist: f90nml.Namelist, target_groups=None
+    ) -> "PhysicsConfig":
+        """This creates a PhysicsConfig using a f90nml.Namelist
+        Args:
+            namelist      - f90nml.Namelist
+            target_groups - If None, then the DEFAULT_NML_GROUPS will be used
+                            to populate the dataclass fields.
+        """
+        namelist = Namelist(namelist)
+        return cls.from_namelist(namelist, target_groups=target_groups)
