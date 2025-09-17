@@ -6,15 +6,7 @@ from ndsl.dsl.gt4py import interval, log, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import (
-    Bool,
-    BoolFieldIJ,
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    Int,
-    IntFieldIJ,
-)
+from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ, Int, IntFieldIJ
 from ndsl.stencils.basic_operations import sign
 from pyshield.functions.physics_functions import fpvsx
 
@@ -399,10 +391,10 @@ def cal_z0_moon(ws10m):
 
 
 def sfc_diff(
-    u1: FloatField,
-    v1: FloatField,
-    t1: FloatField,
-    qvapor: FloatField,
+    u1: FloatFieldIJ,
+    v1: FloatFieldIJ,
+    t1: FloatFieldIJ,
+    qvapor: FloatFieldIJ,
     ddvel: FloatFieldIJ,
     tsurf: FloatFieldIJ,
     tskin: FloatFieldIJ,
@@ -629,10 +621,10 @@ class SurfaceExchange:
 
     def __call__(
         self,
-        u1: FloatField,
-        v1: FloatField,
-        t1: FloatField,
-        qvapor: FloatField,
+        u1: FloatFieldIJ,
+        v1: FloatFieldIJ,
+        t1: FloatFieldIJ,
+        qvapor: FloatFieldIJ,
         ddvel: FloatFieldIJ,
         tsurf: FloatFieldIJ,
         tsfc: FloatFieldIJ,

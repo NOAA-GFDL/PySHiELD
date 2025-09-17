@@ -24,13 +24,13 @@ from pyshield.stencils.surface.sfc_state import SurfaceState
 
 def init_step_vars(
     tsfc: FloatFieldIJ,
-    phil: FloatField,
-    prsl: FloatField,
-    prsik: FloatField,
-    prslk: FloatField,
+    phil: FloatFieldIJ,
+    prsl: FloatFieldIJ,
+    prsik: FloatFieldIJ,
+    prslk: FloatFieldIJ,
     vfrac: FloatFieldIJ,
     sfcemis: FloatFieldIJ,
-    adjsfcdlw: FloatFieldIJ,
+    sfcdlw: FloatFieldIJ,
     tsurf: FloatFieldIJ,
     flag_guess: BoolFieldIJ,
     flag_iter: BoolFieldIJ,
@@ -79,7 +79,7 @@ def init_step_vars(
         smcref2 = 0.0
         work3 = prsik / prslk
         sigmaf = max(vfrac, 0.01)
-        gabsbdlw = sfcemis * adjsfcdlw
+        gabsbdlw = sfcemis * sfcdlw
         prsl1 = prsl
 
 
@@ -251,38 +251,23 @@ class SurfaceLayer:
     def __call__(
         self,
         state: SurfaceState,
-        u1: FloatField,  # TODO: these should live in the surface state
-        v1: FloatField,
-        t1: FloatField,
-        prsl1: FloatField,
-        prsik: FloatField,
-        prslk: FloatField,
-        qvapor: FloatField,
-        phil: FloatField,
-        rb: FloatFieldIJ,
-        stress: FloatFieldIJ,
-        ps: FloatFieldIJ,
-        hflx: FloatFieldIJ,
-        adjsfcdlw: FloatFieldIJ,
-        adjsfcdsw: FloatFieldIJ,
-        adjsfcnsw: FloatFieldIJ,
     ):
         self._init_step_vars(
             state.tsfc,
-            phil,
-            prsl1,
-            prsik,
-            prslk,
+            state.phil,
+            state.prsl1,
+            state.prsik,
+            state.prslk,
             state.vfrac,
             state.sfcemis,
-            adjsfcdlw,
+            state.sfcdlw,
             self._tsurf,
             self._flag_guess,
             self._flag_iter,
             self._drain,
             self._ep1d,
             self._runof,
-            hflx,
+            state.hflx,
             self._evap,
             self._evbs,
             self._evcw,
@@ -303,10 +288,10 @@ class SurfaceLayer:
         )
         for iteration in range(2):
             self._exchange(
-                u1,
-                v1,
-                t1,
-                qvapor,
+                state.u1,
+                state.v1,
+                state.t1,
+                state.qvapor,
                 self._ddvel,
                 self._tsurf,
                 state.tsfc,
@@ -321,8 +306,8 @@ class SurfaceLayer:
                 state.ztrl,
                 self._cd,
                 self._cdq,
-                rb,
-                stress,
+                state.rb,
+                state.stress,
                 state.ffmm,
                 state.ffhh,
                 state.wind,
@@ -344,11 +329,11 @@ class SurfaceLayer:
             )
 
             self._sfc_ocean(
-                ps,
-                u1,
-                v1,
-                t1,
-                qvapor,
+                state.ps,
+                state.u1,
+                state.v1,
+                state.t1,
+                state.qvapor,
                 state.tsfc,
                 self._cd,
                 self._cdq,
@@ -360,7 +345,7 @@ class SurfaceLayer:
                 self._chh,
                 self._gflx,
                 self._evap,
-                hflx,
+                state.hflx,
                 self._ep1d,
                 state.slmsk,
                 self._flag_iter,
@@ -369,14 +354,14 @@ class SurfaceLayer:
             # TODO: LSM here
 
             self._sfc_sice(
-                ps,
+                state.ps,
                 state.wind,
-                t1,
-                qvapor,
+                state.t1,
+                state.qvapor,
                 state.sfcemis,
                 self._gabsbdlw,
-                adjsfcnsw,
-                adjsfcdsw,
+                state.sfcnsw,
+                state.sfcdsw,
                 state.srflag,
                 self._cd,
                 self._cdq,
@@ -398,7 +383,7 @@ class SurfaceLayer:
                 self._cmm,
                 self._chh,
                 self._evap,
-                hflx,
+                state.hflx,
                 self._gflx,
                 self._snowmt,
             )

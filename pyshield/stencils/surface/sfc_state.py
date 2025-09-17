@@ -212,6 +212,141 @@ class SurfaceState:
         }
     )
 
+    u1: Quantity = field(
+        metadata={
+            "name": "lowest_level_x_wind",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m/s",
+            "intent": "in",
+        }
+    )
+
+    v1: Quantity = field(
+        metadata={
+            "name": "lowest_level_y_wind",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m/s",
+            "intent": "in",
+        }
+    )
+
+    qvapor: Quantity = field(
+        metadata={
+            "name": "lowest_level_specific_humidity",
+            "dims": [X_DIM, Y_DIM],
+            "units": "kg/kg",
+            "intent": "in",
+        }
+    )
+
+    t1: Quantity = field(
+        metadata={
+            "name": "lowest_level_temperature",
+            "dims": [X_DIM, Y_DIM],
+            "units": "K",
+            "intent": "in",
+        }
+    )
+
+    ps: Quantity = field(
+        metadata={
+            "name": "surface_pressure",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "in",
+        }
+    )
+
+    phil: Quantity = field(
+        metadata={
+            "name": "layer_geopotential_height",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m",
+            "intent": "in",
+        }
+    )
+
+    prsl1: Quantity = field(
+        metadata={
+            "name": "",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "in",
+        }
+    )
+
+    prsik: Quantity = field(
+        metadata={
+            "name": "surface_layer_mean_pressure",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "in",
+        }
+    )
+
+    prslk: Quantity = field(
+        metadata={
+            "name": "Exner_function",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "in",
+        }
+    )
+
+    rb: Quantity = field(
+        metadata={
+            "name": "bulk_Richardson_number",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+
+    stress: Quantity = field(
+        metadata={
+            "name": "surface_wind_stress",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "out",
+        }
+    )
+
+    hflx: Quantity = field(
+        metadata={
+            "name": "sensible_heat_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "W/m**2",
+            "intent": "out",
+        }
+    )
+
+    sfcdlw: Quantity = field(
+        metadata={
+            "name": "downward_longwave_surface_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "W/m**2",
+            "intent": "in",
+        }
+    )
+
+    sfcdsw: Quantity = field(
+        metadata={
+            "name": "downward_shortwave_surface_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "W/m**2",
+            "intent": "in",
+        }
+    )
+
+    sfcnsw: Quantity = field(
+        metadata={
+            "name": "net_shortwave_surface_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "W/m**2",
+            "intent": "in",
+        }
+    )
+
     quantity_factory: InitVar[QuantityFactory]
 
     @classmethod

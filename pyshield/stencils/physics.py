@@ -284,6 +284,47 @@ def flip_fields(
         phii1 = phii[0, 0, level_flip]
 
 
+def prepare_sfc(
+    u1: FloatFieldIJ,
+    v1: FloatFieldIJ,
+    t1: FloatFieldIJ,
+    prsl1: FloatFieldIJ,
+    prsik1: FloatFieldIJ,
+    prslk1: FloatFieldIJ,
+    qvapor1: FloatFieldIJ,
+    phil1: FloatFieldIJ,
+    ps: FloatFieldIJ,
+    sfcdlw: FloatFieldIJ,
+    sfcdsw: FloatFieldIJ,
+    sfcnsw: FloatFieldIJ,
+    physics_u: FloatField,
+    physics_v: FloatField,
+    physics_t: FloatField,
+    physics_prsl: FloatField,
+    physics_prsik: FloatField,
+    physics_prslk: FloatField,
+    physics_qvapor: FloatField,
+    physics_phil: FloatField,
+    physics_pgr: FloatFieldIJ,
+    physics_sfcdlw: FloatFieldIJ,
+    physics_sfcdsw: FloatFieldIJ,
+    physics_sfcnsw: FloatFieldIJ,
+):
+    with computation(FORWARD), interval(0, 1):
+        u1 = physics_u
+        v1 = physics_v
+        t1 = physics_t
+        prsl1 = physics_prsl
+        prsik1 = physics_prsik
+        prslk1 = physics_prslk
+        qvapor1 = physics_qvapor
+        phil1 = physics_phil
+        ps = physics_pgr
+        sfcdlw = physics_sfcdlw
+        sfcdsw = physics_sfcdsw
+        sfcnsw = physics_sfcnsw
+
+
 def prepare_microphysics(
     dz: FloatField,
     phii: FloatField,
@@ -483,6 +524,11 @@ class Physics:
             )
         if "SFC_layer" in schemes:
             self._sfc_layer = True
+            self._prepare_sfc = stencil_factory.from_origin_domain(
+                func=prepare_sfc,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
             self._sfc = SurfaceLayer(
                 stencil_factory,
                 quantity_factory,
@@ -586,8 +632,19 @@ class Physics:
         if self._sfc_layer:
             if not surface_state:
                 raise ValueError("You must pass a surface state to run surface schemes")
-            self._sfc(
-                surface_state,
+            self._prepare_sfc(
+                surface_state.u1,
+                surface_state.v1,
+                surface_state.t1,
+                surface_state.prsl1,
+                surface_state.prsik,
+                surface_state.prslk,
+                surface_state.qvapor,
+                surface_state.phil,
+                surface_state.ps,
+                surface_state.sfcdlw,
+                surface_state.sfcdsw,
+                surface_state.sfcnsw,
                 self._u1,
                 self._v1,
                 self._t1,
@@ -596,14 +653,12 @@ class Physics:
                 self._prslk1,
                 self._qvapor1,
                 self._phil1,
-                self._rb,
-                self._stress,
                 physics_state.pgr,
-                self._hflx,
                 self._adjsfcdlw,
                 self._adjsfcdsw,
                 self._adjsfcnsw,
             )
+            self._sfc(surface_state)
         if self._gfs_microphysics:
             self._prepare_microphysics(
                 physics_state.dz,

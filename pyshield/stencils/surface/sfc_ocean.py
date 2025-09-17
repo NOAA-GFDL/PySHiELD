@@ -4,16 +4,16 @@ from ndsl.dsl.gt4py import FORWARD, computation, interval, max, min, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import BoolFieldIJ, FloatField, FloatFieldIJ, IntFieldIJ
+from ndsl.dsl.typing import BoolFieldIJ, FloatFieldIJ, IntFieldIJ
 from pyshield.functions.physics_functions import fpvs
 
 
 def sfc_ocean(
     ps: FloatFieldIJ,
-    u1: FloatField,
-    v1: FloatField,
-    t1: FloatField,
-    qvapor: FloatField,
+    u1: FloatFieldIJ,
+    v1: FloatFieldIJ,
+    t1: FloatFieldIJ,
+    qvapor: FloatFieldIJ,
     tskin: FloatFieldIJ,
     cm: FloatFieldIJ,
     ch: FloatFieldIJ,
@@ -76,10 +76,10 @@ class SurfaceOcean:
     def __call__(
         self,
         ps: FloatFieldIJ,
-        u1: FloatField,
-        v1: FloatField,
-        t1: FloatField,
-        qvapor: FloatField,
+        u1: FloatFieldIJ,
+        v1: FloatFieldIJ,
+        t1: FloatFieldIJ,
+        qvapor: FloatFieldIJ,
         tskin: FloatFieldIJ,
         cm: FloatFieldIJ,
         ch: FloatFieldIJ,

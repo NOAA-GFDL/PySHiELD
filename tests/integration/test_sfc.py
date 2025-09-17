@@ -237,23 +237,18 @@ def test_sfc_runs(restart_path: Path):
         dtype=Float,
     )
     prsik.field[:] = state.prsik.field[:, :, ::-1]
+    sstate.u1.data[:] = ua.data[:]
+    sstate.v1.data[:] = va.data[:]
+    sstate.t1.data[:] = pt.data[:]
+    sstate.prsl1.data[:] = delp.data[:]
+    sstate.prsik.data[:] = prsik.data[:]
+    sstate.prslk.data[:] = prslk.data[:]
+    sstate.qvapor.data[:] = qvapor.data[:]
+    sstate.phil.data[:] = phil.data[:]
+    sstate.ps.data[:] = ps.data[:]
+    sstate.sfcdlw.data[:] = adjsfcdlw.data[:]
+    sstate.sfcdsw.data[:] = adjsfcdsw.data[:]
+    sstate.sfcnsw.data[:] = adjsfcnsw.data[:]
 
     sfc = SurfaceLayer(stencil_factory, quantity_factory, sfc_config)
-    sfc(
-        sstate,
-        ua,
-        va,
-        pt,
-        delp,
-        prsik,
-        prslk,
-        qvapor,
-        phil,
-        rb,
-        stress,
-        ps,
-        hflx,
-        adjsfcdlw,
-        adjsfcdsw,
-        adjsfcnsw,
-    )
+    sfc(sstate)

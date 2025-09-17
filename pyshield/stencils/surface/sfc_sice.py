@@ -6,15 +6,7 @@ from ndsl.dsl.gt4py import interval
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import (
-    Bool,
-    BoolFieldIJ,
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    Int,
-    IntFieldIJ,
-)
+from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ, Int, IntFieldIJ
 from pyshield.functions.physics_functions import fpvs
 
 
@@ -256,8 +248,8 @@ def ice3lay(
 def sfc_sice(
     ps: FloatFieldIJ,
     wind: FloatFieldIJ,
-    t1: FloatField,
-    qvapor: FloatField,
+    t1: FloatFieldIJ,
+    qvapor: FloatFieldIJ,
     sfcemis: FloatFieldIJ,
     dlwflx: FloatFieldIJ,
     sfcnsw: FloatFieldIJ,
@@ -478,8 +470,8 @@ class SurfaceSeaIce:
         self,
         ps: FloatFieldIJ,
         wind: FloatFieldIJ,
-        t1: FloatField,
-        qvapor: FloatField,
+        t1: FloatFieldIJ,
+        qvapor: FloatFieldIJ,
         sfcemis: FloatFieldIJ,
         dlwflx: FloatFieldIJ,
         sfcnsw: FloatFieldIJ,
