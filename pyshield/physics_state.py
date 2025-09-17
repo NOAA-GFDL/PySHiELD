@@ -9,7 +9,6 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
 from pyshield._config import PHYSICS_PACKAGES
 from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
-from pyshield.stencils.shield_microphysics import GFDLCloudMicrophysicsState
 
 
 @dataclass()
@@ -292,27 +291,7 @@ class PhysicsState:
         schemes: List[PHYSICS_PACKAGES],
     ):
         # storage for tendency variables not in PhysicsState
-        if "SHiELD_microphysics" in [scheme.value for scheme in schemes]:
-            self.shield_microphysics: Optional[GFDLCloudMicrophysicsState] = (
-                GFDLCloudMicrophysicsState.init_zeros(quantity_factory)
-            )
-            self.shield_microphysics.pt = self.pt
-            self.shield_microphysics.qvapor = self.qvapor
-            self.shield_microphysics.qliquid = self.qliquid
-            self.shield_microphysics.qrain = self.qrain
-            self.shield_microphysics.qice = self.qice
-            self.shield_microphysics.qsnow = self.qsnow
-            self.shield_microphysics.qgraupel = self.qgraupel
-            self.shield_microphysics.qcld = self.qcld
-            self.shield_microphysics.ua = self.ua
-            self.shield_microphysics.va = self.va
-            self.shield_microphysics.wa = self.w
-            self.shield_microphysics.delp = self.delp
-            self.shield_microphysics.delz = self.delz
-            self.shield_microphysics.geopotential_surface_height = self.phii[
-                :, :, -1
-            ]  # does this work? should it go somewhere else?
-        elif "GFS_microphysics" in [scheme.value for scheme in schemes]:
+        if "GFS_microphysics" in [scheme.value for scheme in schemes]:
             tendency = quantity_factory.zeros(
                 [X_DIM, Y_DIM, Z_DIM],
                 "unknown",
