@@ -558,7 +558,7 @@ class Physics:
                 )
             )
             self._gfs_microphysics = GFSMicrophysics(
-                stencil_factory, quantity_factory, grid_data, config=namelist
+                stencil_factory, quantity_factory, grid_data, namelist=namelist
             )
         elif "GFDL_cloud_microphysics" in schemes:
             ndsl_log.info("GFDL Cloud microphysics selected")
