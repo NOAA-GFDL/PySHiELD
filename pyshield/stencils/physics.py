@@ -477,11 +477,11 @@ class Physics:
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         grid_data: GridData,
-        config: PhysicsConfig,
+        namelist: PhysicsConfig,
         gfdl_cld_mp_config: GFDLCloudMPConfig = None,
         pre_radiation=False,
     ):
-        schemes = [scheme.value for scheme in config.schemes]
+        schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
             if scheme not in PHYSICS_PACKAGES:  # type: ignore
                 raise NotImplementedError(
@@ -499,7 +499,7 @@ class Physics:
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         self._pre_radiation = pre_radiation
-        self._dt_phys = config.dt_atmos
+        self._dt_phys = namelist.dt_atmos
 
         def make_quantity():
             return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
@@ -533,7 +533,7 @@ class Physics:
             self._interpolate_radiation = stencil_factory.from_origin_domain(
                 func=interpolate_radiation,
                 externals={
-                    "daily_mean": config.daily_mean,
+                    "daily_mean": namelist.daily_mean,
                 },
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
@@ -558,7 +558,7 @@ class Physics:
                 )
             )
             self._gfs_microphysics = GFSMicrophysics(
-                stencil_factory, quantity_factory, grid_data, config=config
+                stencil_factory, quantity_factory, grid_data, config=namelist
             )
         elif "GFDL_cloud_microphysics" in schemes:
             ndsl_log.info("GFDL Cloud microphysics selected")
