@@ -127,10 +127,6 @@ class PhysicsConfig:
             physics_config = self.from_f90nml(f90_nml)
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
-        if not isinstance(self.nstf_name, tuple):
-            self.nstf_name = tuple(self.nstf_name)
-        if len(self.nstf_name) != 5:
-            raise IndexError(f"nstf_name must have 5 elements, got {self.nstf_name}")
 
     @classmethod
     def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "PhysicsConfig":
