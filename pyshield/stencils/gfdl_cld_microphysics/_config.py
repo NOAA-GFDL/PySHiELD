@@ -492,7 +492,7 @@ class GFDLCloudMPConfig:
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
     npz: int = DEFAULT_INT
-    layout: Tuple[int, int]
+    layout: Tuple[int, int] = (1, 1)
     nwat: int = DEFAULT_INT
     do_qa: bool = NamelistDefaults.do_qa
     do_inline_mp: bool = NamelistDefaults.do_inline_mp
