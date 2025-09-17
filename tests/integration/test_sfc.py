@@ -28,7 +28,7 @@ from ndsl.grid import (
     VerticalGridData,
 )
 from pyshield import PHYSICS_PACKAGES, PhysicsConfig, PhysicsState
-from pyshield.stencils.surface import SurfaceLayer, SurfaceState
+from pyshield.stencils.surface import SurfaceConfig, SurfaceLayer, SurfaceState
 
 
 def states_from_fortran_restarts(
@@ -178,6 +178,7 @@ def test_sfc_runs(restart_path: Path):
     tracer_path = restart_path.joinpath("fv_tracer.res.tile1.nc")
     etafile = restart_path.joinpath("eta91.nc")
     config = PhysicsConfig()
+    sfc_config = SurfaceConfig()
     schemes = config.schemes
     quantity_factory, qf_soil, stencil_factory, grid_data = setup_infrastructure(
         nx=48, ny=48, nz=91, nzsoil=4, etafile=etafile
@@ -237,7 +238,7 @@ def test_sfc_runs(restart_path: Path):
     )
     prsik.field[:] = state.prsik.field[:, :, ::-1]
 
-    sfc = SurfaceLayer(stencil_factory, quantity_factory, config.surface)
+    sfc = SurfaceLayer(stencil_factory, quantity_factory, sfc_config)
     sfc(
         sstate,
         ua,

@@ -1,6 +1,6 @@
 import dataclasses
 from enum import Enum, unique
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Tuple
 
 import f90nml
 
@@ -20,46 +20,6 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 
 
 @dataclasses.dataclass
-class SurfaceConfig:
-    do_z0_hwrf15: bool = DEFAULT_BOOL
-    """flag to use z0 scheme from 2015 HWRF"""
-    do_z0_hwrf17: bool = DEFAULT_BOOL
-    """flag to use z0 scheme from 2017 HWRF"""
-    do_z0_hwrf17_hwonly: bool = DEFAULT_BOOL
-    """flag to use z0 scheme from 2017 HWRF only under high wind"""
-    do_z0_moon: bool = DEFAULT_BOOL
-    """flag to use z0 scheme from Moon et al. 2007"""
-    dt_atmos: float = DEFAULT_FLOAT
-    mom4ice: bool = DEFAULT_BOOL
-    """Flag to enable mom4 sea-ice"""
-    ivegsrc: int = DEFAULT_INT
-    """
-    Source of vegetation data:
-     - 0: USGS
-     - 1: IGBP (20 category)
-     - 2: UMD (13 category)
-    """
-    lsm: int = DEFAULT_INT
-    """LSM selection. 1=NOAH, 2=NOAH MP"""
-    redrag: bool = DEFAULT_BOOL
-    """flag for reduced drag coefficient over sea"""
-    wind_th_hwrf: float = DEFAULT_FLOAT
-    """Wind speed threshold when z0 level off as in HWRF"""
-    lsoil: int = 4
-    """Number of soil levels"""
-    nstf_name: Sequence[int] = (0, 0, 1, 0, 5)
-    """
-    nstf_name contains the NSSTM related parameters:
-    nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
-    nstf_name(2) : 1 = NSSTM spin up on, 0 = NSSTM spin up off
-    nstf_name(3) : 1 = NSSTM analysis on, 0 = NSSTM analysis off
-    nstf_name(4) : zsea1 in mm
-    nstf_name(5) : zsea2 in mm
-    TODO: implement via namelist?
-    """
-
-
-@dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: float = DEFAULT_FLOAT
     hydrostatic: bool = DEFAULT_BOOL
@@ -69,10 +29,6 @@ class PhysicsConfig:
     nwat: int = DEFAULT_INT
     schemes: List = None
     do_qa: bool = DEFAULT_BOOL
-    do_z0_hwrf15: bool = DEFAULT_BOOL
-    do_z0_hwrf17: bool = DEFAULT_BOOL
-    do_z0_hwrf17_hwonly: bool = True
-    do_z0_moon: bool = DEFAULT_BOOL
     c_cracw: float = NamelistDefaults.c_cracw
     c_paut: float = NamelistDefaults.c_paut
     c_pgacs: float = NamelistDefaults.c_pgacs
@@ -151,28 +107,6 @@ class PhysicsConfig:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
-    mom4ice: bool = NamelistDefaults.mom4ice
-    lsm: int = NamelistDefaults.lsm
-    redrag: bool = NamelistDefaults.redrag
-    wind_th_hwrf: float = 33.0
-    lsoil: int = 4
-    ivegsrc: int = 2
-    """
-    Source for veg and soil categories:
-    ivegsrc = 0 => USGS
-    ivegsrc = 1 => IGBP (20 category)
-    ivegsrc = 2 => UMD (13 category)
-    """
-    nstf_name: Sequence[int] = (0, 0, 1, 0, 5)
-    """
-    nstf_name contains the NSSTM related parameters:
-    nstf_name(1) : 0 = NSSTM off, 1 = NSSTM on but uncoupled, 2 = NSSTM on and coupled
-    nstf_name(2) : 1 = NSSTM spin up on, 0 = NSSTM spin up off
-    nstf_name(3) : 1 = NSSTM analysis on, 0 = NSSTM analysis off
-    nstf_name(4) : zsea1 in mm
-    nstf_name(5) : zsea2 in mm
-    TODO: implement via namelist?
-    """
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
@@ -270,20 +204,4 @@ class PhysicsConfig:
             alin=namelist.alin,
             clin=namelist.clin,
             daily_mean=namelist.daily_mean,
-        )
-
-    @property
-    def surface(self) -> SurfaceConfig:
-        return SurfaceConfig(
-            do_z0_hwrf15=self.do_z0_hwrf15,
-            do_z0_hwrf17=self.do_z0_hwrf17,
-            do_z0_hwrf17_hwonly=self.do_z0_hwrf17_hwonly,
-            do_z0_moon=self.do_z0_moon,
-            dt_atmos=self.dt_atmos,
-            mom4ice=self.mom4ice,
-            lsm=self.lsm,
-            redrag=self.redrag,
-            wind_th_hwrf=self.wind_th_hwrf,
-            ivegsrc=self.ivegsrc,
-            nstf_name=self.nstf_name,
         )

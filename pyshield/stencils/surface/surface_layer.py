@@ -15,7 +15,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
-from pyshield._config import SurfaceConfig
+from pyshield.stencils.surface._config import SurfaceConfig
 from pyshield.stencils.surface.sfc_diff import SurfaceExchange
 from pyshield.stencils.surface.sfc_ocean import SurfaceOcean
 from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
@@ -251,7 +251,7 @@ class SurfaceLayer:
     def __call__(
         self,
         state: SurfaceState,
-        u1: FloatField,
+        u1: FloatField,  # TODO: these should live in the surface state
         v1: FloatField,
         t1: FloatField,
         prsl1: FloatField,
