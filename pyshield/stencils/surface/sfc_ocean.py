@@ -33,7 +33,7 @@ def sfc_ocean(
     with computation(FORWARD), interval(0, 1):
         if (islimsk == 0) and (flag_iter):
             wind = max(sqrt(u1**2 + v1**2) + max(0.0, min(ddvel, 30)), 1.0)
-            q0 = max(qvapor[0, 0, 0], 1.0e-8)
+            q0 = max(qvapor[0, 0], 1.0e-8)
             rho = prsl1 / (constants.RDGAS * t1 * (1.0 + constants.ZVIR * q0))
 
             qss = fpvs(tskin)

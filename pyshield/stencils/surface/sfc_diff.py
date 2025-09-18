@@ -169,7 +169,7 @@ def cal_z0_hwrf15(ws10m):
     b6 = 0.0406766967657759
 
     if ws10m <= 5.0:
-        z0 = 0.0185 / 9.8 * (7.59e-4 * ws10m**2 + 2.46e-2 * ws10m) ** 2
+        z0 = 0.0185 / 9.8 * (7.59e-4 * ws10m*ws10m + 2.46e-2 * ws10m) ** 2
     elif (ws10m > 5.0) and (ws10m <= 10.0):
         z0 = 0.00000235 * (ws10m**2 - 25.0) + 3.805129199617346e-05
     elif (ws10m > 10.0) and (ws10m <= 60.0):
@@ -436,10 +436,10 @@ def sfc_diff(
 
     with computation(FORWARD), interval(0, 1):
 
-        if flag_iter[0, 0]:
+        if flag_iter:
             # Get lowest atmospheric level variables:
-            wind = max(sqrt(u1**2 + v1**2) + max(0.0, min(ddvel, 30.0)), 1.0)
-            tem1 = 1.0 + constants.ZVIR * max(qvapor[0, 0, 0], 1.0e-8)
+            wind = max(sqrt(u1 * u1 + v1 * v1) + max(0.0, min(ddvel, 30.0)), 1.0)
+            tem1 = 1.0 + constants.ZVIR * max(qvapor[0, 0], 1.0e-8)
             thv1 = t1 * prslki * tem1
             tvs = 0.5 * (tsurf + tskin) * tem1
             qs1 = fpvsx(t1)

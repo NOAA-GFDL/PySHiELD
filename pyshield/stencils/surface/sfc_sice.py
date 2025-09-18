@@ -308,7 +308,7 @@ def sfc_sice(
             # dlwflx has been given a negative sign for downward longwave
             # sfcnsw is the net shortwave flux (direction: dn-up)
 
-            q0 = max(qvapor[0, 0, 0], physcons.FLOAT_EPS)
+            q0 = max(qvapor[0, 0], physcons.FLOAT_EPS)
             theta1 = t1 * prslki
             rho = prsl1 / (constants.RDGAS * t1 * (1.0 + constants.ZVIR * q0))
             qs1 = fpvs(t1)
@@ -435,7 +435,7 @@ def sfc_sice(
 
             # the rest of the output
 
-            qsurf = qvapor[0, 0, 0] + evap / (physcons.HOCP * rch)
+            qsurf = qvapor[0, 0] + evap / (physcons.HOCP * rch)
 
             # convert snow depth back to mm of water equivalent
 
@@ -455,6 +455,7 @@ class SurfaceSeaIce:
         dt_atmos: Float,
     ):
         grid_indexing = stencil_factory.grid_indexing
+        origin, domain2d = grid_indexing.get_2d_compute_origin_domain()
         self._sfc_sice = stencil_factory.from_origin_domain(
             sfc_sice,
             externals={
@@ -462,8 +463,8 @@ class SurfaceSeaIce:
                 "mom4ice": bool(mom4ice),
                 "lsm": lsm,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            origin=origin,
+            domain=domain2d,
         )
 
     def __call__(
