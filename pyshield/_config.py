@@ -214,9 +214,4 @@ class PhysicsConfig:
             alin=namelist.alin,
             clin=namelist.clin,
             daily_mean=namelist.daily_mean,
-            isatmedmf=namelist.isatmedmf,
-            dspheat=namelist.dspheat,
-            xkzm_h=namelist.xkzm_h,
-            xkzm_m=namelist.xkzm_m,
-            xkzm_s=namelist.xkzm_s,
         )
