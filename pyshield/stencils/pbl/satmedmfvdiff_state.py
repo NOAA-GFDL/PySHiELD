@@ -247,15 +247,13 @@ class SATMEDMFVDiffState:
             "intent": "in",
         }
     )
-    heat: Quantity = (
-        field(
-            metadata={
-                "name": "surface_heat_flux",
-                "dims": [X_DIM, Y_DIM],
-                "units": "W/m**2",
-                "intent": "in",
-            }
-        ),
+    heat: Quantity = field(
+        metadata={
+            "name": "surface_heat_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "W/m**2",
+            "intent": "in",
+        }
     )
     stress: Quantity = field(
         metadata={
@@ -265,25 +263,21 @@ class SATMEDMFVDiffState:
             "intent": "in",
         }
     )
-    spd1: Quantity = (
-        field(
-            metadata={
-                "name": "surface_wind_speed",
-                "dims": [X_DIM, Y_DIM],
-                "units": "m/s",
-                "intent": "in",
-            }
-        ),
-    )
-    delta: Quantity = (
-        field(
-            metadata={
-                "name": "atmospheric_pressure_thickness",
-                "dims": [X_DIM, Y_DIM, Z_DIM],
-                "units": "Pa",
-                "intent": "in",
-            }
-        ),
+    spd1: Quantity = field(
+        metadata={
+            "name": "surface_wind_speed",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m/s",
+            "intent": "in",
+        }
+    ),
+    delta: Quantity = field(
+        metadata={
+            "name": "atmospheric_pressure_thickness",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "Pa",
+            "intent": "in",
+        }
     )  # Fortran name is del
     dusfc: Quantity = field(
         metadata={
