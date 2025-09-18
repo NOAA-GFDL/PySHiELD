@@ -1,5 +1,3 @@
-from shallow_convection import ScaleAwareMassFluxShallowConvection
-
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
@@ -14,6 +12,7 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics
+from pyshield.stencils.shallow_convection import ScaleAwareMassFluxShallowConvection
 
 
 def interpolate_radiation(
