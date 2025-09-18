@@ -580,7 +580,6 @@ class SurfaceState:
             "intent": "inout",
         }
     )
-    quantity_factory: InitVar[QuantityFactory]
 
     @classmethod
     def init_zeros(cls, quantity_factory) -> "SurfaceState":
@@ -592,10 +591,7 @@ class SurfaceState:
                     _field.metadata["units"],
                     dtype=Float,
                 )
-        return cls(
-            **initial_arrays,
-            quantity_factory=quantity_factory,
-        )
+        return cls(**initial_arrays)
 
     @classmethod
     def init_from_storages(
@@ -622,17 +618,14 @@ class SurfaceState:
                         _field.metadata["units"],
                     )
                 inputs[_field.name] = quantity
-        return cls(
-            **inputs,
-            quantity_factory=quantity_factory,
-        )
+        return cls(**inputs)
 
     @property
     def xr_dataset(self):
         data_vars = {}
         for name, field_info in self.__dataclass_fields__.items():
             if name not in [
-                "quantity_factory",
+                "extra_fields",
             ]:
                 if issubclass(field_info.type, Quantity):
                     dims = [
