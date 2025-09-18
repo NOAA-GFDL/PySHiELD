@@ -1,10 +1,10 @@
-from dataclasses import InitVar, dataclass, field, fields
+from dataclasses import dataclass, field, fields
 from typing import Any, Dict, Mapping
 
 import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
-from ndsl import GridSizer, Quantity, QuantityFactory
+from ndsl import GridSizer, Quantity
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import Bool, Float, Int
 
