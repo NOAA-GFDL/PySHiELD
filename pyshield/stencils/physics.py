@@ -18,7 +18,7 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics
-from pyshield.stencils.pbl import ScaleAwareTKEMoistEDMF
+from pyshield.stencils.pbl import SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
 
 
 def interpolate_radiation(
@@ -554,9 +554,7 @@ class Physics:
         self._dqsfc = make_quantity_2d()
 
         if "SATM_EDMF" in schemes:
-            self._u1 = make_quantity()
-            self._v1 = make_quantity()
-            self._t1 = make_quantity()
+            self.pbl_state = SATMEDMFVDiffState.init_zeros()
             self._satm_edmf = True
             self._pbl = ScaleAwareTKEMoistEDMF(
                 stencil_factory,
@@ -631,8 +629,10 @@ class Physics:
             physics_state.phii,
             physics_state.phil,
         )
-        # TODO: This can be uncommented once radiation is merged
-        # if self._satm_edmf:
+        # TODO: Once more things are merged we can update the PBL state
+        # and call the PBL scheme
+        if self._satm_edmf:
+            self._pbl(self.pbl_state)
         #     self._pbl(
         #         physics_state.kpbl,
         #         physics_state.kinver,
