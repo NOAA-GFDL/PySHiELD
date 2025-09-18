@@ -1,6 +1,6 @@
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
-from pyshield.stencils.pbl import ScaleAwareTKEMoistEDMF
+from pyshield.stencils.pbl import PBLConfig, SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
@@ -106,29 +106,29 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = PBLConfig()
         config.ntracers = int(inputs.pop("pbl_ntrac"))
         config.ntcw = int(inputs.pop("pbl_ntcw") - 1)
         config.ntiw = int(inputs.pop("pbl_ntiw") - 1)
         config.ntke = int(inputs.pop("pbl_ntke") - 1)
         config.xkzminv = 1.0
         print("tracers: ", config.ntracers, config.ntcw, config.ntiw, config.ntke)
-        inputs.pop("pbl_dtp")
-        inputs.pop("pbl_dspheat")
-        inputs.pop("pbl_xkzm_m")
-        inputs.pop("pbl_xkzm_h")
-        inputs.pop("pbl_xkzm_ml")
-        inputs.pop("pbl_xkzm_hl")
-        inputs.pop("pbl_xkzm_mi")
-        inputs.pop("pbl_xkzm_hi")
-        inputs.pop("pbl_xkzm_s")
-        inputs.pop("pbl_xkzminv")
-        inputs.pop("pbl_do_dk_hb19")
-        inputs.pop("pbl_xkzm_lim")
-        inputs.pop("pbl_xkgdx")
-        inputs.pop("pbl_rlmn")
-        inputs.pop("pbl_rlmx")
-        inputs.pop("pbl_cap_k0_land")
+        config.dt_atmos = inputs.pop("pbl_dtp")
+        config.dspheat = inputs.pop("pbl_dspheat")
+        config.xkzm_m = inputs.pop("pbl_xkzm_m")
+        config.xkzm_h = inputs.pop("pbl_xkzm_h")
+        config.xkzm_ml = inputs.pop("pbl_xkzm_ml")
+        config.xkzm_hl = inputs.pop("pbl_xkzm_hl")
+        config.xkzm_mi = inputs.pop("pbl_xkzm_mi")
+        config.xkzm_hi = inputs.pop("pbl_xkzm_hi")
+        config.xkzm_s = inputs.pop("pbl_xkzm_s")
+        config.xkzminv = inputs.pop("pbl_xkzminv")
+        config.do_dk_hb19 = inputs.pop("pbl_do_dk_hb19")
+        config.xkzm_lim = inputs.pop("pbl_xkzm_lim")
+        config.xkgdx = inputs.pop("pbl_xkgdx")
+        config.rlmn = inputs.pop("pbl_rlmn")
+        config.rlmx = inputs.pop("pbl_rlmx")
+        config.cap_k0_land = inputs.pop("pbl_cap_k0_land")
 
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["kinver"] = inputs["kinver"].astype(int)
@@ -139,7 +139,26 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             inputs.pop("garea"),
             config,
         )
+        inputs["dtdt"] = inputs.pop("tdt")
+        state = SATMEDMFVDiffState.init_from_storages(
+            inputs,
+            sizer=sizer,
+            quantity_factory=quantity_factory,
+        )
 
-        compute_func(**inputs)
+        compute_func(state)
+
+        inputs.pop("dtdt")
+
+        inputs["du"] = state.du
+        inputs["dv"] = state.dv
+        inputs["tdt"] = state.dtdt
+        inputs["rtg"] = state.rtg
+        inputs["kpbl"] = state.kpbl
+        inputs["dusfc"] = state.dusfc
+        inputs["dvsfc"] = state.dvsfc
+        inputs["dtsfc"] = state.dtsfc
+        inputs["dqsfc"] = state.dqsfc
+        inputs["hpbl"] = state.hpbl
 
         return self.slice_output(inputs)

@@ -17,8 +17,9 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.allocator import QuantityFactory
-from pyshield._config import TRACER_DIM, FloatFieldTracer, PBLConfig
+from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.functions.physics_functions import fpvs
+from pyshield.stencils.pbl._config import PBLConfig
 from pyshield.stencils.pbl.mfpblt import PBLMassFlux
 from pyshield.stencils.pbl.mfscu import StratocumulusMassFlux
 from pyshield.stencils.pbl.satmedmfvdiff_state import SATMEDMFVDiffState

@@ -28,65 +28,6 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 
 
 @dataclasses.dataclass
-class PBLConfig:
-    dt_atmos: int = DEFAULT_INT
-    hydrostatic: bool = DEFAULT_BOOL
-    isatmedmf: int = NamelistDefaults.isatmedmf
-    """flag for scale-aware turbulent moist edmf scheme"""
-    xkzm_h: float = NamelistDefaults.xkzm_h
-    """Background vertical diffusion for heat q over ocean"""
-    xkzm_m: float = NamelistDefaults.xkzm_m
-    """Background vertical diffusion for momentum over ocean"""
-    xkzm_hl: float = NamelistDefaults.xkzm_hl
-    """Background vertical diffusion for heat q over land"""
-    xkzm_ml: float = NamelistDefaults.xkzm_ml
-    """Background vertical diffusion for momentum over land"""
-    xkzm_hi: float = NamelistDefaults.xkzm_hi
-    """Background vertical diffusion for heat q over ice"""
-    xkzm_mi: float = NamelistDefaults.xkzm_mi
-    """Background vertical diffusion for momentum over ice"""
-    xkzm_ho: float = NamelistDefaults.xkzm_ho
-    """Background vertical diffusion for heat q over ocean"""
-    xkzm_mo: float = NamelistDefaults.xkzm_mo
-    """Background vertical diffusion for momentum over ocean"""
-    xkzminv: float = NamelistDefaults.xkzminv
-    """Diffusivity in inversion layers"""
-    xkzm_s: float = NamelistDefaults.xkzm_s
-    """Sigma threshold for background momentum diffusion"""
-    xkzm_lim: float = NamelistDefaults.xkzm_lim
-    """Background diffusion limit"""
-    xkgdx: float = NamelistDefaults.xkgdx
-    """Background vertical diffusion threshold"""
-    do_dk_hb19: bool = DEFAULT_BOOL
-    """Flag to use HB19 background diffusion formula in satmedmf"""
-    rlmn: float = NamelistDefaults.rlmn
-    """Lower limit on aymptotic mixing length in satmedmf"""
-    rlmx: float = NamelistDefaults.rlmx
-    """Upper limit on aymptotic mixing length in satmedmf"""
-    ntracers: int = int(len(tracer_variables))
-    """Number of tracers"""
-    ntiw: int = DEFAULT_INT
-    """Tracer index of ice water"""
-    ntcw: int = DEFAULT_INT
-    """Tracer index of cloud water"""
-    ntke: int = DEFAULT_INT
-    """Tracer index of subgrid turbulent kinetic energy"""
-    dspheat: bool = NamelistDefaults.dspheat
-    """Flag for dissipative heating"""
-    cap_k0_land: bool = NamelistDefaults.cap_k0_land
-    """Flag to apply limiter on background diffusivity in inversion layer over land"""
-
-    def __post_init__(self):
-        if self.isatmedmf != 0:
-            raise NotImplementedError(
-                f"PBL Config: isatmedmf == {self.isatmedmf} not implemented"
-            )
-        self.ntiw = tracer_variables.index("qice")
-        self.ntcw = tracer_variables.index("qliquid")
-        self.ntke = tracer_variables.index("qsgs_tke")
-
-
-@dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: int = DEFAULT_INT
     hydrostatic: bool = DEFAULT_BOOL
@@ -177,24 +118,6 @@ class PhysicsConfig:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
-    isatmedmf: int = NamelistDefaults.isatmedmf
-    dspheat: bool = NamelistDefaults.dspheat
-    xkzm_h: float = NamelistDefaults.xkzm_h
-    xkzm_m: float = NamelistDefaults.xkzm_m
-    xkzm_hl: float = NamelistDefaults.xkzm_hl
-    xkzm_ml: float = NamelistDefaults.xkzm_ml
-    xkzm_hi: float = NamelistDefaults.xkzm_hi
-    xkzm_mi: float = NamelistDefaults.xkzm_mi
-    xkzm_ho: float = NamelistDefaults.xkzm_ho
-    xkzm_mo: float = NamelistDefaults.xkzm_mo
-    xkzminv: float = NamelistDefaults.xkzminv
-    xkzm_lim: float = NamelistDefaults.xkzm_lim
-    xkgdx: float = NamelistDefaults.xkgdx
-    do_dk_hb19: bool = DEFAULT_BOOL
-    rlmn: float = NamelistDefaults.rlmn
-    rlmx: float = NamelistDefaults.rlmx
-    cap_k0_land: bool = NamelistDefaults.cap_k0_land
-    xkzm_s: float = NamelistDefaults.xkzm_s
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
@@ -296,33 +219,4 @@ class PhysicsConfig:
             xkzm_h=namelist.xkzm_h,
             xkzm_m=namelist.xkzm_m,
             xkzm_s=namelist.xkzm_s,
-        )
-
-    @property
-    def pbl(self) -> PBLConfig:
-        return PBLConfig(
-            dt_atmos=self.dt_atmos,
-            hydrostatic=self.hydrostatic,
-            isatmedmf=self.isatmedmf,
-            xkzm_h=self.xkzm_h,
-            xkzm_m=self.xkzm_m,
-            xkzm_hl=self.xkzm_hl,
-            xkzm_ml=self.xkzm_ml,
-            xkzm_hi=self.xkzm_hi,
-            xkzm_mi=self.xkzm_mi,
-            xkzm_ho=self.xkzm_ho,
-            xkzm_mo=self.xkzm_mo,
-            xkzminv=self.xkzminv,
-            xkzm_s=self.xkzm_s,
-            xkzm_lim=self.xkzm_lim,
-            xkgdx=self.xkgdx,
-            do_dk_hb19=self.do_dk_hb19,
-            rlmn=self.rlmn,
-            rlmx=self.rlmx,
-            ntracers=self.ntracers,
-            ntiw=self.ntiw,
-            ntcw=self.ntcw,
-            ntke=self.ntke,
-            dspheat=self.dspheat,
-            cap_k0_land=self.cap_k0_land,
         )

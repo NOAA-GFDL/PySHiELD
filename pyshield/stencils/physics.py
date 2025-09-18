@@ -7,6 +7,7 @@ from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
+from ndsl.logging import ndsl_log
 from ndsl.stencils.basic_operations import copy_defn
 from pyshield._config import (
     PHYSICS_PACKAGES,
@@ -18,7 +19,7 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics
-from pyshield.stencils.pbl import SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
+from pyshield.stencils.pbl import PBLConfig, SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
 
 
 def interpolate_radiation(
@@ -408,6 +409,7 @@ class Physics:
         grid_data: GridData,
         namelist: PhysicsConfig,
         pre_radiation=False,
+        pbl_config: PBLConfig = None,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -554,13 +556,16 @@ class Physics:
         self._dqsfc = make_quantity_2d()
 
         if "SATM_EDMF" in schemes:
+            ndsl_log.info("SATM EDMF PBL scheme selected")
+            if pbl_config is None:
+                raise ValueError("Specify a PBL configuration to use SATM_EDMF scheme")
             self.pbl_state = SATMEDMFVDiffState.init_zeros()
             self._satm_edmf = True
             self._pbl = ScaleAwareTKEMoistEDMF(
                 stencil_factory,
                 self.quantity_factory,
                 grid_data,
-                namelist.pbl,
+                pbl_config,
             )
         else:
             self._satm_edmf = False
