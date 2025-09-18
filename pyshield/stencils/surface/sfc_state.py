@@ -320,6 +320,15 @@ class SurfaceState:
         }
     )
 
+    evap: Quantity = field(
+        metadata={
+            "name": "evaporation_from_latent_heat_flux",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+
     sfcdlw: Quantity = field(
         metadata={
             "name": "downward_longwave_surface_flux",

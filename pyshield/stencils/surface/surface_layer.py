@@ -170,7 +170,6 @@ class SurfaceLayer:
         self._drain = make_quantity_2d()
         self._ep1d = make_quantity_2d()
         self._runof = make_quantity_2d()
-        self._evap = make_quantity_2d()
         self._evbs = make_quantity_2d()
         self._evcw = make_quantity_2d()
         self._trans = make_quantity_2d()
@@ -268,7 +267,7 @@ class SurfaceLayer:
             self._ep1d,
             self._runof,
             state.hflx,
-            self._evap,
+            state.evap,
             self._evbs,
             self._evcw,
             self._trans,
@@ -344,7 +343,7 @@ class SurfaceLayer:
                 self._cmm,
                 self._chh,
                 self._gflx,
-                self._evap,
+                state.evap,
                 state.hflx,
                 self._ep1d,
                 state.slmsk,
@@ -382,7 +381,7 @@ class SurfaceLayer:
                 self._qss,
                 self._cmm,
                 self._chh,
-                self._evap,
+                state.evap,
                 state.hflx,
                 self._gflx,
                 self._snowmt,
