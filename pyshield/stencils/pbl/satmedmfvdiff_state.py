@@ -270,7 +270,7 @@ class SATMEDMFVDiffState:
             "units": "m/s",
             "intent": "in",
         }
-    ),
+    )
     delta: Quantity = field(
         metadata={
             "name": "atmospheric_pressure_thickness",
