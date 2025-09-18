@@ -15,7 +15,8 @@ from ndsl.dsl.typing import (
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from ndsl.stencils.basic_operations import copy_defn
-from pyshield._config import TRACER_DIM, FloatFieldTracer, PBLConfig
+from pyshield._config import TRACER_DIM, FloatFieldTracer
+from pyshield.stencils.pbl import PBLConfig
 from pyshield.stencils.pbl.mfpblt import PBLMassFlux
 from pyshield.stencils.pbl.mfscu import StratocumulusMassFlux
 from pyshield.stencils.pbl.satmedmfvdiff import (
