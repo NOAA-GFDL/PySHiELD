@@ -51,7 +51,18 @@ class TranslateSurfaceOcean_iter1(TranslatePhysicsFortranData2Py):
         self.make_storage_data_input_vars(inputs)
         inputs["qvapor"] = inputs["q1"][:, :, :, 0]
         inputs.pop("q1")
-        self.compute_func(**inputs)
+        new_inputs = {}
+        for key in inputs.keys():
+            if len(inputs[key].shape) == 3:
+                new_inputs[key] = inputs[key][:, :, 0]
+            else:
+                new_inputs[key] = inputs[key]
+        self.compute_func(**new_inputs)
+        for key in inputs.keys():
+            if len(inputs[key].shape) == 3:
+                inputs[key][:, :, 0] = new_inputs[key]
+            else:
+                inputs[key] = new_inputs[key]
         return self.slice_output(inputs)
 
 

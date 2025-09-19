@@ -603,6 +603,7 @@ class SurfaceExchange:
             == 1
         ), "sfc_diff: exactly one ocean surface option must be enabled"
         grid_indexing = stencil_factory.grid_indexing
+        origin, domain2d = grid_indexing.get_2d_compute_origin_domain()
         self._sfc_diff = stencil_factory.from_origin_domain(
             sfc_diff,
             externals={
@@ -615,8 +616,8 @@ class SurfaceExchange:
                 "wind_th_hwrf": wind_th_hwrf,
                 "z0s_max": physcons.Z0S_MAX,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            origin=origin,
+            domain=domain2d,
         )
 
     def __call__(
