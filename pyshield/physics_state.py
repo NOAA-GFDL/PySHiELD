@@ -274,6 +274,14 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    prslk: Quantity = field(
+        metadata={
+            "name": "Exner_function",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
     land: Quantity = field(
         metadata={
             "name": "land_mask",

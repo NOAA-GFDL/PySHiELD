@@ -374,13 +374,13 @@ def prepare_gfdl_cld_microphysics(
     ice: FloatFieldIJ,
     snow: FloatFieldIJ,
     graupel: FloatFieldIJ,
-    prefluxw: FloatFieldIJ,
-    prefluxr: FloatFieldIJ,
-    prefluxi: FloatFieldIJ,
-    prefluxs: FloatFieldIJ,
-    prefluxg: FloatFieldIJ,
-    qnl1: FloatFieldIJ,
-    qni1: FloatFieldIJ,
+    prefluxw: FloatField,
+    prefluxr: FloatField,
+    prefluxi: FloatField,
+    prefluxs: FloatField,
+    prefluxg: FloatField,
+    qnl1: FloatField,
+    qni1: FloatField,
 ):
     with computation(FORWARD), interval(0, 1):
         water = 0.0
@@ -388,13 +388,6 @@ def prepare_gfdl_cld_microphysics(
         ice = 0.0
         snow = 0.0
         graupel = 0.0
-        prefluxw = 0.0
-        prefluxr = 0.0
-        prefluxi = 0.0
-        prefluxs = 0.0
-        prefluxg = 0.0
-        qnl1 = 0.0
-        qni1 = 0.0
     with computation(PARALLEL), interval(...):
         delp = physics_delp
         delz = physics_delz
@@ -409,6 +402,13 @@ def prepare_gfdl_cld_microphysics(
         qsnow = physics_qsnow
         qgraupel = physics_qgraupel
         qcld = physics_qcld
+        prefluxw = 0.0
+        prefluxr = 0.0
+        prefluxi = 0.0
+        prefluxs = 0.0
+        prefluxg = 0.0
+        qnl1 = 0.0
+        qni1 = 0.0
 
 
 def post_shield_mp(

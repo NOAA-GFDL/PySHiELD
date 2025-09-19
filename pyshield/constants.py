@@ -19,6 +19,8 @@ TF = Float(258.16)
 TCRF = Float(1.0 / (constants.TICE - TF))
 CONT = Float(constants.CP_AIR / constants.GRAV)
 CONQ = Float(constants.HLV / constants.GRAV)
+P00 = Float(1.0e5)
+"""idealized surface atmospheric pressure (Pa)"""
 
 # Alternative Units and Precision in Physics:
 CPH2O1 = Float(4.218e3)

@@ -104,7 +104,7 @@ def states_from_fortran_restarts(
     return state
 
 
-@pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
+@pytest.mark.parametrize("restart_path", [Path("test_data/radtest/")])
 @pytest.mark.parametrize("backend", ["numpy"])
 def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
@@ -142,7 +142,6 @@ def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
         nwat=6,
         schemes=["GFDL_cloud_microphysics"],
     )
-    config.schemes = ["GFDL_cloud_microphysics"]
     mp_config = GFDLCloudMPConfig(
         dt_full=dt,
         hydrostatic=False,
