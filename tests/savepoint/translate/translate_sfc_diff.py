@@ -1,18 +1,7 @@
-from ndsl import Namelist, StencilFactory, QuantityFactory
+from ndsl import Namelist, StencilFactory
 from pyshield.stencils.surface.sfc_diff import SurfaceExchange
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
-from ndsl.initialization.sizer import SubtileGridSizer
 
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.typing import (
-    Bool,
-    BoolFieldIJ,
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    Int,
-    IntFieldIJ,
-)
 
 class TranslateSurfaceExchange_iter1(TranslatePhysicsFortranData2Py):
     def __init__(
