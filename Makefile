@@ -29,7 +29,7 @@ BUILD_FLAGS ?=
 VOLUMES ?=
 
 ifeq ($(DEV), y)
-	VOLUMES += -v $(CWD):/pySHiELD
+	VOLUMES += -v $(CWD):/pyshield
 endif
 
 TEST_DATA_TARFILE = $(TEST_DATA_VERSION)_$(TEST_CONFIG)_$(TEST_TYPE).physics.tar.gz
