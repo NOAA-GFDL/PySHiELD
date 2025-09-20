@@ -29,7 +29,7 @@ class PhysicsConfig:
     npy: int = DEFAULT_INT
     npz: int = DEFAULT_INT
     nwat: int = DEFAULT_INT
-    schemes: List = DEFAULT_SCHEMES
+    schemes: List = None
     do_qa: bool = DEFAULT_BOOL
     do_inline_mp: bool = False
     """Whether microphysics is inlined in the dycore"""
