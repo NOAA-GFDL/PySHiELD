@@ -294,9 +294,7 @@ def init_turbulence(
         clwt = 1.0e-6 * (plyr[0, 0, 0] * 0.001)
         if qlx[0, 0, 0] > clwt:
             onemrh = max(1.0e-10, 1.0 - rhly[0, 0, 0])
-            tem1 = pblcons.CQL / min(
-                max((onemrh * qstl[0, 0, 0]) ** 0.49, 0.0001), 1.0
-            )
+            tem1 = pblcons.CQL / min(max((onemrh * qstl[0, 0, 0]) ** 0.49, 0.0001), 1.0)
             val = max(min(tem1 * qlx[0, 0, 0], 50.0), 0.0)
             cfly = min(max(sqrt(sqrt(rhly[0, 0, 0])) * (1.0 - exp(-val)), 0.0), 1.0)
 
@@ -335,9 +333,7 @@ def init_turbulence(
                 thermal = tsea[0, 0] * (
                     1.0 + constants.ZVIR * max(q1[0, 0, 0][0], pblcons.PBL_QMIN)
                 )
-                crb = max(
-                    min(0.16 * (tem1 ** (-0.18)), pblcons.CRBMAX), pblcons.CRBMIN
-                )
+                crb = max(min(0.16 * (tem1 ** (-0.18)), pblcons.CRBMAX), pblcons.CRBMIN)
 
             dtdz1 = dt2 / (zi[0, 0, 1] - zi[0, 0, 0])
             ustar = sqrt(stress[0, 0])
