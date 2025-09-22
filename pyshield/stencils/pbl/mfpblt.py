@@ -1,5 +1,5 @@
 import ndsl.constants as constants
-import pyshield.constants as physcons
+import pyshield.stencils.pbl.constants as pblcons
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, sqrt
 
@@ -85,7 +85,7 @@ def mfpblt_s1(
     with computation(FORWARD), interval(0, 1):
         # Compute thermal excess
         if cnvflg[0, 0]:
-            ptem = physcons.ALP * vpert[0, 0]
+            ptem = pblcons.ALP * vpert[0, 0]
             ptem = min(ptem, 3.0)
             thlu = thlx[0, 0, 0] + ptem
             qtu = qtx[0, 0, 0]
@@ -99,10 +99,10 @@ def mfpblt_s1(
                 ptem = 1.0 / (zm[0, 0, 0] + dz)
                 tem = max((hpbl[0, 0] - zm[0, 0, 0] + dz), dz)
                 ptem1 = 1.0 / tem
-                xlamue = physcons.CE0 * (ptem + ptem1)
+                xlamue = pblcons.CE0 * (ptem + ptem1)
             else:
-                xlamue = physcons.CE0 / dz
-            xlamuem = physcons.CM * xlamue[0, 0, 0]
+                xlamue = pblcons.CE0 / dz
+            xlamuem = pblcons.CM * xlamue[0, 0, 0]
 
     with computation(FORWARD):
         with interval(1, None):
@@ -122,16 +122,16 @@ def mfpblt_s1(
                 tlu = thlu[0, 0, 0] / pix[0, 0, 0]
                 es = 0.01 * fpvs(tlu)
                 qs = max(
-                    physcons.PBL_QMIN,
+                    pblcons.PBL_QMIN,
                     constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
                 )
                 dq = qtu[0, 0, 0] - qs
 
                 if dq > 0.0:
-                    gamma = physcons.EL2ORC * qs / (tlu**2)
+                    gamma = pblcons.EL2ORC * qs / (tlu**2)
                     qlu = dq / (1.0 + gamma)
                     qtu = qs + qlu
-                    thvu = (thlu[0, 0, 0] + pix[0, 0, 0] * physcons.ELOCP * qlu) * (
+                    thvu = (thlu[0, 0, 0] + pix[0, 0, 0] * pblcons.ELOCP * qlu) * (
                         1.0 + constants.ZVIR * qs - qlu
                     )
                 else:
@@ -241,10 +241,10 @@ def mfpblt_s2(
             if k_mask[0, 0, 0] < kpbl[0, 0]:
                 ptem = 1 / (zm[0, 0, 0] + dz)
                 ptem1 = 1 / max(hpbl[0, 0] - zm[0, 0, 0] + dz, dz)
-                xlamue = physcons.CE0 * (ptem + ptem1)
+                xlamue = pblcons.CE0 * (ptem + ptem1)
             else:
-                xlamue = physcons.CE0 / dz
-            xlamuem = physcons.CM * xlamue[0, 0, 0]
+                xlamue = pblcons.CE0 / dz
+            xlamuem = pblcons.CM * xlamue[0, 0, 0]
 
     # Compute entrainment rate averaged over the whole pbl
     with computation(FORWARD), interval(...):
@@ -310,16 +310,16 @@ def mfpblt_s2(
                 tlu = thlu[0, 0, 0] / pix[0, 0, 0]
                 es = 0.01 * fpvs(tlu)  # fpvs in pa
                 qs = max(
-                    physcons.PBL_QMIN,
+                    pblcons.PBL_QMIN,
                     constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
                 )
                 dq = qtu[0, 0, 0] - qs
                 if dq > 0.0:
-                    qlu = dq / (1.0 + (physcons.EL2ORC * qs / (tlu**2)))
+                    qlu = dq / (1.0 + (pblcons.EL2ORC * qs / (tlu**2)))
                     qtu = qs + qlu
                     qcko[0, 0, 0][0] = qs
                     qcko[0, 0, 0][ntcw] = qlu
-                    tcko = tlu + physcons.ELOCP * qlu
+                    tcko = tlu + pblcons.ELOCP * qlu
                 else:
                     qcko[0, 0, 0][0] = qtu[0, 0, 0]
                     qcko[0, 0, 0][ntcw] = 0.0
@@ -331,13 +331,13 @@ def mfpblt_s2(
                 factor = 1.0 + tem
                 ucko = (
                     (1.0 - tem) * ucko[0, 0, -1]
-                    + (tem + physcons.PGCON) * u1[0, 0, 0]
-                    + (tem - physcons.PGCON) * u1[0, 0, -1]
+                    + (tem + pblcons.PGCON) * u1[0, 0, 0]
+                    + (tem - pblcons.PGCON) * u1[0, 0, -1]
                 ) / factor
                 vcko = (
                     (1.0 - tem) * vcko[0, 0, -1]
-                    + (tem + physcons.PGCON) * v1[0, 0, 0]
-                    + (tem - physcons.PGCON) * v1[0, 0, -1]
+                    + (tem + pblcons.PGCON) * v1[0, 0, 0]
+                    + (tem - pblcons.PGCON) * v1[0, 0, -1]
                 ) / factor
 
 

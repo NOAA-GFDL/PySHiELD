@@ -1,25 +1,14 @@
 import dataclasses
-from enum import Enum, unique
 
 import f90nml
 
-from ndsl import MetaEnumStr
 from ndsl.dsl.gt4py_utils import tracer_variables
 from ndsl.namelist import Namelist, NamelistDefaults
 
 
 DEFAULT_INT = 0
+DEFAULT_FLOAT = 0.0
 DEFAULT_BOOL = False
-DEFAULT_SCHEMES = ["GFS_microphysics"]
-TRACER_DIM = "n_tracers"
-
-
-# TODO: Should we have an enum for each class of parameterization
-# microphysics, PBL, shallow convection, etc?
-@unique
-class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
-    GFS_microphysics = "GFS_microphysics"
-    SATM_EDMF = "SATM_EDMF"
 
 
 @dataclasses.dataclass
@@ -27,7 +16,7 @@ class PBLConfig:
     dt_atmos: int = DEFAULT_INT
     hydrostatic: bool = DEFAULT_BOOL
     isatmedmf: int = NamelistDefaults.isatmedmf
-    """flag for scale-aware turbulent moist edmf scheme"""
+    """flag for specific scale-aware turbulent moist edmf scheme"""
     xkzm_h: float = NamelistDefaults.xkzm_h
     """Background vertical diffusion for heat q over ocean"""
     xkzm_m: float = NamelistDefaults.xkzm_m
