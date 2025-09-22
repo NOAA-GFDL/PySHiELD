@@ -462,15 +462,15 @@ class SurfaceState:
     )
     snowd: Quantity = field(
         metadata={
-            "name": "",
+            "name": "surface_snow_depth",
             "dims": [X_DIM, Y_DIM],
-            "units": "",
+            "units": "m",
             "intent": "inout",
         }
     )
     sncovr: Quantity = field(
         metadata={
-            "name": "",
+            "name": "snow_cover_area_fraction",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -478,7 +478,7 @@ class SurfaceState:
     )
     snoalb: Quantity = field(
         metadata={
-            "name": "",
+            "name": "maximum_snow_albedo_in_fraction",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -486,9 +486,9 @@ class SurfaceState:
     )
     zorl: Quantity = field(
         metadata={
-            "name": "",
+            "name": "surface_roughness",
             "dims": [X_DIM, Y_DIM],
-            "units": "",
+            "units": "m",
             "intent": "inout",
         }
     )
@@ -502,7 +502,7 @@ class SurfaceState:
     )
     alvsf: Quantity = field(
         metadata={
-            "name": "",
+            "name": "mean_visible_albedo_with_strong_cosz_dependency",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -510,7 +510,7 @@ class SurfaceState:
     )
     alnsf: Quantity = field(
         metadata={
-            "name": "",
+            "name": "mean_near_ir_albedo_with_strong_cosz_dependency",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -518,7 +518,7 @@ class SurfaceState:
     )
     alvwf: Quantity = field(
         metadata={
-            "name": "",
+            "name": "mean_visible_albedo_with_weak_cosz_dependency",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -526,7 +526,7 @@ class SurfaceState:
     )
     alnwf: Quantity = field(
         metadata={
-            "name": "",
+            "name": "mean_near_ir_albedo_with_weak_cosz_dependency",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -534,7 +534,7 @@ class SurfaceState:
     )
     facsf: Quantity = field(
         metadata={
-            "name": "",
+            "name": "fractional_coverage_with_strong_cosz_dependency",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -542,7 +542,7 @@ class SurfaceState:
     )
     facwf: Quantity = field(
         metadata={
-            "name": "",
+            "name": "fractional_coverage_with_weak_cosz_dependency",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -550,7 +550,7 @@ class SurfaceState:
     )
     fice: Quantity = field(
         metadata={
-            "name": "",
+            "name": "surface_ice_concentration_fraction",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -558,15 +558,15 @@ class SurfaceState:
     )
     tisfc: Quantity = field(
         metadata={
-            "name": "",
+            "name": "surface_temperature_over_ice_fraction",
             "dims": [X_DIM, Y_DIM],
-            "units": "",
+            "units": "degK",
             "intent": "inout",
         }
     )
     albedo: Quantity = field(
         metadata={
-            "name": "",
+            "name": "mean_albedo",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",
@@ -574,7 +574,7 @@ class SurfaceState:
     )
     sfcemis: Quantity = field(
         metadata={
-            "name": "",
+            "name": "mean_surface_emissivity",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "inout",

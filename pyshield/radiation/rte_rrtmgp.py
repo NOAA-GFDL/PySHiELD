@@ -45,7 +45,7 @@ def calc_heating_rate(flux_up, flux_down, p_lev):
         heating_rate: layer heating rate
     """
     return (
-        (flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down[0, 0, 0])
+        (flux_up[0, 0, 1] - flux_up - flux_down[0, 0, 1] + flux_down)
         * GRAV
         / (CP_DRY * (p_lev[0, 0, 1] - p_lev))
     )
