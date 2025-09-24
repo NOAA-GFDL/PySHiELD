@@ -1118,9 +1118,9 @@ def stencil_static12(
             if flg:
                 if k_mask >= ktcon and k_mask < kbm:
                     dz1 = zo[0, 0, 1] - zo
-                    gamma = physcons.EL2ORC * qeso / (to**2)
-                    rfact = 1.0 + physcons.DELTA * constants.CP_AIR * gamma * (
-                        to / constants.HLV
+                    gamma = physcons.EL2ORC * qeso / (to * to)
+                    rfact = 1.0 + (
+                        physcons.DELTA * constants.CP_AIR * gamma * to / constants.HLV
                     )
                     aa1 = (
                         aa1
@@ -1164,7 +1164,7 @@ def stencil_static12(
                 # cloud water and precipitation and detrain convective cloud water in
                 # the overshooting layers.
                 dz = zi - zi[0, 0, -1]
-                gamma = physcons.EL2ORC * qeso / (to**2)
+                gamma = physcons.EL2ORC * qeso / (to * to)
                 qrch = qeso + gamma * dbyo / (constants.HLV * (1.0 + gamma))
                 tem = 0.5 * (xlamue + xlamue[0, 0, -1]) * dz
                 tem1 = 0.5 * xlamud * dz
