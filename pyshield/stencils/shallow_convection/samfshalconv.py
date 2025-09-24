@@ -102,7 +102,7 @@ def init_col_arr(
 
         if cnvflg:
             kbot = km
-            ktop = 0
+            ktop = -1
 
         rn = 0.0
         kbcon = km - 1
@@ -549,9 +549,9 @@ def stencil_static3(
         dz = 0.0
         tem = 0.0
         if cnvflg:
-            if ntk > 0:
+            if ntk > -1:
                 if (k_mask >= kb) and (k_mask < kbcon):
-                    dz = zo[0, 0, 1] - zo[0, 0, 0]
+                    dz = zo[0, 0, 1] - zo
                     tem = 0.5 * (qtr[0, 0, 0][ntk] + qtr[0, 0, 1][ntk])
                     tkemean = tkemean + tem * dz
                     sumx = sumx + dz
@@ -559,7 +559,7 @@ def stencil_static3(
     with computation(FORWARD), interval(-1, None):
         tem1 = 0.0
         if cnvflg:
-            if ntk > 0:
+            if ntk > -1:
                 tkemean = tkemean / sumx
                 if tkemean > physcons.TKEMX:
                     clamt = clam + physcons.CLAMD
@@ -614,13 +614,24 @@ def stencil_static5(
             # xlamud(i) = crtlamd
             xlamud = 0.001 * clamt
 
+    # determine updraft mass flux for the subcloud layers
+    # Calculate the normalized mass flux for subcloud and in-cloud layers according
+    # to Pan and Wu (1995) \cite pan_and_wu_1995 equation 1:
+    # \f[
+    # \frac{1}{\eta}\frac{\partial \eta}{\partial z} = \lambda_e - \lambda_d
+    # \f]
+    # where \f$\eta\f$ is the normalized mass flux,
+    # \f$\lambda_e\f$ is the entrainment rate
+    # and \f$\lambda_d\f$ is the detrainment rate.
+    # The normalized mass flux increases upward below the cloud base and decreases
+    # upward above.
     with computation(BACKWARD), interval(0, -1):
         dz = 0.0
         ptem = 0.0
         if cnvflg:
             if (k_mask < kbcon) and (k_mask >= kb):
-                dz = zi[0, 0, 1] - zi[0, 0, 0]
-                ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, 1]) - xlamud
+                dz = zi[0, 0, 1] - zi
+                ptem = 0.5 * (xlamue + xlamue[0, 0, 1]) - xlamud
                 eta = eta[0, 0, 1] / (1.0 + ptem * dz)
 
     # compute mass flux above cloud base
@@ -630,8 +641,8 @@ def stencil_static5(
     with computation(FORWARD), interval(1, -1):
         if flg:
             if (k_mask > kbcon) and (k_mask < kmax):
-                dz = zi[0, 0, 0] - zi[0, 0, -1]
-                ptem = 0.5 * (xlamue[0, 0, 0] + xlamue[0, 0, -1]) - xlamud
+                dz = zi - zi[0, 0, -1]
+                ptem = 0.5 * (xlamue + xlamue[0, 0, -1]) - xlamud
                 eta = eta[0, 0, -1] * (1 + ptem * dz)
 
                 if eta <= 0.0:
