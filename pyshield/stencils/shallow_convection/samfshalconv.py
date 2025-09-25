@@ -102,7 +102,7 @@ def init_col_arr(
 
         if cnvflg:
             kbot = km
-            ktop = 0
+            ktop = -1
 
         rn = 0.0
         kbcon = km - 1
@@ -2115,7 +2115,7 @@ class ScaleAwareMassFluxShallowConvection:
         self._dt2 = config.dt_atmos
 
         # Determine whether to perform aerosol transport #
-        self._do_aerosols = (config.itc > 0) and (config.ntchm > 0) and (self._ntr > 0)
+        self._do_aerosols = (config.itc >= 0) and (config.ntchm > 0) and (self._ntr > 0)
         if self._do_aerosols:
             self._do_aerosols = self._ntr >= config.itc
         if self._do_aerosols:
