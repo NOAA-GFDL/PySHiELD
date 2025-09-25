@@ -508,7 +508,7 @@ class Static1:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     cnvflg,
@@ -539,7 +539,7 @@ class Static1:
             heso,
             self._pfld,
         )
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
                     cnvflg,
@@ -944,7 +944,7 @@ class Static2:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     cnvflg,
@@ -975,7 +975,7 @@ class Static2:
             self._heso,
             pfld,
         )
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
                     cnvflg,
@@ -1440,7 +1440,7 @@ class UpdateKB9:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     cnvflg,
@@ -1471,7 +1471,7 @@ class UpdateKB9:
             self._heso,
             pfld,
         )
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
                     cnvflg,
@@ -1555,7 +1555,7 @@ class UpdateKB9:
             self._ptem,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic1(
                     cnvflg,
@@ -1584,7 +1584,7 @@ class UpdateKB9:
             self._vo,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic2(
                     cnvflg,
@@ -2040,7 +2040,7 @@ class Static10:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     cnvflg,
@@ -2071,7 +2071,7 @@ class Static10:
             self._heso,
             self._pfld,
         )
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
                     cnvflg,
@@ -2155,7 +2155,7 @@ class Static10:
             self._ptem,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic1(
                     cnvflg,
@@ -2184,7 +2184,7 @@ class Static10:
             self._vo,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic2(
                     cnvflg,
@@ -2403,7 +2403,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     cnvflg,
@@ -2434,7 +2434,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
             self._heso,
             self._pfld,
         )
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
                     cnvflg,
@@ -2518,7 +2518,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
             self._ptem,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic1(
                     cnvflg,
@@ -2547,7 +2547,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
             self._vo,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic2(
                     cnvflg,

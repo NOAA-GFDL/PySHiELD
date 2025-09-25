@@ -2601,7 +2601,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     self._cnvflg,
@@ -2632,7 +2632,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._heso,
             self._pfld,
         )
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic0(
                     self._cnvflg,
@@ -2720,7 +2720,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._ptem,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic1(
                     self._cnvflg,
@@ -2749,7 +2749,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._vo,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._stencil_ntrstatic2(
                     self._cnvflg,
@@ -2972,7 +2972,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._umean,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._comp_tendencies_tr(
                     self._cnvflg,
@@ -3038,7 +3038,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._eta,
         )
 
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._feedback_control_upd_trr(
                     self._cnvflg,
