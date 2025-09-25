@@ -639,6 +639,8 @@ def stencil_static5(
         flg = cnvflg
 
     with computation(FORWARD), interval(1, -1):
+        dz = 0.0
+        ptem = 0.0
         if flg:
             if (k_mask > kbcon) and (k_mask < kmax):
                 dz = zi - zi[0, 0, -1]
