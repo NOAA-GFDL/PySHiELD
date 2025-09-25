@@ -2531,14 +2531,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._gdx,
             garea,
         )
-        if exit_routine(self._cnvflg.view[:]):
-            return
 
         conv_a = copy.deepcopy(self._cnvflg.view[:])
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a, conv_b)
         print("Post-init: ", cols)
+
+        if exit_routine(self._cnvflg.view[:]):
+            return
 
         self._init_par_and_arr(
             islimsk,
@@ -2651,13 +2652,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._heo,
             self._heso,
         )
-        if exit_routine(self._cnvflg.view[:]):
-            return
 
         conv_b = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static1: ", columns)
+
+
+        if exit_routine(self._cnvflg.view[:]):
+            return
 
         self._stencil_static2(
             self._cnvflg,
@@ -2671,13 +2674,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._pfld_kb,
             self._pfld_kbcon,
         )
-        if exit_routine(self._cnvflg.view[:]):
-            return
 
         conv_a = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static2: ", columns)
+
+
+        if exit_routine(self._cnvflg.view[:]):
+            return
 
         self._stencil_static3(
             self._sumx,
@@ -2771,6 +2776,9 @@ class ScaleAwareMassFluxShallowConvection:
         columns = col_diffs(conv_a, conv_b)
         print("after update kbcon1: ", columns)
 
+        if exit_routine(self._cnvflg.view[:]):
+            return
+
         self._stencil_static9(
             self._cnvflg,
             self._pfld,
@@ -2779,13 +2787,14 @@ class ScaleAwareMassFluxShallowConvection:
             self._k_mask,
             self._kbcon1,
         )
-        if exit_routine(self._cnvflg.view[:]):
-            return
 
         conv_a = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static9: ", columns)
+
+        if exit_routine(self._cnvflg.view[:]):
+            return
 
         self._stencil_static10(
             self._cina,
@@ -2801,13 +2810,14 @@ class ScaleAwareMassFluxShallowConvection:
             self._pdot,
             islimsk,
         )
-        if exit_routine(self._cnvflg.view[:]):
-            return
 
         conv_b = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static10: ", columns)
+
+        if exit_routine(self._cnvflg.view[:]):
+            return
 
         self._stencil_static11(
             self._flg,
@@ -2839,13 +2849,14 @@ class ScaleAwareMassFluxShallowConvection:
             self._pwo,
             self._cnvwt,
         )
-        if exit_routine(self._cnvflg.view[:]):
-            return
 
         conv_a = copy.deepcopy(self._cnvflg.view[:])
 
         columns = col_diffs(conv_a, conv_b)
         print("after static11: ", columns)
+
+        if exit_routine(self._cnvflg.view[:]):
+            return
 
         self._stencil_static12(
             self._cnvflg,
