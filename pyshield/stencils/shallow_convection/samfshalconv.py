@@ -592,6 +592,7 @@ def stencil_static5(
     uo: FloatField,
     vo: FloatField,
     ptem: FloatFieldIJ,
+    flg: BoolFieldIJ,
 ):
     # Start updraft entrainment rate.
     # assume updraft entrainment rate
@@ -2718,6 +2719,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._uo,
             self._vo,
             self._ptem,
+            self._flg,
         )
 
         for n_tracer in range(self._ntr + 2):
