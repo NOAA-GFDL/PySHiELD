@@ -29,20 +29,35 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
 @dataclasses.dataclass
 class ShallowConvectionConfig:
     dt_atmos: int = DEFAULT_INT
+    """timestep length (s)"""
     ntke: int = DEFAULT_INT
+    """index of tke tracer"""
     nsamftrac: int = DEFAULT_INT
+    """number of tracers convected, excluding humidity"""
     ncld: int = DEFAULT_INT
+    """number of cloud tracers"""
     ntchm: int = DEFAULT_INT
+    """number of chemical tracers"""
     ntcw: int = DEFAULT_INT
+    """index of cloud water tracer"""
     ntiw: int = DEFAULT_INT
+    """index pf cloud ice tracer"""
     itc: int = DEFAULT_INT
+    """index of first chemical tracer"""
     clam_shal: float = DEFAULT_FLOAT
+    """coefficient for entrainment rate"""
     c0s_shal: float = DEFAULT_FLOAT
+    """convective rain conversion parameter (1/m)"""
     c1_shal: float = DEFAULT_FLOAT
+    """conversion parameter of detrainment from liquid water
+    into grid-scale cloud water (1/m)"""
     pgcon_shal: float = DEFAULT_FLOAT
+    """reduction factor in momentum transport
+    due to convection induced pressure gradient force"""
     asolfac_shal: float = DEFAULT_FLOAT
-    isatmedmf: int = DEFAULT_INT
+    """aerosol-aware parameter inversely proportional to CCN number concentraion"""
     fscav: list = dataclasses.field(default_factory=list)
+    """aerosol scavenging coefficients"""
 
     # def __post_init__(self):
     #     self.ntiw = tracer_variables.index("qice")
@@ -150,7 +165,6 @@ class PhysicsConfig:
     c1_shal: float = DEFAULT_FLOAT
     pgcon_shal: float = DEFAULT_FLOAT
     asolfac_shal: float = DEFAULT_FLOAT
-    isatmedmf: int = DEFAULT_INT
     fscav: list = dataclasses.field(default_factory=list)
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
@@ -273,5 +287,4 @@ class PhysicsConfig:
             pgcon_shal=self.pgcon_shal,
             asolfac_shal=self.asolfac_shal,
             fscav=self.fscav,
-            isatmedmf=self.isatmedmf,
         )
