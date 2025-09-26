@@ -2128,7 +2128,7 @@ class ScaleAwareMassFluxShallowConvection:
         self._dt2 = config.dt_atmos
 
         # Determine whether to perform aerosol transport #
-        self._do_aerosols = (config.itc > 0) and (config.ntchm > 0) and (self._ntr > 0)
+        self._do_aerosols = (config.itc >= 0) and (config.ntchm > 0) and (self._ntr > 0)
         if self._do_aerosols:
             self._do_aerosols = self._ntr >= config.itc
         if self._do_aerosols:
