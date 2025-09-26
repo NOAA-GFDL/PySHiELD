@@ -2601,7 +2601,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr):
+        for n_tracer in range(self._ntr + 2):
             if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
                 self._init_tracers(
                     self._cnvflg,
@@ -2632,14 +2632,15 @@ class ScaleAwareMassFluxShallowConvection:
             self._heso,
             self._pfld,
         )
-        for n_tracer in range(self._ntr):
-            self._stencil_ntrstatic0(
-                self._cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._ctro,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic0(
+                    self._cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ctro,
+                    n_tracer,
+                )
 
         self._stencil_static1(
             self._cnvflg,
@@ -2719,15 +2720,16 @@ class ScaleAwareMassFluxShallowConvection:
             self._ptem,
         )
 
-        for n_tracer in range(self._ntr):
-            self._stencil_ntrstatic1(
-                self._cnvflg,
-                self._k_mask,
-                self._kb,
-                self._ecko,
-                self._ctro,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic1(
+                    self._cnvflg,
+                    self._k_mask,
+                    self._kb,
+                    self._ecko,
+                    self._ctro,
+                    n_tracer,
+                )
 
         self._stencil_static7(
             self._cnvflg,
@@ -2747,18 +2749,19 @@ class ScaleAwareMassFluxShallowConvection:
             self._vo,
         )
 
-        for n_tracer in range(self._ntr):
-            self._stencil_ntrstatic2(
-                self._cnvflg,
-                self._k_mask,
-                self._kb,
-                self._kmax,
-                self._zi,
-                self._xlamue,
-                self._ecko,
-                self._ctro,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic2(
+                    self._cnvflg,
+                    self._k_mask,
+                    self._kb,
+                    self._kmax,
+                    self._zi,
+                    self._xlamue,
+                    self._ecko,
+                    self._ctro,
+                    n_tracer,
+                )
 
         self._stencil_update_kbcon1_cnvflg(
             self._dbyo,
@@ -2969,20 +2972,21 @@ class ScaleAwareMassFluxShallowConvection:
             self._umean,
         )
 
-        for n_tracer in range(self._ntr):
-            self._comp_tendencies_tr(
-                self._cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._kb,
-                self._ktcon,
-                self._dellae,
-                self._del0,
-                self._eta,
-                self._ctro,
-                self._ecko,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._comp_tendencies_tr(
+                    self._cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._kb,
+                    self._ktcon,
+                    self._dellae,
+                    self._del0,
+                    self._eta,
+                    self._ctro,
+                    self._ecko,
+                    n_tracer,
+                )
 
         # if self._do_aerosols:
         #     samfshalcnv_aerosols()
@@ -3034,20 +3038,21 @@ class ScaleAwareMassFluxShallowConvection:
             self._eta,
         )
 
-        for n_tracer in range(self._ntr):
-            self._feedback_control_upd_trr(
-                self._cnvflg,
-                self._k_mask,
-                self._kmax,
-                self._ktcon,
-                self._del0,
-                self._delebar,
-                self._ctr,
-                self._dellae,
-                self._xmb,
-                qtr,
-                n_tracer,
-            )
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._feedback_control_upd_trr(
+                    self._cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ktcon,
+                    self._del0,
+                    self._delebar,
+                    self._ctr,
+                    self._dellae,
+                    self._xmb,
+                    qtr,
+                    n_tracer,
+                )
 
         if self._ncloud > 0:
             self._separate_detrained_cw(
