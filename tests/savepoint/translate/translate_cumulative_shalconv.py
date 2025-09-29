@@ -101,16 +101,14 @@ class InitCols:
         )
 
         # Configure stencils
-        self._pa_to_cb = stencil_factory.from_origin_domain(
+        self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_col_arr = stencil_factory.from_origin_domain(
+        self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -326,56 +324,47 @@ class Static1:
         )
 
         # Configure stencils
-        self._pa_to_cb = stencil_factory.from_origin_domain(
+        self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_col_arr = stencil_factory.from_origin_domain(
+        self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_par_and_arr = stencil_factory.from_origin_domain(
+        self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
             externals={
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_kbm_kmax = stencil_factory.from_origin_domain(
+        self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_final = stencil_factory.from_origin_domain(
+        self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_tracers = stencil_factory.from_origin_domain(
+        self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static0 = stencil_factory.from_origin_domain(
+        self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static1 = stencil_factory.from_origin_domain(
+        self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic0 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -762,61 +751,51 @@ class Static2:
         )
 
         # Configure stencils
-        self._pa_to_cb = stencil_factory.from_origin_domain(
+        self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_col_arr = stencil_factory.from_origin_domain(
+        self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_par_and_arr = stencil_factory.from_origin_domain(
+        self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
             externals={
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_kbm_kmax = stencil_factory.from_origin_domain(
+        self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_final = stencil_factory.from_origin_domain(
+        self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_tracers = stencil_factory.from_origin_domain(
+        self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static0 = stencil_factory.from_origin_domain(
+        self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic0 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static1 = stencil_factory.from_origin_domain(
+        self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static2 = stencil_factory.from_origin_domain(
+        self._stencil_static2 = stencil_factory.from_dims_halo(
             func=stencil_static2,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -1215,101 +1194,84 @@ class UpdateKB9:
         )
 
         # Configure stencils
-        self._pa_to_cb = stencil_factory.from_origin_domain(
+        self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_col_arr = stencil_factory.from_origin_domain(
+        self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_par_and_arr = stencil_factory.from_origin_domain(
+        self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
             externals={
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_kbm_kmax = stencil_factory.from_origin_domain(
+        self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_final = stencil_factory.from_origin_domain(
+        self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_tracers = stencil_factory.from_origin_domain(
+        self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static0 = stencil_factory.from_origin_domain(
+        self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static1 = stencil_factory.from_origin_domain(
+        self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static2 = stencil_factory.from_origin_domain(
+        self._stencil_static2 = stencil_factory.from_dims_halo(
             func=stencil_static2,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static3 = stencil_factory.from_origin_domain(
+        self._stencil_static3 = stencil_factory.from_dims_halo(
             func=stencil_static3,
             externals={
                 "ntk": self._ntk,
                 "clam": self._clam,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic0 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static5 = stencil_factory.from_origin_domain(
+        self._stencil_static5 = stencil_factory.from_dims_halo(
             func=stencil_static5,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic1 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic1 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic1,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static7 = stencil_factory.from_origin_domain(
+        self._stencil_static7 = stencil_factory.from_dims_halo(
             func=stencil_static7,
             externals={"pgcon": self._pgcon},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic2 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic2 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic2,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_update_kbcon1_cnvflg = stencil_factory.from_origin_domain(
+        self._stencil_update_kbcon1_cnvflg = stencil_factory.from_dims_halo(
             func=stencil_update_kbcon1_cnvflg,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static9 = stencil_factory.from_origin_domain(
+        self._stencil_static9 = stencil_factory.from_dims_halo(
             func=stencil_static9,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -1809,106 +1771,88 @@ class Static10:
         )
 
         # Configure stencils
-        self._pa_to_cb = stencil_factory.from_origin_domain(
+        self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_col_arr = stencil_factory.from_origin_domain(
+        self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_par_and_arr = stencil_factory.from_origin_domain(
+        self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
             externals={
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_kbm_kmax = stencil_factory.from_origin_domain(
+        self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_final = stencil_factory.from_origin_domain(
+        self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._init_tracers = stencil_factory.from_origin_domain(
+        self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static0 = stencil_factory.from_origin_domain(
+        self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static1 = stencil_factory.from_origin_domain(
+        self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static2 = stencil_factory.from_origin_domain(
+        self._stencil_static2 = stencil_factory.from_dims_halo(
             func=stencil_static2,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static3 = stencil_factory.from_origin_domain(
+        self._stencil_static3 = stencil_factory.from_dims_halo(
             func=stencil_static3,
             externals={
                 "ntk": self._ntk,
                 "clam": self._clam,
             },
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic0 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static5 = stencil_factory.from_origin_domain(
+        self._stencil_static5 = stencil_factory.from_dims_halo(
             func=stencil_static5,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic1 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic1 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic1,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static7 = stencil_factory.from_origin_domain(
+        self._stencil_static7 = stencil_factory.from_dims_halo(
             func=stencil_static7,
             externals={"pgcon": self._pgcon},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_ntrstatic2 = stencil_factory.from_origin_domain(
+        self._stencil_ntrstatic2 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic2,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_update_kbcon1_cnvflg = stencil_factory.from_origin_domain(
+        self._stencil_update_kbcon1_cnvflg = stencil_factory.from_dims_halo(
             func=stencil_update_kbcon1_cnvflg,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static9 = stencil_factory.from_origin_domain(
+        self._stencil_static9 = stencil_factory.from_dims_halo(
             func=stencil_static9,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self._stencil_static10 = stencil_factory.from_origin_domain(
+        self._stencil_static10 = stencil_factory.from_dims_halo(
             func=stencil_static10,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -2677,11 +2621,10 @@ class Static12:
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
 
-        self._static12 = stencil_factory.from_origin_domain(
+        self._static12 = stencil_factory.from_dims_halo(
             func=stencil_static12,
             externals={"c1": c1, "ncloud": ncloud},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -2775,11 +2718,10 @@ class FeedbackCtrl:
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
 
-        self._feedback_control_update_mass_flux = stencil_factory.from_origin_domain(
+        self._feedback_control_update_mass_flux = stencil_factory.from_dims_halo(
             func=feedback_control_update_mass_flux,
             externals={"dt2": dt2},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -2890,10 +2832,9 @@ class SC13:
         )
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
-        self._stencil_static13 = stencil_factory.from_origin_domain(
+        self._stencil_static13 = stencil_factory.from_dims_halo(
             func=stencil_static13,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
     def __call__(
@@ -2941,11 +2882,10 @@ class CompTendencies:
         )
         for k in range(grid_indexing.domain[2]):
             self._k_mask.data[:, :, k] = k
-        self._comp_tendencies = stencil_factory.from_origin_domain(
+        self._comp_tendencies = stencil_factory.from_dims_halo(
             func=comp_tendencies,
             externals={"dt2": self._dt2},
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
         pass
 
