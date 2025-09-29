@@ -1553,6 +1553,7 @@ class UpdateKB9:
             self._uo,
             self._vo,
             self._ptem,
+            flg,
         )
 
         for n_tracer in range(self._ntr + 2):
@@ -2153,6 +2154,7 @@ class Static10:
             self._uo,
             self._vo,
             self._ptem,
+            self._flg,
         )
 
         for n_tracer in range(self._ntr + 2):
@@ -2516,6 +2518,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
             self._uo,
             self._vo,
             self._ptem,
+            self._flg,
         )
 
         for n_tracer in range(self._ntr + 2):
