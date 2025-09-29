@@ -652,7 +652,7 @@ def stencil_static5(
                 if eta <= 0.0:
                     kmax = k_mask
                     ktconn = k_mask
-                    kbm = kbm if (kbm < kmax) else kmax
+                    kbm = min(kbm, kmax)
                     flg = False
 
     # compute updraft cloud property
