@@ -169,8 +169,8 @@ def init_kbm_kmax(
     # Determine maximum indices for the parcel starting point (kbm)
     # and cloud top (kmax)
     with computation(FORWARD), interval(0, 1):
-        kbm = km - 1
-        kmax = km - 1
+        kbm = km
+        kmax = km
         tx1 = 1.0 / ps
     with computation(FORWARD), interval(...):
         if prsl * tx1 > 0.7:
@@ -541,15 +541,16 @@ def stencil_static3(
     from __externals__ import clam, ntk
 
     with computation(FORWARD), interval(0, 1):
-        if cnvflg:
-            sumx = 0.0
-            tkemean = 0.0
+        if ntk > -1:
+            if cnvflg:
+                sumx = 0.0
+                tkemean = 0.0
 
     with computation(FORWARD), interval(0, -1):
         dz = 0.0
         tem = 0.0
-        if cnvflg:
-            if ntk > -1:
+        if ntk > -1:
+            if cnvflg:
                 if (k_mask >= kb) and (k_mask < kbcon):
                     dz = zo[0, 0, 1] - zo
                     tem = 0.5 * (qtr[0, 0, 0][ntk] + qtr[0, 0, 1][ntk])
@@ -558,8 +559,8 @@ def stencil_static3(
 
     with computation(FORWARD), interval(-1, None):
         tem1 = 0.0
-        if cnvflg:
-            if ntk > -1:
+        if ntk > -1:
+            if cnvflg:
                 tkemean = tkemean / sumx
                 if tkemean > physcons.TKEMX:
                     clamt = clam + physcons.CLAMD
@@ -600,12 +601,12 @@ def stencil_static5(
         if cnvflg:
             xlamue = clamt / zi
 
-    with computation(BACKWARD), interval(-1, None):
+    with computation(FORWARD), interval(-1, None):
         if cnvflg:
             xlamue[0, 0, 0] = xlamue[0, 0, -1]
 
     # specify the detrainment rate for the updrafts
-    # (The updraft detrainment rate is set constant and equal to
+    # (The updraft detrainment rate was set constant and equal to
     # the entrainment rate at cloud base.)
     # The updraft detrainment rate is vertically constant and proportional to clamt
     with computation(FORWARD), interval(0, 1):
