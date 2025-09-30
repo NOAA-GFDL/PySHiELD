@@ -28,8 +28,12 @@ from ndsl.dsl.typing import (
     IntField,
     IntFieldIJ,
 )
-from pyshield.stencils.shallow_convection._config import SC_TRACER_DIM, FloatFieldShalConv, ShallowConvectionConfig
 from pyshield.functions.physics_functions import fpvs
+from pyshield.stencils.shallow_convection._config import (
+    SC_TRACER_DIM,
+    FloatFieldShalConv,
+    ShallowConvectionConfig,
+)
 
 
 def exit_routine(cnvflg):
@@ -364,7 +368,8 @@ def stencil_static0(
             qs = constants.EPS * es / pprime
             dqsdp = -qs / pprime
             desdt = es * (
-                physcons.FACT1 / to[0, 0, 1] + physcons.FACT2 / (to[0, 0, 1] * to[0, 0, 1])
+                physcons.FACT1 / to[0, 0, 1]
+                + physcons.FACT2 / (to[0, 0, 1] * to[0, 0, 1])
             )
             dqsdt = qs * pfld[0, 0, 1] * desdt / (es * pprime)
             gamma = physcons.EL2ORC * qeso[0, 0, 1] / (to[0, 0, 1] * to[0, 0, 1])
@@ -2634,7 +2639,6 @@ class ScaleAwareMassFluxShallowConvection:
         columns = col_diffs(conv_a, conv_b)
         print("after static1: ", columns)
 
-
         if exit_routine(self._cnvflg.view[:]):
             return
 
@@ -2655,7 +2659,6 @@ class ScaleAwareMassFluxShallowConvection:
 
         columns = col_diffs(conv_a, conv_b)
         print("after static2: ", columns)
-
 
         if exit_routine(self._cnvflg.view[:]):
             return

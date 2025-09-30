@@ -12,7 +12,10 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics
-from pyshield.stencils.shallow_convection import ScaleAwareMassFluxShallowConvection, ShallowConvectionConfig
+from pyshield.stencils.shallow_convection import (
+    ScaleAwareMassFluxShallowConvection,
+    ShallowConvectionConfig,
+)
 
 
 def interpolate_radiation(

@@ -36,7 +36,7 @@ class ShallowConvectionConfig:
     c0s_shal: float = 0.002
     """conversion parameter of detrainment from liquid water
     into convetive precipitaiton (1/m)"""
-    c1_shal: float = 5.e-4
+    c1_shal: float = 5.0e-4
     """conversion parameter of detrainment from liquid water
     into grid-scale cloud water (1/m)"""
     pgcon_shal: float = 0.55

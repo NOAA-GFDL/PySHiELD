@@ -7,7 +7,6 @@ from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import (
     Bool,
-    BoolField,
     BoolFieldIJ,
     Float,
     FloatField,
@@ -17,7 +16,7 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.sizer import SubtileGridSizer
-from pyshield._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
+from pyshield._config import TRACER_DIM, ShallowConvectionConfig
 from pyshield.stencils.shallow_convection.samfshalconv import (
     ScaleAwareMassFluxShallowConvection,
     col_diffs,
@@ -41,11 +40,9 @@ from pyshield.stencils.shallow_convection.samfshalconv import (
     stencil_static7,
     stencil_static9,
     stencil_static10,
-    stencil_static11,
     stencil_static12,
     stencil_static13,
     stencil_update_kbcon1_cnvflg,
-    true_cols,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
