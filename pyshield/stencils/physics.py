@@ -12,7 +12,7 @@ from pyshield.physics_state import PhysicsState
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from pyshield.stencils.get_prs_fv3 import get_prs_fv3
 from pyshield.stencils.microphysics import Microphysics
-from pyshield.stencils.shallow_convection import ScaleAwareMassFluxShallowConvection
+from pyshield.stencils.shallow_convection import ScaleAwareMassFluxShallowConvection, ShallowConvectionConfig
 
 
 def interpolate_radiation(
@@ -345,6 +345,7 @@ class Physics:
         grid_data: GridData,
         namelist: PhysicsConfig,
         pre_radiation=False,
+        sc_config: ShallowConvectionConfig = None,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -402,11 +403,13 @@ class Physics:
                 domain=grid_indexing.domain_compute(),
             )
         if "SAMF_SHALCONV" in schemes:
+            if sc_config is None:
+                raise ValueError("Shallow convection enabled but no config specified")
             self._samf_shalconv = True
             self._samf_shallow_convection = ScaleAwareMassFluxShallowConvection(
                 stencil_factory=stencil_factory,
                 quantity_factory=quantity_factory,
-                config=namelist.shalconv,
+                config=sc_config,
             )
         if "GFS_microphysics" in schemes:
             self._gfs_microphysics = True

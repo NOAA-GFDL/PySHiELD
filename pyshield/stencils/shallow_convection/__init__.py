@@ -1,1 +1,2 @@
+from ._config import ShallowConvectionConfig
 from .samfshalconv import ScaleAwareMassFluxShallowConvection

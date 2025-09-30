@@ -11,7 +11,7 @@ from ndsl.namelist import Namelist, NamelistDefaults
 
 
 # TODO: This is a hack
-FloatFieldTracer = set_4d_field_size(7, Float)
+FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
@@ -154,18 +154,8 @@ class PhysicsConfig:
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
     ntke: int = DEFAULT_INT
-    nsamftrac: int = DEFAULT_INT
-    ncld: int = DEFAULT_INT
-    ntchm: int = DEFAULT_INT
-    ntcw: int = DEFAULT_INT
     ntiw: int = DEFAULT_INT
-    itc: int = DEFAULT_INT
-    clam_shal: float = DEFAULT_FLOAT
-    c0s_shal: float = DEFAULT_FLOAT
-    c1_shal: float = DEFAULT_FLOAT
-    pgcon_shal: float = DEFAULT_FLOAT
-    asolfac_shal: float = DEFAULT_FLOAT
-    fscav: list = dataclasses.field(default_factory=list)
+    ntcw: int = DEFAULT_INT
     namelist_override: Optional[str] = None
     daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
 
@@ -268,23 +258,4 @@ class PhysicsConfig:
             asolfac_shal=namelist.asolfac_shal,
             ncld=namelist.ncld,
             daily_mean=namelist.daily_mean,
-        )
-
-    @property
-    def shalconv(self) -> ShallowConvectionConfig:
-        return ShallowConvectionConfig(
-            dt_atmos=self.dt_atmos,
-            ntke=self.ntke,
-            nsamftrac=self.nsamftrac,
-            ncld=self.ncld,
-            ntchm=self.ntchm,
-            ntcw=self.ntcw,
-            ntiw=self.ntiw,
-            itc=self.itc,
-            clam_shal=self.clam_shal,
-            c0s_shal=self.c0s_shal,
-            c1_shal=self.c1_shal,
-            pgcon_shal=self.pgcon_shal,
-            asolfac_shal=self.asolfac_shal,
-            fscav=self.fscav,
         )

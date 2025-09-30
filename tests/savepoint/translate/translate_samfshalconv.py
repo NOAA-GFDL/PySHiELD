@@ -1,7 +1,6 @@
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
-from pyshield._config import ShallowConvectionConfig
-from pyshield.stencils.shallow_convection import ScaleAwareMassFluxShallowConvection
+from pyshield.stencils.shallow_convection import ScaleAwareMassFluxShallowConvection, ShallowConvectionConfig
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 

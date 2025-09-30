@@ -28,7 +28,7 @@ from ndsl.dsl.typing import (
     IntField,
     IntFieldIJ,
 )
-from pyshield._config import TRACER_DIM, FloatFieldTracer, ShallowConvectionConfig
+from pyshield.stencils.shallow_convection._config import SC_TRACER_DIM, FloatFieldShalConv, ShallowConvectionConfig
 from pyshield.functions.physics_functions import fpvs
 
 
@@ -292,10 +292,10 @@ def init_tracers(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kmax: IntFieldIJ,
-    ctr: FloatFieldTracer,
-    ctro: FloatFieldTracer,
-    ecko: FloatFieldTracer,
-    qtr: FloatFieldTracer,
+    ctr: FloatFieldShalConv,
+    ctro: FloatFieldShalConv,
+    ecko: FloatFieldShalConv,
+    qtr: FloatFieldShalConv,
     n_tracer: int,
 ):
     with computation(PARALLEL), interval(...):
@@ -409,7 +409,7 @@ def stencil_ntrstatic0(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kmax: IntFieldIJ,
-    ctro: FloatFieldTracer,
+    ctro: FloatFieldShalConv,
     n_tracer: int,
 ):
     with computation(PARALLEL), interval(0, -1):
@@ -533,7 +533,7 @@ def stencil_static3(
     kb: IntFieldIJ,
     kbcon: IntFieldIJ,
     zo: FloatField,
-    qtr: FloatFieldTracer,
+    qtr: FloatFieldShalConv,
     clamt: FloatFieldIJ,
 ):
     # turbulent entrainment rate assumed to be proportional
@@ -671,8 +671,8 @@ def stencil_ntrstatic1(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kb: IntFieldIJ,
-    ecko: FloatFieldTracer,
-    ctro: FloatFieldTracer,
+    ecko: FloatFieldShalConv,
+    ctro: FloatFieldShalConv,
     n_tracer: Int,
 ):
     with computation(PARALLEL), interval(...):
@@ -747,8 +747,8 @@ def stencil_ntrstatic2(
     kmax: IntFieldIJ,
     zi: FloatField,
     xlamue: FloatField,
-    ecko: FloatFieldTracer,
-    ctro: FloatFieldTracer,
+    ecko: FloatFieldShalConv,
+    ctro: FloatFieldShalConv,
     n_tracer: Int,
 ):
     with computation(FORWARD), interval(1, -1):
@@ -1634,11 +1634,11 @@ def comp_tendencies_tr(
     kmax: IntFieldIJ,
     kb: IntFieldIJ,
     ktcon: IntFieldIJ,
-    dellae: FloatFieldTracer,
+    dellae: FloatFieldShalConv,
     del0: FloatField,
     eta: FloatField,
-    ctro: FloatFieldTracer,
-    ecko: FloatFieldTracer,
+    ctro: FloatFieldShalConv,
+    ecko: FloatFieldShalConv,
     n_tracer: Int,
 ):
     with computation(PARALLEL), interval(...):
@@ -1900,11 +1900,11 @@ def feedback_control_upd_trr(
     kmax: IntFieldIJ,
     ktcon: IntFieldIJ,
     del0: FloatField,
-    delebar: FloatFieldTracer,
-    ctr: FloatFieldTracer,
-    dellae: FloatFieldTracer,
+    delebar: FloatFieldShalConv,
+    ctr: FloatFieldShalConv,
+    dellae: FloatFieldShalConv,
     xmb: FloatFieldIJ,
-    qtr: FloatFieldTracer,
+    qtr: FloatFieldShalConv,
     n_tracer: Int,
 ):
     from __externals__ import dt2
@@ -1945,7 +1945,7 @@ def store_aero_conc(
     k_mask: IntField,
     kmax: IntFieldIJ,
     rn: FloatFieldIJ,
-    qtr: FloatFieldTracer,
+    qtr: FloatFieldShalConv,
     qaero: FloatField,
     n_tracer: Int,
     k_aerosol: Int,
@@ -1965,7 +1965,7 @@ def separate_detrained_cw(
     dellal: FloatField,
     xmb: FloatFieldIJ,
     t1: FloatField,
-    qtr: FloatFieldTracer,
+    qtr: FloatFieldShalConv,
 ):
     from __externals__ import dt2, ntcw, ntiw
 
@@ -2001,7 +2001,7 @@ def tke_contribution(
     pfld: FloatField,
     t1: FloatField,
     sigmagfm: FloatFieldIJ,
-    qtr: FloatFieldTracer,
+    qtr: FloatFieldShalConv,
 ):
     # Include TKE contribution from shallow convection
     from __externals__ import ntk
@@ -2147,7 +2147,7 @@ class ScaleAwareMassFluxShallowConvection:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = TRACER_DIM
+        self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
@@ -2460,7 +2460,7 @@ class ScaleAwareMassFluxShallowConvection:
         v1: FloatField,
         t1: FloatField,
         q1: FloatField,
-        qtr: FloatFieldTracer,
+        qtr: FloatFieldShalConv,
         dot: FloatField,
         hpbl: FloatFieldIJ,
         prslp: FloatField,
