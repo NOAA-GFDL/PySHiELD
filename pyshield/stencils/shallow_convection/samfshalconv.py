@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 from gt4py.cartesian.gtscript import (
     BACKWARD,
@@ -34,6 +32,7 @@ from pyshield.stencils.shallow_convection._config import (
     FloatFieldShalConv,
     ShallowConvectionConfig,
 )
+from pyshield.stencils.shallow_convection.state import SAMFShalConvState
 
 
 def exit_routine(cnvflg):
@@ -44,14 +43,6 @@ def col_diffs(conv1, conv2):
     cols = []
     for i, j in np.ndindex(conv1.shape):
         if np.logical_xor(conv1[i, j], conv2[i, j]):
-            cols.append((i, j))
-    return cols
-
-
-def true_cols(conv):
-    cols = []
-    for i, j in np.ndindex(conv.shape):
-        if conv[i, j]:
             cols.append((i, j))
     return cols
 
@@ -2461,76 +2452,50 @@ class ScaleAwareMassFluxShallowConvection:
 
     def __call__(
         self,
-        u1: FloatField,
-        v1: FloatField,
-        t1: FloatField,
-        q1: FloatField,
-        qtr: FloatFieldShalConv,
-        dot: FloatField,
-        hpbl: FloatFieldIJ,
-        prslp: FloatField,
-        phil: FloatField,
-        delp: FloatField,
-        cnvw: FloatField,
-        cnvc: FloatField,
-        ud_mf: FloatField,
-        dt_mf: FloatField,
-        psp: FloatFieldIJ,
-        rn: FloatFieldIJ,
-        kcnv: IntFieldIJ,
-        kbot: IntFieldIJ,
-        ktop: IntFieldIJ,
-        islimsk: IntFieldIJ,
-        garea: FloatFieldIJ,
+        state: SAMFShalConvState,
     ):
         # Convert input Pa terms to Cb terms
         self._pa_to_cb(
-            psp,
-            prslp,
-            delp,
+            state.psp,
+            state.prslp,
+            state.delp,
             self._ps,
             self._prsl,
             self._del0,
         )
 
         self._init_col_arr(
-            kcnv,
+            state.kcnv,
             self._cnvflg,
-            kbot,
-            ktop,
+            state.kbot,
+            state.ktop,
             self._kbcon,
             self._kb,
             self._ktcon,
             self._ktconn,
             self._pdot,
-            rn,
+            state.rn,
             self._qlko_ktcon,
             self._edt,
             self._aa1,
             self._cina,
             self._vshear,
             self._gdx,
-            garea,
+            state.garea,
         )
-
-        conv_a = copy.deepcopy(self._cnvflg.view[:])
-        conv_b = np.ones_like(conv_a)
-
-        cols = col_diffs(conv_a, conv_b)
-        print("Post-init: ", cols)
 
         if exit_routine(self._cnvflg.view[:]):
             return
 
         self._init_par_and_arr(
-            islimsk,
+            state.islimsk,
             self._c0,
-            t1,
+            state.t1,
             self._c0t,
-            cnvw,
-            cnvc,
-            ud_mf,
-            dt_mf,
+            state.cnvw,
+            state.cnvc,
+            state.ud_mf,
+            state.dt_mf,
         )
         self._init_kbm_kmax(
             self._kbm,
@@ -2548,7 +2513,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._kpbl,
             self._prsl,
             self._zo,
-            phil,
+            state.phil,
             self._zi,
             self._pfld,
             self._eta,
@@ -2571,11 +2536,11 @@ class ScaleAwareMassFluxShallowConvection:
             self._qeso,
             self._heo,
             self._heso,
-            hpbl,
-            t1,
-            q1,
-            u1,
-            v1,
+            state.hpbl,
+            state.t1,
+            state.q1,
+            state.u1,
+            state.v1,
             self._k_mask,
         )
 
@@ -2589,7 +2554,7 @@ class ScaleAwareMassFluxShallowConvection:
                     self._ctr,
                     self._ctro,
                     self._ecko,
-                    qtr,
+                    state.qtr,
                     n_tracer,
                 )
 
@@ -2634,19 +2599,14 @@ class ScaleAwareMassFluxShallowConvection:
             self._heso,
         )
 
-        conv_b = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after static1: ", columns)
-
         if exit_routine(self._cnvflg.view[:]):
             return
 
         self._stencil_static2(
             self._cnvflg,
             self._pdot,
-            dot,
-            islimsk,
+            state.dot,
+            state.islimsk,
             self._k_mask,
             self._kbcon,
             self._kb,
@@ -2654,11 +2614,6 @@ class ScaleAwareMassFluxShallowConvection:
             self._pfld_kb,
             self._pfld_kbcon,
         )
-
-        conv_a = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after static2: ", columns)
 
         if exit_routine(self._cnvflg.view[:]):
             return
@@ -2671,7 +2626,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._kb,
             self._kbcon,
             self._zo,
-            qtr,
+            state.qtr,
             self._clamt,
         )
 
@@ -2751,10 +2706,6 @@ class ScaleAwareMassFluxShallowConvection:
             self._flg,
             self._k_mask,
         )
-        conv_b = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after update kbcon1: ", columns)
 
         if exit_routine(self._cnvflg.view[:]):
             return
@@ -2767,11 +2718,6 @@ class ScaleAwareMassFluxShallowConvection:
             self._k_mask,
             self._kbcon1,
         )
-
-        conv_a = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after static9: ", columns)
 
         if exit_routine(self._cnvflg.view[:]):
             return
@@ -2788,13 +2734,8 @@ class ScaleAwareMassFluxShallowConvection:
             self._dbyo,
             self._qo,
             self._pdot,
-            islimsk,
+            state.islimsk,
         )
-
-        conv_b = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after static10: ", columns)
 
         if exit_routine(self._cnvflg.view[:]):
             return
@@ -2830,11 +2771,6 @@ class ScaleAwareMassFluxShallowConvection:
             self._cnvwt,
         )
 
-        conv_a = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after static11: ", columns)
-
         if exit_routine(self._cnvflg.view[:]):
             return
 
@@ -2869,12 +2805,6 @@ class ScaleAwareMassFluxShallowConvection:
             self._drag,
             self._dellal,
         )
-        conv_b = copy.deepcopy(self._cnvflg.view[:])
-
-        columns = col_diffs(conv_a, conv_b)
-        print("after static12: ", columns)
-        columns = true_cols(self._cnvflg.view[:])
-        print(f"{len(columns)} Final columns: ", columns)
 
         if self._ncloud > 0:
             self._stencil_static13(
@@ -2936,14 +2866,14 @@ class ScaleAwareMassFluxShallowConvection:
             self._wc,
             self._gdx,
             self._dtconv,
-            u1,
-            v1,
+            state.u1,
+            state.v1,
             self._po,
             self._to,
             self._tauadv,
             self._xmb,
             self._sigmagfm,
-            garea,
+            state.garea,
             self._scaldfunc,
             self._xmbmax,
             self._sumx,
@@ -2976,11 +2906,11 @@ class ScaleAwareMassFluxShallowConvection:
             self._kb,
             self._ktcon,
             self._flg,
-            islimsk,
-            ktop,
-            kbot,
+            state.islimsk,
+            state.ktop,
+            state.kbot,
             self._kbcon,
-            kcnv,
+            state.kcnv,
             self._qeso,
             self._pfld,
             self._delhbar,
@@ -2991,12 +2921,12 @@ class ScaleAwareMassFluxShallowConvection:
             self._qcond,
             self._dellah,
             self._dellaq,
-            t1,
+            state.t1,
             self._xmb,
-            q1,
-            u1,
+            state.q1,
+            state.u1,
             self._dellau,
-            v1,
+            state.v1,
             self._dellav,
             self._del0,
             self._rntot,
@@ -3006,13 +2936,13 @@ class ScaleAwareMassFluxShallowConvection:
             self._deltv,
             self._delq,
             self._qevap,
-            rn,
+            state.rn,
             self._edt,
-            cnvw,
+            state.cnvw,
             self._cnvwt,
-            cnvc,
-            ud_mf,
-            dt_mf,
+            state.cnvc,
+            state.ud_mf,
+            state.dt_mf,
             self._eta,
         )
 
@@ -3028,7 +2958,7 @@ class ScaleAwareMassFluxShallowConvection:
                     self._ctr,
                     self._dellae,
                     self._xmb,
-                    qtr,
+                    state.qtr,
                     n_tracer,
                 )
 
@@ -3040,8 +2970,8 @@ class ScaleAwareMassFluxShallowConvection:
                 self._ktcon,
                 self._dellal,
                 self._xmb,
-                t1,
-                qtr,
+                state.t1,
+                state.qtr,
             )
 
         # if self._do_aerosols:
@@ -3052,11 +2982,11 @@ class ScaleAwareMassFluxShallowConvection:
                 self._cnvflg,
                 self._k_mask,
                 self._kb,
-                ktop,
+                state.ktop,
                 self._eta,
                 self._xmb,
                 self._pfld,
-                t1,
+                state.t1,
                 self._sigmagfm,
-                qtr,
+                state.qtr,
             )

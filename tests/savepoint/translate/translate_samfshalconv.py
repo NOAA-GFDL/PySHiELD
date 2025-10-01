@@ -1,6 +1,7 @@
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.initialization.sizer import SubtileGridSizer
 from pyshield.stencils.shallow_convection import (
+    SAMFShalConvState,
     ScaleAwareMassFluxShallowConvection,
     ShallowConvectionConfig,
 )
@@ -87,6 +88,19 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
         self.grid_indexing = stencil_factory.grid_indexing
 
     def compute(self, inputs):
+        sizer = SubtileGridSizer.from_tile_params(
+            nx_tile=self.namelist.npx - 1,
+            ny_tile=self.namelist.npx - 1,
+            nz=self.namelist.npz,
+            n_halo=3,
+            extra_dim_lengths={},
+            layout=self.namelist.layout,
+        )
+
+        quantity_factory = QuantityFactory.from_backend(
+            sizer, self.stencil_factory.backend
+        )
+
         self.make_storage_data_input_vars(inputs)
         config = ShallowConvectionConfig(
             dt_atmos=inputs.pop("sc_dtp"),
@@ -104,10 +118,37 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
             asolfac_shal=inputs.pop("sc_asolfac_shal"),
             fscav=inputs.pop("sc_ser_fscav"),
         )
+
+        state = SAMFShalConvState.init_from_storages(
+            inputs,
+            sizer=sizer,
+            quantity_factory=quantity_factory,
+        )
         self.compute_func = ScaleAwareMassFluxShallowConvection(
             self.stencil_factory,
             self.quantity_factory,
             config,
         )
-        self.compute_func(**inputs)
+        self.compute_func(state)
+
+        inputs["delp"] = state.delp
+        inputs["prslp"] = state.prslp
+        inputs["psp"] = state.psp
+        inputs["phil"] = state.phil
+        inputs["q1"] = state.q1
+        inputs["t1"] = state.t1
+        inputs["u1"] = state.u1
+        inputs["v1"] = state.v1
+        inputs["qtr"] = state.qtr
+        inputs["rn"] = state.rn
+        inputs["kbot"] = state.kbot
+        inputs["ktop"] = state.ktop
+        inputs["kcnv"] = state.kcnv
+        inputs["dot"] = state.dot
+        inputs["hpbl"] = state.hpbl
+        inputs["ud_mf"] = state.ud_mf
+        inputs["dt_mf"] = state.dt_mf
+        inputs["cnvw"] = state.cnvw
+        inputs["cnvc"] = state.cnvc
+
         return self.slice_output(inputs)
