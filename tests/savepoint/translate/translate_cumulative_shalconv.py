@@ -16,7 +16,10 @@ from ndsl.dsl.typing import (
     IntFieldIJ,
 )
 from ndsl.initialization.sizer import SubtileGridSizer
-from pyshield._config import TRACER_DIM, ShallowConvectionConfig
+from pyshield.stencils.shallow_convection._config import (
+    SC_TRACER_DIM,
+    ShallowConvectionConfig,
+)
 from pyshield.stencils.shallow_convection.samfshalconv import (
     ScaleAwareMassFluxShallowConvection,
     col_diffs,
@@ -87,7 +90,7 @@ class InitCols:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = TRACER_DIM
+        self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
@@ -216,7 +219,7 @@ class Static1:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = TRACER_DIM
+        self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
@@ -587,7 +590,7 @@ class Static2:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = TRACER_DIM
+        self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
@@ -1029,7 +1032,7 @@ class UpdateKB9:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = TRACER_DIM
+        self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
@@ -1615,7 +1618,7 @@ class Static10:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = TRACER_DIM
+        self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.set_extra_dim_lengths(
