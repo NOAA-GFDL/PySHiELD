@@ -49,10 +49,10 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
             "sc_ser_fscav",
         ]
         self.out_vars = {
-            "delp": {"serialname": "sc_delta", "shield": True},  #
-            "prslp": {"serialname": "sc_prsl", "shield": True},  #
-            "psp": {"serialname": "sc_pgr", "shield": True},  #
-            "phil": {"serialname": "sc_phil", "shield": True},  #
+            "delp": {"serialname": "sc_delta", "shield": True},
+            "prslp": {"serialname": "sc_prsl", "shield": True},
+            "psp": {"serialname": "sc_pgr", "shield": True},
+            "phil": {"serialname": "sc_phil", "shield": True},
             "q1": {"serialname": "sc_gq0", "shield": True},
             "t1": {"serialname": "sc_gt0", "shield": True},
             "u1": {"serialname": "sc_gu0", "shield": True},
@@ -61,9 +61,9 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
             "rn": {"serialname": "sc_rain1", "shield": True},
             "kbot": {"serialname": "sc_kbot", "shield": True, "index_variable": True},
             "ktop": {"serialname": "sc_ktop", "shield": True, "index_variable": True},
-            "kcnv": {"serialname": "sc_kcnv", "shield": True},  #
-            "dot": {"serialname": "sc_vvl", "shield": True},  #
-            "hpbl": {"serialname": "sc_hpbl", "shield": True},  #
+            "kcnv": {"serialname": "sc_kcnv", "shield": True},
+            "dot": {"serialname": "sc_vvl", "shield": True},
+            "hpbl": {"serialname": "sc_hpbl", "shield": True},
             "ud_mf": {"serialname": "sc_ud_mf", "shield": True},
             "dt_mf": {"serialname": "sc_dt_mf", "shield": True},
             "cnvw": {"serialname": "sc_cnvw", "shield": True},

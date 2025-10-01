@@ -40,7 +40,6 @@ from pyshield.stencils.shallow_convection.samfshalconv import (
     stencil_static7,
     stencil_static9,
     stencil_static10,
-    stencil_static12,
     stencil_static13,
     stencil_update_kbcon1_cnvflg,
 )
@@ -2459,7 +2458,7 @@ class Static11(ScaleAwareMassFluxShallowConvection):
             self._uo,
             self._vo,
             self._ptem,
-            self._flg,
+            flg,
         )
 
         for n_tracer in range(self._ntr + 2):
@@ -2597,64 +2596,413 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         print("after static11: ", columns)
 
 
-class Static12:
+class Static12(ScaleAwareMassFluxShallowConvection):
     def __init__(
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        c1: Float,
-        ncloud: Int,
+        config: ShallowConvectionConfig,
     ):
-        grid_indexing = stencil_factory.grid_indexing
-
-        self._heo_kb = quantity_factory.zeros(
-            [X_DIM, Y_DIM], units="unknown", dtype=Float
-        )
-        self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
-            units="unknown",
-            dtype=Int,
-        )
-        for k in range(grid_indexing.domain[2]):
-            self._k_mask.data[:, :, k] = k
-
-        self._static12 = stencil_factory.from_dims_halo(
-            func=stencil_static12,
-            externals={"c1": c1, "ncloud": ncloud},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
-        )
+        super().__init__(stencil_factory, quantity_factory, config)
 
     def __call__(
         self,
-        cnvflg: BoolFieldIJ,
-        aa1: FloatFieldIJ,
-        flg: BoolFieldIJ,
-        ktcon1: IntFieldIJ,
-        kbm: IntFieldIJ,
-        ktcon: IntFieldIJ,
-        zo: FloatField,
-        qeso: FloatField,
-        to: FloatField,
-        dbyo: FloatField,
-        zi: FloatField,
-        xlamue: FloatField,
-        xlamud: FloatFieldIJ,
-        qcko: FloatField,
-        qrcko: FloatField,
-        qo: FloatField,
-        eta: FloatField,
-        del0: FloatField,
-        c0t: FloatField,
-        pwo: FloatField,
-        cnvwt: FloatField,
-        buo: FloatField,
-        wu2: FloatField,
-        wc: FloatFieldIJ,
-        sumx: FloatFieldIJ,
-        kbcon1: IntFieldIJ,
-        drag: FloatField,
-        dellal: FloatField,
+        delp,
+        prslp,
+        psp,
+        phil,
+        qtr,
+        q1,
+        t1,
+        u1,
+        v1,
+        rn,
+        kbot,
+        ktop,
+        kcnv,
+        islimsk,
+        garea,
+        dot,
+        hpbl,
+        ud_mf,
+        dt_mf,
+        cnvw,
+        cnvc,
+        flg,
+        cnvflg,
+        ktcon,
+        kbm,
+        kbcon1,
+        dbyo,
+        del0,
+        aa1,
+        qcko,
+        qo,
+        qrcko,
+        zi,
+        qeso,
+        to,
+        xlamue,
+        xlamud,
+        eta,
+        c0t,
+        dellal,
+        buo,
+        drag,
+        zo,
+        pwo,
+        cnvwt,
+        ktcon1,
+        wu2,
+        wc,
+        sumx,
     ):
+        # Convert input Pa terms to Cb terms
+        self._pa_to_cb(
+            psp,
+            prslp,
+            delp,
+            self._ps,
+            self._prsl,
+            del0,
+        )
+
+        self._init_col_arr(
+            kcnv,
+            cnvflg,
+            kbot,
+            ktop,
+            self._kbcon,
+            self._kb,
+            ktcon,
+            self._ktconn,
+            self._pdot,
+            rn,
+            self._qlko_ktcon,
+            self._edt,
+            aa1,
+            self._cina,
+            self._vshear,
+            self._gdx,
+            garea,
+        )
+        if exit_routine(cnvflg[:]):
+            return
+
+        conv_a = copy.deepcopy(cnvflg[:])
+        conv_b = np.ones_like(conv_a)
+
+        cols = col_diffs(conv_a, conv_b)
+        print("Post-init: ", cols)
+
+        self._init_par_and_arr(
+            islimsk,
+            self._c0,
+            t1,
+            c0t,
+            cnvw,
+            cnvc,
+            ud_mf,
+            dt_mf,
+        )
+        self._init_kbm_kmax(
+            kbm,
+            self._kmax,
+            self._tx1,
+            self._ps,
+            self._prsl,
+            self._k_mask,
+        )
+        self._init_final(
+            kbm,
+            self._kmax,
+            flg,
+            cnvflg,
+            self._kpbl,
+            self._prsl,
+            zo,
+            phil,
+            zi,
+            self._pfld,
+            eta,
+            self._hcko,
+            qcko,
+            qrcko,
+            self._ucko,
+            self._vcko,
+            dbyo,
+            pwo,
+            dellal,
+            to,
+            qo,
+            self._uo,
+            self._vo,
+            wu2,
+            buo,
+            drag,
+            cnvwt,
+            qeso,
+            self._heo,
+            self._heso,
+            hpbl,
+            t1,
+            q1,
+            u1,
+            v1,
+            self._k_mask,
+        )
+
+        # Init tracers
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._init_tracers(
+                    cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ctr,
+                    self._ctro,
+                    self._ecko,
+                    qtr,
+                    n_tracer,
+                )
+
+        self._stencil_static0(
+            cnvflg,
+            self._hmax,
+            self._heo,
+            self._kb,
+            self._k_mask,
+            self._kpbl,
+            self._kmax,
+            zo,
+            to,
+            qeso,
+            qo,
+            self._po,
+            self._uo,
+            self._vo,
+            self._heso,
+            self._pfld,
+        )
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic0(
+                    cnvflg,
+                    self._k_mask,
+                    self._kmax,
+                    self._ctro,
+                    n_tracer,
+                )
+
+        self._stencil_static1(
+            cnvflg,
+            flg,
+            self._kbcon,
+            self._kmax,
+            self._k_mask,
+            kbm,
+            self._kb,
+            self._heo_kb,
+            self._heo,
+            self._heso,
+        )
+        if exit_routine(cnvflg[:]):
+            return
+
+        conv_b = copy.deepcopy(cnvflg[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static1: ", columns)
+
+        self._stencil_static2(
+            cnvflg,
+            self._pdot,
+            dot,
+            islimsk,
+            self._k_mask,
+            self._kbcon,
+            self._kb,
+            self._pfld,
+            self._pfld_kb,
+            self._pfld_kbcon,
+        )
+        if exit_routine(cnvflg[:]):
+            return
+
+        conv_a = copy.deepcopy(cnvflg[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static2: ", columns)
+
+        self._stencil_static3(
+            sumx,
+            self._tkemean,
+            cnvflg,
+            self._k_mask,
+            self._kb,
+            self._kbcon,
+            zo,
+            qtr,
+            self._clamt,
+        )
+
+        self._stencil_static5(
+            cnvflg,
+            xlamue,
+            self._clamt,
+            zi,
+            xlamud,
+            self._k_mask,
+            self._kbcon,
+            self._kb,
+            eta,
+            self._ktconn,
+            self._kmax,
+            kbm,
+            self._hcko,
+            self._ucko,
+            self._vcko,
+            self._heo,
+            self._uo,
+            self._vo,
+            self._ptem,
+            flg,
+        )
+
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic1(
+                    cnvflg,
+                    self._k_mask,
+                    self._kb,
+                    self._ecko,
+                    self._ctro,
+                    n_tracer,
+                )
+
+        self._stencil_static7(
+            cnvflg,
+            self._k_mask,
+            self._kb,
+            self._kmax,
+            zi,
+            xlamue,
+            xlamud,
+            self._hcko,
+            self._heo,
+            dbyo,
+            self._heso,
+            self._ucko,
+            self._uo,
+            self._vcko,
+            self._vo,
+        )
+
+        for n_tracer in range(self._ntr + 2):
+            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+                self._stencil_ntrstatic2(
+                    cnvflg,
+                    self._k_mask,
+                    self._kb,
+                    self._kmax,
+                    zi,
+                    xlamue,
+                    self._ecko,
+                    self._ctro,
+                    n_tracer,
+                )
+
+        self._stencil_update_kbcon1_cnvflg(
+            dbyo,
+            cnvflg,
+            self._kmax,
+            kbm,
+            self._kbcon,
+            kbcon1,
+            flg,
+            self._k_mask,
+        )
+        conv_b = copy.deepcopy(cnvflg[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after update kbcon1: ", columns)
+
+        self._stencil_static9(
+            cnvflg,
+            self._pfld,
+            self._pfld_kbcon,
+            self._pfld_kbcon1,
+            self._k_mask,
+            kbcon1,
+        )
+        if exit_routine(cnvflg[:]):
+            return
+
+        conv_a = copy.deepcopy(cnvflg[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static9: ", columns)
+
+        self._stencil_static10(
+            self._cina,
+            cnvflg,
+            self._k_mask,
+            self._kb,
+            kbcon1,
+            zo,
+            qeso,
+            to,
+            dbyo,
+            qo,
+            self._pdot,
+            islimsk,
+        )
+        if exit_routine(cnvflg[:]):
+            return
+
+        conv_b = copy.deepcopy(cnvflg[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static10: ", columns)
+
+        self._stencil_static11(
+            flg,
+            cnvflg,
+            ktcon,
+            kbm,
+            kbcon1,
+            dbyo,
+            self._kbcon,
+            del0,
+            self._xmbmax,
+            aa1,
+            self._kb,
+            qcko,
+            qo,
+            qrcko,
+            zi,
+            qeso,
+            to,
+            xlamue,
+            xlamud,
+            eta,
+            c0t,
+            dellal,
+            buo,
+            drag,
+            zo,
+            self._k_mask,
+            pwo,
+            cnvwt,
+        )
+        if exit_routine(cnvflg[:]):
+            return
+
+        conv_a = copy.deepcopy(cnvflg[:])
+
+        columns = col_diffs(conv_a, conv_b)
+        print("after static11: ", columns)
+
         self._static12(
             cnvflg,
             aa1,
@@ -3739,92 +4087,122 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
         super().__init__(grid, namelist, stencil_factory)
 
         self.in_vars["data_vars"] = {
-            "cnvflg": {"serialname": "s12_cnvflg", "shield": True},
-            "aa1": {"serialname": "s12_aa1", "shield": True},
+            "delp": {"serialname": "s12_delp", "shield": True},
+            "prslp": {"serialname": "s12_prslp", "shield": True},
+            "psp": {"serialname": "s12_psp", "shield": True},
+            "phil": {"serialname": "s12_phil", "shield": True},
+            "qtr": {"serialname": "s12_qtr", "shield": True},
+            "q1": {"serialname": "s12_q1", "shield": True},
+            "t1": {"serialname": "s12_t1", "shield": True},
+            "u1": {"serialname": "s12_u1", "shield": True},
+            "v1": {"serialname": "s12_v1", "shield": True},
+            "rn": {"serialname": "s12_rn", "shield": True},
+            "kbot": {"serialname": "s12_kbot", "shield": True, "index_variable": True},
+            "ktop": {"serialname": "s12_ktop", "shield": True, "index_variable": True},
+            "kcnv": {"serialname": "s12_kcnv", "shield": True},
+            "islimsk": {"serialname": "s12_islimsk", "shield": True},
+            "garea": {"serialname": "s12_garea", "shield": True},
+            "dot": {"serialname": "s12_dot", "shield": True},
+            "hpbl": {"serialname": "s12_hpbl", "shield": True},
+            "ud_mf": {"serialname": "s12_ud_mf", "shield": True},
+            "dt_mf": {"serialname": "s12_dt_mf", "shield": True},
+            "cnvw": {"serialname": "s12_cnvw", "shield": True},
+            "cnvc": {"serialname": "s12_cnvc", "shield": True},
             "flg": {"serialname": "s12_flg", "shield": True},
-            "ktcon1": {
-                "serialname": "s12_ktcon1",
-                "shield": True,
-                "index_variable": True,
-            },
-            "kbm": {"serialname": "s12_kbm", "shield": True, "index_variable": True},
+            "cnvflg": {"serialname": "s12_cnvflg", "shield": True},
             "ktcon": {
                 "serialname": "s12_ktcon",
                 "shield": True,
                 "index_variable": True,
             },
-            "zo": {"serialname": "s12_zo", "shield": True},
-            "qeso": {"serialname": "s12_qeso", "shield": True},
-            "to": {"serialname": "s12_to", "shield": True},
-            "dbyo": {"serialname": "s12_dbyo", "shield": True},
-            "zi": {"serialname": "s12_zi", "shield": True},
-            "xlamue": {"serialname": "s12_xlamue", "shield": True},
-            "xlamud": {"serialname": "s12_xlamud", "shield": True},
-            "qcko": {"serialname": "s12_qcko", "shield": True},
-            "qrcko": {"serialname": "s12_qrcko", "shield": True},
-            "qo": {"serialname": "s12_qo", "shield": True},
-            "eta": {"serialname": "s12_eta", "shield": True},
-            "del0": {"serialname": "s12_del0", "shield": True},
-            "c0t": {"serialname": "s12_c0t", "shield": True},
-            "pwo": {"serialname": "s12_pwo", "shield": True},
-            "cnvwt": {"serialname": "s12_cnvwt", "shield": True},
-            "buo": {"serialname": "s12_buo", "shield": True},
-            "wu2": {"serialname": "s12_wu2", "shield": True},
-            "wc": {"serialname": "s12_wc", "shield": True},
-            "sumx": {"serialname": "s12_sumx", "shield": True},
+            "kbm": {"serialname": "s12_kbm", "shield": True, "index_variable": True},
             "kbcon1": {
                 "serialname": "s12_kbcon1",
                 "shield": True,
                 "index_variable": True,
             },
-            "drag": {"serialname": "s12_drag", "shield": True},
+            "dbyo": {"serialname": "s12_dbyo", "shield": True},
+            "del0": {"serialname": "s12_del0", "shield": True},
+            "aa1": {"serialname": "s12_aa1", "shield": True},
+            "qcko": {"serialname": "s12_qcko", "shield": True},
+            "qo": {"serialname": "s12_qo", "shield": True},
+            "qrcko": {"serialname": "s12_qrcko", "shield": True},
+            "zi": {"serialname": "s12_zi", "shield": True},
+            "qeso": {"serialname": "s12_qeso", "shield": True},
+            "to": {"serialname": "s12_to", "shield": True},
+            "xlamue": {"serialname": "s12_xlamue", "shield": True},
+            "xlamud": {"serialname": "s12_xlamud", "shield": True},
+            "eta": {"serialname": "s12_eta", "shield": True},
+            "c0t": {"serialname": "s12_c0t", "shield": True},
             "dellal": {"serialname": "s12_dellal", "shield": True},
+            "buo": {"serialname": "s12_buo", "shield": True},
+            "drag": {"serialname": "s12_drag", "shield": True},
+            "zo": {"serialname": "s12_zo", "shield": True},
+            "pwo": {"serialname": "s12_pwo", "shield": True},
+            "cnvwt": {"serialname": "s12_cnvwt", "shield": True},
+            "ktcon1": {
+                "serialname": "sct_ktcon1",
+                "shield": True,
+                "index_variable": True,
+            },
+            "wu2": {"serialname": "s12_wu2", "shield": True},
+            "wc": {"serialname": "s12_wc", "shield": True},
+            "sumx": {"serialname": "s12_sumx", "shield": True},
         }
         self.in_vars["parameters"] = [
+            "s12_clam",
+            "s12_c0s",
             "s12_c1",
             "s12_ncloud",
+            "s12_pgcon",
+            "s12_asolfac",
+            "s12_delt",
+            "s12_itc",
+            "s12_ntc",
+            "s12_ntk",
+            "s12_ntr",
         ]
         self.out_vars = {
-            "cnvflg": {"serialname": "s12_cnvflg", "shield": True},
-            "aa1": {"serialname": "s12_aa1", "shield": True},
             "flg": {"serialname": "s12_flg", "shield": True},
-            "ktcon1": {
-                "serialname": "s12_ktcon1",
-                "shield": True,
-                "index_variable": True,
-            },
-            "kbm": {"serialname": "s12_kbm", "shield": True, "index_variable": True},
+            "cnvflg": {"serialname": "s12_cnvflg", "shield": True},
             "ktcon": {
                 "serialname": "s12_ktcon",
                 "shield": True,
                 "index_variable": True,
             },
-            "zo": {"serialname": "s12_zo", "shield": True},
-            "qeso": {"serialname": "s12_qeso", "shield": True},
-            "to": {"serialname": "s12_to", "shield": True},
-            "dbyo": {"serialname": "s12_dbyo", "shield": True},
-            "zi": {"serialname": "s12_zi", "shield": True},
-            "xlamue": {"serialname": "s12_xlamue", "shield": True},
-            "xlamud": {"serialname": "s12_xlamud", "shield": True},
-            "qcko": {"serialname": "s12_qcko", "shield": True},
-            "qrcko": {"serialname": "s12_qrcko", "shield": True},
-            "qo": {"serialname": "s12_qo", "shield": True},
-            "eta": {"serialname": "s12_eta", "shield": True},
-            "del0": {"serialname": "s12_del0", "shield": True},
-            "c0t": {"serialname": "s12_c0t", "shield": True},
-            "pwo": {"serialname": "s12_pwo", "shield": True},
-            "cnvwt": {"serialname": "s12_cnvwt", "shield": True},
-            "buo": {"serialname": "s12_buo", "shield": True},
-            "wu2": {"serialname": "s12_wu2", "shield": True},
-            "wc": {"serialname": "s12_wc", "shield": True},
-            "sumx": {"serialname": "s12_sumx", "shield": True},
+            "kbm": {"serialname": "s12_kbm", "shield": True, "index_variable": True},
             "kbcon1": {
                 "serialname": "s12_kbcon1",
                 "shield": True,
                 "index_variable": True,
             },
-            "drag": {"serialname": "s12_drag", "shield": True},
+            "dbyo": {"serialname": "s12_dbyo", "shield": True},
+            "del0": {"serialname": "s12_del0", "shield": True},
+            "aa1": {"serialname": "s12_aa1", "shield": True},
+            "qcko": {"serialname": "s12_qcko", "shield": True},
+            "qo": {"serialname": "s12_qo", "shield": True},
+            "qrcko": {"serialname": "s12_qrcko", "shield": True},
+            "zi": {"serialname": "s12_zi", "shield": True},
+            "qeso": {"serialname": "s12_qeso", "shield": True},
+            "to": {"serialname": "s12_to", "shield": True},
+            "xlamue": {"serialname": "s12_xlamue", "shield": True},
+            "xlamud": {"serialname": "s12_xlamud", "shield": True},
+            "eta": {"serialname": "s12_eta", "shield": True},
+            "c0t": {"serialname": "s12_c0t", "shield": True},
             "dellal": {"serialname": "s12_dellal", "shield": True},
+            "buo": {"serialname": "s12_buo", "shield": True},
+            "drag": {"serialname": "s12_drag", "shield": True},
+            "zo": {"serialname": "s12_zo", "shield": True},
+            "pwo": {"serialname": "s12_pwo", "shield": True},
+            "cnvwt": {"serialname": "s12_cnvwt", "shield": True},
+            "ktcon1": {
+                "serialname": "sct_ktcon1",
+                "shield": True,
+                "index_variable": True,
+            },
+            "wu2": {"serialname": "s12_wu2", "shield": True},
+            "wc": {"serialname": "s12_wc", "shield": True},
+            "sumx": {"serialname": "s12_sumx", "shield": True},
         }
         self.stencil_factory = stencil_factory
 
@@ -3845,11 +4223,25 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
+        config = ShallowConvectionConfig(
+            dt_atmos=inputs.pop("s12_delt"),
+            ntke=int(inputs.pop("s12_ntk") - 1),
+            nsamftrac=int(inputs.pop("s12_ntr")),
+            ncld=int(inputs.pop("s12_ncloud")),
+            ntchm=int(inputs.pop("s12_ntc")),
+            ntiw=0,
+            ntcw=1,
+            itc=int(inputs.pop("s12_itc") - 1),
+            clam_shal=inputs.pop("s12_clam"),
+            c0s_shal=inputs.pop("s12_c0s"),
+            c1_shal=inputs.pop("s12_c1"),
+            pgcon_shal=inputs.pop("s12_pgcon"),
+            asolfac_shal=inputs.pop("s12_asolfac"),
+        )
         self.compute_func = Static12(
             self.stencil_factory,
             self.quantity_factory,
-            inputs.pop("s12_c1"),
-            int(inputs.pop("s12_ncloud")),
+            config,
         )
         self.compute_func(**inputs)
         return self.slice_output(inputs)
