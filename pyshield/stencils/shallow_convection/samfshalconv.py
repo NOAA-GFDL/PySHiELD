@@ -12,6 +12,7 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.constants as constants
 import pyshield.constants as physcons
+import pyshield.stencils.shallow_convection.constants as sccons
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl import QuantityFactory, StencilFactory
@@ -139,7 +140,7 @@ def init_par_and_arr(
         if t1 > 273.16:
             c0t = c0
         else:
-            tem = exp(physcons.D0_SHAL * (t1 - 273.16))
+            tem = exp(sccons.D0_SHAL * (t1 - 273.16))
             c0t = c0 * tem
 
         # Initialize convective cloud water and cloud cover to zero
@@ -493,15 +494,15 @@ def stencil_static2(
         cinpcr = 0.0
         if cnvflg:
             if islimsk == 1:
-                w1 = physcons.W1L
-                w2 = physcons.W2L
-                w3 = physcons.W3L
-                w4 = physcons.W4L
+                w1 = sccons.W1L
+                w2 = sccons.W2L
+                w3 = sccons.W3L
+                w4 = sccons.W4L
             else:
-                w1 = physcons.W1S
-                w2 = physcons.W2S
-                w3 = physcons.W3S
-                w4 = physcons.W4S
+                w1 = sccons.W1S
+                w2 = sccons.W2S
+                w3 = sccons.W3S
+                w4 = sccons.W4S
 
             if pdot <= w4:
                 tem = (pdot - w4) / (w3 - w4)
@@ -514,8 +515,8 @@ def stencil_static2(
             tem = max(tem, val1)
             tem = min(tem, val2)
             ptem = 1.0 - tem
-            ptem1 = 0.5 * (physcons.CINPCRMX - physcons.CINPCRMN)
-            cinpcr = physcons.CINPCRMX - ptem * ptem1
+            ptem1 = 0.5 * (sccons.CINPCRMX - sccons.CINPCRMN)
+            cinpcr = sccons.CINPCRMX - ptem * ptem1
             tem1 = pfld_kb - pfld_kbcon
             if tem1 > cinpcr:
                 cnvflg = False
@@ -558,13 +559,13 @@ def stencil_static3(
         if ntk > -1:
             if cnvflg:
                 tkemean = tkemean / sumx
-                if tkemean > physcons.TKEMX:
-                    clamt = clam + physcons.CLAMD
-                elif tkemean < physcons.TKEMN:
-                    clamt = clam - physcons.CLAMD
+                if tkemean > sccons.TKEMX:
+                    clamt = clam + sccons.CLAMD
+                elif tkemean < sccons.TKEMN:
+                    clamt = clam - sccons.CLAMD
                 else:
-                    tem1 = 1.0 - 2.0 * (physcons.TKEMX - tkemean) / physcons.DTKE
-                    clamt = clam + physcons.CLAMD * tem1
+                    tem1 = 1.0 - 2.0 * (sccons.TKEMX - tkemean) / sccons.DTKE
+                    clamt = clam + sccons.CLAMD * tem1
         else:
             if cnvflg:
                 clamt = clam
@@ -722,7 +723,7 @@ def stencil_static7(
                 ) / factor
                 dbyo = hcko - heso
 
-                tem = 0.5 * physcons.CM * tem
+                tem = 0.5 * sccons.CM * tem
                 factor = 1.0 + tem
                 ptem = tem + pgcon
                 ptem1 = tem - pgcon
@@ -817,7 +818,7 @@ def stencil_static9(
             # Use pfld_kbcon and pfld_kbcon1 to represent
             # tem = pfld(i,kbcon(i)) - pfld(i,kbcon1(i))
             tem = pfld_kbcon - pfld_kbcon1
-            if tem > physcons.DTHK:
+            if tem > sccons.DTHK:
                 cnvflg = False
 
 
@@ -866,20 +867,20 @@ def stencil_static10(
     with computation(FORWARD), interval(-1, None):
         # Turn off convection if the CIN is less than a critical value (cinacr)
         # which is inversely proportional to the large-scale vertical velocity.
-        w1 = physcons.W1S
-        w2 = physcons.W2S
-        w3 = physcons.W3S
-        w4 = physcons.W4S
+        w1 = sccons.W1S
+        w2 = sccons.W2S
+        w3 = sccons.W3S
+        w4 = sccons.W4S
         tem = 0.0
         tem1 = 0.0
         cinacr = 0.0
 
         if cnvflg:
             if islimsk == 1:
-                w1 = physcons.W1L
-                w2 = physcons.W2L
-                w3 = physcons.W3L
-                w4 = physcons.W4L
+                w1 = sccons.W1L
+                w2 = sccons.W2L
+                w3 = sccons.W3L
+                w4 = sccons.W4L
 
             if pdot <= w4:
                 tem = (pdot - w4) / (w3 - w4)
@@ -891,8 +892,8 @@ def stencil_static10(
             tem = max(tem, -1.0)
             tem = min(tem, 1.0)
             tem = 1.0 - tem
-            tem1 = 0.5 * (physcons.CINACRMX - physcons.CINACRMN)
-            cinacr = physcons.CINACRMX - tem * tem1
+            tem1 = 0.5 * (sccons.CINACRMX - sccons.CINACRMN)
+            cinacr = sccons.CINACRMX - tem * tem1
             # cinacr = cinacrmx
             if cina < cinacr:
                 cnvflg = False
@@ -1117,7 +1118,7 @@ def stencil_static12(
     with computation(FORWARD):
         with interval(0, 1):
             if cnvflg:
-                aa1 = physcons.AAFAC * aa1
+                aa1 = sccons.AAFAC * aa1
 
             flg = cnvflg
             ktcon1 = kbm
@@ -1552,9 +1553,9 @@ def comp_tendencies(
             tfac = 1.0 + gdx / 75000.0
             dtconv = tem / wc
             dtconv = tfac * dtconv
-            dtconv = max(dtconv, physcons.DTMIN)
+            dtconv = max(dtconv, sccons.DTMIN)
             dtconv = max(dtconv, dt2)
-            dtconv = min(dtconv, physcons.DTMAX)
+            dtconv = min(dtconv, sccons.DTMAX)
 
             # Initialize field for advective time scale computation
             sumx = 0.0
@@ -1585,7 +1586,7 @@ def comp_tendencies(
             rho = po * 100.0 / (constants.RDGAS * to)
             tfac = tauadv / dtconv
             tfac = min(tfac, 1.0)
-            xmb = tfac * physcons.BETAW * rho * wc
+            xmb = tfac * sccons.BETAW * rho * wc
 
             # For scale-aware parameterization, the updraft fraction
             # (sigmagfm) is first computed as a function of the
@@ -1613,7 +1614,7 @@ def comp_tendencies(
         # sigmagfm << 1, multiplied by the reduction factor (Han et
         # al.'s (2017) \cite han_et_al_2017 equation 2).
         if cnvflg:
-            if gdx < physcons.DXCRT:
+            if gdx < sccons.DXCRT:
                 scaldfunc = (1.0 - sigmagfm) * (1.0 - sigmagfm)
                 scaldfunc = min(scaldfunc, 1.0)
                 scaldfunc = max(scaldfunc, 0.0)
@@ -1816,9 +1817,9 @@ def feedback_control_update_mass_flux(
 
                 if flg and k_mask < ktcon:
                     if islimsk == 1:
-                        evef = edt * physcons.EVFACTL
+                        evef = edt * sccons.EVFACTL
                     else:
-                        evef = edt * physcons.EVFACT
+                        evef = edt * sccons.EVFACT
                     qcond = (
                         evef * (q1 - qeso) / (1.0 + physcons.EL2ORC * qeso / (t1 * t1))
                     )
@@ -1976,7 +1977,7 @@ def separate_detrained_cw(
         if cnvflg and k_mask >= kbcon and k_mask <= ktcon:
 
             tem = dellal * xmb * dt2
-            tem1 = (physcons.SHAL_TCR - t1) * physcons.SHAL_TCRF
+            tem1 = (sccons.SHAL_TCR - t1) * sccons.SHAL_TCRF
             tem1 = min(1.0, tem1)
             tem1 = max(0.0, tem1)
 
@@ -2011,7 +2012,7 @@ def tke_contribution(
         if cnvflg and k_mask > kb and k_mask < ktop:
             tem = 0.5 * (eta[0, 0, -1] + eta[0, 0, 0]) * xmb
             tem1 = pfld * 100.0 / (constants.RDGAS * t1)
-            sigmagfm = max(sigmagfm, physcons.BETAW)
+            sigmagfm = max(sigmagfm, sccons.BETAW)
             ptem = tem / (sigmagfm * tem1)
             qtr[0, 0, 0][ntk] = qtr[0, 0, 0][ntk] + 0.5 * sigmagfm * ptem * ptem
 
