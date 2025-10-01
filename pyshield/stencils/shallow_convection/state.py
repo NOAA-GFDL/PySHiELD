@@ -149,27 +149,23 @@ class SAMFShalConvState:
             "dtype": Int,
         }
     )
-    kbot: Quantity = (
-        field(
-            metadata={
-                "name": "index_for_cloud_base",
-                "dims": [X_DIM, Y_DIM],
-                "units": "",
-                "intent": "out",
-                "dtype": Int,
-            }
-        ),
+    kbot: Quantity = field(
+        metadata={
+            "name": "index_for_cloud_base",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "out",
+            "dtype": Int,
+        }
     )
-    ktop: Quantity = (
-        field(
-            metadata={
-                "name": "index_for_cloud_top",
-                "dims": [X_DIM, Y_DIM],
-                "units": "",
-                "intent": "out",
-                "dtype": Int,
-            }
-        ),
+    ktop: Quantity = field(
+        metadata={
+            "name": "index_for_cloud_top",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "out",
+            "dtype": Int,
+        }
     )
     garea: Quantity = field(
         metadata={
