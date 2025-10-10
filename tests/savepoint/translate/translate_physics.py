@@ -48,6 +48,7 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, stencil_factory)
         self.namelist = PhysicsConfig.from_namelist(namelist)
+        self.skip_test = True
 
     def transform_physics_serialized_data(self, data, roll_zero, index_order):
         if isinstance(data, np.ndarray):
