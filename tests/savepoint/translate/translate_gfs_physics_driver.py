@@ -1,7 +1,7 @@
 import copy
 
 import ndsl.dsl.gt4py_utils as utils
-import ndsl.initialization as util
+from ndsl import QuantityFactory, SubtileGridSizer
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pyshield.update import update_atmos_state
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -117,7 +117,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             origin=self.grid_indexing.origin_compute()[0:2],
             backend=self.stencil_factory.backend,
         )
-        sizer = util.SubtileGridSizer.from_tile_params(
+        sizer = SubtileGridSizer.from_tile_params(
             nx_tile=self.namelist.npx - 1,
             ny_tile=self.namelist.npy - 1,
             nz=self.namelist.npz,
@@ -126,7 +126,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             layout=self.namelist.layout,
         )
 
-        quantity_factory = util.QuantityFactory.from_backend(
+        quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
         schemes = [PHYSICS_PACKAGES["GFS_microphysics"]]
@@ -150,7 +150,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             self.grid.quantity_factory,
             self.namelist,
             do_dry_convective_adjust=False,
-            dycore_only=self.namelist.dycore_only,
+            dycore_only=False,
         )
         dycore_to_physics(dycore_state=physics_state, physics_state=physics_state)
         physics._atmos_phys_driver_statein(
