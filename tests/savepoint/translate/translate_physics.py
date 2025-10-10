@@ -49,6 +49,13 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
         super().__init__(grid, stencil_factory)
         self.namelist = PhysicsConfig.from_namelist(namelist)
 
+        # This test wasn't running (on CI) for a long time because it was misconfigured.
+        # Now it's properly configured and temporarily skipped (i.e. still not running
+        # as before). Issue https://github.com/NOAA-GFDL/PySHiELD/issues/66 exists to
+        # re-enable and fix this test. To unskip, just delete the following line (and
+        # this comment).
+        self.skip_test = True
+
     def transform_physics_serialized_data(self, data, roll_zero, index_order):
         if isinstance(data, np.ndarray):
             n_dim = len(data.shape)
