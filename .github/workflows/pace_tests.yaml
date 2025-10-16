@@ -10,7 +10,9 @@ on:
 
 jobs:
   pace_unit_tests:
-    uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
+    # TODO
+    # To be reverted once https://github.com/NOAA-GFDL/pace/pull/151 is merged
+    uses: romanc/pace/.github/workflows/main_unit_tests.yaml@romanc/ci-debug
     with:
       component_trigger: true
       component_name: pySHiELD

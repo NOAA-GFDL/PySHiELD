@@ -43,16 +43,16 @@ jobs:
           path: pySHiELD
           ref: develop
 
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11.13
-          conda-remove-defaults: true
-          auto-activate-base: false
-          activate-environment: pyshield_test_env
+          python-version: '3.11'
 
       - name: Install mpi (MPICH flavor)
         run: pip install mpich
+
+      - name: Install numpy==1.26.4
+        run: pip install numpy==1.26.4
 
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_trigger }}
@@ -68,27 +68,22 @@ jobs:
         if: ${{contains(inputs.component_name, 'FV3')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip3 install --upgrade pip setuptools wheel
-          cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
-          pip3 install .[ndsl,test]
-          pip install numpy==1.26.4
+          cd ${{inputs.component_name}} && pip install . && cd ..
+          pip install .[ndsl,test]
+
 
       - name: external trigger Install packages for NDSL component
         if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip3 install --upgrade pip setuptools wheel
-          cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
-          pip3 install .[pyfv3,test]
-          pip install numpy==1.26.4
+          cd ${{inputs.component_name}} && pip install . && cd ..
+          pip install .[pyfv3,test]
 
       - name: Install pySHiELD packages
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip install --upgrade pip setuptools wheel
           pip install .[ndsl,pyfv3,test]
-          pip install numpy==1.26.4
 
       # Only restore (don't save) caches on PRs. New caches created from PRs won't be
       # accessible from other PRs, see workflows/create_cache.yaml.
