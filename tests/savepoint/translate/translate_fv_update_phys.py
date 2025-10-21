@@ -1,7 +1,7 @@
 import dataclasses
 
-from f90nml import Namelist
 import numpy as np
+from f90nml import Namelist
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import Quantity, StencilFactory

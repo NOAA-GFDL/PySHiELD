@@ -1,5 +1,4 @@
 import numpy as np
-
 from f90nml import Namelist
 
 from ndsl import StencilFactory

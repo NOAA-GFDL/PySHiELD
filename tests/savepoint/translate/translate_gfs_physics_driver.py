@@ -2,7 +2,7 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
-from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
+from pyshield import PHYSICS_PACKAGES, Physics, PhysicsState
 from pyshield.update import update_atmos_state
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -140,7 +140,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             self.grid.grid_data,
             self.config,
         )
-        # TODO, PhysicsConfig doesn't have fv_sg_adj 
+        # TODO, PhysicsConfig doesn't have fv_sg_adj
         # either move where GFSPhysicsDriver starts, or pass the full namelist or
         # get around this issue another way. Setting do_dry_convective_adjustment
         # to False for now (we don't run this on a case where it is True yet)
