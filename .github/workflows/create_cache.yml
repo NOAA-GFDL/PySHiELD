@@ -15,7 +15,7 @@ on:
       # so we are using an extra input (which is only available when this workflow
       # is called from another workflow) with a default value (such that we don't
       # have to set it every time)
-      skip-pre-commit:
+      external-call:
         type: boolean
         default: true
         required: false
@@ -31,7 +31,7 @@ jobs:
   # GitHub Actions cache of the pre-commit environment
   pre-commit:
     # downstream repos have their own pre-commit environment
-    if: ${{!inputs.skip-pre-commit}}
+    if: ${{ !inputs.external-call }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
