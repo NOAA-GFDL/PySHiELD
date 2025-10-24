@@ -9,6 +9,7 @@ name: "Create GHA cache"
 # branch (which is where almost all PRs merge into).
 
 on:
+  workflow_call: # when called from a downstream repo
   push:
     branches: [develop]
 
@@ -20,6 +21,8 @@ concurrency:
 jobs:
   # GitHub Actions cache of the pre-commit environment
   pre-commit:
+    # downstream repos have their own pre-commit environment
+    if: github.event_name != 'workflow_call'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
