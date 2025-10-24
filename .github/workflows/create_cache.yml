@@ -12,12 +12,10 @@ on:
   workflow_call: # when called from a downstream repo
     inputs:
       # GHA doesn't seem to provide a simple way to detect workflow_call events
-      # so we are using an extra input (which is only available when this workflow
-      # is called from another workflow) with a default value (such that we don't
-      # have to set it every time)
+      # so we are using an extra input
       skip-pre-commit:
         type: boolean
-        default: true
+        default: false
         required: false
   push:
     branches: [develop]
