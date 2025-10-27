@@ -10,8 +10,6 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
-        # using top level namelist rather than PhysicsConfig
-        # because DycoreToPhysics needs some dycore info
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},

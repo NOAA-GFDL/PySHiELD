@@ -192,7 +192,8 @@ class PhysicsConfig:
                 use when initializing the PhysicsConfig. If None, all
                 groups will be used. (Default: DEFAULT_PHYS_NML_GROUPS)
         """
-        nml_dict = f90nml_as_dict(nml, flatten=True, target_groups=target_groups)
+        groups = list(target_groups) if target_groups is not None else None
+        nml_dict = f90nml_as_dict(nml, flatten=True, target_groups=groups)
         nml_dict["target_nml_groups"] = target_groups
         return cls.from_dict(nml_dict)
 
@@ -216,5 +217,4 @@ class PhysicsConfig:
                 Tuple[str, ...]: lambda x: tuple(x) if x is not None else None,
             },
         )
-        config = from_dict(data_class=PhysicsConfig, data=data, config=dacite_config)
-        return config
+        return from_dict(data_class=PhysicsConfig, data=data, config=dacite_config)

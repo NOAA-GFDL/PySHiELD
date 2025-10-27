@@ -21,12 +21,6 @@ except ImportError:
     cp = None
 
 
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
-
-
 @dataclasses.dataclass()
 class DycoreState:
     u: FloatField
