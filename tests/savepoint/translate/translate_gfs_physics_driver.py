@@ -119,7 +119,6 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             ny_tile=self.config.npy - 1,
             nz=self.config.npz,
             n_halo=3,
-            extra_dim_lengths={},
             layout=self.config.layout,
         )
 
