@@ -15,7 +15,7 @@ class TranslatePhiFV3(TranslatePhysicsFortranData2Py):
                 "out_roll_zero": True,
             },
             "phii": {"serialname": "phi_phii"},
-            "phil": {"serialname": "phi_phil", "kend": namelist.npz - 1},
+            "phil": {"serialname": "phi_phil", "kend": self.config.npz - 1},
         }
         self.out_vars = {
             "del_gz": self.in_vars["data_vars"]["del_gz"],
