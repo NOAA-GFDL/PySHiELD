@@ -112,7 +112,6 @@ jobs:
             -v -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=numpy \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
-            --no_legacy_namelist \
             ./tests/savepoint
 
       - name: Orchestrated dace:cpu Translate Test
@@ -126,5 +125,4 @@ jobs:
             -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=dace:cpu \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
-            --no_legacy_namelist \
             ./tests/savepoint
