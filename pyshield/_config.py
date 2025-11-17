@@ -13,7 +13,7 @@ from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.utils import f90nml_as_dict
 
 
-# TODO: This is a hack
+# TODO: This will become a TracerBundle when ready
 FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
