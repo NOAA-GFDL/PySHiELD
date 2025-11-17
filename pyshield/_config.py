@@ -41,7 +41,8 @@ class PhysicsConfig:
     nwat: int = DEFAULT_INT
     schemes: List = None
     do_qa: bool = DEFAULT_BOOL
-    do_inline_mp: bool = DEFAULT_BOOL
+    do_inline_mp: bool = False
+    """Whether microphysics is inlined in the dycore"""
     c_cracw: float = 0.8
     """Rain accretion efficiency"""
     c_paut: float = 0.5

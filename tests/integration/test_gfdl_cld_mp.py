@@ -142,7 +142,6 @@ def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
         nwat=6,
         schemes=["GFDL_cloud_microphysics"],
     )
-    config.schemes = ["GFDL_cloud_microphysics"]
     mp_config = GFDLCloudMPConfig(
         dt_full=dt,
         hydrostatic=False,

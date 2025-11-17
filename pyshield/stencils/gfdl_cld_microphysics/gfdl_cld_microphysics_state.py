@@ -1,4 +1,4 @@
-from dataclasses import InitVar, dataclass, field, fields
+from dataclasses import dataclass, field, fields
 from typing import Any, Dict, Mapping
 
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
@@ -488,7 +488,6 @@ class GFDLCloudMicrophysicsState:
             "intent": "out",
         }
     )
-    quantity_factory: InitVar[QuantityFactory]
 
     @classmethod
     def init_zeros(cls, quantity_factory) -> "GFDLCloudMicrophysicsState":
@@ -497,8 +496,8 @@ class GFDLCloudMicrophysicsState:
             if "dims" in _field.metadata.keys():
                 initial_arrays[_field.name] = quantity_factory.zeros(
                     _field.metadata["dims"], _field.metadata["units"], dtype=float
-                ).data
-        return cls(**initial_arrays, quantity_factory=quantity_factory)
+                )
+        return cls(**initial_arrays)
 
     @classmethod
     def init_from_storages(
@@ -513,7 +512,7 @@ class GFDLCloudMicrophysicsState:
                 if _field.metadata["intent"] == "out":
                     inputs[_field.name] = quantity_factory.zeros(
                         _field.metadata["dims"], _field.metadata["units"], dtype=float
-                    ).data
+                    )
                 else:  # intent is in or inout
                     inputs[_field.name] = Quantity(
                         storages[_field.name],
@@ -522,7 +521,7 @@ class GFDLCloudMicrophysicsState:
                         origin=sizer.get_origin(_field.metadata["dims"]),
                         extent=sizer.get_extent(_field.metadata["dims"]),
                     )
-        return cls(**inputs, quantity_factory=quantity_factory)
+        return cls(**inputs)
 
     # TODO Right now we init_zeros and then populate
     # but will we want "from physics" and "from dycore" methods?
