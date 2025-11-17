@@ -67,10 +67,10 @@ class TranslateRadInterp(TranslatePhysicsFortranData2Py):
             "adjvisdfd": {"shield": True},
         }
         self.grid_indexing = stencil_factory.grid_indexing
-        self._daily_mean = namelist.daily_mean
+        self._daily_mean = self.config.daily_mean
         self.compute_func = stencil_factory.from_origin_domain(
             interpolate_radiation,
-            externals={"daily_mean": namelist.daily_mean},
+            externals={"daily_mean": self.config.daily_mean},
             origin=self.grid_indexing.origin_full(),
             domain=self.grid_indexing.domain_full(),
         )

@@ -11,7 +11,7 @@ class TranslatePrsFV3(TranslatePhysicsFortranData2Py):
             "prsi": {"serialname": "prs_prsi"},
             "tgrs": {"serialname": "prs_tgrs"},
             "qgrs": {"serialname": "prs_qgrs"},
-            "del_": {"serialname": "prs_del", "kend": namelist.npz - 1},
+            "del_": {"serialname": "prs_del", "kend": self.config.npz - 1},
             "del_gz": {"serialname": "prs_del_gz", "out_roll_zero": True},
         }
         self.out_vars = {

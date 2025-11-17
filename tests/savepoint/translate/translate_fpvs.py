@@ -1,6 +1,7 @@
 import numpy as np
+from f90nml import Namelist
 
-from ndsl import Namelist, StencilFactory
+from ndsl import StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ

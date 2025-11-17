@@ -2,20 +2,14 @@ import copy
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
-from pyfv3 import DynamicalCoreConfig
-from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
+from pyshield import PHYSICS_PACKAGES, Physics, PhysicsState
 from pyshield.update import update_atmos_state
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
-        # using top level namelist rather than PhysicsConfig
-        # because DycoreToPhysics needs some dycore info
-        self.namelist = PhysicsConfig.from_namelist(namelist)
-        self.fv3_namelist = DynamicalCoreConfig.from_namelist(namelist)
-        self.dycore_only = namelist.dycore_only
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},
@@ -37,52 +31,52 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         self.out_vars = {
             "gt0": {
                 "serialname": "IPD_gt0",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "gu0": {
                 "serialname": "IPD_gu0",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "gv0": {
                 "serialname": "IPD_gv0",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qvapor": {
                 "serialname": "IPD_qvapor",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qliquid": {
                 "serialname": "IPD_qliquid",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qrain": {
                 "serialname": "IPD_rain",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qice": {
                 "serialname": "IPD_qice",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qsnow": {
                 "serialname": "IPD_snow",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qgraupel": {
                 "serialname": "IPD_qgraupel",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qcld": {
                 "serialname": "IPD_qcld",
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
         }
@@ -121,12 +115,11 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             backend=self.stencil_factory.backend,
         )
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
-            extra_dim_lengths={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -142,18 +135,18 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             self.stencil_factory,
             self.grid.quantity_factory,
             self.grid.grid_data,
-            self.namelist,
+            self.config,
         )
-        # TODO, self.namelist doesn't have fv_sg_adj because it is PhysicsConfig
+        # TODO, PhysicsConfig doesn't have fv_sg_adj
         # either move where GFSPhysicsDriver starts, or pass the full namelist or
         # get around this issue another way. Setting do_dry_convective_adjustment
         # to False for now (we don't run this on a case where it is True yet)
         dycore_to_physics = update_atmos_state.DycoreToPhysics(
             self.stencil_factory,
             self.grid.quantity_factory,
-            self.fv3_namelist,
+            self.config,
             do_dry_convective_adjust=False,
-            dycore_only=self.dycore_only,
+            dycore_only=False,
         )
         dycore_to_physics(dycore_state=physics_state, physics_state=physics_state)
         physics._atmos_phys_driver_statein(
@@ -209,8 +202,8 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.gfs_microphysics.qg_dt,
             physics_state.gfs_microphysics.qa_dt,
         )
-        microph_state = physics_state.gfs_microphysics
-        physics._gfs_microphysics(microph_state, float(self.namelist.dt_atmos))
+        microph_state = physics_state.microphysics
+        physics._microphysics(microph_state, float(self.config.dt_atmos))
         # Fortran uses IPD interface, here we use physics_updated_<var>
         # to denote the updated field
         physics._update_physics_state_with_tendencies(
@@ -244,7 +237,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.physics_updated_pt,
             physics_state.physics_updated_ua,
             physics_state.physics_updated_va,
-            float(self.namelist.dt_atmos),
+            float(self.config.dt_atmos),
         )
         inputs["gt0"] = physics_state.physics_updated_pt
         inputs["gu0"] = physics_state.physics_updated_ua

@@ -15,7 +15,7 @@ class TranslateFillGFS(TranslatePhysicsFortranData2Py):
             "q": {"serialname": "IPD_gq0"},
         }
         self.out_vars = {
-            "q": {"serialname": "IPD_qvapor", "kend": namelist.npz - 1},
+            "q": {"serialname": "IPD_qvapor", "kend": self.config.npz - 1},
         }
         self.grid_indexing = stencil_factory.grid_indexing
         self.compute_func = stencil_factory.from_origin_domain(

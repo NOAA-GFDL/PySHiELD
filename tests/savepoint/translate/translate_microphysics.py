@@ -11,8 +11,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 
 
 class TranslateMicroph(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "mph_qv1", "microph": True},
             "qliquid": {"serialname": "mph_ql1", "microph": True},
@@ -31,16 +31,16 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "pt_dt": {"serialname": "mph_pt_dt", "kend": namelist.npz - 1},
-            "qv_dt": {"serialname": "mph_qv_dt", "kend": namelist.npz - 1},
-            "ql_dt": {"serialname": "mph_ql_dt", "kend": namelist.npz - 1},
-            "qr_dt": {"serialname": "mph_qr_dt", "kend": namelist.npz - 1},
-            "qi_dt": {"serialname": "mph_qi_dt", "kend": namelist.npz - 1},
-            "qs_dt": {"serialname": "mph_qs_dt", "kend": namelist.npz - 1},
-            "qg_dt": {"serialname": "mph_qg_dt", "kend": namelist.npz - 1},
-            "qa_dt": {"serialname": "mph_qa_dt", "kend": namelist.npz - 1},
-            "udt": {"serialname": "mph_udt", "kend": namelist.npz - 1},
-            "vdt": {"serialname": "mph_vdt", "kend": namelist.npz - 1},
+            "pt_dt": {"serialname": "mph_pt_dt", "kend": self.config.npz - 1},
+            "qv_dt": {"serialname": "mph_qv_dt", "kend": self.config.npz - 1},
+            "ql_dt": {"serialname": "mph_ql_dt", "kend": self.config.npz - 1},
+            "qr_dt": {"serialname": "mph_qr_dt", "kend": self.config.npz - 1},
+            "qi_dt": {"serialname": "mph_qi_dt", "kend": self.config.npz - 1},
+            "qs_dt": {"serialname": "mph_qs_dt", "kend": self.config.npz - 1},
+            "qg_dt": {"serialname": "mph_qg_dt", "kend": self.config.npz - 1},
+            "qa_dt": {"serialname": "mph_qa_dt", "kend": self.config.npz - 1},
+            "udt": {"serialname": "mph_udt", "kend": self.config.npz - 1},
+            "vdt": {"serialname": "mph_vdt", "kend": self.config.npz - 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
@@ -73,12 +73,11 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
         inputs["prsi"] = copy.deepcopy(storage)
         inputs["prsik"] = copy.deepcopy(storage)
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
-            extra_dim_lengths={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -91,10 +90,10 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
             schemes=[PHYSICS_PACKAGES["GFS_microphysics"]],
         )
         microphysics = GFSMicrophysics(
-            self.stencil_factory, quantity_factory, self.grid.grid_data, self.namelist
+            self.stencil_factory, quantity_factory, self.grid.grid_data, self.config
         )
         microph_state = physics_state.gfs_microphysics
-        microphysics(microph_state, timestep=Float(self.namelist.dt_atmos))
+        microphysics(microph_state, timestep=Float(self.config.dt_atmos))
         inputs["pt_dt"] = microph_state.pt_dt
         inputs["qv_dt"] = microph_state.qv_dt
         inputs["ql_dt"] = microph_state.ql_dt
