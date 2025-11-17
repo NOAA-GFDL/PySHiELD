@@ -47,7 +47,14 @@ def transform_dwind_serialized_data(data, grid_indexing: GridIndexing, backend: 
 class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, stencil_factory)
-        self.namelist = PhysicsConfig.from_namelist(namelist)
+        self.config = PhysicsConfig.from_f90nml(namelist)
+
+        # This test wasn't running (on CI) for a long time because it was misconfigured.
+        # Now it's properly configured and temporarily skipped (i.e. still not running
+        # as before). Issue https://github.com/NOAA-GFDL/PySHiELD/issues/66 exists to
+        # re-enable and fix this test. To unskip, just delete the following line (and
+        # this comment).
+        self.skip_test = True
 
     def transform_physics_serialized_data(self, data, roll_zero, index_order):
         if isinstance(data, np.ndarray):
@@ -299,5 +306,5 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
 
 class ParallelPhysicsTranslate2Py(ParallelTranslate2Py):
     def __init__(self, rank_grids, namelist, stencil_factory):
-        physics_namelist = PhysicsConfig.from_namelist(namelist)
-        super().__init__(rank_grids, physics_namelist, stencil_factory)
+        super().__init__(rank_grids, namelist, stencil_factory)
+        self.config = PhysicsConfig.from_f90nml(namelist)

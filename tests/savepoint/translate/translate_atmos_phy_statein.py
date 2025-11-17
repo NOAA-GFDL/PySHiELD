@@ -33,19 +33,19 @@ class TranslateAtmosPhysDriverStatein(TranslatePhysicsFortranData2Py):
             "pt": {
                 "serialname": "IPD_tgrs",
                 "out_roll_zero": True,
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
             "qgrs": {
                 "serialname": "IPD_qgrs",
-                "kend": namelist.npz,
+                "kend": self.config.npz,
                 "order": "F",
                 "manual": True,
             },
             "delp": {
                 "serialname": "IPD_prsl",
                 "out_roll_zero": True,
-                "kend": namelist.npz - 1,
+                "kend": self.config.npz - 1,
                 "order": "F",
             },
         }
@@ -82,7 +82,7 @@ class TranslateAtmosPhysDriverStatein(TranslatePhysicsFortranData2Py):
         self.update_info(info, inputs)
         ds = self.grid.compute_dict()
         ds.update(info)
-        k_length = info["kend"] if "kend" in info else self.namelist.npz
+        k_length = info["kend"] if "kend" in info else self.config.npz
         index_order = info["order"] if "order" in info else "C"
         ij_slice = self.grid.slice_dict(ds)
         qgrs = qgrs[ij_slice[0], ij_slice[1], 0:k_length, :]

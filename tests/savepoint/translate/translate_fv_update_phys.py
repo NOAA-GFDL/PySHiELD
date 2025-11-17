@@ -1,9 +1,10 @@
 import dataclasses
 
 import numpy as np
+from f90nml import Namelist
 
 import ndsl.dsl.gt4py_utils as utils
-from ndsl import Namelist, Quantity, StencilFactory
+from ndsl import Quantity, StencilFactory
 from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.utils import safe_assign_array
@@ -12,12 +13,6 @@ from tests.savepoint.translate.translate_physics import (
     ParallelPhysicsTranslate2Py,
     transform_dwind_serialized_data,
 )
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 
 try:
@@ -78,7 +73,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
                 "iend": self.grid_indexing.iec,
                 "jstart": self.grid_indexing.jsc,
                 "jend": self.grid_indexing.jec,
-                "kend": namelist.npz,
+                "kend": self.config.npz,
                 "kaxis": 1,
             },
             "delp": {},
@@ -89,7 +84,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
                 "iend": self.grid_indexing.iec + 1,
                 "jstart": self.grid_indexing.jsc - 1,
                 "jend": self.grid_indexing.jec + 1,
-                "kend": namelist.npz + 1,
+                "kend": self.config.npz + 1,
                 "kaxis": 1,
             },
             "pk": grid.compute_buffer_k_dict(),
@@ -107,7 +102,6 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
             "ua": {},
             "va": {},
         }
-        self.namelist = namelist
 
     def transform_dwind_serialized_data(self, data):
         return transform_dwind_serialized_data(
@@ -185,7 +179,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
             self.stencil_factory,
             self.grid.quantity_factory,
             self.grid.grid_data,
-            self.namelist,
+            self.config,
             communicator,
             self.grid.driver_grid_data,
             state,
@@ -213,7 +207,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
             tendencies["u_dt"],
             tendencies["v_dt"],
             tendencies["t_dt"],
-            dt=float(self.namelist.dt_atmos),
+            dt=float(self.config.dt_atmos),
         )
         out = {}
         ds = self.grid.default_domain_dict()
