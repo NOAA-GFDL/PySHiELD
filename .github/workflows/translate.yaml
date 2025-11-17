@@ -26,10 +26,17 @@ concurrency:
 jobs:
   pyshield_translate_tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
+      TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
+
     steps:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: 'recursive'
           repository: NOAA-GFDL/PySHiELD
@@ -44,12 +51,19 @@ jobs:
       - name: Install mpi (MPICH flavor)
         run: pip install mpich
 
+      - name: Install numpy==1.26.4
+        # Front-load installing numpy to force its usage in the radiation
+        # scheme of pySHiELD.
+        # TODO: This is an ugly hack and it should be cleaned up latest once
+        #       we add support for numpy >= 2.0
+        run: pip install numpy==1.26.4
+
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_trigger }}
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
       - name: Checkout hash that triggered CI
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
@@ -58,44 +72,44 @@ jobs:
         if: ${{contains(inputs.component_name, 'FV3')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip3 install --upgrade pip setuptools wheel
-          cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
-          pip3 install .[ndsl,test]
+          cd ${{inputs.component_name}} && pip install . && cd ..
+          pip install .[ndsl,test]
+
 
       - name: external trigger Install packages for NDSL component
         if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip3 install --upgrade pip setuptools wheel
-          cd ${{inputs.component_name}} && pip3 install .[test] && cd ..
-          pip3 install .[pyfv3,test]
+          cd ${{inputs.component_name}} && pip install . && cd ..
+          pip install .[pyfv3,test]
 
       - name: Install pySHiELD packages
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip install --upgrade pip setuptools wheel
-          pip install -v .[ndsl,pyfv3,test]
+          pip install .[ndsl,pyfv3,test]
 
-      - name: pip list
-        run: pip list
+      # Only restore (don't save) caches on PRs. New caches created from PRs won't be
+      # accessible from other PRs, see workflows/create_cache.yaml.
+      - name: Restore test_data (if cached)
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ env.TEST_DATA_PATH }}
+          path: pySHiELD/test_data
 
-      - name: conda list
-        run: conda list
-
-      - name: Download data
+      - name: Download data (if not cached)
+        if: steps.cache-restore.outputs.cache-hit != 'true'
         run: |
-          cd ${GITHUB_WORKSPACE}/pySHiELD
-          mkdir -p test_data
-          cd test_data
-          wget https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz
+          mkdir -p pySHiELD/test_data && cd pySHiELD/test_data
+          wget ${{ env.TEST_DATA_URL }}
           tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
 
       - name: Numpy Translate Test
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
-            -v -s --data_path=./test_data/8.1.3/c12_6ranks_baroclinic/physics \
+            -v -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=numpy \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
@@ -104,11 +118,11 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           export FV3_DACEMODE=BuildAndRun
-          export PACE_FLOAT_PRECISION=64
+          export NDSL_LITERAL_PRECISION=64
           export OMP_NUM_THREADS=10
-          export PACE_LOGLEVEL=Debug
+          export NDSL_LOGLEVEL=Debug
           pytest \
-            -vvv -x -s --data_path=./test_data/8.1.3/c12_6ranks_baroclinic/physics \
+            -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
             --backend=dace:cpu \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint

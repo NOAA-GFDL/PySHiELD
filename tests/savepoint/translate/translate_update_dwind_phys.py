@@ -16,21 +16,20 @@ class TranslateUpdateDWindsPhys(TranslatePhysicsFortranData2Py):
             "v_dt": {"dwind": True},
         }
         self.out_vars = {
-            "u": {"dwind": True, "kend": namelist.npz - 1},
-            "v": {"dwind": True, "kend": namelist.npz - 1},
+            "u": {"dwind": True, "kend": self.config.npz - 1},
+            "v": {"dwind": True, "kend": self.config.npz - 1},
         }
-        self.namelist = namelist
         self.stencil_factory = stencil_factory
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
-        partitioner = TilePartitioner(self.namelist.layout)
+        partitioner = TilePartitioner(self.config.layout)
         self.compute_func = AGrid2DGridPhysics(
             self.stencil_factory,
             self.grid.quantity_factory,
             partitioner,
             self.grid.rank,
-            self.namelist,
+            self.config,
             grid_info=self.grid.driver_grid_data,
         )
         self.compute_func(**inputs)
