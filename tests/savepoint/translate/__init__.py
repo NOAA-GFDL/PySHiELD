@@ -6,6 +6,7 @@ from .translate_fpvs import TranslateFPVS
 from .translate_fv_update_phys import DycoreState, TranslateFVUpdatePhys
 from .translate_mfpblt import TranslateMFPBLT
 from .translate_mfscu import TranslateMFSCU
+from .translate_gfs_physics_driver import TranslateGFSPhysicsDriver
 from .translate_microphysics import TranslateMicroph
 from .translate_pbl import TranslatePBL
 from .translate_pbl_subtests import (
