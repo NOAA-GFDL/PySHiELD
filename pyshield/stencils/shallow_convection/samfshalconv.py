@@ -911,6 +911,7 @@ def stencil_static11(
     xmbmax: FloatFieldIJ,
     aa1: FloatFieldIJ,
     kb: IntFieldIJ,
+    tx1: FloatFieldIJ,
     qcko: FloatField,
     qo: FloatField,
     qrcko: FloatField,
@@ -928,12 +929,17 @@ def stencil_static11(
     k_mask: IntField,
     pwo: FloatField,
     cnvwt: FloatField,
+    pfld: FloatField,
+    prsl: FloatField,
+    pfld_kbcon: FloatFieldIJ,
+    pfld_ktcon: FloatFieldIJ,
+    prsl_ktcon: FloatFieldIJ,
 ):
     # Determine first guess cloud top as the level of zero buoyancy
     # limited to the level of P/Ps=0.7
     # Calculate the cloud top as the first level where parcel buoyancy
     # becomes negative; the maximum possible value is at \f$p=0.7p_{sfc}\f$.
-    from __externals__ import c1, dt2, ncloud
+    from __externals__ import c1, cthk, dt2, limit_shal_conv, ncloud, top_shal
 
     with computation(FORWARD), interval(0, 1):
         flg = cnvflg
@@ -945,6 +951,23 @@ def stencil_static11(
             if k_mask > kbcon1 and dbyo < 0.0:
                 ktcon = k_mask
                 flg = False
+                pfld_ktcon = pfld
+                prsl_ktcon = prsl
+
+    with computation(FORWARD), interval(-1, None):
+        # KG change: turn off shal conv based on diagnosed cloud depth or top
+        # The idea here is that if the cloud is too deep or too high, it should not be
+        # handled by shal conv
+
+        if cnvflg and limit_shal_conv:
+            # a) cloud depth criterion as in deep conv
+            tem = pfld_kbcon - pfld_ktcon
+            if(tem >= cthk):
+                cnvflg = False
+            # b) cloud top criterion
+            if (prsl_ktcon * tx1 < top_shal):
+                cnvflg = False
+            # if(ktcon > kmax) cnvflg = .false.
 
     # Specify upper limit of mass flux at cloud base
     # Calculate the maximum value of the cloud base mass flux using
@@ -2126,6 +2149,9 @@ class ScaleAwareMassFluxShallowConvection:
         self._ntr = config.nsamftrac
         self._ncloud = config.ncld
         self._dt2 = config.dt_atmos
+        self._cthk = config.cthk
+        self._top_shal = config.top_shal
+        self._limit_shal_conv = config.limit_shal_conv
 
         # Determine whether to perform aerosol transport #
         self._do_aerosols = (config.itc >= 0) and (config.ntchm > 0) and (self._ntr > 0)
@@ -2274,6 +2300,8 @@ class ScaleAwareMassFluxShallowConvection:
         self._delq = make_quantity_2D()
         self._qevap = make_quantity_2D()
         self._ptem = make_quantity_2D()
+        self._pfld_ktcon = make_quantity_2D()
+        self._prsl_ktcon = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
@@ -2391,7 +2419,14 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._stencil_static11 = stencil_factory.from_dims_halo(
             func=stencil_static11,
-            externals={"c1": self._c1, "dt2": self._dt2, "ncloud": self._ncloud},
+            externals={
+                "c1": self._c1,
+                "cthk": self._cthk,
+                "dt2": self._dt2,
+                "limit_shal_conv": self._limit_shal_conv,
+                "ncloud": self._ncloud,
+                "top_shal": self._top_shal,
+            },
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
         self._stencil_static12 = stencil_factory.from_dims_halo(
@@ -2753,6 +2788,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._xmbmax,
             self._aa1,
             self._kb,
+            self._tx1,
             self._qcko,
             self._qo,
             self._qrcko,
@@ -2770,6 +2806,11 @@ class ScaleAwareMassFluxShallowConvection:
             self._k_mask,
             self._pwo,
             self._cnvwt,
+            self._pfld,
+            self._prsl,
+            self._pfld_kbcon,
+            self._pfld_ktcon,
+            self._prsl_ktcon,
         )
 
         if exit_routine(self._cnvflg.view[:]):
