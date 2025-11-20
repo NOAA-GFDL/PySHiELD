@@ -9,17 +9,29 @@ name: "Create GHA cache"
 # branch (which is where almost all PRs merge into).
 
 on:
+  workflow_call: # when called from a downstream repo
+    inputs:
+      # GHA doesn't seem to provide a simple way to detect workflow_call events
+      # so we are using an extra input (which is only available when this workflow
+      # is called from another workflow) with a default value (such that we don't
+      # have to set it every time)
+      external-call:
+        type: boolean
+        default: true
+        required: false
   push:
     branches: [develop]
 
 # Cancel running jobs if there's a newer push
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: pyshield-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   # GitHub Actions cache of the pre-commit environment
   pre-commit:
+    # downstream repos have their own pre-commit environment
+    if: ${{ !inputs.external-call }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
