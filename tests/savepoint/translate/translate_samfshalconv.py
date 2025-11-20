@@ -1,5 +1,4 @@
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl import QuantityFactory, SubtileGridSizer
 from pyshield.stencils.shallow_convection import (
     SAMFShalConvState,
     ScaleAwareMassFluxShallowConvection,

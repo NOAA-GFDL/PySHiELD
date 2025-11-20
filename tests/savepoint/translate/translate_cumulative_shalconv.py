@@ -3,7 +3,7 @@ import copy
 import numpy as np
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
-from ndsl import QuantityFactory, StencilFactory
+from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import (
     Bool,
@@ -15,7 +15,6 @@ from ndsl.dsl.typing import (
     IntField,
     IntFieldIJ,
 )
-from ndsl.initialization.sizer import SubtileGridSizer
 from pyshield.stencils.shallow_convection._config import (
     SC_TRACER_DIM,
     ShallowConvectionConfig,
