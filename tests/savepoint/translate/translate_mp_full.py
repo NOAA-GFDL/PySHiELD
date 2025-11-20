@@ -1,8 +1,5 @@
+from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
-from ndsl.namelist import Namelist
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import IceCloud
 from pyshield.stencils.gfdl_cld_microphysics.mp_full import (
@@ -268,7 +265,7 @@ class TranslateMPFull(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)
@@ -419,7 +416,7 @@ class TranslateMPSub(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

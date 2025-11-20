@@ -1,5 +1,4 @@
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.namelist import Namelist
+from ndsl import StencilFactory
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
     VerticalSubgridProcesses,
@@ -11,7 +10,7 @@ class TranslateSubgridZProc(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

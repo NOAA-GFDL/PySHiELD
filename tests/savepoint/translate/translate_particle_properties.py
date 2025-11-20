@@ -1,8 +1,5 @@
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.dsl.typing import FloatField
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
-from ndsl.namelist import Namelist
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calculate_particle_properties,
@@ -186,7 +183,7 @@ class TranslateParticleProperties(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

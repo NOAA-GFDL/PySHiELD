@@ -1,5 +1,4 @@
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.namelist import Namelist
+from ndsl import StencilFactory
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -257,7 +256,7 @@ class TranslateConfigInit(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

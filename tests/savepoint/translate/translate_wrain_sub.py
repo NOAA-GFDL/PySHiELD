@@ -5,9 +5,8 @@ from gt4py.cartesian.gtscript import FORWARD, computation, interval  # noqa
 import ndsl.constants as constants
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.namelist import Namelist
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.warm_rain import (  # noqa
     accrete_rain,
@@ -355,7 +354,7 @@ class TranslateWRainSubFunc(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

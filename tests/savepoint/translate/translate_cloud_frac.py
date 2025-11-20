@@ -1,12 +1,6 @@
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
-from ndsl import (
-    GridIndexing,
-    Namelist,
-    QuantityFactory,
-    StencilFactory,
-    SubtileGridSizer,
-)
+from ndsl import GridIndexing, QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
@@ -244,7 +238,7 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

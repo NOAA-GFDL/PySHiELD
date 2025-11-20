@@ -1,6 +1,5 @@
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.namelist import Namelist
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.sedimentation import (
     calc_edge_and_terminal_height,
@@ -45,7 +44,7 @@ class TranslateZeZt(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

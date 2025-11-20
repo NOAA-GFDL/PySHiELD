@@ -1,7 +1,6 @@
 import ndsl.constants as constants
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.namelist import Namelist
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.terminal_fall import (
     prep_terminal_fall,
@@ -135,7 +134,7 @@ class TranslateStartFall(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)
@@ -180,7 +179,7 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

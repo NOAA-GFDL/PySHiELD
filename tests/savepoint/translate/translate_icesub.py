@@ -1,12 +1,11 @@
 import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
+from ndsl import StencilFactory
 from ndsl.dsl.gt4py import interval  # noqa
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation  # noqa
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.namelist import Namelist
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import (  # noqa
     accrete_graupel_with_cloud_water_and_rain,
@@ -719,7 +718,7 @@ class TranslateIceSubFunc(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

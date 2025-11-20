@@ -1,7 +1,4 @@
-from ndsl.dsl.stencil import StencilFactory
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
-from ndsl.namelist import Namelist
+from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from pyshield.stencils.gfdl_cld_microphysics import (
     GFDLCloudMicrophysics,
     GFDLCloudMicrophysicsState,
@@ -14,7 +11,7 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)
