@@ -1,5 +1,5 @@
+from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.stencil import QuantityFactory, StencilFactory, SubtileGridSizer
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.sedimentation import (
     adjust_fluxes,
