@@ -1,8 +1,7 @@
+from ndsl import GridIndexing, QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
-from ndsl.initialization.allocator import QuantityFactory
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import IceCloud
 from pyshield.stencils.gfdl_cld_microphysics.sedimentation import Sedimentation

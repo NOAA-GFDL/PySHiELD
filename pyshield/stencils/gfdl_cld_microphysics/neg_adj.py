@@ -1,7 +1,7 @@
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
+from ndsl import GridIndexing, StencilFactory
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pyshield.stencils.gfdl_cld_microphysics._config import AdjustNegativeTracerConfig
 

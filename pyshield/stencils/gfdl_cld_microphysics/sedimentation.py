@@ -1,5 +1,6 @@
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
+from ndsl import GridIndexing, QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import (
     BACKWARD,
@@ -11,9 +12,7 @@ from ndsl.dsl.gt4py import (
     log,
     log10,
 )
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, Int, IntField
-from ndsl.initialization.allocator import QuantityFactory
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.terminal_fall import TerminalFall
 

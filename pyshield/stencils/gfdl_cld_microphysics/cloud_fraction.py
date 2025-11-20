@@ -1,12 +1,11 @@
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
+from ndsl import GridIndexing, StencilFactory
 from ndsl.dsl.gt4py import PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, log10, max, min
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-
-from ._config import GFDLCloudMPConfig
+from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
 
 @gtfunction
