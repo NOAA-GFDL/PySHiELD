@@ -2,11 +2,8 @@ import dataclasses
 import math
 from typing import List, Tuple
 
-import f90nml
-
 import ndsl.constants as constants
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
-from ndsl.namelist import Namelist
 
 
 DEFAULT_INT = 0
@@ -1621,17 +1618,3 @@ class GFDLCloudMPConfig:
             * math.exp(-3.0 * math.log(self.expor))
         )
         self.cgfr_2 = 0.66
-
-    @classmethod
-    def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "GFDLCloudMPConfig":
-        namelist = Namelist.from_f90nml(f90_namelist)
-        return self.from_namelist(namelist)
-
-    @classmethod
-    def from_namelist(cls, namelist: Namelist) -> "GFDLCloudMPConfig":
-        inputs = {}
-        switches = [field.name for field in dataclasses.fields(namelist)]
-        for field in dataclasses.fields(cls):
-            if field.name in switches:
-                inputs[field.name] = getattr(namelist, field.name)
-        return cls(**inputs)
