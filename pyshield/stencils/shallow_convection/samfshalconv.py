@@ -962,10 +962,10 @@ def stencil_static11(
         if cnvflg and limit_shal_conv:
             # a) cloud depth criterion as in deep conv
             tem = pfld_kbcon - pfld_ktcon
-            if(tem >= cthk):
+            if tem >= cthk:
                 cnvflg = False
             # b) cloud top criterion
-            if (prsl_ktcon * tx1 < top_shal):
+            if prsl_ktcon * tx1 < top_shal:
                 cnvflg = False
             # if(ktcon > kmax) cnvflg = .false.
 
