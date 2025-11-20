@@ -1,9 +1,9 @@
 import ndsl.constants as constants
-from ndsl.constants import X_DIM, Y_DIM
-from ndsl.dsl.gt4py import FORWARD, computation, interval
 
 # from pace.dsl.dace.orchestration import orchestrate
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import Quantity, QuantityFactory, StencilFactory
+from ndsl.constants import X_DIM, Y_DIM
+from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -13,8 +13,6 @@ from ndsl.dsl.typing import (
     Int,
     IntFieldIJ,
 )
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.quantity import Quantity
 from pyshield.stencils.surface._config import SurfaceConfig
 from pyshield.stencils.surface.sfc_diff import SurfaceExchange
 from pyshield.stencils.surface.sfc_ocean import SurfaceOcean

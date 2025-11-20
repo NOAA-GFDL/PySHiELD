@@ -1,4 +1,4 @@
-from ndsl import Namelist, StencilFactory
+from ndsl import StencilFactory
 from ndsl.dsl.typing import Bool, Float, Int
 from pyshield.stencils.surface.sfc_sice import SurfaceSeaIce
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -8,7 +8,7 @@ class TranslateSurfaceSeaIce_iter1(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)
@@ -105,7 +105,7 @@ class TranslateSurfaceSeaIce_iter2(TranslateSurfaceSeaIce_iter1):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

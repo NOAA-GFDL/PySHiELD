@@ -1,4 +1,4 @@
-from ndsl import Namelist, StencilFactory
+from ndsl import StencilFactory
 from pyshield.stencils.surface.sfc_diff import SurfaceExchange
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -7,7 +7,7 @@ class TranslateSurfaceExchange_iter1(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)
@@ -99,7 +99,7 @@ class TranslateSurfaceExchange_iter2(TranslateSurfaceExchange_iter1):
     def __init__(
         self,
         grid,
-        namelist: Namelist,
+        namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, namelist, stencil_factory)

@@ -1,11 +1,11 @@
 import ndsl.constants as constants
 import pyshield.constants as physcons
+
+# from pace.dsl.dace.orchestration import orchestrate
+from ndsl import StencilFactory
 from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, sqrt
-
-# from pace.dsl.dace.orchestration import orchestrate
-from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ, Int, IntFieldIJ
 from ndsl.stencils.basic_operations import sign
 from pyshield.functions.physics_functions import fpvsx
