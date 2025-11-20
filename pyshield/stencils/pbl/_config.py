@@ -1,9 +1,6 @@
 import dataclasses
 
-import f90nml
-
 from ndsl.dsl.gt4py_utils import tracer_variables
-from ndsl.namelist import Namelist, NamelistDefaults
 
 
 DEFAULT_INT = 0
@@ -15,37 +12,40 @@ DEFAULT_BOOL = False
 class PBLConfig:
     dt_atmos: int = DEFAULT_INT
     hydrostatic: bool = DEFAULT_BOOL
-    isatmedmf: int = NamelistDefaults.isatmedmf
+    isatmedmf: int = 0
     """flag for specific scale-aware turbulent moist edmf scheme"""
-    xkzm_h: float = NamelistDefaults.xkzm_h
+    # 0: Initial version of satmedmf by Kun Gao in 2018
+    # 1: Updated version of satmedmf by Kun Gao in 2019
+    # Only 0 has been implemented so far
+    xkzm_h: float = 1.0
     """Background vertical diffusion for heat q over ocean"""
-    xkzm_m: float = NamelistDefaults.xkzm_m
+    xkzm_m: float = 1.0
     """Background vertical diffusion for momentum over ocean"""
-    xkzm_hl: float = NamelistDefaults.xkzm_hl
+    xkzm_hl: float = 1.0
     """Background vertical diffusion for heat q over land"""
-    xkzm_ml: float = NamelistDefaults.xkzm_ml
+    xkzm_ml: float = 1.0
     """Background vertical diffusion for momentum over land"""
-    xkzm_hi: float = NamelistDefaults.xkzm_hi
+    xkzm_hi: float = 1.0
     """Background vertical diffusion for heat q over ice"""
-    xkzm_mi: float = NamelistDefaults.xkzm_mi
+    xkzm_mi: float = 1.0
     """Background vertical diffusion for momentum over ice"""
-    xkzm_ho: float = NamelistDefaults.xkzm_ho
+    xkzm_ho: float = 1.0
     """Background vertical diffusion for heat q over ocean"""
-    xkzm_mo: float = NamelistDefaults.xkzm_mo
+    xkzm_mo: float = 1.0
     """Background vertical diffusion for momentum over ocean"""
-    xkzminv: float = NamelistDefaults.xkzminv
+    xkzminv: float = 0.15
     """Diffusivity in inversion layers"""
-    xkzm_s: float = NamelistDefaults.xkzm_s
+    xkzm_s: float = 1.0
     """Sigma threshold for background momentum diffusion"""
-    xkzm_lim: float = NamelistDefaults.xkzm_lim
+    xkzm_lim: float = 0.01
     """Background diffusion limit"""
-    xkgdx: float = NamelistDefaults.xkgdx
+    xkgdx: float = 25.0e3
     """Background vertical diffusion threshold"""
     do_dk_hb19: bool = DEFAULT_BOOL
     """Flag to use HB19 background diffusion formula in satmedmf"""
-    rlmn: float = NamelistDefaults.rlmn
+    rlmn: float = 30.0
     """Lower limit on aymptotic mixing length in satmedmf"""
-    rlmx: float = NamelistDefaults.rlmx
+    rlmx: float = 300.0
     """Upper limit on aymptotic mixing length in satmedmf"""
     ntracers: int = int(len(tracer_variables))
     """Number of tracers"""
@@ -55,9 +55,9 @@ class PBLConfig:
     """Tracer index of cloud water"""
     ntke: int = DEFAULT_INT
     """Tracer index of subgrid turbulent kinetic energy"""
-    dspheat: bool = NamelistDefaults.dspheat
+    dspheat: bool = False
     """Flag for dissipative heating"""
-    cap_k0_land: bool = NamelistDefaults.cap_k0_land
+    cap_k0_land: bool = True
     """Flag to apply limiter on background diffusivity in inversion layer over land"""
 
     def __post_init__(self):
@@ -68,34 +68,3 @@ class PBLConfig:
         self.ntiw = tracer_variables.index("qice")
         self.ntcw = tracer_variables.index("qliquid")
         self.ntke = tracer_variables.index("qsgs_tke")
-
-    @classmethod
-    def from_f90nml(self, f90_namelist: f90nml.Namelist) -> "PBLConfig":
-        namelist = Namelist.from_f90nml(f90_namelist)
-        return self.from_namelist(namelist)
-
-    @classmethod
-    def from_namelist(cls, namelist: Namelist) -> "PBLConfig":
-        return cls(
-            dt_atmos=namelist.dt_atmos,
-            hydrostatic=namelist.hydrostatic,
-            isatmedmf=namelist.isatmedmf,
-            dspheat=namelist.dspheat,
-            xkzm_h=namelist.xkzm_h,
-            xkzm_m=namelist.xkzm_m,
-            xkzm_s=namelist.xkzm_s,
-            xkzm_hl=namelist.xkzm_hl,
-            xkzm_ml=namelist.xkzm_ml,
-            xkzm_ho=namelist.xkzm_ho,
-            xkzm_mo=namelist.xkzm_mo,
-            xkzm_hi=namelist.xkzm_hi,
-            xkzm_mi=namelist.xkzm_mi,
-            xkzminv=namelist.xkzminv,
-            xkzm_lim=namelist.xkzm_lim,
-            xkgdx=namelist.xkgdx,
-            do_dk_hb19=namelist.do_dk_hb19,
-            rlmn=namelist.rlmn,
-            rlmx=namelist.rlmx,
-            ntracers=namelist.ntracers,
-            cap_k0_land=namelist.cap_k0_land,
-        )

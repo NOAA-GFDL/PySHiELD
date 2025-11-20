@@ -1,5 +1,4 @@
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl import QuantityFactory, SubtileGridSizer
 from pyshield.stencils.pbl import PBLConfig, SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
