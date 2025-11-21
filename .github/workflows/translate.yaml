@@ -43,10 +43,13 @@ jobs:
           path: pySHiELD
           ref: develop
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: '3.11'
+          python-version: 3.11.13
+          conda-remove-defaults: true
+          auto-activate-base: false
+          activate-environment: pyshield_test_env
 
       - name: Install mpi (MPICH flavor)
         run: pip install mpich
@@ -80,7 +83,7 @@ jobs:
         if: ${{ !inputs.component_trigger}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          pip install -vv .[ndsl,pyfv3,test]
+          pip install .[ndsl,pyfv3,test]
 
       # Only restore (don't save) caches on PRs. New caches created from PRs won't be
       # accessible from other PRs, see workflows/create_cache.yaml.
