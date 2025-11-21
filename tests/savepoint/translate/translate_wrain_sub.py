@@ -354,10 +354,10 @@ class TranslateWRainSubFunc(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "ws_qv", "shield": True},
             "qliquid": {"serialname": "ws_ql", "shield": True},
@@ -390,43 +390,43 @@ class TranslateWRainSubFunc(TranslatePhysicsFortranData2Py):
         ]
 
         self.out_vars = {
-            "qvapor": {"serialname": "ws_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "ws_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "ws_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "ws_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "ws_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "ws_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "ws_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "ws_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "ws_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "ws_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "ws_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "ws_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "ws_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_condensation_nuclei": {
                 "serialname": "ws_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "reevap": {"serialname": "ws_reevap", "shield": True},
-            "tin": {"serialname": "ws_tin", "kend": namelist.npz, "shield": True},
-            "qsat": {"serialname": "ws_qsat", "kend": namelist.npz, "shield": True},
-            "dqdt": {"serialname": "ws_dqdt", "kend": namelist.npz, "shield": True},
-            "dqh": {"serialname": "ws_dqh", "kend": namelist.npz, "shield": True},
+            "tin": {"serialname": "ws_tin", "kend": config.npz, "shield": True},
+            "qsat": {"serialname": "ws_qsat", "kend": config.npz, "shield": True},
+            "dqdt": {"serialname": "ws_dqdt", "kend": config.npz, "shield": True},
+            "dqh": {"serialname": "ws_dqh", "kend": config.npz, "shield": True},
             "bool_check": {
                 "serialname": "ws_bool_check",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "dq": {"serialname": "ws_dq", "kend": namelist.npz, "shield": True},
-            "sink0": {"serialname": "ws_sink0", "kend": namelist.npz, "shield": True},
-            "sink": {"serialname": "ws_sink", "kend": namelist.npz, "shield": True},
-            "vc": {"serialname": "ws_vc", "kend": namelist.npz, "shield": True},
+            "dq": {"serialname": "ws_dq", "kend": config.npz, "shield": True},
+            "sink0": {"serialname": "ws_sink0", "kend": config.npz, "shield": True},
+            "sink": {"serialname": "ws_sink", "kend": config.npz, "shield": True},
+            "vc": {"serialname": "ws_vc", "kend": config.npz, "shield": True},
         }
 
         self.max_error = 5.0e-13  # only qrain, everything else is good
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

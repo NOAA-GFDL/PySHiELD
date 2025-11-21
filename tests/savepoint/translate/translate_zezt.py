@@ -44,10 +44,10 @@ class TranslateZeZt(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "z_surface": {"serialname": "zz_zs", "shield": True},
             "z_edge": {"serialname": "zz_ze", "shield": True},
@@ -59,10 +59,10 @@ class TranslateZeZt(TranslatePhysicsFortranData2Py):
         self.in_vars["parameters"] = ["dt"]
 
         self.out_vars = {
-            "z_edge": {"serialname": "zz_ze", "kend": namelist.npz + 1, "shield": True},
+            "z_edge": {"serialname": "zz_ze", "kend": config.npz + 1, "shield": True},
             "z_terminal": {
                 "serialname": "zz_zt",
-                "kend": namelist.npz + 1,
+                "kend": config.npz + 1,
                 "shield": True,
             },
             "z_surface": {"serialname": "zz_zs", "shield": True},
@@ -70,7 +70,7 @@ class TranslateZeZt(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

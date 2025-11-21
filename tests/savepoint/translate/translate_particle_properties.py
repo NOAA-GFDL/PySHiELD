@@ -183,10 +183,10 @@ class TranslateParticleProperties(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qliquid": {"serialname": "pp_ql", "shield": True},
             "qrain": {"serialname": "pp_qr", "shield": True},
@@ -299,142 +299,142 @@ class TranslateParticleProperties(TranslatePhysicsFortranData2Py):
         self.out_vars = {
             "particle_concentration_w": {
                 "serialname": "pp_pcw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_w": {
                 "serialname": "pp_edw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_w": {
                 "serialname": "pp_oew",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_w": {
                 "serialname": "pp_rrw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_w": {
                 "serialname": "pp_tvw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_r": {
                 "serialname": "pp_pcr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_r": {
                 "serialname": "pp_edr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_r": {
                 "serialname": "pp_oer",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_r": {
                 "serialname": "pp_rrr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_r": {
                 "serialname": "pp_tvr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_i": {
                 "serialname": "pp_pci",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_i": {
                 "serialname": "pp_edi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_i": {
                 "serialname": "pp_oei",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_i": {
                 "serialname": "pp_rri",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_i": {
                 "serialname": "pp_tvi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_s": {
                 "serialname": "pp_pcs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_s": {
                 "serialname": "pp_eds",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_s": {
                 "serialname": "pp_oes",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_s": {
                 "serialname": "pp_rrs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_s": {
                 "serialname": "pp_tvs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_g": {
                 "serialname": "pp_pcg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_g": {
                 "serialname": "pp_edg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_g": {
                 "serialname": "pp_oeg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_g": {
                 "serialname": "pp_rrg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_g": {
                 "serialname": "pp_tvg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
         self.sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

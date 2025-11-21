@@ -328,10 +328,10 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "pre_qv", "shield": True},
             "qliquid": {"serialname": "pre_ql", "shield": True},
@@ -388,79 +388,79 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "qvapor": {"serialname": "pre_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "pre_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "pre_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "pre_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "pre_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "pre_qg", "kend": namelist.npz, "shield": True},
-            "density": {"serialname": "pre_den", "kend": namelist.npz, "shield": True},
-            "delp": {"serialname": "pre_delp", "kend": namelist.npz, "shield": True},
-            "delz": {"serialname": "pre_delz", "kend": namelist.npz, "shield": True},
-            "pz": {"serialname": "pre_pz", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "pre_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "pre_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "pre_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "pre_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "pre_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "pre_qg", "kend": config.npz, "shield": True},
+            "density": {"serialname": "pre_den", "kend": config.npz, "shield": True},
+            "delp": {"serialname": "pre_delp", "kend": config.npz, "shield": True},
+            "delz": {"serialname": "pre_delz", "kend": config.npz, "shield": True},
+            "pz": {"serialname": "pre_pz", "kend": config.npz, "shield": True},
             "density_factor": {
                 "serialname": "pre_denfac",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "pt": {"serialname": "pre_pt", "kend": namelist.npz, "shield": True},
-            "ua": {"serialname": "pre_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "pre_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "pre_wa", "kend": namelist.npz, "shield": True},
-            "qvapor0": {"serialname": "pre_qv0", "kend": namelist.npz, "shield": True},
-            "qliquid0": {"serialname": "pre_ql0", "kend": namelist.npz, "shield": True},
-            "qrain0": {"serialname": "pre_qr0", "kend": namelist.npz, "shield": True},
-            "qice0": {"serialname": "pre_qi0", "kend": namelist.npz, "shield": True},
-            "qsnow0": {"serialname": "pre_qs0", "kend": namelist.npz, "shield": True},
+            "pt": {"serialname": "pre_pt", "kend": config.npz, "shield": True},
+            "ua": {"serialname": "pre_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "pre_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "pre_wa", "kend": config.npz, "shield": True},
+            "qvapor0": {"serialname": "pre_qv0", "kend": config.npz, "shield": True},
+            "qliquid0": {"serialname": "pre_ql0", "kend": config.npz, "shield": True},
+            "qrain0": {"serialname": "pre_qr0", "kend": config.npz, "shield": True},
+            "qice0": {"serialname": "pre_qi0", "kend": config.npz, "shield": True},
+            "qsnow0": {"serialname": "pre_qs0", "kend": config.npz, "shield": True},
             "qgraupel0": {
                 "serialname": "pre_qg0",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "dp0": {"serialname": "pre_dp0", "kend": namelist.npz, "shield": True},
-            "pt0": {"serialname": "pre_pt0", "kend": namelist.npz, "shield": True},
-            "u0": {"serialname": "pre_u0", "kend": namelist.npz, "shield": True},
-            "v0": {"serialname": "pre_v0", "kend": namelist.npz, "shield": True},
-            "w0": {"serialname": "pre_w0", "kend": namelist.npz, "shield": True},
+            "dp0": {"serialname": "pre_dp0", "kend": config.npz, "shield": True},
+            "pt0": {"serialname": "pre_pt0", "kend": config.npz, "shield": True},
+            "u0": {"serialname": "pre_u0", "kend": config.npz, "shield": True},
+            "v0": {"serialname": "pre_v0", "kend": config.npz, "shield": True},
+            "w0": {"serialname": "pre_w0", "kend": config.npz, "shield": True},
             "column_energy_change": {"serialname": "pre_dte", "shield": True},
             "cond": {"serialname": "pre_cond", "shield": True},
             "adj_vmr": {
                 "serialname": "pre_adj_vmr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_wet_begin": {
                 "serialname": "pre_ew0",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_water_wet_begin": {
                 "serialname": "pre_ww0",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_bot_wet_begin": {"serialname": "pre_bew0", "shield": True},
             "total_water_bot_wet_begin": {"serialname": "pre_bww0", "shield": True},
             "total_energy_dry_begin": {
                 "serialname": "pre_ed0",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_water_dry_begin": {
                 "serialname": "pre_wd0",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_bot_dry_begin": {"serialname": "pre_bed0", "shield": True},
             "total_water_bot_dry_begin": {"serialname": "pre_bwd0", "shield": True},
             "cloud_condensation_nuclei": {
                 "serialname": "pre_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_ice_nuclei": {
                 "serialname": "pre_cin",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "h_var": {"serialname": "pre_h_var", "shield": True},
@@ -470,15 +470,15 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
         self.sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

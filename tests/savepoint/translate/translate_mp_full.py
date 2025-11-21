@@ -265,10 +265,10 @@ class TranslateMPFull(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "mpf_qv", "shield": True},
             "qliquid": {"serialname": "mpf_ql", "shield": True},
@@ -308,61 +308,61 @@ class TranslateMPFull(TranslatePhysicsFortranData2Py):
         self.in_vars["parameters"] = ["convt", "dt"]
 
         self.out_vars = {
-            "qvapor": {"serialname": "mpf_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "mpf_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "mpf_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "mpf_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "mpf_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "mpf_qg", "kend": namelist.npz, "shield": True},
-            "ua": {"serialname": "mpf_u", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "mpf_v", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "mpf_w", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "mpf_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "mpf_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "mpf_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "mpf_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "mpf_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "mpf_qg", "kend": config.npz, "shield": True},
+            "ua": {"serialname": "mpf_u", "kend": config.npz, "shield": True},
+            "va": {"serialname": "mpf_v", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "mpf_w", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "mpf_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "delp": {"serialname": "mpf_delp", "kend": namelist.npz, "shield": True},
-            "delz": {"serialname": "mpf_delz", "kend": namelist.npz, "shield": True},
-            "density": {"serialname": "mpf_den", "kend": namelist.npz, "shield": True},
+            "delp": {"serialname": "mpf_delp", "kend": config.npz, "shield": True},
+            "delz": {"serialname": "mpf_delz", "kend": config.npz, "shield": True},
+            "density": {"serialname": "mpf_den", "kend": config.npz, "shield": True},
             "density_factor": {
                 "serialname": "mpf_denfac",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_condensation_nuclei": {
                 "serialname": "mpf_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_ice_nuclei": {
                 "serialname": "mpf_cin",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_water": {
                 "serialname": "mpf_pfw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_rain": {
                 "serialname": "mpf_pfr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_ice": {
                 "serialname": "mpf_pfi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_snow": {
                 "serialname": "mpf_pfs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_graupel": {
                 "serialname": "mpf_pfg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "column_energy_change": {"serialname": "mpf_dte", "shield": True},
@@ -379,16 +379,16 @@ class TranslateMPFull(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -416,10 +416,10 @@ class TranslateMPSub(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "mpsub_qv", "shield": True},
             "qliquid": {"serialname": "mpsub_ql", "shield": True},
@@ -459,57 +459,57 @@ class TranslateMPSub(TranslatePhysicsFortranData2Py):
         self.in_vars["parameters"] = ["convt", "dt"]
 
         self.out_vars = {
-            "qvapor": {"serialname": "mpsub_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "mpsub_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "mpsub_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "mpsub_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "mpsub_qs", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "mpsub_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "mpsub_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "mpsub_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "mpsub_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "mpsub_qs", "kend": config.npz, "shield": True},
             "qgraupel": {
                 "serialname": "mpsub_qg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "ua": {"serialname": "mpsub_u", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "mpsub_v", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "mpsub_w", "kend": namelist.npz, "shield": True},
+            "ua": {"serialname": "mpsub_u", "kend": config.npz, "shield": True},
+            "va": {"serialname": "mpsub_v", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "mpsub_w", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "mpsub_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_condensation_nuclei": {
                 "serialname": "mpsub_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_ice_nuclei": {
                 "serialname": "mpsub_cin",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_water": {
                 "serialname": "mpsub_pfw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_rain": {
                 "serialname": "mpsub_pfr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_ice": {
                 "serialname": "mpsub_pfi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_snow": {
                 "serialname": "mpsub_pfs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_graupel": {
                 "serialname": "mpsub_pfg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "column_energy_change": {"serialname": "mpsub_dte", "shield": True},
@@ -526,16 +526,16 @@ class TranslateMPSub(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

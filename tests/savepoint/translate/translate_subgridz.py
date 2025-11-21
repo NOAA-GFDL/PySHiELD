@@ -10,10 +10,10 @@ class TranslateSubgridZProc(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "sz_qv", "shield": True},
             "qliquid": {"serialname": "sz_ql", "shield": True},
@@ -39,36 +39,36 @@ class TranslateSubgridZProc(TranslatePhysicsFortranData2Py):
         ]
 
         self.out_vars = {
-            "qvapor": {"serialname": "sz_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "sz_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "sz_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "sz_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "sz_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "sz_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "sz_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "sz_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "sz_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "sz_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "sz_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "sz_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "sz_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_condensation_nuclei": {
                 "serialname": "sz_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_ice_nuclei": {
                 "serialname": "sz_cin",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "cond": {"serialname": "sz_cond", "kend": namelist.npz, "shield": True},
-            "dep": {"serialname": "sz_dep", "kend": namelist.npz, "shield": True},
-            "reevap": {"serialname": "sz_reevap", "kend": namelist.npz, "shield": True},
-            "sub": {"serialname": "sz_sub", "kend": namelist.npz, "shield": True},
+            "cond": {"serialname": "sz_cond", "kend": config.npz, "shield": True},
+            "dep": {"serialname": "sz_dep", "kend": config.npz, "shield": True},
+            "reevap": {"serialname": "sz_reevap", "kend": config.npz, "shield": True},
+            "sub": {"serialname": "sz_sub", "kend": config.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
     def compute(self, inputs):

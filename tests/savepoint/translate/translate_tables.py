@@ -116,10 +116,10 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "index": {"serialname": "tc_index", "shield": True},
@@ -134,17 +134,17 @@ class TranslatePythonTables(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "table0": {"serialname": "tc_t0", "kend": namelist.npz, "shield": True},
-            "table2": {"serialname": "tc_t2", "kend": namelist.npz, "shield": True},
-            "wqs": {"serialname": "tab_wq", "kend": namelist.npz, "shield": True},
-            "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "shield": True},
-            "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
-            "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
+            "table0": {"serialname": "tc_t0", "kend": config.npz, "shield": True},
+            "table2": {"serialname": "tc_t2", "kend": config.npz, "shield": True},
+            "wqs": {"serialname": "tab_wq", "kend": config.npz, "shield": True},
+            "dwdt": {"serialname": "tab_dwq", "kend": config.npz, "shield": True},
+            "iqs": {"serialname": "tab_iq", "kend": config.npz, "shield": True},
+            "didt": {"serialname": "tab_diq", "kend": config.npz, "shield": True},
         }
         self.max_error = 2.0e-14
 
         self.stencil_factory = stencil_factory
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
@@ -166,10 +166,10 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "temp": {"serialname": "tc_temp", "shield": True},
@@ -187,12 +187,12 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "table0": {"serialname": "tc_t0", "kend": namelist.npz, "shield": True},
-            "table2": {"serialname": "tc_t2", "kend": namelist.npz, "shield": True},
-            "wqs": {"serialname": "tab_wq", "kend": namelist.npz, "shield": True},
-            "dwdt": {"serialname": "tab_dwq", "kend": namelist.npz, "shield": True},
-            "iqs": {"serialname": "tab_iq", "kend": namelist.npz, "shield": True},
-            "didt": {"serialname": "tab_diq", "kend": namelist.npz, "shield": True},
+            "table0": {"serialname": "tc_t0", "kend": config.npz, "shield": True},
+            "table2": {"serialname": "tc_t2", "kend": config.npz, "shield": True},
+            "wqs": {"serialname": "tab_wq", "kend": config.npz, "shield": True},
+            "dwdt": {"serialname": "tab_dwq", "kend": config.npz, "shield": True},
+            "iqs": {"serialname": "tab_iq", "kend": config.npz, "shield": True},
+            "didt": {"serialname": "tab_diq", "kend": config.npz, "shield": True},
             "ap1": {"serialname": "tc_ap1", "shield": True},
             "it1": {"serialname": "tc_it1", "shield": True},
             "it2": {"serialname": "tc_it2", "shield": True},
@@ -201,7 +201,7 @@ class TranslateTableComputation(TranslatePhysicsFortranData2Py):
         self.max_error = 1e-13  # 10^-25 absolute errors at the top of the tables
 
         self.stencil_factory = stencil_factory
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
     def compute(self, inputs):

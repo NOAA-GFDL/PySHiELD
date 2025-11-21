@@ -553,10 +553,10 @@ class TranslateTracerSed(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "ts_qv", "shield": True},
@@ -588,28 +588,28 @@ class TranslateTracerSed(TranslatePhysicsFortranData2Py):
         }
         self.in_vars["parameters"] = ["dt"]
         self.out_vars = {
-            "qvapor": {"serialname": "ts_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "ts_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "ts_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "ts_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "ts_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "ts_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "ts_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "ts_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "ts_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "ts_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "ts_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "ts_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "ts_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "ua": {"serialname": "ts_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "ts_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "ts_wa", "kend": namelist.npz, "shield": True},
+            "ua": {"serialname": "ts_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "ts_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "ts_wa", "kend": config.npz, "shield": True},
             "preflux_tracer": {
                 "serialname": "ts_pf",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "vterminal_tracer": {
                 "serialname": "ts_vt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "column_water": {"serialname": "ts_w1", "shield": True},
@@ -619,32 +619,32 @@ class TranslateTracerSed(TranslatePhysicsFortranData2Py):
             "column_graupel": {"serialname": "ts_g1", "shield": True},
             "column_energy_change": {
                 "serialname": "ts_dte",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "z_edge": {"serialname": "ts_ze", "kend": namelist.npz + 1, "shield": True},
+            "z_edge": {"serialname": "ts_ze", "kend": config.npz + 1, "shield": True},
             "z_terminal": {
                 "serialname": "ts_zt",
-                "kend": namelist.npz + 1,
+                "kend": config.npz + 1,
                 "shield": True,
             },
             "z_surface": {
                 "serialname": "ts_zs",
-                "kend": namelist.npz + 1,
+                "kend": config.npz + 1,
                 "shield": True,
             },
         }
 
         self.stencil_factory = stencil_factory
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

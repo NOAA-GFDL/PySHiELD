@@ -718,10 +718,10 @@ class TranslateIceSubFunc(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "isub_qv", "shield": True},
             "qliquid": {"serialname": "isub_ql", "shield": True},
@@ -760,37 +760,37 @@ class TranslateIceSubFunc(TranslatePhysicsFortranData2Py):
         ]
 
         self.out_vars = {
-            "qvapor": {"serialname": "isub_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "isub_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "isub_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "isub_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "isub_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "isub_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "isub_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "isub_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "isub_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "isub_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "isub_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "isub_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "isub_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "cvm": {"serialname": "isub_cvm", "kend": namelist.npz, "shield": True},
-            "te8": {"serialname": "isub_te8", "kend": namelist.npz, "shield": True},
-            "lcpk": {"serialname": "isub_lcpk", "kend": namelist.npz, "shield": True},
-            "icpk": {"serialname": "isub_icpk", "kend": namelist.npz, "shield": True},
-            "tcpk": {"serialname": "isub_tcpk", "kend": namelist.npz, "shield": True},
-            "tcp3": {"serialname": "isub_tcp3", "kend": namelist.npz, "shield": True},
-            "di": {"serialname": "isub_di", "kend": namelist.npz, "shield": True},
-            "psacw": {"serialname": "is_psacw", "kend": namelist.npz, "shield": True},
-            "psacr": {"serialname": "is_psacr", "kend": namelist.npz, "shield": True},
-            "pracs": {"serialname": "is_pracs", "kend": namelist.npz, "shield": True},
-            "qsi": {"serialname": "is_qsi", "kend": namelist.npz, "shield": True},
-            "dqdt": {"serialname": "is_dqdt", "kend": namelist.npz, "shield": True},
-            "sink0": {"serialname": "is_sink0", "kend": namelist.npz, "shield": True},
-            "sink": {"serialname": "is_sink", "kend": namelist.npz, "shield": True},
-            "tmp": {"serialname": "is_tmp", "kend": namelist.npz, "shield": True},
+            "cvm": {"serialname": "isub_cvm", "kend": config.npz, "shield": True},
+            "te8": {"serialname": "isub_te8", "kend": config.npz, "shield": True},
+            "lcpk": {"serialname": "isub_lcpk", "kend": config.npz, "shield": True},
+            "icpk": {"serialname": "isub_icpk", "kend": config.npz, "shield": True},
+            "tcpk": {"serialname": "isub_tcpk", "kend": config.npz, "shield": True},
+            "tcp3": {"serialname": "isub_tcp3", "kend": config.npz, "shield": True},
+            "di": {"serialname": "isub_di", "kend": config.npz, "shield": True},
+            "psacw": {"serialname": "is_psacw", "kend": config.npz, "shield": True},
+            "psacr": {"serialname": "is_psacr", "kend": config.npz, "shield": True},
+            "pracs": {"serialname": "is_pracs", "kend": config.npz, "shield": True},
+            "qsi": {"serialname": "is_qsi", "kend": config.npz, "shield": True},
+            "dqdt": {"serialname": "is_dqdt", "kend": config.npz, "shield": True},
+            "sink0": {"serialname": "is_sink0", "kend": config.npz, "shield": True},
+            "sink": {"serialname": "is_sink", "kend": config.npz, "shield": True},
+            "tmp": {"serialname": "is_tmp", "kend": config.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

@@ -11,10 +11,10 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "mp_qv", "shield": True},
             "qliquid": {"serialname": "mp_ql", "shield": True},
@@ -58,60 +58,60 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
         ]
 
         self.out_vars = {
-            "qvapor": {"serialname": "mp_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "mp_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "mp_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "mp_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "mp_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "mp_qg", "kend": namelist.npz, "shield": True},
-            "qcld": {"serialname": "mp_qa", "kend": namelist.npz, "shield": True},
-            "pt": {"serialname": "mp_pt", "kend": namelist.npz, "shield": True},
-            "ua": {"serialname": "mp_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "mp_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "mp_wa", "kend": namelist.npz, "shield": True},
-            "delz": {"serialname": "mp_delz", "kend": namelist.npz, "shield": True},
-            "delp": {"serialname": "mp_delp", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "mp_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "mp_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "mp_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "mp_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "mp_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "mp_qg", "kend": config.npz, "shield": True},
+            "qcld": {"serialname": "mp_qa", "kend": config.npz, "shield": True},
+            "pt": {"serialname": "mp_pt", "kend": config.npz, "shield": True},
+            "ua": {"serialname": "mp_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "mp_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "mp_wa", "kend": config.npz, "shield": True},
+            "delz": {"serialname": "mp_delz", "kend": config.npz, "shield": True},
+            "delp": {"serialname": "mp_delp", "kend": config.npz, "shield": True},
             "column_water": {"serialname": "mp_water", "shield": True},
             "column_rain": {"serialname": "mp_rain", "shield": True},
             "column_ice": {"serialname": "mp_ice", "shield": True},
             "column_snow": {"serialname": "mp_snow", "shield": True},
             "column_graupel": {"serialname": "mp_graupel", "shield": True},
-            "qcon": {"serialname": "mp_q_con", "kend": namelist.npz, "shield": True},
-            "cappa": {"serialname": "mp_cappa", "kend": namelist.npz, "shield": True},
+            "qcon": {"serialname": "mp_q_con", "kend": config.npz, "shield": True},
+            "cappa": {"serialname": "mp_cappa", "kend": config.npz, "shield": True},
             "adj_vmr": {
                 "serialname": "mp_adj_vmr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy": {
                 "serialname": "mp_te",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "column_energy_change": {"serialname": "mp_dte", "shield": True},
             "preflux_water": {
                 "serialname": "mp_prefluxw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_rain": {
                 "serialname": "mp_prefluxr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_ice": {
                 "serialname": "mp_prefluxi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_snow": {
                 "serialname": "mp_prefluxs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "preflux_graupel": {
                 "serialname": "mp_prefluxg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "condensation": {"serialname": "mp_cond", "shield": True},
@@ -120,142 +120,142 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             "sublimation": {"serialname": "mp_sub", "shield": True},
             "particle_concentration_w": {
                 "serialname": "mp_pcw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_w": {
                 "serialname": "mp_edw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_w": {
                 "serialname": "mp_oew",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_w": {
                 "serialname": "mp_rrw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_w": {
                 "serialname": "mp_tvw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_r": {
                 "serialname": "mp_pcr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_r": {
                 "serialname": "mp_edr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_r": {
                 "serialname": "mp_oer",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_r": {
                 "serialname": "mp_rrr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_r": {
                 "serialname": "mp_tvr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_i": {
                 "serialname": "mp_pci",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_i": {
                 "serialname": "mp_edi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_i": {
                 "serialname": "mp_oei",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_i": {
                 "serialname": "mp_rri",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_i": {
                 "serialname": "mp_tvi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_s": {
                 "serialname": "mp_pcs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_s": {
                 "serialname": "mp_eds",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_s": {
                 "serialname": "mp_oes",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_s": {
                 "serialname": "mp_rrs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_s": {
                 "serialname": "mp_tvs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_g": {
                 "serialname": "mp_pcg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_g": {
                 "serialname": "mp_edg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_g": {
                 "serialname": "mp_oeg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_g": {
                 "serialname": "mp_rrg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_g": {
                 "serialname": "mp_tvg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
         self.sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

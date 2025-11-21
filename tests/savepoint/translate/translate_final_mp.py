@@ -839,10 +839,10 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "fin_qv", "shield": True},
             "qliquid": {"serialname": "fin_ql", "shield": True},
@@ -899,51 +899,51 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "qvapor": {"serialname": "fin_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "fin_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "fin_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "fin_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "fin_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "fin_qg", "kend": namelist.npz, "shield": True},
-            "delp": {"serialname": "fin_delp", "kend": namelist.npz, "shield": True},
-            "delz": {"serialname": "fin_delz", "kend": namelist.npz, "shield": True},
-            "pt": {"serialname": "fin_pt", "kend": namelist.npz, "shield": True},
-            "ua": {"serialname": "fin_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "fin_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "fin_wa", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "fin_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "fin_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "fin_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "fin_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "fin_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "fin_qg", "kend": config.npz, "shield": True},
+            "delp": {"serialname": "fin_delp", "kend": config.npz, "shield": True},
+            "delz": {"serialname": "fin_delz", "kend": config.npz, "shield": True},
+            "pt": {"serialname": "fin_pt", "kend": config.npz, "shield": True},
+            "ua": {"serialname": "fin_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "fin_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "fin_wa", "kend": config.npz, "shield": True},
             "column_energy_change": {"serialname": "fin_dte", "shield": True},
             "adj_vmr": {
                 "serialname": "fin_adj_vmr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_moist_end": {
                 "serialname": "fin_ew",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_water_moist_end": {
                 "serialname": "fin_ww",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_bot_moist_end": {"serialname": "fin_bew", "shield": True},
             "total_water_bot_moist_end": {"serialname": "fin_bww", "shield": True},
             "total_energy_dry_end": {
                 "serialname": "fin_ed",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_water_dry_end": {
                 "serialname": "fin_wd",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_bot_dry_end": {"serialname": "fin_bed", "shield": True},
             "total_water_bot_dry_end": {"serialname": "fin_bwd", "shield": True},
             "total_energy": {
                 "serialname": "fin_te",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "column_energy_loss": {"serialname": "fin_te_loss", "shield": True},
@@ -951,16 +951,16 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.ignore_near_zero_errors = {"fin_te_loss": True}
 
         self.sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -983,10 +983,10 @@ class TranslatePostMP(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "post_qv", "shield": True},
             "qliquid": {"serialname": "post_ql", "shield": True},
@@ -1145,194 +1145,194 @@ class TranslatePostMP(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "qvapor": {"serialname": "post_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "post_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "post_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "post_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "post_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "post_qg", "kend": namelist.npz, "shield": True},
-            "qcld": {"serialname": "post_qa", "kend": namelist.npz, "shield": True},
-            "delp": {"serialname": "post_delp", "kend": namelist.npz, "shield": True},
-            "delz": {"serialname": "post_delz", "kend": namelist.npz, "shield": True},
-            "pt": {"serialname": "post_pt", "kend": namelist.npz, "shield": True},
-            "ua": {"serialname": "post_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "post_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "post_wa", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "post_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "post_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "post_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "post_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "post_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "post_qg", "kend": config.npz, "shield": True},
+            "qcld": {"serialname": "post_qa", "kend": config.npz, "shield": True},
+            "delp": {"serialname": "post_delp", "kend": config.npz, "shield": True},
+            "delz": {"serialname": "post_delz", "kend": config.npz, "shield": True},
+            "pt": {"serialname": "post_pt", "kend": config.npz, "shield": True},
+            "ua": {"serialname": "post_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "post_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "post_wa", "kend": config.npz, "shield": True},
             "column_energy_change": {"serialname": "post_dte", "shield": True},
             "adj_vmr": {
                 "serialname": "post_adj_vmr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_moist_end": {
                 "serialname": "post_ew",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_water_moist_end": {
                 "serialname": "post_ww",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_bot_moist_end": {"serialname": "post_bew", "shield": True},
             "total_water_bot_moist_end": {"serialname": "post_bww", "shield": True},
             "total_energy_dry_end": {
                 "serialname": "post_ed",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_water_dry_end": {
                 "serialname": "post_wd",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "total_energy_bot_dry_end": {"serialname": "post_bed", "shield": True},
             "total_water_bot_dry_end": {"serialname": "post_bwd", "shield": True},
             "total_energy": {
                 "serialname": "post_te",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "column_energy_loss": {"serialname": "post_te_loss", "shield": True},
             "particle_concentration_w": {
                 "serialname": "post_pcw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_w": {
                 "serialname": "post_edw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_w": {
                 "serialname": "post_oew",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_w": {
                 "serialname": "post_rrw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_w": {
                 "serialname": "post_tvw",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_r": {
                 "serialname": "post_pcr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_r": {
                 "serialname": "post_edr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_r": {
                 "serialname": "post_oer",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_r": {
                 "serialname": "post_rrr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_r": {
                 "serialname": "post_tvr",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_i": {
                 "serialname": "post_pci",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_i": {
                 "serialname": "post_edi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_i": {
                 "serialname": "post_oei",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_i": {
                 "serialname": "post_rri",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_i": {
                 "serialname": "post_tvi",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_s": {
                 "serialname": "post_pcs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_s": {
                 "serialname": "post_eds",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_s": {
                 "serialname": "post_oes",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_s": {
                 "serialname": "post_rrs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_s": {
                 "serialname": "post_tvs",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "particle_concentration_g": {
                 "serialname": "post_pcg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "effective_diameter_g": {
                 "serialname": "post_edg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "optical_extinction_g": {
                 "serialname": "post_oeg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "radar_reflectivity_g": {
                 "serialname": "post_rrg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "terminal_velocity_g": {
                 "serialname": "post_tvg",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
         self.sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

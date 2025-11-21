@@ -8,10 +8,10 @@ class TranslateWarmRain(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "wr_qv", "shield": True},
             "qliquid": {"serialname": "wr_ql", "shield": True},
@@ -35,30 +35,30 @@ class TranslateWarmRain(TranslatePhysicsFortranData2Py):
         ]
 
         self.out_vars = {
-            "qvapor": {"serialname": "wr_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "wr_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "wr_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "wr_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "wr_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "wr_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "wr_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "wr_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "wr_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "wr_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "wr_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "wr_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "wr_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_condensation_nuclei": {
                 "serialname": "wr_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "reevap": {"serialname": "wr_reevap", "kend": namelist.npz, "shield": True},
+            "reevap": {"serialname": "wr_reevap", "kend": config.npz, "shield": True},
         }
 
         self.max_error = 5.0e-13  # only qrain in evaporate_rain
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
     def compute(self, inputs):

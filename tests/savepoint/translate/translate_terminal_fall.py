@@ -8,10 +8,10 @@ class TranslateTerminalFall(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "tf_qv", "shield": True},
             "qliquid": {"serialname": "tf_ql", "shield": True},
@@ -36,36 +36,36 @@ class TranslateTerminalFall(TranslatePhysicsFortranData2Py):
         self.in_vars["parameters"] = ["dt"]
 
         self.out_vars = {
-            "qvapor": {"serialname": "tf_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "tf_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "tf_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "tf_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "tf_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "tf_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "tf_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "tf_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "tf_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "tf_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "tf_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "tf_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "tf_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "ua": {"serialname": "tf_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "tf_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "tf_wa", "kend": namelist.npz, "shield": True},
-            "flux": {"serialname": "tf_pfi", "kend": namelist.npz, "shield": True},
+            "ua": {"serialname": "tf_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "tf_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "tf_wa", "kend": config.npz, "shield": True},
+            "flux": {"serialname": "tf_pfi", "kend": config.npz, "shield": True},
             "precipitation": {"serialname": "tf_i1", "shield": True},
             "column_energy_change": {"serialname": "tf_dte", "shield": True},
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(

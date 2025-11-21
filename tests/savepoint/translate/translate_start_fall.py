@@ -134,10 +134,10 @@ class TranslateStartFall(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "q_fall": {"serialname": "sf_qf", "shield": True},
             "qvapor": {"serialname": "sf_qv", "shield": True},
@@ -154,13 +154,13 @@ class TranslateStartFall(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "dm": {"serialname": "sf_dm", "kend": namelist.npz, "shield": True},
+            "dm": {"serialname": "sf_dm", "kend": config.npz, "shield": True},
             "tot_e_initial": {"serialname": "sf_e1", "shield": True},
             "no_fall": {"serialname": "sf_nf", "shield": True},
         }
 
         self.stencil_factory = stencil_factory
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
@@ -179,10 +179,10 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "ef_qv", "shield": True},
             "qliquid": {"serialname": "ef_ql", "shield": True},
@@ -206,12 +206,12 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
         }
 
         self.out_vars = {
-            "ua": {"serialname": "ef_ua", "kend": namelist.npz, "shield": True},
-            "va": {"serialname": "ef_va", "kend": namelist.npz, "shield": True},
-            "wa": {"serialname": "ef_wa", "kend": namelist.npz, "shield": True},
+            "ua": {"serialname": "ef_ua", "kend": config.npz, "shield": True},
+            "va": {"serialname": "ef_va", "kend": config.npz, "shield": True},
+            "wa": {"serialname": "ef_wa", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "ef_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "tmp_energy1": {
@@ -223,7 +223,7 @@ class TranslateEndFall(TranslatePhysicsFortranData2Py):
 
         self.ignore_near_zero_errors = {"ef_ie": True}
         self.stencil_factory = stencil_factory
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)

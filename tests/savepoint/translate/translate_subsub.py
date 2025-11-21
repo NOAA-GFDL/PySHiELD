@@ -651,10 +651,10 @@ class TranslateSubgridZSubs(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "szs_qv", "shield": True},
             "qliquid": {"serialname": "szs_ql", "shield": True},
@@ -690,45 +690,45 @@ class TranslateSubgridZSubs(TranslatePhysicsFortranData2Py):
         ]
 
         self.out_vars = {
-            "qvapor": {"serialname": "szs_qv", "kend": namelist.npz, "shield": True},
-            "qliquid": {"serialname": "szs_ql", "kend": namelist.npz, "shield": True},
-            "qrain": {"serialname": "szs_qr", "kend": namelist.npz, "shield": True},
-            "qice": {"serialname": "szs_qi", "kend": namelist.npz, "shield": True},
-            "qsnow": {"serialname": "szs_qs", "kend": namelist.npz, "shield": True},
-            "qgraupel": {"serialname": "szs_qg", "kend": namelist.npz, "shield": True},
+            "qvapor": {"serialname": "szs_qv", "kend": config.npz, "shield": True},
+            "qliquid": {"serialname": "szs_ql", "kend": config.npz, "shield": True},
+            "qrain": {"serialname": "szs_qr", "kend": config.npz, "shield": True},
+            "qice": {"serialname": "szs_qi", "kend": config.npz, "shield": True},
+            "qsnow": {"serialname": "szs_qs", "kend": config.npz, "shield": True},
+            "qgraupel": {"serialname": "szs_qg", "kend": config.npz, "shield": True},
             "temperature": {
                 "serialname": "szs_pt",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_condensation_nuclei": {
                 "serialname": "szs_ccn",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
             "cloud_ice_nuclei": {
                 "serialname": "szs_cin",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "cond": {"serialname": "szs_cond", "kend": namelist.npz, "shield": True},
-            "dep": {"serialname": "szs_dep", "kend": namelist.npz, "shield": True},
+            "cond": {"serialname": "szs_cond", "kend": config.npz, "shield": True},
+            "dep": {"serialname": "szs_dep", "kend": config.npz, "shield": True},
             "reevap": {
                 "serialname": "szs_reevap",
-                "kend": namelist.npz,
+                "kend": config.npz,
                 "shield": True,
             },
-            "sub": {"serialname": "szs_sub", "kend": namelist.npz, "shield": True},
-            "cvm": {"serialname": "szs_cvm", "kend": namelist.npz, "shield": True},
-            "lcpk": {"serialname": "szs_lcpk", "kend": namelist.npz, "shield": True},
-            "icpk": {"serialname": "szs_icpk", "kend": namelist.npz, "shield": True},
-            "tcpk": {"serialname": "szs_tcpk", "kend": namelist.npz, "shield": True},
-            "tcp3": {"serialname": "szs_tcp3", "kend": namelist.npz, "shield": True},
+            "sub": {"serialname": "szs_sub", "kend": config.npz, "shield": True},
+            "cvm": {"serialname": "szs_cvm", "kend": config.npz, "shield": True},
+            "lcpk": {"serialname": "szs_lcpk", "kend": config.npz, "shield": True},
+            "icpk": {"serialname": "szs_icpk", "kend": config.npz, "shield": True},
+            "tcpk": {"serialname": "szs_tcpk", "kend": config.npz, "shield": True},
+            "tcp3": {"serialname": "szs_tcp3", "kend": config.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
 
     def compute(self, inputs):

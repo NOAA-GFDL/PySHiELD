@@ -238,10 +238,10 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "cf_qv", "shield": True},
             "qliquid": {"serialname": "cf_ql", "shield": True},
@@ -263,22 +263,22 @@ class TranslateCloudFrac(TranslatePhysicsFortranData2Py):
         # self.max_error = 1.0e-12
 
         self.out_vars = {
-            "qa": {"serialname": "cf_qa", "kend": namelist.npz, "shield": True},
+            "qa": {"serialname": "cf_qa", "kend": config.npz, "shield": True},
         }
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig.from_namelist(namelist)
+        self.config = GFDLCloudMPConfig.from_config(config)
         self.config.do_mp_table_emulation = True
         print(f"cfflag is {self.config.cfflag}")
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npy - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npy - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
