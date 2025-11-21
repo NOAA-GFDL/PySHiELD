@@ -92,7 +92,7 @@ class InitCols:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -221,7 +221,7 @@ class Static1:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -592,7 +592,7 @@ class Static2:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -1034,7 +1034,7 @@ class UpdateKB9:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -1620,7 +1620,7 @@ class Static10:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
