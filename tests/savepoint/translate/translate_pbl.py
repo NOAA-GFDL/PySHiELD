@@ -4,8 +4,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 
 
 class TranslatePBL(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "dv": {"serialname": "pbl_dv", "shield": True},
             "du": {"serialname": "pbl_du", "shield": True},
@@ -91,12 +91,12 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(

@@ -6,8 +6,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 
 
 class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "cnvflg": {"shield": True, "serialname": "pcnvflg"},
             "zl": {"shield": True},
@@ -30,7 +30,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
             "qcko": {"shield": True},
             "ucko": {"shield": True},
             "vcko": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
         }
         self.in_vars["parameters"] = [
             "kmpbl",
@@ -48,7 +48,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
             "qcko": {"shield": True},
             "ucko": {"shield": True},
             "vcko": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
@@ -56,12 +56,12 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(

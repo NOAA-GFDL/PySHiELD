@@ -71,7 +71,7 @@ class Tridi2:
         quantity_factory: QuantityFactory,
     ):
         idx = stencil_factory.grid_indexing
-        quantity_factory.add_data_dimensions(
+        quantity_factory.set_data_dimensions(
             **{
                 TRACER_DIM: 9,
             }
@@ -143,7 +143,7 @@ class TridiN:
         ntke,
     ):
         idx = stencil_factory.grid_indexing
-        quantity_factory.add_data_dimensions(
+        quantity_factory.set_data_dimensions(
             **{
                 TRACER_DIM: 9,
             }
@@ -202,17 +202,17 @@ class TridiN:
 
 
 class TranslateTridit(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
         }
         self.out_vars = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
         }
@@ -221,12 +221,12 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -242,18 +242,18 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
 
 
 class TranslateTridi2(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
             "f2": {"serialname": "f2_ser", "shield": True},
         }
         self.out_vars = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
             "f2": {"serialname": "f2_ser", "shield": True},
@@ -264,12 +264,12 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
@@ -282,19 +282,19 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
 
 
 class TranslateTridin(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
             "f2": {"serialname": "f2_ser", "shield": True},
         }
         self.in_vars["parameters"] = ["nt1"]
         self.out_vars = {
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "ad": {"shield": True},
             "f1": {"shield": True},
             "f2": {"serialname": "f2_ser", "shield": True},
@@ -305,17 +305,17 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
-        config = self.namelist.pbl
+        config = self.config.pbl
         compute_func = TridiN(self.stencil_factory, quantity_factory, 8)
 
         compute_func(**inputs)

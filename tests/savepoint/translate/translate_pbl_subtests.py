@@ -1017,7 +1017,7 @@ class MomentTridiagComp:
         self._dspheat = config.dspheat
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1149,7 +1149,7 @@ class HeatTracerTridiag:
         self._ntke = config.ntracers - 1
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1449,7 +1449,7 @@ class HeatTracerTendencyCalc:
         self._ntke = config.ntracers - 1
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1667,7 +1667,7 @@ class MomentTendencyCalc:
         self._dspheat = config.dspheat
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1863,7 +1863,7 @@ class Half2:
         self._ntrac1 = self._ntracers - 1
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 TRACER_DIM: self._ntracers,
             }
@@ -2527,7 +2527,7 @@ class SCUEnd:
         self._ntrac1 = self._ntracers - 1
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
+        self.quantity_factory.set_data_dimensions(
             **{
                 TRACER_DIM: self._ntracers,
             }
@@ -3144,13 +3144,13 @@ class SCUEnd:
 
 
 class TranslatePBLInit(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "zl": {"shield": True},
             "zm": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
             "phil": {"shield": True},
             "chz": {"shield": True},
             "ckz": {"shield": True},
@@ -3158,15 +3158,15 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "gdx": {"shield": True},
             "tke": {"shield": True},
             "q1": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
             "kx1": {"shield": True, "index_variable": True},
-            "prsi": {"shield": True, "kend": namelist.npz + 1},
+            "prsi": {"shield": True, "kend": config.npz + 1},
             "kinver": {"shield": True},
             "tx1": {"shield": True},
             "tx2": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "kpblx": {"shield": True, "index_variable": True},
             "hpblx": {"shield": True},
             "pblflg": {"shield": True},
@@ -3204,16 +3204,16 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "plyr": {"shield": True},
             "rhly": {"shield": True},
             "qstl": {"shield": True},
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "cfly": {"shield": True},
             "crb": {"shield": True},
             "dtdz1": {"shield": True},
             "evap": {"shield": True},
             "heat": {"shield": True},
             "hlw": {"shield": True},
-            "radx": {"shield": True, "kend": namelist.npz - 1},
+            "radx": {"shield": True, "kend": config.npz - 1},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "hsw": {"shield": True},
             "thermal": {"shield": True},
@@ -3236,10 +3236,10 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "ntke",
         ]
         self.out_vars = {
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "zl": {"shield": True},
             "zm": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
             "phil": {"shield": True},
             "chz": {"shield": True},
             "ckz": {"shield": True},
@@ -3247,15 +3247,15 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "gdx": {"shield": True},
             "tke": {"shield": True},
             "q1": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
             "kx1": {"shield": True, "index_variable": True},
-            "prsi": {"shield": True, "kend": namelist.npz + 1},
+            "prsi": {"shield": True, "kend": config.npz + 1},
             "kinver": {"shield": True},
             "tx1": {"shield": True},
             "tx2": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "kpblx": {"shield": True, "index_variable": True},
             "hpblx": {"shield": True},
             "pblflg": {"shield": True},
@@ -3293,16 +3293,16 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             "plyr": {"shield": True},
             "rhly": {"shield": True},
             "qstl": {"shield": True},
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "cfly": {"shield": True},
             "crb": {"shield": True},
             "dtdz1": {"shield": True},
             "evap": {"shield": True},
             "heat": {"shield": True},
             "hlw": {"shield": True},
-            "radx": {"shield": True, "kend": namelist.npz - 1},
+            "radx": {"shield": True, "kend": config.npz - 1},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "hsw": {"shield": True},
             "thermal": {"shield": True},
@@ -3323,12 +3323,12 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3337,7 +3337,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         inputs.pop("ntke")
         config.ntcw = int(inputs.pop("ntcw") - 1)
         config.ntiw = int(inputs.pop("ntiw") - 1)
@@ -3361,8 +3361,8 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
 
 
 class TranslateMRF(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "crb": {"serialname": "crb", "shield": True},
             "flg": {"serialname": "flg", "shield": True},
@@ -3393,7 +3393,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             "theta": {"serialname": "theta", "shield": True},
             "ustar": {"serialname": "ustar", "shield": True},
             "vpert": {"serialname": "vpert", "shield": True},
-            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
+            "zi": {"serialname": "zi", "shield": True, "kend": config.npz + 1},
         }
 
         self.out_vars = {
@@ -3426,19 +3426,19 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             "theta": {"serialname": "theta", "shield": True},
             "ustar": {"serialname": "ustar", "shield": True},
             "vpert": {"serialname": "vpert", "shield": True},
-            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
+            "zi": {"serialname": "zi", "shield": True, "kend": config.npz + 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3447,7 +3447,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["kpblx"] = inputs["kpblx"].astype(int)
 
@@ -3462,8 +3462,8 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
 
 
 class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "crb": {"serialname": "crb", "shield": True},
             "flg": {"serialname": "flg", "shield": True},
@@ -3478,7 +3478,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             "hpbl": {"serialname": "hpbl", "shield": True},
             "pblflg": {"serialname": "pblflg", "shield": True},
             "pcnvflg": {"serialname": "pcnvflg", "shield": True},
-            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
+            "zi": {"serialname": "zi", "shield": True, "kend": config.npz + 1},
         }
 
         self.out_vars = {
@@ -3495,19 +3495,19 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             "hpbl": {"serialname": "hpbl", "shield": True},
             "pblflg": {"serialname": "pblflg", "shield": True},
             "pcnvflg": {"serialname": "pcnvflg", "shield": True},
-            "zi": {"serialname": "zi", "shield": True, "kend": namelist.npz + 1},
+            "zi": {"serialname": "zi", "shield": True, "kend": config.npz + 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3516,7 +3516,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         inputs["kpbl"] = inputs["kpbl"].astype(int)
 
         compute_func = ThermalPBL(
@@ -3530,15 +3530,15 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
 
 
 class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "flg": {"shield": True},
             "kcld": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "lcld": {"shield": True, "index_variable": True},
             "radmin": {"shield": True},
-            "radx": {"shield": True, "kend": namelist.npz - 1},
+            "radx": {"shield": True, "kend": config.npz - 1},
             "qlx": {"shield": True},
             "scuflg": {"shield": True},
             "zl": {"shield": True},
@@ -3550,7 +3550,7 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
             "krad": {"shield": True, "index_variable": True},
             "lcld": {"shield": True, "index_variable": True},
             "radmin": {"shield": True},
-            "radx": {"shield": True, "kend": namelist.npz - 1},
+            "radx": {"shield": True, "kend": config.npz - 1},
             "qlx": {"shield": True},
             "scuflg": {"shield": True},
             "zl": {"shield": True},
@@ -3560,12 +3560,12 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3574,7 +3574,7 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         inputs["kcld"] = inputs["kcld"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
         inputs["lcld"] = inputs["lcld"].astype(int)
@@ -3590,8 +3590,8 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
 
 
 class TranslatePBLAML(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "zldn": {"shield": True},
             "zlup": {"shield": True},
@@ -3601,13 +3601,13 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
-            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
+            "rlam": {"shield": True, "kend": config.npz - 1},
             "ele": {"shield": True},
             "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
         }
 
         self.out_vars = {
@@ -3619,25 +3619,25 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
-            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
+            "rlam": {"shield": True, "kend": config.npz - 1},
             "ele": {"shield": True},
             "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3646,7 +3646,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
 
         compute_func = PBLAML(
             self.stencil_factory,
@@ -3659,14 +3659,14 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
 
 
 class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ad": {"serialname": "ad", "shield": True},
-            "al": {"serialname": "al", "shield": True, "kend": namelist.npz - 1},
-            "au": {"serialname": "au", "shield": True, "kend": namelist.npz - 1},
+            "al": {"serialname": "al", "shield": True, "kend": config.npz - 1},
+            "au": {"serialname": "au", "shield": True, "kend": config.npz - 1},
             "delta": {"serialname": "delta", "shield": True},
-            "dkq": {"serialname": "dkq", "shield": True, "kend": namelist.npz - 1},
+            "dkq": {"serialname": "dkq", "shield": True, "kend": config.npz - 1},
             "f1": {"serialname": "f1", "shield": True},
             "kpbl": {"serialname": "kpbl", "shield": True, "index_variable": True},
             "krad": {"serialname": "krad", "shield": True, "index_variable": True},
@@ -3675,7 +3675,7 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
             "prsl": {"serialname": "prsl", "shield": True},
             "qcdo": {"serialname": "qcdo", "shield": True},
             "qcko": {"serialname": "qcko", "shield": True},
-            "rdzt": {"serialname": "rdzt", "shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"serialname": "rdzt", "shield": True, "kend": config.npz - 1},
             "scuflg": {"serialname": "scuflg", "shield": True},
             "tke": {"serialname": "tke", "shield": True},
             "xmf": {"serialname": "xmf", "shield": True},
@@ -3684,10 +3684,10 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
 
         self.out_vars = {
             "ad": {"serialname": "ad", "shield": True},
-            "al": {"serialname": "al", "shield": True, "kend": namelist.npz - 1},
-            "au": {"serialname": "au", "shield": True, "kend": namelist.npz - 1},
+            "al": {"serialname": "al", "shield": True, "kend": config.npz - 1},
+            "au": {"serialname": "au", "shield": True, "kend": config.npz - 1},
             "delta": {"serialname": "delta", "shield": True},
-            "dkq": {"serialname": "dkq", "shield": True, "kend": namelist.npz - 1},
+            "dkq": {"serialname": "dkq", "shield": True, "kend": config.npz - 1},
             "f1": {"serialname": "f1", "shield": True},
             "kpbl": {"serialname": "kpbl", "shield": True, "index_variable": True},
             "krad": {"serialname": "krad", "shield": True, "index_variable": True},
@@ -3696,7 +3696,7 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
             "prsl": {"serialname": "prsl", "shield": True},
             "qcdo": {"serialname": "qcdo", "shield": True},
             "qcko": {"serialname": "qcko", "shield": True},
-            "rdzt": {"serialname": "rdzt", "shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"serialname": "rdzt", "shield": True, "kend": config.npz - 1},
             "scuflg": {"serialname": "scuflg", "shield": True},
             "tke": {"serialname": "tke", "shield": True},
             "xmf": {"serialname": "xmf", "shield": True},
@@ -3707,12 +3707,12 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3721,7 +3721,7 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         inputs["kpbl"] = inputs["kpbl"].astype(int)
         inputs["krad"] = inputs["krad"].astype(int)
 
@@ -3737,18 +3737,18 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
 
 
 class TranslatePrandtl(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ckz": {"shield": True},
             "chz": {"shield": True},
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "phih": {"shield": True},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
         }
 
         self.out_vars = {
@@ -3757,22 +3757,22 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "phih": {"shield": True},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3794,22 +3794,22 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
 
 
 class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ele": {"shield": True},
-            "rle": {"shield": True, "kend": namelist.npz - 1},
+            "rle": {"shield": True, "kend": config.npz - 1},
             "tke": {"shield": True},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
         }
 
         self.out_vars = {
             "ele": {"shield": True},
-            "rle": {"shield": True, "kend": namelist.npz - 1},
+            "rle": {"shield": True, "kend": config.npz - 1},
             "tke": {"shield": True},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
@@ -3818,7 +3818,7 @@ class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
 
         compute_func = TKEPredict(
             self.stencil_factory,
@@ -3831,17 +3831,17 @@ class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
 
 
 class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "buod": {"shield": True},
             "buou": {"shield": True},
             "ckz": {"shield": True},
             "chz": {"shield": True},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "elm": {"shield": True},
             "gotvx": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
@@ -3850,13 +3850,13 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             "pblflg": {"shield": True},
             "pcnvflg": {"shield": True},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
             "radj": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "tke": {"shield": True},
             "u1": {"shield": True},
@@ -3866,22 +3866,22 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "vcdo": {"shield": True},
             "vcko": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
             "zl": {"shield": True},
         }
 
         self.out_vars = {
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "buod": {"shield": True},
             "buou": {"shield": True},
             "ckz": {"shield": True},
             "chz": {"shield": True},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "elm": {"shield": True},
             "gotvx": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
@@ -3890,13 +3890,13 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             "pblflg": {"shield": True},
             "pcnvflg": {"shield": True},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
             "radj": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "tke": {"shield": True},
             "u1": {"shield": True},
@@ -3906,8 +3906,8 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "vcdo": {"shield": True},
             "vcko": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
             "zl": {"shield": True},
@@ -3917,12 +3917,12 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -3946,18 +3946,18 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
 
 
 class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "pcnvflg": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
             "scuflg": {"shield": True},
             "tke": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
             "zl": {"shield": True},
             "mrad": {"shield": True, "index_variable": True},
-            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "xlamde": {"shield": True, "kend": config.npz - 1},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
         }
@@ -3968,10 +3968,10 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
             "qcko": {"shield": True},
             "scuflg": {"shield": True},
             "tke": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
             "zl": {"shield": True},
             "mrad": {"shield": True, "index_variable": True},
-            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "xlamde": {"shield": True, "kend": config.npz - 1},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
         }
@@ -3980,18 +3980,18 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
-        config = self.namelist.pbl
+        config = self.config.pbl
 
         self.make_storage_data_input_vars(inputs)
 
@@ -4011,15 +4011,15 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
 
 
 class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
             "dtdz1": {"shield": True},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
@@ -4028,7 +4028,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             "mrad": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
             "prsl": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "spd1": {"shield": True},
             "stress": {"shield": True},
@@ -4044,11 +4044,11 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
         }
         self.out_vars = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
             "dtdz1": {"shield": True},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
@@ -4057,7 +4057,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             "mrad": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
             "prsl": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "spd1": {"shield": True},
             "stress": {"shield": True},
@@ -4076,18 +4076,18 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
-        config = self.namelist.pbl
+        config = self.config.pbl
 
         self.make_storage_data_input_vars(inputs)
 
@@ -4103,14 +4103,14 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
 
 
 class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "kpbl": {"shield": True, "index_variable": True},
@@ -4120,7 +4120,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             "prsl": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "tcdo": {"shield": True},
             "tcko": {"shield": True},
@@ -4134,8 +4134,8 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
         }
         self.out_vars = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
@@ -4146,7 +4146,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             "prsl": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "tcdo": {"shield": True},
             "tcko": {"shield": True},
@@ -4160,18 +4160,18 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
-        config = self.namelist.pbl
+        config = self.config.pbl
 
         self.make_storage_data_input_vars(inputs)
 
@@ -4187,14 +4187,14 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
 
 
 class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "f1": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
@@ -4203,7 +4203,7 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
             "prsl": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "tke": {"shield": True},
             "q1": {"shield": True},
@@ -4218,8 +4218,8 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
         ]
         self.out_vars = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "f1": {"shield": True},
             "rtg": {"shield": True},
         }
@@ -4228,12 +4228,12 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -4242,7 +4242,7 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         inputs.pop("ntke")
         config.ntcw = int(inputs.pop("ntcw") - 1)
         config.ntiw = int(inputs.pop("ntiw") - 1)
@@ -4264,14 +4264,14 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
 
 
 class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "kpbl": {"shield": True, "index_variable": True},
@@ -4281,7 +4281,7 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
             "prsl": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "evap": {"shield": True},
             "tcdo": {"shield": True},
@@ -4299,8 +4299,8 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
         }
         self.out_vars = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "rtg": {"shield": True},
@@ -4313,19 +4313,19 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
         )
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         config.ntke = config.ntracers - 1
 
         self.make_storage_data_input_vars(inputs)
@@ -4346,15 +4346,15 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
 
 
 class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
             "dtdz1": {"shield": True},
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
@@ -4363,7 +4363,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             "mrad": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
             "prsl": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "spd1": {"shield": True},
             "stress": {"shield": True},
@@ -4393,8 +4393,8 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             "f1": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
         }
@@ -4403,12 +4403,12 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -4417,7 +4417,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         config.ntke = config.ntracers - 1
         config.dt_atmos = inputs.pop("delt")
 
@@ -4438,15 +4438,15 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
 
 
 class TranslateHalf2(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ckz": {"shield": True},
             "chz": {"shield": True},
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "phih": {"shield": True},
             "zldn": {"shield": True},
             "zlup": {"shield": True},
@@ -4456,29 +4456,29 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "rlam": {"shield": True, "kend": config.npz - 1},
             "ele": {"shield": True},
             "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "buod": {"shield": True},
             "buou": {"shield": True},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "pblflg": {"shield": True},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
             "radj": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "u1": {"shield": True},
             "ucdo": {"shield": True},
@@ -4487,24 +4487,24 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "vcdo": {"shield": True},
             "vcko": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
-            "rle": {"shield": True, "kend": namelist.npz - 1},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
+            "rle": {"shield": True, "kend": config.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
             "prsl": {"shield": True},
             "rtg": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "spd1": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
-            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
+            "xlamde": {"shield": True, "kend": config.npz - 1},
             "evap": {"shield": True},
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
             "f1": {"shield": True},
             "hpblx": {"shield": True},
@@ -4545,7 +4545,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "phih": {"shield": True},
             "zldn": {"shield": True},
             "zlup": {"shield": True},
@@ -4555,29 +4555,29 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "rlam": {"shield": True, "kend": config.npz - 1},
             "ele": {"shield": True},
             "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "buod": {"shield": True},
             "buou": {"shield": True},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "pblflg": {"shield": True},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
             "radj": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "u1": {"shield": True},
             "ucdo": {"shield": True},
@@ -4586,24 +4586,24 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "vcdo": {"shield": True},
             "vcko": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
-            "rle": {"shield": True, "kend": namelist.npz - 1},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
+            "rle": {"shield": True, "kend": config.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
             "prsl": {"shield": True},
             "rtg": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "spd1": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
-            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
+            "xlamde": {"shield": True, "kend": config.npz - 1},
             "evap": {"shield": True},
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
             "f1": {"shield": True},
             "hpblx": {"shield": True},
@@ -4626,12 +4626,12 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -4640,7 +4640,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         config.ntke = config.ntracers - 1
         config.dt_atmos = inputs.pop("delt")
         config.ntiw = inputs.pop("ntiw") - 1
@@ -4681,15 +4681,15 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
 
 
 class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "ckz": {"shield": True},
             "chz": {"shield": True},
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "phih": {"shield": True},
             "zldn": {"shield": True},
             "zlup": {"shield": True},
@@ -4699,29 +4699,29 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "rlam": {"shield": True, "kend": config.npz - 1},
             "ele": {"shield": True},
             "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "buod": {"shield": True},
             "buou": {"shield": True},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "pblflg": {"shield": True},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
             "radj": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "u1": {"shield": True},
             "ucdo": {"shield": True},
@@ -4730,24 +4730,24 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "vcdo": {"shield": True},
             "vcko": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
-            "rle": {"shield": True, "kend": namelist.npz - 1},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
+            "rle": {"shield": True, "kend": config.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
             "prsl": {"shield": True},
             "rtg": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "spd1": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
-            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
+            "xlamde": {"shield": True, "kend": config.npz - 1},
             "evap": {"shield": True},
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
             "f1": {"shield": True},
             "hpblx": {"shield": True},
@@ -4788,7 +4788,7 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             "hpbl": {"shield": True},
             "kpbl": {"shield": True, "index_variable": True},
             "pcnvflg": {"shield": True},
-            "zi": {"shield": True, "kend": namelist.npz + 1},
+            "zi": {"shield": True, "kend": config.npz + 1},
             "phih": {"shield": True},
             "zldn": {"shield": True},
             "zlup": {"shield": True},
@@ -4798,29 +4798,29 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             "zl": {"shield": True},
             "tsea": {"shield": True},
             "q1": {"shield": True},
-            "rlam": {"shield": True, "kend": namelist.npz - 1},
+            "rlam": {"shield": True, "kend": config.npz - 1},
             "ele": {"shield": True},
             "elm": {"shield": True},
             "zol": {"shield": True},
             "gdx": {"shield": True},
-            "phii": {"shield": True, "kend": namelist.npz + 1},
+            "phii": {"shield": True, "kend": config.npz + 1},
             "phim": {"shield": True},
-            "prn": {"shield": True, "kend": namelist.npz - 1},
-            "bf": {"shield": True, "kend": namelist.npz - 1},
+            "prn": {"shield": True, "kend": config.npz - 1},
+            "bf": {"shield": True, "kend": config.npz - 1},
             "buod": {"shield": True},
             "buou": {"shield": True},
-            "dku": {"shield": True, "kend": namelist.npz - 1},
-            "dkt": {"shield": True, "kend": namelist.npz - 1},
-            "dkq": {"shield": True, "kend": namelist.npz - 1},
+            "dku": {"shield": True, "kend": config.npz - 1},
+            "dkt": {"shield": True, "kend": config.npz - 1},
+            "dkq": {"shield": True, "kend": config.npz - 1},
             "mrad": {"shield": True, "index_variable": True},
             "krad": {"shield": True, "index_variable": True},
             "pblflg": {"shield": True},
-            "prod": {"shield": True, "kend": namelist.npz - 1},
+            "prod": {"shield": True, "kend": config.npz - 1},
             "radj": {"shield": True},
-            "rdzt": {"shield": True, "kend": namelist.npz - 1},
+            "rdzt": {"shield": True, "kend": config.npz - 1},
             "scuflg": {"shield": True},
             "sflux": {"shield": True},
-            "shr2": {"shield": True, "kend": namelist.npz - 1},
+            "shr2": {"shield": True, "kend": config.npz - 1},
             "stress": {"shield": True},
             "u1": {"shield": True},
             "ucdo": {"shield": True},
@@ -4829,24 +4829,24 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             "v1": {"shield": True},
             "vcdo": {"shield": True},
             "vcko": {"shield": True},
-            "xkzo": {"shield": True, "kend": namelist.npz - 1},
-            "xkzmo": {"shield": True, "kend": namelist.npz - 1},
+            "xkzo": {"shield": True, "kend": config.npz - 1},
+            "xkzmo": {"shield": True, "kend": config.npz - 1},
             "xmf": {"shield": True},
             "xmfd": {"shield": True},
-            "rle": {"shield": True, "kend": namelist.npz - 1},
-            "diss": {"shield": True, "kend": namelist.npz - 1},
+            "rle": {"shield": True, "kend": config.npz - 1},
+            "diss": {"shield": True, "kend": config.npz - 1},
             "prsl": {"shield": True},
             "rtg": {"shield": True},
             "qcdo": {"shield": True},
             "qcko": {"shield": True},
             "f2": {"shield": True, "serialname": "f2_ser"},
             "spd1": {"shield": True},
-            "xlamue": {"shield": True, "kend": namelist.npz - 1},
-            "xlamde": {"shield": True, "kend": namelist.npz - 1},
+            "xlamue": {"shield": True, "kend": config.npz - 1},
+            "xlamde": {"shield": True, "kend": config.npz - 1},
             "evap": {"shield": True},
             "ad": {"shield": True},
-            "al": {"shield": True, "kend": namelist.npz - 1},
-            "au": {"shield": True, "kend": namelist.npz - 1},
+            "al": {"shield": True, "kend": config.npz - 1},
+            "au": {"shield": True, "kend": config.npz - 1},
             "delta": {"shield": True},
             "f1": {"shield": True},
             "hpblx": {"shield": True},
@@ -4869,12 +4869,12 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
 
     def compute(self, inputs):
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         quantity_factory = QuantityFactory.from_backend(
@@ -4883,7 +4883,7 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
 
         self.make_storage_data_input_vars(inputs)
 
-        config = self.namelist.pbl
+        config = self.config.pbl
         config.ntke = config.ntracers - 1
         config.dt_atmos = inputs.pop("delt")
         config.ntiw = inputs.pop("ntiw") - 1
