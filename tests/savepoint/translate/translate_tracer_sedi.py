@@ -643,7 +643,7 @@ class TranslateTracerSed(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npy - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
