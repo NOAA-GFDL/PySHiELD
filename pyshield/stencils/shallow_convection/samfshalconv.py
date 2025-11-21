@@ -2173,7 +2173,7 @@ class ScaleAwareMassFluxShallowConvection:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
