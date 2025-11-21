@@ -116,7 +116,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, etafile: Path):
         ny_tile=ny,
         nz=nz,
         n_halo=n_halo,
-        extra_dim_lengths={},
+        data_dimensions={},
         layout=(1, 1),
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
