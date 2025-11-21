@@ -3331,8 +3331,8 @@ class CompTendencies:
 
 
 class TranslateInitCol(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "delp": {"serialname": "icol_delp", "shield": True},
@@ -3429,12 +3429,12 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -3470,8 +3470,8 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
 
 
 class TranslateStatic1(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "sc1_cnvflg", "shield": True},
@@ -3542,12 +3542,12 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -3583,8 +3583,8 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
 
 
 class TranslateStatic2(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "delp": {"serialname": "sc2_delp", "shield": True},
@@ -3647,12 +3647,12 @@ class TranslateStatic2(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -3688,8 +3688,8 @@ class TranslateStatic2(TranslatePhysicsFortranData2Py):
 
 
 class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "delp": {"serialname": "uk9_delp", "shield": True},
@@ -3764,12 +3764,12 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -3805,8 +3805,8 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
 
 
 class TranslateStatic10(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "delp": {"serialname": "sc10_delp", "shield": True},
@@ -3877,12 +3877,12 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -3918,8 +3918,8 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
 
 
 class TranslateStatic11(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "delp": {"serialname": "sc11_delp", "shield": True},
@@ -4044,12 +4044,12 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -4085,8 +4085,8 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
 
 
 class TranslateStatic12(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "delp": {"serialname": "s12_delp", "shield": True},
@@ -4209,12 +4209,12 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -4250,8 +4250,8 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
 
 
 class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "fc_cnvflg", "shield": True},
@@ -4344,12 +4344,12 @@ class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -4370,8 +4370,8 @@ class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
 
 
 class TranslateSC13(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
 
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "s13_cnvflg", "shield": True},
@@ -4405,12 +4405,12 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
@@ -4432,8 +4432,8 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
 
 
 class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "cnvflg": {"serialname": "sct_cnvflg", "shield": True},
             "kbcon1": {
@@ -4560,12 +4560,12 @@ class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
         self.stencil_factory = stencil_factory
 
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile=self.namelist.npx - 1,
-            ny_tile=self.namelist.npx - 1,
-            nz=self.namelist.npz,
+            nx_tile=self.config.npx - 1,
+            ny_tile=self.config.npx - 1,
+            nz=self.config.npz,
             n_halo=3,
             data_dimensions={},
-            layout=self.namelist.layout,
+            layout=self.config.layout,
         )
 
         self.quantity_factory = QuantityFactory.from_backend(
