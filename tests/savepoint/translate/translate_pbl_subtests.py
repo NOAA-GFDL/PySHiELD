@@ -1017,7 +1017,7 @@ class MomentTridiagComp:
         self._dspheat = config.dspheat
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1149,7 +1149,7 @@ class HeatTracerTridiag:
         self._ntke = config.ntracers - 1
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1449,7 +1449,7 @@ class HeatTracerTendencyCalc:
         self._ntke = config.ntracers - 1
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1667,7 +1667,7 @@ class MomentTendencyCalc:
         self._dspheat = config.dspheat
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1863,7 +1863,7 @@ class Half2:
         self._ntrac1 = self._ntracers - 1
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 TRACER_DIM: self._ntracers,
             }
@@ -2527,7 +2527,7 @@ class SCUEnd:
         self._ntrac1 = self._ntracers - 1
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_data_dimensions(
+        self.quantity_factory.add_data_dimensions(
             **{
                 TRACER_DIM: self._ntracers,
             }
