@@ -92,7 +92,7 @@ class InitCols:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -221,7 +221,7 @@ class Static1:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -592,7 +592,7 @@ class Static2:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -1034,7 +1034,7 @@ class UpdateKB9:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -1620,7 +1620,7 @@ class Static10:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: int(self._ntr + 2),
             }
@@ -3433,7 +3433,7 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3546,7 +3546,7 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3651,7 +3651,7 @@ class TranslateStatic2(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3768,7 +3768,7 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3881,7 +3881,7 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4048,7 +4048,7 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4213,7 +4213,7 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4348,7 +4348,7 @@ class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4409,7 +4409,7 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4564,7 +4564,7 @@ class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
