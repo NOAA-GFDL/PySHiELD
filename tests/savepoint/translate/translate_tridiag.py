@@ -71,7 +71,7 @@ class Tridi2:
         quantity_factory: QuantityFactory,
     ):
         idx = stencil_factory.grid_indexing
-        quantity_factory.set_extra_dim_lengths(
+        quantity_factory.add_data_dimensions(
             **{
                 TRACER_DIM: 9,
             }
@@ -143,7 +143,7 @@ class TridiN:
         ntke,
     ):
         idx = stencil_factory.grid_indexing
-        quantity_factory.set_extra_dim_lengths(
+        quantity_factory.add_data_dimensions(
             **{
                 TRACER_DIM: 9,
             }
@@ -225,7 +225,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -268,7 +268,7 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
         quantity_factory = QuantityFactory.from_backend(
@@ -309,7 +309,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
         quantity_factory = QuantityFactory.from_backend(

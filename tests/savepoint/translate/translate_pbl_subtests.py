@@ -1017,7 +1017,7 @@ class MomentTridiagComp:
         self._dspheat = config.dspheat
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1149,7 +1149,7 @@ class HeatTracerTridiag:
         self._ntke = config.ntracers - 1
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1449,7 +1449,7 @@ class HeatTracerTendencyCalc:
         self._ntke = config.ntracers - 1
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1667,7 +1667,7 @@ class MomentTendencyCalc:
         self._dspheat = config.dspheat
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 self.TRACER_DIM: config.ntracers,
             }
@@ -1863,7 +1863,7 @@ class Half2:
         self._ntrac1 = self._ntracers - 1
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 TRACER_DIM: self._ntracers,
             }
@@ -2527,7 +2527,7 @@ class SCUEnd:
         self._ntrac1 = self._ntracers - 1
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
+        self.quantity_factory.add_data_dimensions(
             **{
                 TRACER_DIM: self._ntracers,
             }
@@ -3327,7 +3327,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3437,7 +3437,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3506,7 +3506,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3564,7 +3564,7 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3636,7 +3636,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3711,7 +3711,7 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3771,7 +3771,7 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3921,7 +3921,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -3984,7 +3984,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4080,7 +4080,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4164,7 +4164,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4232,7 +4232,7 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4317,7 +4317,7 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4407,7 +4407,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4630,7 +4630,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
@@ -4873,7 +4873,7 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 

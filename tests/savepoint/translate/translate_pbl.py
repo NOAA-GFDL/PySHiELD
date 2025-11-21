@@ -95,7 +95,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             ny_tile=self.namelist.npx - 1,
             nz=self.namelist.npz,
             n_halo=3,
-            extra_dim_lengths={},
+            data_dimensions={},
             layout=self.namelist.layout,
         )
 
