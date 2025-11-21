@@ -98,6 +98,11 @@ jobs:
           wget ${{ env.TEST_DATA_URL }}
           tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
 
+      - name: Check lists
+        run: |
+          pip list
+          conda list
+
       - name: Numpy Translate Test
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
