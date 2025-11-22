@@ -63,7 +63,11 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             "qrain": {"serialname": "mp_qr", "kend": self.config.npz, "shield": True},
             "qice": {"serialname": "mp_qi", "kend": self.config.npz, "shield": True},
             "qsnow": {"serialname": "mp_qs", "kend": self.config.npz, "shield": True},
-            "qgraupel": {"serialname": "mp_qg", "kend": self.config.npz, "shield": True},
+            "qgraupel": {
+                "serialname": "mp_qg",
+                "kend": self.config.npz,
+                "shield": True,
+            },
             "qcld": {"serialname": "mp_qa", "kend": self.config.npz, "shield": True},
             "pt": {"serialname": "mp_pt", "kend": self.config.npz, "shield": True},
             "ua": {"serialname": "mp_ua", "kend": self.config.npz, "shield": True},
@@ -77,7 +81,11 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             "column_snow": {"serialname": "mp_snow", "shield": True},
             "column_graupel": {"serialname": "mp_graupel", "shield": True},
             "qcon": {"serialname": "mp_q_con", "kend": self.config.npz, "shield": True},
-            "cappa": {"serialname": "mp_cappa", "kend": self.config.npz, "shield": True},
+            "cappa": {
+                "serialname": "mp_cappa",
+                "kend": self.config.npz,
+                "shield": True,
+            },
             "adj_vmr": {
                 "serialname": "mp_adj_vmr",
                 "kend": self.config.npz,
