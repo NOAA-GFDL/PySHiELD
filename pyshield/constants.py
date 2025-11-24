@@ -25,6 +25,8 @@ TF = Float(258.16)
 TCRF = Float(1.0 / (constants.TICE - TF))
 CONT = Float(constants.CP_AIR / constants.GRAV)
 CONQ = Float(constants.HLV / constants.GRAV)
+P00 = Float(1.0e5)
+"""idealized surface atmospheric pressure (Pa)"""
 
 # Constants used in interpolating radiation onto physics timestep:
 F_EPS = Float(0.0001)

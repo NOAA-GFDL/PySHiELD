@@ -1,11 +1,11 @@
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int, IntFieldIJ, IntFieldK
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
 from ndsl.stencils.basic_operations import copy_defn
@@ -309,6 +309,93 @@ def pack_tracers(
         qgrs[0, 0, 0][ntcw] = qcld
 
 
+def fill_pbl_state(
+    pbl_u: FloatField,
+    pbl_v: FloatField,
+    pbl_t: FloatField,
+    pbl_q: FloatFieldTracer,
+    pbl_prsl: FloatField,
+    pbl_delta: FloatField,
+    pbl_phii: FloatField,
+    pbl_phil: FloatField,
+    pbl_prsi: FloatField,
+    pbl_prslk: FloatField,
+    pbl_hsw: FloatField,
+    pbl_hlw: FloatField,
+    pbl_islimsk: IntFieldIJ,
+    pbl_kinver: IntFieldIJ,
+    pbl_xmu: FloatFieldIJ,
+    pbl_psik: FloatFieldIJ,
+    pbl_rbsoil: FloatFieldIJ,
+    pbl_zorl: FloatFieldIJ,
+    pbl_tsea: FloatFieldIJ,
+    pbl_ffmm: FloatFieldIJ,
+    pbl_ffhh: FloatFieldIJ,
+    pbl_hflx: FloatFieldIJ,
+    pbl_evap: FloatFieldIJ,
+    pbl_stress: FloatFieldIJ,
+    pbl_wind: FloatFieldIJ,
+    physics_u: FloatField,
+    physics_v: FloatField,
+    physics_t: FloatField,
+    qvapor: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    qo3mr: FloatField,
+    qsgs_tke: FloatField,
+    qcld: FloatField,
+    delp: FloatField,
+    phii: FloatField,
+    phil: FloatField,
+    prsi: FloatField,
+    prsik: FloatField,
+    level_flip: IntFieldK,
+    layer_flip: IntFieldK,
+):
+    from __externals__ import levs
+
+    with computation(FORWARD), interval(0, 1):
+        pbl_psik = prsik[0, 0, level_flip]
+        pbl_kinver = levs
+        # These will be filled in as they become available from prior schemes
+        pbl_rbsoil = 0.0
+        pbl_zorl = 0.0
+        pbl_tsea = physics_t[0, 0, layer_flip]
+        pbl_ffmm = 0.0
+        pbl_ffhh = 0.0
+        pbl_hflx = 0.0
+        pbl_evap = 0.0
+        pbl_wind = 0.0
+        pbl_stress = 0.0
+        pbl_islimsk = 0  # sea-only for now
+        pbl_xmu = 0.0
+    with computation(PARALLEL), interval(...):
+        pbl_u = physics_u[0, 0, layer_flip]
+        pbl_v = physics_v[0, 0, layer_flip]
+        pbl_t = physics_t[0, 0, layer_flip]
+        pbl_q[0, 0, 0][0] = qvapor[0, 0, layer_flip]
+        pbl_q[0, 0, 0][1] = qliquid[0, 0, layer_flip]
+        pbl_q[0, 0, 0][2] = qrain[0, 0, layer_flip]
+        pbl_q[0, 0, 0][3] = qice[0, 0, layer_flip]
+        pbl_q[0, 0, 0][4] = qsnow[0, 0, layer_flip]
+        pbl_q[0, 0, 0][5] = qgraupel[0, 0, layer_flip]
+        pbl_q[0, 0, 0][6] = qo3mr[0, 0, layer_flip]
+        pbl_q[0, 0, 0][7] = qsgs_tke[0, 0, layer_flip]
+        pbl_q[0, 0, 0][8] = qcld[0, 0, layer_flip]
+        pbl_delta = delp[0, 0, layer_flip]
+        pbl_phii = phii[0, 0, level_flip]
+        pbl_phil = phil[0, 0, layer_flip]
+        pbl_prsi = prsi[0, 0, level_flip]
+        # These will be filled in once they become available from prior schemes
+        pbl_prsl = delp[0, 0, layer_flip]
+        pbl_prslk = 1.0
+        pbl_hsw = 0.0
+        pbl_hlw = 0.0
+
+
 def prepare_microphysics(
     dz: FloatField,
     phii: FloatField,
@@ -356,49 +443,65 @@ def forward_euler(q_t0, q_dt, dt):
 
 
 def update_physics_state_with_tendencies_4d(
-    physics_state: PhysicsState,
-    pbl_state: SATMEDMFVDiffState,
+    physics_updated_specific_humidity: FloatField,
+    physics_updated_qliquid: FloatField,
+    physics_updated_qrain: FloatField,
+    physics_updated_qice: FloatField,
+    physics_updated_qsnow: FloatField,
+    physics_updated_qgraupel: FloatField,
+    physics_updated_qo3mr: FloatField,
+    physics_updated_qtke: FloatField,
+    physics_updated_cloud_fraction: FloatField,
+    physics_updated_pt: FloatField,
+    physics_updated_ua: FloatField,
+    physics_updated_va: FloatField,
+    qvapor: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    qo3mr: FloatField,
+    qsgs_tke: FloatField,
+    qcld: FloatField,
+    pt: FloatField,
+    ua: FloatField,
+    va: FloatField,
+    pbl_rtg: FloatFieldTracer,
+    pbl_dtdt: FloatField,
+    pbl_du: FloatField,
+    pbl_dv: FloatField,
+    layer_flip: IntFieldK,
     dt: Float,
 ):
     # TODO: Eventually we'll want the tracers to be in 4D fields for the physics
-    # TODO: Use config variables instead of hardcoding indices
+    # TODO: Use config variables instead of hardcoding indices, and in one pass
     with computation(PARALLEL), interval(...):
-        physics_state.physics_updated_specific_humidity = forward_euler(
-            physics_state.qvapor, pbl_state.rtg[0, 0, 0][0], dt
+        rtg0 = pbl_rtg[0, 0, 0][0]
+        rtg1 = pbl_rtg[0, 0, 0][1]
+        rtg2 = pbl_rtg[0, 0, 0][2]
+        rtg3 = pbl_rtg[0, 0, 0][3]
+        rtg4 = pbl_rtg[0, 0, 0][4]
+        rtg5 = pbl_rtg[0, 0, 0][5]
+        rtg6 = pbl_rtg[0, 0, 0][6]
+        rtg7 = pbl_rtg[0, 0, 0][7]
+        rtg8 = pbl_rtg[0, 0, 0][8]
+
+    with computation(PARALLEL), interval(...):
+        physics_updated_specific_humidity = forward_euler(
+            qvapor, rtg0[0, 0, layer_flip], dt
         )
-        physics_state.physics_updated_qliquid = forward_euler(
-            physics_state.qliquid, pbl_state.rtg[0, 0, 0][1], dt
-        )
-        physics_state.physics_updated_qrain = forward_euler(
-            physics_state.qrain, pbl_state.rtg[0, 0, 0][2], dt
-        )
-        physics_state.physics_updated_qice = forward_euler(
-            physics_state.qice, pbl_state.rtg[0, 0, 0][3], dt
-        )
-        physics_state.physics_updated_qsnow = forward_euler(
-            physics_state.qsnow, pbl_state.rtg[0, 0, 0][4], dt
-        )
-        physics_state.physics_updated_qgraupel = forward_euler(
-            physics_state.qgraupel, pbl_state.rtg[0, 0, 0][5], dt
-        )
-        physics_state.physics_updated_qo3mr = forward_euler(
-            physics_state.qo3mr, pbl_state.rtg[0, 0, 0][6], dt
-        )
-        physics_state.physics_updated_qtke = forward_euler(
-            physics_state.qsgs_tke, pbl_state.rtg[0, 0, 0][7], dt
-        )
-        physics_state.physics_updated_cloud_fraction = forward_euler(
-            physics_state.qcld, pbl_state.rtg[0, 0, 0][8], dt
-        )
-        physics_state.physics_updated_pt = forward_euler(
-            physics_state.pt, pbl_state.dtdt, dt
-        )
-        physics_state.physics_updated_ua = forward_euler(
-            physics_state.ua, pbl_state.du, dt
-        )
-        physics_state.physics_updated_va = forward_euler(
-            physics_state.va, pbl_state.dv, dt
-        )
+        physics_updated_qliquid = forward_euler(qliquid, rtg1[0, 0, layer_flip], dt)
+        physics_updated_qrain = forward_euler(qrain, rtg2[0, 0, layer_flip], dt)
+        physics_updated_qice = forward_euler(qice, rtg3[0, 0, layer_flip], dt)
+        physics_updated_qsnow = forward_euler(qsnow, rtg4[0, 0, layer_flip], dt)
+        physics_updated_qgraupel = forward_euler(qgraupel, rtg5[0, 0, layer_flip], dt)
+        physics_updated_qo3mr = forward_euler(qo3mr, rtg6[0, 0, layer_flip], dt)
+        physics_updated_qtke = forward_euler(qsgs_tke, rtg7[0, 0, layer_flip], dt)
+        physics_updated_cloud_fraction = forward_euler(qcld, rtg8[0, 0, layer_flip], dt)
+        physics_updated_pt = forward_euler(pt, pbl_dtdt[0, 0, layer_flip], dt)
+        physics_updated_ua = forward_euler(ua, pbl_du[0, 0, layer_flip], dt)
+        physics_updated_va = forward_euler(va, pbl_dv[0, 0, layer_flip], dt)
 
 
 def update_physics_state_with_tendencies(
@@ -483,6 +586,8 @@ class Physics:
         )
 
         grid_indexing = stencil_factory.grid_indexing
+        nz = grid_indexing.domain[2]
+        npz = nz + 1
         self._setup_statein()
         self._ptop = grid_data.ptop
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
@@ -501,6 +606,17 @@ class Physics:
         if "GFS_microphysics" in schemes:
             if "SATM_EDMF" not in schemes:
                 self._intermediate_updates = False
+
+        self._level_flip = self.quantity_factory.zeros(
+            dims=[Z_INTERFACE_DIM], units="", dtype=Int
+        )
+        self._layer_flip = self.quantity_factory.zeros(
+            dims=[Z_INTERFACE_DIM], units="", dtype=Int
+        )
+        for k in range(npz):
+            self._level_flip.data[k] = npz - 1 - 2 * k
+            if k < nz:
+                self._layer_flip.data[k] = nz - 1 - 2 * k
 
         def make_quantity():
             return self.quantity_factory.zeros(
@@ -612,12 +728,18 @@ class Physics:
             ndsl_log.info("SATM EDMF PBL scheme selected")
             if pbl_config is None:
                 raise ValueError("Specify a PBL configuration to use SATM_EDMF scheme")
-            self.pbl_state = SATMEDMFVDiffState.init_zeros()
+            self.pbl_state = SATMEDMFVDiffState.init_zeros(self.quantity_factory)
             self._satm_edmf = True
+            self._fill_pbl_state = stencil_factory.from_origin_domain(
+                func=fill_pbl_state,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+                externals={"levs": nz},
+            )
             self._pbl = ScaleAwareTKEMoistEDMF(
                 stencil_factory,
                 self.quantity_factory,
-                grid_data,
+                grid_data.area,
                 pbl_config,
             )
             self._update_physics_state_with_tendencies_4d = (
@@ -697,11 +819,86 @@ class Physics:
         # TODO: Once more things are merged we can update the PBL state
         # and call the PBL scheme
         if self._satm_edmf:
+
+            self._fill_pbl_state(
+                self.pbl_state.u1,
+                self.pbl_state.v1,
+                self.pbl_state.t1,
+                self.pbl_state.q1,
+                self.pbl_state.prsl,
+                self.pbl_state.delta,
+                self.pbl_state.phii,
+                self.pbl_state.phil,
+                self.pbl_state.prsi,
+                self.pbl_state.prslk,
+                self.pbl_state.hsw,
+                self.pbl_state.hlw,
+                self.pbl_state.islimsk,
+                self.pbl_state.kinver,
+                self.pbl_state.xmu,
+                self.pbl_state.psk,
+                self.pbl_state.rbsoil,
+                self.pbl_state.zorl,
+                self.pbl_state.tsea,
+                self.pbl_state.fm,
+                self.pbl_state.fh,
+                self.pbl_state.heat,
+                self.pbl_state.evap,
+                self.pbl_state.stress,
+                self.pbl_state.spd1,
+                physics_state.ua,
+                physics_state.va,
+                physics_state.pt,
+                physics_state.qvapor,
+                physics_state.qliquid,
+                physics_state.qrain,
+                physics_state.qice,
+                physics_state.qsnow,
+                physics_state.qgraupel,
+                physics_state.qo3mr,
+                physics_state.qsgs_tke,
+                physics_state.qcld,
+                physics_state.delp,
+                physics_state.phii,
+                physics_state.phil,
+                physics_state.prsi,
+                physics_state.prsik,
+                self._level_flip,
+                self._layer_flip,
+            )
+
             self._pbl(self.pbl_state)
 
             self._update_physics_state_with_tendencies_4d(
-                physics_state,
-                self.pbl_state,
+                physics_state.physics_updated_specific_humidity,
+                physics_state.physics_updated_qliquid,
+                physics_state.physics_updated_qrain,
+                physics_state.physics_updated_qice,
+                physics_state.physics_updated_qsnow,
+                physics_state.physics_updated_qgraupel,
+                physics_state.physics_updated_qo3mr,
+                physics_state.physics_updated_qtke,
+                physics_state.physics_updated_cloud_fraction,
+                physics_state.physics_updated_pt,
+                physics_state.physics_updated_ua,
+                physics_state.physics_updated_va,
+                physics_state.qvapor,
+                physics_state.qliquid,
+                physics_state.qrain,
+                physics_state.qice,
+                physics_state.qsnow,
+                physics_state.qgraupel,
+                physics_state.qo3mr,
+                physics_state.qsgs_tke,
+                physics_state.qcld,
+                physics_state.pt,
+                physics_state.ua,
+                physics_state.va,
+                self.pbl_state.rtg,
+                self.pbl_state.dtdt,
+                self.pbl_state.du,
+                self.pbl_state.dv,
+                self._layer_flip,
                 timestep,
             )
 

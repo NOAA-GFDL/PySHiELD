@@ -90,9 +90,6 @@ def states_from_fortran_restarts(
     state.prsik.field[:, :, -1] = (
         np.exp(constants.KAPPA * state.prsik.field[:, :, -1]) * pk0inv
     )
-    state.prslk.field[:] = np.exp(
-        constants.KAPPA * np.log(state.delp.field[:] / physcons.P00)
-    )
     state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
     state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
     state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
@@ -106,7 +103,7 @@ def states_from_fortran_restarts(
 
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 @pytest.mark.parametrize("backend", ["numpy"])
-def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
+def test_satmedmf_runs(restart_path: Path, backend: str):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")
@@ -143,7 +140,7 @@ def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
         schemes=["SATM_EDMF"],
     )
 
-    mp_config = PBLConfig(
+    pbl_config = PBLConfig(
         dt_atmos=dt,
         hydrostatic=False,
         ntiw=3,
@@ -151,10 +148,6 @@ def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
         ntke=7,
     )
     physics_driver = Physics(
-        stencil_factory,
-        quantity_factory,
-        grid_data,
-        config,
-        gfdl_cld_mp_config=mp_config,
+        stencil_factory, quantity_factory, grid_data, config, pbl_config=pbl_config
     )
     physics_driver(state, config.dt_atmos)

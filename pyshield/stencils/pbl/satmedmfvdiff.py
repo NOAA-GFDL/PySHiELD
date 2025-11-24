@@ -1522,7 +1522,7 @@ class ScaleAwareTKEMoistEDMF:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-        grid_area: Float,
+        grid_area: FloatFieldIJ,
         config: PBLConfig,
     ):
         if config.do_dk_hb19:
@@ -1537,11 +1537,12 @@ class ScaleAwareTKEMoistEDMF:
 
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
-            {
-                self.TRACER_DIM: self._ntracers,
-            }
-        )
+        if self.TRACER_DIM not in self.quantity_factory.sizer.data_dimensions.keys():
+            self.quantity_factory.add_data_dimensions(
+                {
+                    self.TRACER_DIM: self._ntracers,
+                }
+            )
         idx = stencil_factory.grid_indexing
 
         def make_quantity():

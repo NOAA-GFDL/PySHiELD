@@ -78,7 +78,7 @@ class SATMEDMFVDiffState:
     )
     prsl: Quantity = field(
         metadata={
-            "name": "mean_later_pressure",
+            "name": "mean_layer_pressure",
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "Pa",
             "intent": "in",
@@ -328,10 +328,15 @@ class SATMEDMFVDiffState:
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
+                dtype = (
+                    _field.metadata["dtype"]
+                    if "dtype" in _field.metadata.keys()
+                    else Float
+                )
                 initial_arrays[_field.name] = quantity_factory.zeros(
                     _field.metadata["dims"],
                     _field.metadata["units"],
-                    dtype=Float,
+                    dtype=dtype,
                 )
         return cls(**initial_arrays)
 
