@@ -18,6 +18,8 @@ TF = 258.16
 TCRF = 1.0 / (constants.TICE - TF)
 CONT = constants.CP_AIR / constants.GRAV
 CONQ = constants.HLV / constants.GRAV
+P00 = 1.0e5
+"""Idealized surface pressure (pa)"""
 
 # Alternative Units and Precision in Physics:
 CPH2O1 = 4.218e3  # Specific heat of water in J/kg/K
