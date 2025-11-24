@@ -1538,7 +1538,7 @@ class ScaleAwareTKEMoistEDMF:
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: self._ntracers,
             }
         )

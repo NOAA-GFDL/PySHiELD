@@ -186,6 +186,22 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    physics_updated_qo3mr: Quantity = field(
+        metadata={
+            "name": "physics_updated_ozone_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
+    physics_updated_qtke: Quantity = field(
+        metadata={
+            "name": "physics_updated_tke_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
     physics_updated_cloud_fraction: Quantity = field(
         metadata={
             "name": "physics_cloud_fraction",

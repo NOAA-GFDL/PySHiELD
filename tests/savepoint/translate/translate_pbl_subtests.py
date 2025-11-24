@@ -1018,7 +1018,7 @@ class MomentTridiagComp:
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: config.ntracers,
             }
         )
@@ -1150,7 +1150,7 @@ class HeatTracerTridiag:
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: config.ntracers,
             }
         )
@@ -1450,7 +1450,7 @@ class HeatTracerTendencyCalc:
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: config.ntracers,
             }
         )
@@ -1668,7 +1668,7 @@ class MomentTendencyCalc:
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: config.ntracers,
             }
         )
@@ -1864,7 +1864,7 @@ class Half2:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 TRACER_DIM: self._ntracers,
             }
         )
@@ -2528,7 +2528,7 @@ class SCUEnd:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 TRACER_DIM: self._ntracers,
             }
         )

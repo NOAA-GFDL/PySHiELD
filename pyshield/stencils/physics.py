@@ -355,6 +355,52 @@ def forward_euler(q_t0, q_dt, dt):
     return q_t0 + q_dt * dt
 
 
+def update_physics_state_with_tendencies_4d(
+    physics_state: PhysicsState,
+    pbl_state: SATMEDMFVDiffState,
+    dt: Float,
+):
+    # TODO: Eventually we'll want the tracers to be in 4D fields for the physics
+    # TODO: Use config variables instead of hardcoding indices
+    with computation(PARALLEL), interval(...):
+        physics_state.physics_updated_specific_humidity = forward_euler(
+            physics_state.qvapor, pbl_state.rtg[0, 0, 0][0], dt
+        )
+        physics_state.physics_updated_qliquid = forward_euler(
+            physics_state.qliquid, pbl_state.rtg[0, 0, 0][1], dt
+        )
+        physics_state.physics_updated_qrain = forward_euler(
+            physics_state.qrain, pbl_state.rtg[0, 0, 0][2], dt
+        )
+        physics_state.physics_updated_qice = forward_euler(
+            physics_state.qice, pbl_state.rtg[0, 0, 0][3], dt
+        )
+        physics_state.physics_updated_qsnow = forward_euler(
+            physics_state.qsnow, pbl_state.rtg[0, 0, 0][4], dt
+        )
+        physics_state.physics_updated_qgraupel = forward_euler(
+            physics_state.qgraupel, pbl_state.rtg[0, 0, 0][5], dt
+        )
+        physics_state.physics_updated_qo3mr = forward_euler(
+            physics_state.qo3mr, pbl_state.rtg[0, 0, 0][6], dt
+        )
+        physics_state.physics_updated_qtke = forward_euler(
+            physics_state.qsgs_tke, pbl_state.rtg[0, 0, 0][7], dt
+        )
+        physics_state.physics_updated_cloud_fraction = forward_euler(
+            physics_state.qcld, pbl_state.rtg[0, 0, 0][8], dt
+        )
+        physics_state.physics_updated_pt = forward_euler(
+            physics_state.pt, pbl_state.dtdt, dt
+        )
+        physics_state.physics_updated_ua = forward_euler(
+            physics_state.ua, pbl_state.du, dt
+        )
+        physics_state.physics_updated_va = forward_euler(
+            physics_state.va, pbl_state.dv, dt
+        )
+
+
 def update_physics_state_with_tendencies(
     qvapor: FloatField,
     qliquid: FloatField,
@@ -388,7 +434,8 @@ def update_physics_state_with_tendencies(
     physics_updated_va: FloatField,
     dt: Float,
 ):
-    with computation(PARALLEL), interval(...):
+    # TODO: Change back to parallel once self-assigns are allowed with 0 offset
+    with computation(FORWARD), interval(...):
         physics_updated_specific_humidity = forward_euler(qvapor, qv_dt, dt)
         physics_updated_qliquid = forward_euler(qliquid, ql_dt, dt)
         physics_updated_qrain = forward_euler(qrain, qr_dt, dt)
@@ -430,7 +477,7 @@ class Physics:
         self.TRACER_DIM = TRACER_DIM
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: self._ntracers,
             }
         )
@@ -448,6 +495,12 @@ class Physics:
             self._nto3 = 6
             self._ntvap = 0
         self._pre_radiation = pre_radiation
+
+        # Logic about scheme interaction goes here
+        self._intermediate_updates = True
+        if "GFS_microphysics" in schemes:
+            if "SATM_EDMF" not in schemes:
+                self._intermediate_updates = False
 
         def make_quantity():
             return self.quantity_factory.zeros(
@@ -567,6 +620,13 @@ class Physics:
                 grid_data,
                 pbl_config,
             )
+            self._update_physics_state_with_tendencies_4d = (
+                stencil_factory.from_origin_domain(
+                    func=update_physics_state_with_tendencies_4d,
+                    origin=grid_indexing.origin_compute(),
+                    domain=grid_indexing.domain_compute(),
+                )
+            )
         else:
             self._satm_edmf = False
 
@@ -638,78 +698,13 @@ class Physics:
         # and call the PBL scheme
         if self._satm_edmf:
             self._pbl(self.pbl_state)
-        #     self._pbl(
-        #         physics_state.kpbl,
-        #         physics_state.kinver,
-        #         self._dvdt,
-        #         self._dudt,
-        #         self._dtdt,
-        #         self._dqdt,  # FloatField with extra data dimension
-        #         physics_state.hpbl,
-        #         physics_state.ua,
-        #         physics_state.va,
-        #         physics_state.pt,
-        #         self._qgrs,  # FloatField with extra data dimension
-        #         physics_state.hsw,
-        #         physics_state.hlw,
-        #         xmu,
-        #         psk,
-        #         rbsoil,
-        #         zorl,
-        #         tsea,
-        #         u10m,
-        #         v10m,
-        #         fm,
-        #         fh,
-        #         evap,
-        #         heat,
-        #         stress,
-        #         spd1,
-        #         prsi,
-        #         delta,
-        #         prsl,
-        #         prslk,
-        #         physics_state.phii,
-        #         physics_state.phil,
-        #         self._dusfc,
-        #         self._dvsfc,
-        #         self._dtsfc,
-        #         self._dqsfc,
-        #     )
 
-        #     self._update_physics_state_with_tendencies(
-        #         physics_state.qvapor,
-        #         physics_state.qliquid,
-        #         physics_state.qrain,
-        #         physics_state.qice,
-        #         physics_state.qsnow,
-        #         physics_state.qgraupel,
-        #         physics_state.qcld,
-        #         physics_state.pt,
-        #         physics_state.ua,
-        #         physics_state.va,
-        #         physics_state.microphysics.qv_dt,
-        #         physics_state.microphysics.ql_dt,
-        #         physics_state.microphysics.qr_dt,
-        #         physics_state.microphysics.qi_dt,
-        #         physics_state.microphysics.qs_dt,
-        #         physics_state.microphysics.qg_dt,
-        #         physics_state.microphysics.qa_dt,
-        #         physics_state.microphysics.pt_dt,
-        #         physics_state.microphysics.udt,
-        #         physics_state.microphysics.vdt,
-        #         physics_state.physics_updated_specific_humidity,
-        #         physics_state.physics_updated_qliquid,
-        #         physics_state.physics_updated_qrain,
-        #         physics_state.physics_updated_qice,
-        #         physics_state.physics_updated_qsnow,
-        #         physics_state.physics_updated_qgraupel,
-        #         physics_state.physics_updated_cloud_fraction,
-        #         physics_state.physics_updated_pt,
-        #         physics_state.physics_updated_ua,
-        #         physics_state.physics_updated_va,
-        #         timestep,
-        #     )
+            self._update_physics_state_with_tendencies_4d(
+                physics_state,
+                self.pbl_state,
+                timestep,
+            )
+
         if self._gfs_microphysics:
             self._prepare_microphysics(
                 physics_state.dz,
@@ -733,36 +728,71 @@ class Physics:
             self._microphysics(physics_state.microphysics, timestep=timestep)
             # Fortran uses IPD interface, here we use physics_updated_<var> to denote
             # the updated field
-            self._update_physics_state_with_tendencies(
-                physics_state.qvapor,
-                physics_state.qliquid,
-                physics_state.qrain,
-                physics_state.qice,
-                physics_state.qsnow,
-                physics_state.qgraupel,
-                physics_state.qcld,
-                physics_state.pt,
-                physics_state.ua,
-                physics_state.va,
-                physics_state.microphysics.qv_dt,
-                physics_state.microphysics.ql_dt,
-                physics_state.microphysics.qr_dt,
-                physics_state.microphysics.qi_dt,
-                physics_state.microphysics.qs_dt,
-                physics_state.microphysics.qg_dt,
-                physics_state.microphysics.qa_dt,
-                physics_state.microphysics.pt_dt,
-                physics_state.microphysics.udt,
-                physics_state.microphysics.vdt,
-                physics_state.physics_updated_specific_humidity,
-                physics_state.physics_updated_qliquid,
-                physics_state.physics_updated_qrain,
-                physics_state.physics_updated_qice,
-                physics_state.physics_updated_qsnow,
-                physics_state.physics_updated_qgraupel,
-                physics_state.physics_updated_cloud_fraction,
-                physics_state.physics_updated_pt,
-                physics_state.physics_updated_ua,
-                physics_state.physics_updated_va,
-                timestep,
-            )
+            if self._intermediate_updates:
+                self._update_physics_state_with_tendencies(
+                    physics_state.physics_updated_specific_humidity,
+                    physics_state.physics_updated_qliquid,
+                    physics_state.physics_updated_qrain,
+                    physics_state.physics_updated_qice,
+                    physics_state.physics_updated_qsnow,
+                    physics_state.physics_updated_qgraupel,
+                    physics_state.physics_updated_cloud_fraction,
+                    physics_state.physics_updated_pt,
+                    physics_state.physics_updated_ua,
+                    physics_state.physics_updated_va,
+                    physics_state.microphysics.qv_dt,
+                    physics_state.microphysics.ql_dt,
+                    physics_state.microphysics.qr_dt,
+                    physics_state.microphysics.qi_dt,
+                    physics_state.microphysics.qs_dt,
+                    physics_state.microphysics.qg_dt,
+                    physics_state.microphysics.qa_dt,
+                    physics_state.microphysics.pt_dt,
+                    physics_state.microphysics.udt,
+                    physics_state.microphysics.vdt,
+                    physics_state.physics_updated_specific_humidity,
+                    physics_state.physics_updated_qliquid,
+                    physics_state.physics_updated_qrain,
+                    physics_state.physics_updated_qice,
+                    physics_state.physics_updated_qsnow,
+                    physics_state.physics_updated_qgraupel,
+                    physics_state.physics_updated_cloud_fraction,
+                    physics_state.physics_updated_pt,
+                    physics_state.physics_updated_ua,
+                    physics_state.physics_updated_va,
+                    timestep,
+                )
+            else:
+                self._update_physics_state_with_tendencies(
+                    physics_state.qvapor,
+                    physics_state.qliquid,
+                    physics_state.qrain,
+                    physics_state.qice,
+                    physics_state.qsnow,
+                    physics_state.qgraupel,
+                    physics_state.qcld,
+                    physics_state.pt,
+                    physics_state.ua,
+                    physics_state.va,
+                    physics_state.microphysics.qv_dt,
+                    physics_state.microphysics.ql_dt,
+                    physics_state.microphysics.qr_dt,
+                    physics_state.microphysics.qi_dt,
+                    physics_state.microphysics.qs_dt,
+                    physics_state.microphysics.qg_dt,
+                    physics_state.microphysics.qa_dt,
+                    physics_state.microphysics.pt_dt,
+                    physics_state.microphysics.udt,
+                    physics_state.microphysics.vdt,
+                    physics_state.physics_updated_specific_humidity,
+                    physics_state.physics_updated_qliquid,
+                    physics_state.physics_updated_qrain,
+                    physics_state.physics_updated_qice,
+                    physics_state.physics_updated_qsnow,
+                    physics_state.physics_updated_qgraupel,
+                    physics_state.physics_updated_cloud_fraction,
+                    physics_state.physics_updated_pt,
+                    physics_state.physics_updated_ua,
+                    physics_state.physics_updated_va,
+                    timestep,
+                )

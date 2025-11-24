@@ -72,7 +72,7 @@ class Tridi2:
     ):
         idx = stencil_factory.grid_indexing
         quantity_factory.add_data_dimensions(
-            **{
+            {
                 TRACER_DIM: 9,
             }
         )
@@ -144,7 +144,7 @@ class TridiN:
     ):
         idx = stencil_factory.grid_indexing
         quantity_factory.add_data_dimensions(
-            **{
+            {
                 TRACER_DIM: 9,
             }
         )
