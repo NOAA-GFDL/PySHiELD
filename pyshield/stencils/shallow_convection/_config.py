@@ -17,7 +17,7 @@ SC_TRACER_DIM = "n_tracers_shal"
 class ShallowConvectionConfig:
     dt_atmos: int = _DEFAULT_INT
     """timestep length (s)"""
-    ntke: int = _DEFAULT_INT
+    ntke: int = -1
     """index of tke tracer"""
     nsamftrac: int = 7
     """number of tracers convected, excluding humidity"""
@@ -25,9 +25,9 @@ class ShallowConvectionConfig:
     """Choice of cloud scheme"""
     ntchm: int = _DEFAULT_INT
     """number of chemical tracers"""
-    ntcw: int = 1
+    ntcw: int = -1
     """index of cloud water tracer"""
-    ntiw: int = 0
+    ntiw: int = -1
     """index pf cloud ice tracer"""
     itc: int = _DEFAULT_INT
     """index of first chemical tracer"""
@@ -58,6 +58,9 @@ class ShallowConvectionConfig:
     """aerosol scavenging coefficients"""
 
     def __post_init__(self):
-        self.ntiw = tracer_variables.index("qice")
-        self.ntcw = tracer_variables.index("qliquid")
-        self.ntke = tracer_variables.index("qsgs_tke")
+        if self.ntiw == -1:
+            self.ntiw = tracer_variables.index("qice")
+        if self.ntcw == -1:
+            self.ntcw = tracer_variables.index("qliquid")
+        if self.ntke == -1:
+            self.ntke = tracer_variables.index("qsgs_tke")

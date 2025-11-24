@@ -409,7 +409,7 @@ def stencil_ntrstatic0(
     ctro: FloatFieldShalConv,
     n_tracer: int,
 ):
-    with computation(PARALLEL), interval(0, -1):
+    with computation(FORWARD), interval(0, -1):
         if (cnvflg) and (k_mask <= (kmax - 1)):
             ctro[0, 0, 0][n_tracer] = 0.5 * (
                 ctro[0, 0, 0][n_tracer] + ctro[0, 0, 1][n_tracer]
