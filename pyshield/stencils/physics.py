@@ -235,8 +235,7 @@ def atmos_phys_driver_statein(
         prsik = log(ptop)
 
     with computation(PARALLEL), interval(0, -1):
-        qmin = 1.0e-10  # set it here since externals cannot be 2D
-        qgrs_rad = max(qmin, qvapor)
+        qgrs_rad = max(physcons.QMIN, qvapor)
         rTv = constants.RDGAS * pt * (1.0 + constants.ZVIR * qgrs_rad)
         dm = delp[0, 0, 0]
         delp = dm * rTv / (phii[0, 0, 0] - phii[0, 0, 1])
