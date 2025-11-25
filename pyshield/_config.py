@@ -19,7 +19,7 @@ FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
 DEFAULT_BOOL = False
-DEFAULT_FLOAT = 0.0
+DEFAULT_FLOAT = Float(0.0)
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 TRACER_DIM = "n_tracers"
 DEFAULT_PHYS_NML_GROUPS = (
