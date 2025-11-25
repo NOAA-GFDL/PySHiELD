@@ -149,7 +149,7 @@ class TranslateSubgridZProc(TranslatePhysicsFortranData2Py):
 
         compute_func = VerticalSubgridProcesses(
             self.stencil_factory,
-            self.config,
+            self.mpconfig,
             timestep=inputs.pop("dt"),
         )
         inputs["last_step"] = True
