@@ -186,6 +186,22 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    physics_updated_qo3mr: Quantity = field(
+        metadata={
+            "name": "physics_updated_ozone_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
+    physics_updated_qtke: Quantity = field(
+        metadata={
+            "name": "physics_updated_tke_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
     physics_updated_cloud_fraction: Quantity = field(
         metadata={
             "name": "physics_cloud_fraction",
@@ -274,12 +290,52 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    hsw: Quantity = field(
+        metadata={
+            "name": "shortwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "k/s",
+            "intent": "in",
+        }
+    )
+    hlw: Quantity = field(
+        metadata={
+            "name": "longwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "k/s",
+            "intent": "in",
+        }
+    )
     land: Quantity = field(
         metadata={
             "name": "land_mask",
             "dims": [X_DIM, Y_DIM],
             "units": "-",
             "intent": "in",
+        }
+    )
+    kpbl: Quantity = field(
+        metadata={
+            "name": "pbl_index",
+            "dims": [X_DIM, Y_DIM],
+            "units": "-",
+            "intent": "inout",
+        }
+    )
+    kinver: Quantity = field(
+        metadata={
+            "name": "inversion_layer_index",
+            "dims": [X_DIM, Y_DIM],
+            "units": "-",
+            "intent": "inout",
+        }
+    )
+    hpbl: Quantity = field(
+        metadata={
+            "name": "pbl_height",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m",
+            "intent": "inout",
         }
     )
     quantity_factory: InitVar[QuantityFactory]
@@ -350,13 +406,19 @@ class PhysicsState:
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
                 dims = _field.metadata["dims"]
-                quantity = Quantity(
-                    storages[_field.name],
-                    dims,
-                    _field.metadata["units"],
-                    origin=sizer.get_origin(dims),
-                    extent=sizer.get_extent(dims),
-                )
+                if _field.name in storages.keys():
+                    quantity = Quantity(
+                        storages[_field.name],
+                        dims,
+                        _field.metadata["units"],
+                        origin=sizer.get_origin(dims),
+                        extent=sizer.get_extent(dims),
+                    )
+                else:
+                    quantity = quantity_factory.zeros(
+                        dims,
+                        _field.metadata["units"],
+                    )
                 inputs[_field.name] = quantity
         return cls(**inputs, quantity_factory=quantity_factory, schemes=schemes)
 
