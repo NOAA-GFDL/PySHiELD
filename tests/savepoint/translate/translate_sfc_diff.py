@@ -7,10 +7,10 @@ class TranslateSurfaceExchange_iter1(TranslatePhysicsFortranData2Py):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "u1": {"shield": True},
             "v1": {"shield": True},
@@ -99,7 +99,7 @@ class TranslateSurfaceExchange_iter2(TranslateSurfaceExchange_iter1):
     def __init__(
         self,
         grid,
-        namelist,
+        config,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
+        super().__init__(grid, config, stencil_factory)
