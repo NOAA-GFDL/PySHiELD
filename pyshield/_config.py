@@ -18,6 +18,7 @@ DEFAULT_SCHEMES = ["GFS_microphysics"]
 DEFAULT_PHYS_NML_GROUPS = (
     "main_nml",
     "coupler_nml",
+    "fv_core_nml",
     "gfdl_cloud_microphysics_nml",
     "integ_phys_nml",
     "gfs_physics_nml",
