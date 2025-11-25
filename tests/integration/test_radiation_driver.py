@@ -15,7 +15,7 @@ from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPDriver, RTE_RRTMGPSta
 from pyshield.stencils.physics import Physics, calc_sigma
 
 
-@pytest.mark.parametrize("datapath", [Path("test_data/radtest/")])
+@pytest.mark.parametrize("datapath", [Path("test_data/RESTART/")])
 def test_rte_rrtmgp(datapath: Path):
     dycore_data = Path(datapath.joinpath("fv_core.res.tile1.nc"))
     phys_data = Path(datapath.joinpath("phy_data.tile1.nc"))

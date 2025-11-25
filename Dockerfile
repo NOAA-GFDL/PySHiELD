@@ -22,27 +22,30 @@ RUN apt-get update -y && \
     netcdf-bin \
     libnetcdf-dev
 
-RUN wget -O - https://www.openssl.org/source/openssl-1.1.1u.tar.gz | tar zxf - && \
-    cd openssl-1.1.1u && \
-    ./config --prefix=/usr/local
+# Set up Conda
+# RUN wget -O - https://www.openssl.org/source/openssl-1.1.1u.tar.gz | tar zxf - && \
+#     cd openssl-1.1.1u && \
+#     ./config --prefix=/usr/local
 
 # RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh -O ~/miniforge.sh && \
 #     mkdir -p /root/.conda && \
 #     bash miniconda.sh -b -p /root/miniconda3 && \
 #     rm -f miniconda.sh
 
-COPY --from=continuumio/miniconda3:4.12.0 /opt/conda /opt/conda
+COPY --from=continuumio/miniconda3:4.5.11 /opt/conda /opt/conda
 
 ENV PATH=/opt/conda/bin:$PATH
 
-# Use conda to unstall RTE-RRTMGP
+RUN conda --version
+
+# Use conda to install RTE-RRTMGP
 RUN set -ex && \
     conda config --set always_yes yes --set changeps1 no && \
     conda config --set ssl_verify false && \
-    conda config --env --set subdir linux-64 && \
+    # conda config --env --platform linux-64 && \
     conda info -a && \
     conda config --append channels conda-forge && \
-    conda install --quiet --freeze-installed -c main conda-pack && \
+    # conda install --quiet --freeze-installed -c main conda-pack && \
     conda install -c conda-forge ninja && \
     conda install -vv -c conda-forge rte_rrtmgp
 
@@ -50,7 +53,7 @@ RUN set -ex && \
 # RUN conda install -vv -c conda-forge pyrte_rrtmgp
 # RUN conda install conda-forgwe::pyrte_rrtmgp
 
-RUN python3 -m pip install --upgrade setuptools pip wheel
+RUN pip install --upgrade setuptools pip wheel
 
 # Check python & pip
 RUN python --version
