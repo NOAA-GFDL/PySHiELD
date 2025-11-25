@@ -11,10 +11,32 @@ from .translate_gfdl_cld_microphysics import TranslateMicrophysics3
 from .translate_gfs_physics_driver import TranslateGFSPhysicsDriver
 from .translate_ice_cloud import TranslateIceCloud
 from .translate_icesub import TranslateIceSubFunc
+from .translate_mfpblt import TranslateMFPBLT
+from .translate_mfscu import TranslateMFSCU
 from .translate_microphysics import TranslateMicroph
 from .translate_mp_full import TranslateMPFull, TranslateMPSub
 from .translate_neg_adj import TranslateNegAdjP
 from .translate_particle_properties import TranslateParticleProperties
+from .translate_pbl import TranslatePBL
+from .translate_pbl_subtests import (
+    TranslateEdDiffShear,
+    TranslateHalf2,
+    TranslateHeatTracerTendencyCalc,
+    TranslateHeatTracerTridiagEle,
+    TranslateMomentTendencyCalc,
+    TranslateMomentTridiagComp,
+    TranslateMRF,
+    TranslatePBLAML,
+    TranslatePBLInit,
+    TranslatePrandtl,
+    TranslateSCUEnd,
+    TranslateStratocumulus,
+    TranslateThermalPBL,
+    TranslateTKEPredict,
+    TranslateTKETendencyCalc,
+    TranslateTKETridiagEle,
+    TranslateUpDownTKE,
+)
 from .translate_phifv3 import TranslatePhiFV3
 from .translate_physics import ParallelPhysicsTranslate2Py, TranslateFortranData2Py
 from .translate_preliminary_mp import TranslatePreliminaryCalculations
@@ -32,6 +54,7 @@ from .translate_subsub import TranslateSubgridZSubs
 from .translate_tables import TranslatePythonTables, TranslateTableComputation
 from .translate_terminal_fall import TranslateTerminalFall
 from .translate_tracer_sedi import TranslateTracerSed
+from .translate_tridiag import TranslateTridi2, TranslateTridin, TranslateTridit
 from .translate_update_dwind_phys import TranslateUpdateDWindsPhys
 from .translate_update_pressure_sfc_winds_phys import (
     TranslatePhysUpdatePressureSurfaceWinds,

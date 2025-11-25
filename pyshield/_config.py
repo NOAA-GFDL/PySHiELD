@@ -8,14 +8,20 @@ import f90nml
 from dacite import Config, from_dict
 
 from ndsl import MetaEnumStr
+from ndsl.dsl.gt4py_utils import tracer_variables
+from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.utils import f90nml_as_dict
 
+
+# TODO: This will become a TracerBundle when ready
+FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
 DEFAULT_FLOAT = 0.0
 DEFAULT_STR = ""
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
+TRACER_DIM = "n_tracers"
 DEFAULT_PHYS_NML_GROUPS = (
     "main_nml",
     "coupler_nml",
@@ -26,10 +32,13 @@ DEFAULT_PHYS_NML_GROUPS = (
 )
 
 
+# TODO: Should we have an enum for each class of parameterization
+# microphysics, PBL, shallow convection, etc?
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
     GFDL_cloud_microphysics = "GFDL_cloud_microphysics"
+    SATM_EDMF = "SATM_EDMF"
 
 
 @dataclasses.dataclass
@@ -41,6 +50,10 @@ class PhysicsConfig:
     npz: int = DEFAULT_INT
     nwat: int = DEFAULT_INT
     schemes: List = None
+    ntracers: int = int(len(tracer_variables))
+    ntiw: int = DEFAULT_INT
+    ntcw: int = DEFAULT_INT
+    ntke: int = DEFAULT_INT
     do_qa: bool = DEFAULT_BOOL
     do_inline_mp: bool = False
     """Whether microphysics is inlined in the dycore"""
@@ -173,6 +186,9 @@ class PhysicsConfig:
                 raise NotImplementedError(f"{scheme} physics scheme not implemented")
             package_schemes.append(PHYSICS_PACKAGES[scheme])
         self.schemes = package_schemes
+        self.ntiw = tracer_variables.index("qice")
+        self.ntcw = tracer_variables.index("qliquid")
+        self.ntke = tracer_variables.index("qsgs_tke")
         if self.namelist_override is not None:
             try:
                 f90_nml = f90nml.read(self.namelist_override)
