@@ -8,8 +8,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 
 
 class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},
@@ -183,7 +183,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.phii,
             physics_state.phil,
         )
-        physics._prepare_microphysics(
+        physics._prepare_gfs_microphysics(
             physics_state.dz,
             physics_state.phii,
             physics_state.wmp,
@@ -191,18 +191,18 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.qvapor,
             physics_state.pt,
             physics_state.delp,
-            physics_state.microphysics.udt,
-            physics_state.microphysics.vdt,
-            physics_state.microphysics.pt_dt,
-            physics_state.microphysics.qv_dt,
-            physics_state.microphysics.ql_dt,
-            physics_state.microphysics.qr_dt,
-            physics_state.microphysics.qi_dt,
-            physics_state.microphysics.qs_dt,
-            physics_state.microphysics.qg_dt,
-            physics_state.microphysics.qa_dt,
+            physics_state.gfs_microphysics.udt,
+            physics_state.gfs_microphysics.vdt,
+            physics_state.gfs_microphysics.pt_dt,
+            physics_state.gfs_microphysics.qv_dt,
+            physics_state.gfs_microphysics.ql_dt,
+            physics_state.gfs_microphysics.qr_dt,
+            physics_state.gfs_microphysics.qi_dt,
+            physics_state.gfs_microphysics.qs_dt,
+            physics_state.gfs_microphysics.qg_dt,
+            physics_state.gfs_microphysics.qa_dt,
         )
-        microph_state = physics_state.microphysics
+        microph_state = physics_state.gfs_microphysics
         physics._microphysics(microph_state, float(self.config.dt_atmos))
         # Fortran uses IPD interface, here we use physics_updated_<var>
         # to denote the updated field

@@ -17,7 +17,7 @@ from ndsl.grid import (
     VerticalGridData,
 )
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
-from pyshield.stencils.pbl import PBLConfig
+from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 
 
 def setup_infrastructure(
@@ -106,7 +106,7 @@ def states_from_fortran_restarts(
 
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 @pytest.mark.parametrize("backend", ["numpy"])
-def test_satmedmf_runs(restart_path: Path, backend: str):
+def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")
@@ -140,17 +140,46 @@ def test_satmedmf_runs(restart_path: Path, backend: str):
         npy=ny + 1,
         npz=nz + 1,
         nwat=6,
-        schemes=["SATM_EDMF"],
+        schemes=["GFDL_cloud_microphysics"],
     )
-
-    pbl_config = PBLConfig(
-        dt_atmos=dt,
+    mp_config = GFDLCloudMPConfig(
+        dt_full=dt,
         hydrostatic=False,
-        ntiw=3,
-        ntcw=1,
-        ntke=7,
+        npx=nx + 1,
+        npy=ny + 1,
+        npz=nz + 1,
+        layout=(1, 1),
+        nwat=6,
+        do_sedi_uv=True,
+        do_sedi_w=True,
+        do_sedi_heat=False,
+        rad_snow=True,
+        rad_graupel=True,
+        rad_rain=True,
+        const_vi=False,
+        const_vs=False,
+        const_vg=False,
+        const_vr=False,
+        vi_fac=1.0,
+        vs_fac=1.0,
+        vg_fac=1.0,
+        vr_fac=1.0,
+        vi_max=1.0,
+        vs_max=2.0,
+        vg_max=12.0,
+        vr_max=12.0,
+        qi_lim=1.0,
+        prog_ccn=False,
+        do_qa=True,
+        tau_l2v=225.0,
+        tau_v2l=150.0,
+        rthresh=10.0e-6,
     )
     physics_driver = Physics(
-        stencil_factory, quantity_factory, grid_data, config, pbl_config=pbl_config
+        stencil_factory,
+        quantity_factory,
+        grid_data,
+        config,
+        gfdl_cld_mp_config=mp_config,
     )
     physics_driver(state, config.dt_atmos)

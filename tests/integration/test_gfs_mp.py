@@ -17,7 +17,6 @@ from ndsl.grid import (
     VerticalGridData,
 )
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
-from pyshield.stencils.pbl import PBLConfig
 
 
 def setup_infrastructure(
@@ -106,7 +105,7 @@ def states_from_fortran_restarts(
 
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 @pytest.mark.parametrize("backend", ["numpy"])
-def test_satmedmf_runs(restart_path: Path, backend: str):
+def test_gfdl_cld_mp_runs(restart_path: Path, backend: str):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")
@@ -140,17 +139,12 @@ def test_satmedmf_runs(restart_path: Path, backend: str):
         npy=ny + 1,
         npz=nz + 1,
         nwat=6,
-        schemes=["SATM_EDMF"],
-    )
-
-    pbl_config = PBLConfig(
-        dt_atmos=dt,
-        hydrostatic=False,
-        ntiw=3,
-        ntcw=1,
-        ntke=7,
+        schemes=["GFS_microphysics"],
     )
     physics_driver = Physics(
-        stencil_factory, quantity_factory, grid_data, config, pbl_config=pbl_config
+        stencil_factory,
+        quantity_factory,
+        grid_data,
+        config,
     )
     physics_driver(state, config.dt_atmos)
