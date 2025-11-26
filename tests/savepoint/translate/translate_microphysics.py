@@ -6,13 +6,13 @@ import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
 from ndsl.dsl.typing import Float
 from pyshield import PHYSICS_PACKAGES, PhysicsState
-from pyshield.stencils import Microphysics
+from pyshield.stencils.gfs_microphysics import GFSMicrophysics
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
 
 class TranslateMicroph(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"serialname": "mph_qv1", "microph": True},
             "qliquid": {"serialname": "mph_ql1", "microph": True},
@@ -90,10 +90,10 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
             quantity_factory=quantity_factory,
             schemes=[PHYSICS_PACKAGES["GFS_microphysics"]],
         )
-        microphysics = Microphysics(
+        microphysics = GFSMicrophysics(
             self.stencil_factory, quantity_factory, self.grid.grid_data, self.config
         )
-        microph_state = physics_state.microphysics
+        microph_state = physics_state.gfs_microphysics
         microphysics(microph_state, timestep=Float(self.config.dt_atmos))
         inputs["pt_dt"] = microph_state.pt_dt
         inputs["qv_dt"] = microph_state.qv_dt

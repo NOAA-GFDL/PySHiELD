@@ -11,8 +11,7 @@ from ndsl.dsl.dace.orchestration import dace_inhibitor
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.grid import GridData
-
-from .._config import PhysicsConfig
+from pyshield._config import PhysicsConfig
 
 
 def fields_init(
@@ -1541,7 +1540,7 @@ def fields_update(
         graupel = graupel * convt
 
 
-class MicrophysicsState:
+class GFSMicrophysicsState:
     """
     pt, qvapor, qrain, qice, qsnow, qgraupel, qcld, &
     ua, va, delp, delz, omga: same as physics state
@@ -1608,7 +1607,7 @@ class MicrophysicsState:
         self.land = land
 
 
-class Microphysics:
+class GFSMicrophysics:
     def __init__(
         self,
         stencil_factory: StencilFactory,
@@ -1966,7 +1965,7 @@ class Microphysics:
         self._fac_l2v = 1.0 - np.exp(-self._dt_evap / self.namelist.tau_l2v)
         self._timestep = timestep
 
-    def __call__(self, state: MicrophysicsState, timestep: float):
+    def __call__(self, state: GFSMicrophysicsState, timestep: float):
         # TODO (floriand): reintroduce after DaCe fix to inlined scalar that shouldn't
         self._update_timestep_if_needed(timestep)
         self._fields_init(

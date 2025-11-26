@@ -67,7 +67,7 @@ class SurfaceState:
 
     wind: Quantity = field(
         metadata={
-            "name": "wind_speed",
+            "name": "surface_wind_speed",
             "dims": [X_DIM, Y_DIM],
             "units": "m/s",
             "intent": "out",

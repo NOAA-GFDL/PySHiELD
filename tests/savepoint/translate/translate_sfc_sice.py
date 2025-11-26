@@ -77,6 +77,7 @@ class TranslateSurfaceSeaIce_iter1(TranslatePhysicsFortranData2Py):
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
         inputs["qvapor"] = inputs["q1"][:, :, :, 0]
+        inputs["srflag"] = inputs["srflag"].astype(bool)
         inputs.pop("q1")
         inputs.pop("u1")
         inputs.pop("v1")

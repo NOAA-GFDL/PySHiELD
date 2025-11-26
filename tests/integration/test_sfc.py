@@ -27,7 +27,7 @@ from ndsl.grid import (
     MetricTerms,
     VerticalGridData,
 )
-from pyshield import PHYSICS_PACKAGES, PhysicsConfig, PhysicsState
+from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pyshield.stencils.surface import SurfaceConfig, SurfaceLayer, SurfaceState
 
 
@@ -252,3 +252,59 @@ def test_sfc_runs(restart_path: Path):
 
     sfc = SurfaceLayer(stencil_factory, quantity_factory, sfc_config)
     sfc(sstate)
+
+
+@pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
+@pytest.mark.parametrize("backend", ["numpy"])
+def test_pyshield_runswith_sfc(restart_path: Path, backend: str):
+    dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
+    physics_path = restart_path.joinpath("phy_data.tile1.nc")
+    sfc_path = restart_path.joinpath("sfc_data.tile1.nc")
+    tracer_path = restart_path.joinpath("fv_tracer.res.tile1.nc")
+    etafile = restart_path.joinpath("eta91.nc")
+    config = PhysicsConfig()
+    schemes = config.schemes
+    nx = 48
+    ny = 48
+    nz = 91
+    dt = 225.0
+
+    quantity_factory, qf_soil, stencil_factory, grid_data = setup_infrastructure(
+        nx=nx,
+        ny=ny,
+        nz=nz,
+        nzsoil=4,
+        etafile=etafile,
+    )
+
+    state, sstate = states_from_fortran_restarts(
+        dycore_path,
+        physics_path,
+        tracer_path,
+        sfc_path,
+        grid_data.ak,
+        quantity_factory,
+        qf_soil,
+        stencil_factory,
+        schemes,
+    )
+    config = PhysicsConfig(
+        dt_atmos=dt,
+        hydrostatic=False,
+        npx=nx + 1,
+        npy=ny + 1,
+        npz=nz + 1,
+        nwat=6,
+        schemes=["SFC_layer"],
+    )
+
+    sfc_config = SurfaceConfig(dt_atmos=dt)
+
+    physics_driver = Physics(
+        stencil_factory,
+        quantity_factory,
+        grid_data,
+        config,
+        sfc_config=sfc_config,
+    )
+    physics_driver(state, config.dt_atmos, surface_state=sstate)
