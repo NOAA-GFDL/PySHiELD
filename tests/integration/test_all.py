@@ -139,6 +139,7 @@ def states_from_fortran_restarts(
     return state, sstate
 
 
+# TODO: parameterize over schemes
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 @pytest.mark.parametrize("backend", ["numpy"])
 def test_pyshield_runs(restart_path: Path, backend: str):
