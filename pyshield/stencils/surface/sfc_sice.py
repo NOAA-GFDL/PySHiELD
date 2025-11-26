@@ -1,7 +1,5 @@
 import ndsl.constants as constants
 import pyshield.constants as physcons
-
-# from pace.dsl.dace.orchestration import orchestrate
 from ndsl import StencilFactory
 from ndsl.dsl.gt4py import FORWARD, computation
 from ndsl.dsl.gt4py import function as gtfunction
