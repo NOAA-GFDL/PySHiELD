@@ -1074,7 +1074,7 @@ class Physics:
 
         if self._microphysics:
             if self._microphysics == "GFS":
-                self._prepare_microphysics(
+                self._prepare_gfs_microphysics(
                     physics_state.dz,
                     physics_state.phii,
                     physics_state.wmp,
