@@ -19,6 +19,7 @@ from ndsl.grid import (
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.pbl import PBLConfig
+from pyshield.stencils.shallow_convection import ShallowConvectionConfig
 from pyshield.stencils.surface import SurfaceConfig, SurfaceState
 
 
@@ -177,7 +178,7 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         npy=ny + 1,
         npz=nz + 1,
         nwat=6,
-        schemes=["SATM_EDMF", "GFDL_cloud_microphysics", "SFC_layer"],
+        schemes=["SATM_EDMF", "GFDL_cloud_microphysics", "SFC_layer", "SAMF_SHALCONV"],
     )
 
     sfc_config = SurfaceConfig(dt_atmos=dt)
@@ -188,6 +189,9 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         ntiw=3,
         ntcw=1,
         ntke=7,
+    )
+    sc_conf = ShallowConvectionConfig(
+        dt_atmos=dt,
     )
     mp_config = GFDLCloudMPConfig(
         dt_full=dt,
@@ -230,5 +234,6 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         pbl_config=pbl_config,
         gfdl_cld_mp_config=mp_config,
         sfc_config=sfc_config,
+        sc_config=sc_conf,
     )
     physics_driver(state, config.dt_atmos, surface_state=sstate)

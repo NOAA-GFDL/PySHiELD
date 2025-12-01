@@ -52,6 +52,7 @@ class SAMFShalConvState:
             "intent": "in",
         }
     )
+    # TODO: qtr currently is just every tracer except vapor. It should be simplified.
     dot: Quantity = field(
         metadata={
             "name": "layer_mean_vertical_velocity",
@@ -175,6 +176,7 @@ class SAMFShalConvState:
             "intent": "in",
         }
     )
+    # TODO: garea could be passed at init time instead of runtime
     islimsk: Quantity = field(
         metadata={
             "name": "land_mask",

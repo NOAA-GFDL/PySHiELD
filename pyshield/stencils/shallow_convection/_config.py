@@ -15,7 +15,7 @@ SC_TRACER_DIM = "n_tracers_shal"
 
 @dataclasses.dataclass
 class ShallowConvectionConfig:
-    dt_atmos: int = _DEFAULT_INT
+    dt_atmos: float = DEFAULT_FLOAT
     """timestep length (s)"""
     ntke: int = -1
     """index of tke tracer"""
@@ -59,8 +59,11 @@ class ShallowConvectionConfig:
 
     def __post_init__(self):
         if self.ntiw == -1:
-            self.ntiw = tracer_variables.index("qice")
+            self.ntiw = tracer_variables.index("qice") - 1
         if self.ntcw == -1:
-            self.ntcw = tracer_variables.index("qliquid")
+            self.ntcw = tracer_variables.index("qliquid") - 1
         if self.ntke == -1:
-            self.ntke = tracer_variables.index("qsgs_tke")
+            self.ntke = tracer_variables.index("qsgs_tke") - 1
+        # TODO: the -1 is because currently samfshalconv expects qvapor to be a
+        # separate array from the rest of the tracers. This is pretty awkward and
+        # should be improved...
