@@ -8,7 +8,7 @@ from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
 from pyshield._config import PHYSICS_PACKAGES
-from pyshield.stencils.microphysics import MicrophysicsState
+from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
 
 
 @dataclass()
@@ -290,6 +290,14 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    prslk: Quantity = field(
+        metadata={
+            "name": "Exner_function",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
     hsw: Quantity = field(
         metadata={
             "name": "shortwave_heating_rate",
@@ -353,25 +361,27 @@ class PhysicsState:
                 "unknown",
                 dtype=Float,
             )
-            self.microphysics: Optional[MicrophysicsState] = MicrophysicsState(
-                pt=self.pt,
-                qvapor=self.qvapor,
-                qliquid=self.qliquid,
-                qrain=self.qrain,
-                qice=self.qice,
-                qsnow=self.qsnow,
-                qgraupel=self.qgraupel,
-                qcld=self.qcld,
-                ua=self.ua,
-                va=self.va,
-                delp=self.delp,
-                delz=self.delz,
-                omga=self.omga,
-                delprsi=self.delprsi,
-                wmp=self.wmp,
-                dz=self.dz,
-                tendency=tendency,
-                land=self.land,
+            self.gfs_microphysics: Optional[GFSMicrophysicsState] = (
+                GFSMicrophysicsState(
+                    pt=self.pt,
+                    qvapor=self.qvapor,
+                    qliquid=self.qliquid,
+                    qrain=self.qrain,
+                    qice=self.qice,
+                    qsnow=self.qsnow,
+                    qgraupel=self.qgraupel,
+                    qcld=self.qcld,
+                    ua=self.ua,
+                    va=self.va,
+                    delp=self.delp,
+                    delz=self.delz,
+                    omga=self.omga,
+                    delprsi=self.delprsi,
+                    wmp=self.wmp,
+                    dz=self.dz,
+                    tendency=tendency,
+                    land=self.land,
+                )
             )
         else:
             self.microphysics = None

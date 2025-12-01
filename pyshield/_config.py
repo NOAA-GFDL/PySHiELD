@@ -17,6 +17,8 @@ from ndsl.utils import f90nml_as_dict
 FloatFieldTracer = set_4d_field_size(9, Float)
 
 DEFAULT_INT = 0
+DEFAULT_FLOAT = 0.0
+DEFAULT_STR = ""
 DEFAULT_BOOL = False
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 TRACER_DIM = "n_tracers"
@@ -35,12 +37,13 @@ DEFAULT_PHYS_NML_GROUPS = (
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
+    GFDL_cloud_microphysics = "GFDL_cloud_microphysics"
     SATM_EDMF = "SATM_EDMF"
 
 
 @dataclasses.dataclass
 class PhysicsConfig:
-    dt_atmos: int = DEFAULT_INT
+    dt_atmos: float = DEFAULT_FLOAT
     hydrostatic: bool = DEFAULT_BOOL
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
@@ -52,6 +55,8 @@ class PhysicsConfig:
     ntcw: int = DEFAULT_INT
     ntke: int = DEFAULT_INT
     do_qa: bool = DEFAULT_BOOL
+    do_inline_mp: bool = False
+    """Whether microphysics is inlined in the dycore"""
     c_cracw: float = 0.8
     """Rain accretion efficiency"""
     c_paut: float = 0.5
@@ -169,7 +174,8 @@ class PhysicsConfig:
     """"c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)"""
     namelist_override: Optional[str] = None
     target_nml_groups: Optional[Tuple[str, ...]] = DEFAULT_PHYS_NML_GROUPS
-    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
+    daily_mean: bool = DEFAULT_BOOL
+    """flag to replace cosz with daily mean value"""
 
     def __post_init__(self):
         if self.schemes is None:

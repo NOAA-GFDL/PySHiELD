@@ -1,4 +1,4 @@
-from ndsl import constants
+import ndsl.constants as constants
 from ndsl.dsl.typing import Float
 
 
