@@ -19,13 +19,23 @@ from ndsl.grid import (
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.pbl import PBLConfig
+from pyshield.stencils.surface import SurfaceConfig, SurfaceState
 
 
 def setup_infrastructure(
-    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
+    nx: int,
+    ny: int,
+    nz: int,
+    nzsoil: int,
+    nhalo: int,
+    etafile: Path,
+    backend: str = "numpy",
 ):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
+    )
+    _, qf_soil = get_factories_single_tile(
+        nx=nx, ny=ny, nz=nzsoil, nhalo=nhalo, backend=backend
     )
     rank = 0
     comm = NullComm(rank, 1)
@@ -47,7 +57,7 @@ def setup_infrastructure(
         contravariant_data=contravariant_data,
         angle_data=angle_data,
     )
-    return stencil_factory, quantity_factory, grid_data
+    return stencil_factory, quantity_factory, qf_soil, grid_data
 
 
 def states_from_fortran_restarts(
@@ -57,6 +67,7 @@ def states_from_fortran_restarts(
     sfc_datafile: Path,
     ak: Quantity,
     quantity_factory: QuantityFactory,
+    qf_sfc: QuantityFactory,
     stencil_factory: StencilFactory,
     schemes: PHYSICS_PACKAGES,
 ):
@@ -66,6 +77,7 @@ def states_from_fortran_restarts(
     tracer_data = xr.open_dataset(tracer_datafile)
     sfc_data = xr.open_dataset(sfc_datafile)
     state = PhysicsState.init_zeros(quantity_factory, schemes)
+    sstate = SurfaceState.init_zeros(qf_sfc)
     buff_3d = np.zeros_like(state.prsi.field)
     npz = buff_3d.shape[2]
     for k in range(npz):
@@ -102,9 +114,32 @@ def states_from_fortran_restarts(
     state.qo3mr.view[:] = tracer_data.o3mr.data[0, :, :, :].transpose(2, 1, 0)
     state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
 
-    return state
+    sstate.tsfc.field[:] = sfc_data.tsea.data[0, :, :].transpose()
+    sstate.slmsk.field[:] = sfc_data.slmsk.data[0, :, :].transpose()
+    sstate.zorl.field[:] = sfc_data.zorl.data[0, :, :].transpose()
+    sstate.vegtype.field[:] = sfc_data.vtype.data[0, :, :].transpose()
+    sstate.uustar.field[:] = sfc_data.uustar.data[0, :, :].transpose()
+    sstate.sfcemis.field[:] = 0.98
+    sstate.vfrac.field[:] = sfc_data.vfrac.data[0, :, :].transpose()
+    sstate.shdmax.field[:] = sfc_data.shdmax.data[0, :, :].transpose()
+    sstate.snowd.field[:] = sfc_data.snwdph.data[0, :, :].transpose()
+    sstate.ffhh.field[:] = sfc_data.ffhh.data[0, :, :].transpose()
+    sstate.ffmm.field[:] = sfc_data.ffmm.data[0, :, :].transpose()
+    sstate.wind.field[:] = np.sqrt(
+        state.ua.field[:, :, -1] ** 2.0 + state.va.field[:, :, -1] ** 2.0
+    )
+    sstate.stc.field[:] = sfc_data.stc.data[0, :, :, :].transpose(2, 1, 0)
+    sstate.srflag.field[:] = sfc_data.srflag.data[0, :, :].transpose()
+    sstate.hice.field[:] = sfc_data.hice.data[0, :, :].transpose()
+    sstate.fice.field[:] = sfc_data.fice.data[0, :, :].transpose()
+    sstate.tisfc.field[:] = sfc_data.tisfc.data[0, :, :].transpose()
+    sstate.tprcp.field[:] = sfc_data.tprcp.data[0, :, :].transpose()
+    sstate.weasd.field[:] = sfc_data.sheleg.data[0, :, :].transpose()
+
+    return state, sstate
 
 
+# TODO: parameterize over schemes
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 @pytest.mark.parametrize("backend", ["numpy"])
 def test_pyshield_runs(restart_path: Path, backend: str):
@@ -120,17 +155,18 @@ def test_pyshield_runs(restart_path: Path, backend: str):
     nz = 91
     dt = 225.0
 
-    stencil_factory, quantity_factory, grid_data = setup_infrastructure(
-        nx=nx, ny=ny, nz=nz, nhalo=3, etafile=etafile, backend=backend
+    stencil_factory, quantity_factory, qf_soil, grid_data = setup_infrastructure(
+        nx=nx, ny=ny, nz=nz, nzsoil=4, nhalo=3, etafile=etafile, backend=backend
     )
 
-    state = states_from_fortran_restarts(
+    state, sstate = states_from_fortran_restarts(
         dycore_path,
         physics_path,
         tracer_path,
         sfc_path,
         grid_data.ak,
         quantity_factory,
+        qf_soil,
         stencil_factory,
         schemes,
     )
@@ -141,8 +177,10 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         npy=ny + 1,
         npz=nz + 1,
         nwat=6,
-        schemes=["SATM_EDMF", "GFDL_cloud_microphysics"],
+        schemes=["SATM_EDMF", "GFDL_cloud_microphysics", "SFC_layer"],
     )
+
+    sfc_config = SurfaceConfig(dt_atmos=dt)
 
     pbl_config = PBLConfig(
         dt_atmos=dt,
@@ -191,5 +229,6 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         config,
         pbl_config=pbl_config,
         gfdl_cld_mp_config=mp_config,
+        sfc_config=sfc_config,
     )
-    physics_driver(state, config.dt_atmos)
+    physics_driver(state, config.dt_atmos, surface_state=sstate)

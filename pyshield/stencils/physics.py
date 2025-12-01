@@ -5,7 +5,16 @@ from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int, IntFieldIJ, IntFieldK
+from ndsl.dsl.typing import (
+    Bool,
+    BoolFieldIJ,
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    Int,
+    IntFieldIJ,
+    IntFieldK,
+)
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
 from ndsl.stencils.basic_operations import copy_defn
@@ -25,6 +34,7 @@ from pyshield.stencils.gfdl_cld_microphysics import (
 )
 from pyshield.stencils.gfs_microphysics import GFSMicrophysics
 from pyshield.stencils.pbl import PBLConfig, SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
+from pyshield.stencils.surface import SurfaceConfig, SurfaceLayer, SurfaceState
 
 
 def interpolate_radiation(
@@ -195,6 +205,7 @@ def atmos_phys_driver_statein(
     qcld: FloatField,
     pt: FloatField,
     dm: FloatField,
+    pgr: FloatFieldIJ,
 ):
     from __externals__ import nwat, pk0inv, pktop, ptop
 
@@ -235,8 +246,9 @@ def atmos_phys_driver_statein(
         qo3mr = qo3mr / delp
         qsgs_tke = qsgs_tke / delp
 
-    with computation(PARALLEL), interval(-1, None):
+    with computation(FORWARD), interval(-1, None):
         prsik = log(prsi)
+        pgr = prsi
 
     with computation(PARALLEL), interval(0, 1):
         prsik = log(ptop)
@@ -254,6 +266,162 @@ def atmos_phys_driver_statein(
 
     with computation(PARALLEL), interval(0, 1):
         prsik = pktop
+
+
+def flip_fields(
+    u: FloatField,
+    v: FloatField,
+    t: FloatField,
+    q: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    qo3mr: FloatField,
+    qsgs_tke: FloatField,
+    qcld: FloatField,
+    prsl: FloatField,
+    prsi: FloatField,
+    prsik: FloatField,
+    prslk: FloatField,
+    phil: FloatField,
+    phii: FloatField,
+    u1: FloatField,
+    v1: FloatField,
+    t1: FloatField,
+    q1: FloatField,
+    qliquid1: FloatField,
+    qrain1: FloatField,
+    qice1: FloatField,
+    qsnow1: FloatField,
+    qgraupel1: FloatField,
+    qo3mr1: FloatField,
+    qsgs_tke1: FloatField,
+    qcld1: FloatField,
+    prsl1: FloatField,
+    prsi1: FloatField,
+    prsik1: FloatField,
+    prslk1: FloatField,
+    phil1: FloatField,
+    phii1: FloatField,
+    level_flip: IntFieldK,
+    layer_flip: IntFieldK,
+):
+    with computation(PARALLEL), interval(...):
+        u1 = u[0, 0, layer_flip]
+        v1 = v[0, 0, layer_flip]
+        t1 = t[0, 0, layer_flip]
+        q1 = q[0, 0, layer_flip]
+        qliquid1 = qliquid[0, 0, layer_flip]
+        qrain1 = qrain[0, 0, layer_flip]
+        qice1 = qice[0, 0, layer_flip]
+        qsnow1 = qsnow[0, 0, layer_flip]
+        qgraupel1 = qgraupel[0, 0, layer_flip]
+        qo3mr1 = qo3mr[0, 0, layer_flip]
+        qsgs_tke1 = qsgs_tke[0, 0, layer_flip]
+        qcld1 = qcld[0, 0, layer_flip]
+        prsl1 = prsl[0, 0, layer_flip]
+        prsi1 = prsi[0, 0, level_flip]
+        prslk1 = prslk[0, 0, layer_flip]
+        prsik1 = prsik[0, 0, level_flip]
+        phil1 = phil[0, 0, layer_flip]
+        phii1 = phii[0, 0, level_flip]
+
+
+def prepare_sfc(
+    u1: FloatFieldIJ,
+    v1: FloatFieldIJ,
+    t1: FloatFieldIJ,
+    prsl1: FloatFieldIJ,
+    prsik1: FloatFieldIJ,
+    prslk1: FloatFieldIJ,
+    qvapor1: FloatFieldIJ,
+    phil1: FloatFieldIJ,
+    ps: FloatFieldIJ,
+    sfcdlw: FloatFieldIJ,
+    sfcdsw: FloatFieldIJ,
+    sfcnsw: FloatFieldIJ,
+    physics_u: FloatField,
+    physics_v: FloatField,
+    physics_t: FloatField,
+    physics_prsl: FloatField,
+    physics_prsik: FloatField,
+    physics_prslk: FloatField,
+    physics_qvapor: FloatField,
+    physics_phil: FloatField,
+    physics_pgr: FloatFieldIJ,
+    physics_sfcdlw: FloatFieldIJ,
+    physics_sfcdsw: FloatFieldIJ,
+    physics_sfcnsw: FloatFieldIJ,
+):
+    with computation(FORWARD), interval(0, 1):
+        u1 = physics_u
+        v1 = physics_v
+        t1 = physics_t
+        prsl1 = physics_prsl
+        prsik1 = physics_prsik
+        prslk1 = physics_prslk
+        qvapor1 = physics_qvapor
+        phil1 = physics_phil
+        ps = physics_pgr
+        sfcdlw = physics_sfcdlw
+        sfcdsw = physics_sfcdsw
+        sfcnsw = physics_sfcnsw
+
+
+# TODO: once sfc_state is a required argument we can remove this
+def update_from_sfc(
+    sfc_wind: FloatFieldIJ,
+    sfc_uustar: FloatFieldIJ,
+    sfc_ffmm: FloatFieldIJ,
+    sfc_ffhh: FloatFieldIJ,
+    sfc_f10m: FloatFieldIJ,
+    sfc_emis: FloatFieldIJ,
+    sfc_srflg: BoolFieldIJ,
+    sfc_hice: FloatFieldIJ,
+    sfc_fice: FloatFieldIJ,
+    sfc_tisfc: FloatFieldIJ,
+    sfc_weasd: FloatFieldIJ,
+    sfc_tprcp: FloatFieldIJ,
+    sfc_rb: FloatFieldIJ,
+    sfc_stress: FloatFieldIJ,
+    sfc_hflx: FloatFieldIJ,
+    sfc_evap: FloatFieldIJ,
+    phys_wind: FloatFieldIJ,
+    phys_uustar: FloatFieldIJ,
+    phys_ffmm: FloatFieldIJ,
+    phys_ffhh: FloatFieldIJ,
+    phys_f10m: FloatFieldIJ,
+    phys_emis: FloatFieldIJ,
+    phys_srflg: BoolFieldIJ,
+    phys_hice: FloatFieldIJ,
+    phys_fice: FloatFieldIJ,
+    phys_tisfc: FloatFieldIJ,
+    phys_weasd: FloatFieldIJ,
+    phys_tprcp: FloatFieldIJ,
+    phys_rb: FloatFieldIJ,
+    phys_stress: FloatFieldIJ,
+    phys_hflx: FloatFieldIJ,
+    phys_evap: FloatFieldIJ,
+):
+    with computation(FORWARD), interval(0, 1):
+        phys_wind = sfc_wind
+        phys_uustar = sfc_uustar
+        phys_ffmm = sfc_ffmm
+        phys_ffhh = sfc_ffhh
+        phys_f10m = sfc_f10m
+        phys_emis = sfc_emis
+        phys_srflg = sfc_srflg
+        phys_hice = sfc_hice
+        phys_fice = sfc_fice
+        phys_tisfc = sfc_tisfc
+        phys_weasd = sfc_weasd
+        phys_tprcp = sfc_tprcp
+        phys_rb = sfc_rb
+        phys_stress = sfc_stress
+        phys_hflx = sfc_hflx
+        phys_evap = sfc_evap
 
 
 def start_physics(
@@ -357,46 +525,55 @@ def fill_pbl_state(
     phil: FloatField,
     prsi: FloatField,
     prsik: FloatField,
+    prslk: FloatField,
+    rbsoil: FloatFieldIJ,
+    tsea: FloatFieldIJ,
+    ffmm: FloatFieldIJ,
+    ffhh: FloatFieldIJ,
+    hflx: FloatFieldIJ,
+    evap: FloatFieldIJ,
+    wind: FloatFieldIJ,
+    stress: FloatFieldIJ,
     level_flip: IntFieldK,
     layer_flip: IntFieldK,
 ):
     from __externals__ import levs
 
     with computation(FORWARD), interval(0, 1):
-        pbl_psik = prsik[0, 0, level_flip]
+        pbl_psik = prsik
         pbl_kinver = levs
+        pbl_rbsoil = rbsoil
+        pbl_tsea = tsea
+        pbl_ffmm = ffmm
+        pbl_ffhh = ffhh
+        pbl_hflx = hflx
+        pbl_evap = evap
+        pbl_wind = wind
+        pbl_stress = stress
         # These will be filled in as they become available from prior schemes
-        pbl_rbsoil = 0.0
-        pbl_zorl = 0.0
-        pbl_tsea = physics_t[0, 0, layer_flip]
-        pbl_ffmm = 0.0
-        pbl_ffhh = 0.0
-        pbl_hflx = 0.0
-        pbl_evap = 0.0
-        pbl_wind = 0.0
-        pbl_stress = 0.0
         pbl_islimsk = 0  # sea-only for now
+        pbl_zorl = 0.0
         pbl_xmu = 0.0
     with computation(PARALLEL), interval(...):
-        pbl_u = physics_u[0, 0, layer_flip]
-        pbl_v = physics_v[0, 0, layer_flip]
-        pbl_t = physics_t[0, 0, layer_flip]
-        pbl_q[0, 0, 0][0] = qvapor[0, 0, layer_flip]
-        pbl_q[0, 0, 0][1] = qliquid[0, 0, layer_flip]
-        pbl_q[0, 0, 0][2] = qrain[0, 0, layer_flip]
-        pbl_q[0, 0, 0][3] = qice[0, 0, layer_flip]
-        pbl_q[0, 0, 0][4] = qsnow[0, 0, layer_flip]
-        pbl_q[0, 0, 0][5] = qgraupel[0, 0, layer_flip]
-        pbl_q[0, 0, 0][6] = qo3mr[0, 0, layer_flip]
-        pbl_q[0, 0, 0][7] = qsgs_tke[0, 0, layer_flip]
-        pbl_q[0, 0, 0][8] = qcld[0, 0, layer_flip]
-        pbl_delta = delp[0, 0, layer_flip]
-        pbl_phii = phii[0, 0, level_flip]
-        pbl_phil = phil[0, 0, layer_flip]
-        pbl_prsi = prsi[0, 0, level_flip]
+        pbl_u = physics_u
+        pbl_v = physics_v
+        pbl_t = physics_t
+        pbl_q[0, 0, 0][0] = qvapor
+        pbl_q[0, 0, 0][1] = qliquid
+        pbl_q[0, 0, 0][2] = qrain
+        pbl_q[0, 0, 0][3] = qice
+        pbl_q[0, 0, 0][4] = qsnow
+        pbl_q[0, 0, 0][5] = qgraupel
+        pbl_q[0, 0, 0][6] = qo3mr
+        pbl_q[0, 0, 0][7] = qsgs_tke
+        pbl_q[0, 0, 0][8] = qcld
+        pbl_delta = delp
+        pbl_phii = phii
+        pbl_phil = phil
+        pbl_prsi = prsi
+        pbl_prslk = prslk
         # These will be filled in once they become available from prior schemes
-        pbl_prsl = delp[0, 0, layer_flip]
-        pbl_prslk = 1.0
+        pbl_prsl = delp
         pbl_hsw = 0.0
         pbl_hlw = 0.0
 
@@ -625,7 +802,7 @@ def prepare_gfdl_cld_microphysics(
         qni1 = 0.0
 
 
-def post_shield_mp(
+def post_gfdl_cld_mp(
     delp: FloatField,
     delz: FloatField,
     ua: FloatField,
@@ -692,9 +869,10 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
+        sfc_config: SurfaceConfig = None,
+        pbl_config: PBLConfig = None,
         gfdl_cld_mp_config: GFDLCloudMPConfig = None,
         pre_radiation=False,
-        pbl_config: PBLConfig = None,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -763,9 +941,55 @@ class Physics:
             return self.quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
 
         self._rain1 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
-        self._prsik = make_quantity()
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
+        self._u1 = make_quantity()
+        self._v1 = make_quantity()
+        self._t1 = make_quantity()
+        self._prsl1 = make_quantity()
+        self._prsi1 = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+        )
+        self._prsik1 = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+        )
+        self._prslk1 = make_quantity()
+        self._qvapor1 = make_quantity()
+        self._qliquid1 = make_quantity()
+        self._qrain1 = make_quantity()
+        self._qice1 = make_quantity()
+        self._qsnow1 = make_quantity()
+        self._qgraupel1 = make_quantity()
+        self._qo3mr1 = make_quantity()
+        self._qsgs_tke1 = make_quantity()
+        self._qcld1 = make_quantity()
+        self._phil1 = make_quantity()
+        self._phii1 = quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+        )
+        # TODO: once surface state is a required argument we don't need these copies
+        self._sfcwind = make_quantity_2d()
+        self._uustar = make_quantity_2d()
+        self._ffmm = make_quantity_2d()
+        self._ffhh = make_quantity_2d()
+        self._f10m = make_quantity_2d()
+        self._emis = make_quantity_2d()
+        self._srflg = self.quantity_factory.zeros(
+            dims=[X_DIM, Y_DIM], units="unknown", dtype=Bool
+        )
+        self._hice = make_quantity_2d()
+        self._fice = make_quantity_2d()
+        self._tisfc = make_quantity_2d()
+        self._weasd = make_quantity_2d()
+        self._tprcp = make_quantity_2d()
+        self._rb = make_quantity_2d()
+        self._stress = make_quantity_2d()
+        self._hflx = make_quantity_2d()
+        self._evap = make_quantity_2d()
+        self._adjsfcdlw = make_quantity_2d()
+        self._adjsfcdsw = make_quantity_2d()
+        self._adjsfcnsw = make_quantity_2d()
+
         self._copy_stencil = stencil_factory.from_origin_domain(
             func=copy_defn,
             origin=grid_indexing.origin_full(),
@@ -813,6 +1037,11 @@ class Physics:
                 "pktop": self._pktop,
             },
         )
+        self._flip_fields = stencil_factory.from_origin_domain(
+            func=flip_fields,
+            origin=grid_indexing.origin_full(),
+            domain=grid_indexing.domain_full(),
+        )
         if not self._pre_radiation:
             self._interpolate_radiation = stencil_factory.from_origin_domain(
                 func=interpolate_radiation,
@@ -822,6 +1051,29 @@ class Physics:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
+        if "SFC_layer" in schemes:
+            if sfc_config is None:
+                raise ValueError(
+                    "Specify a surface configuration to use surface parameterizations"
+                )
+            self._sfc_layer = True
+            self._prepare_sfc = stencil_factory.from_origin_domain(
+                func=prepare_sfc,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+            self._sfc = SurfaceLayer(
+                stencil_factory,
+                quantity_factory,
+                sfc_config,
+            )
+            self._update_from_sfc = stencil_factory.from_origin_domain(
+                func=update_from_sfc,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+        else:
+            self._sfc_layer = False
         if "GFS_microphysics" in schemes:
             if "GFDL_cloud_microphysics" in schemes:
                 raise ValueError(
@@ -863,7 +1115,7 @@ class Physics:
                 stencil_factory, quantity_factory, grid_data, gfdl_cld_mp_config
             )
             self._post_gfdl_cld_microphysics = stencil_factory.from_origin_domain(
-                func=post_shield_mp,
+                func=post_gfdl_cld_mp,
                 externals={
                     "dtp": self._dt_phys,
                 },
@@ -927,10 +1179,16 @@ class Physics:
         self._nwat = 6  # spec.config.nwat
         self._p00 = 1.0e5
 
-    def __call__(self, physics_state: PhysicsState, timestep: float):
-
+    def __call__(
+        self,
+        physics_state: PhysicsState,
+        timestep: Float = 0.0,
+        surface_state: SurfaceState = None,
+    ):
+        if timestep == 0.0:
+            timestep = self._dt_phys
         self._atmos_phys_driver_statein(
-            self._prsik,
+            physics_state.prsik,
             physics_state.phii,
             physics_state.prsi,
             physics_state.delz,
@@ -946,6 +1204,7 @@ class Physics:
             physics_state.qcld,
             physics_state.pt,
             self._dm3d,
+            physics_state.pgr,
         )
         self._start_physics(
             self._dvdt,
@@ -986,6 +1245,111 @@ class Physics:
             physics_state.phii,
             physics_state.phil,
         )
+        self._flip_fields(
+            physics_state.ua,
+            physics_state.va,
+            physics_state.pt,
+            physics_state.qvapor,
+            physics_state.qliquid,
+            physics_state.qrain,
+            physics_state.qice,
+            physics_state.qsnow,
+            physics_state.qgraupel,
+            physics_state.qo3mr,
+            physics_state.qsgs_tke,
+            physics_state.qcld,
+            physics_state.delp,
+            physics_state.prsi,
+            physics_state.prsik,
+            physics_state.prslk,
+            physics_state.phil,
+            physics_state.phii,
+            self._u1,
+            self._v1,
+            self._t1,
+            self._qvapor1,
+            self._qliquid1,
+            self._qrain1,
+            self._qice1,
+            self._qsnow1,
+            self._qgraupel1,
+            self._qo3mr1,
+            self._qsgs_tke1,
+            self._qcld1,
+            self._prsl1,
+            self._prsi1,
+            self._prsik1,
+            self._prslk1,
+            self._phil1,
+            self._phii1,
+            self._level_flip,
+            self._layer_flip,
+        )
+        if self._sfc_layer:
+            if not surface_state:
+                raise ValueError("You must pass a surface state to run surface schemes")
+            self._prepare_sfc(
+                surface_state.u1,
+                surface_state.v1,
+                surface_state.t1,
+                surface_state.prsl1,
+                surface_state.prsik,
+                surface_state.prslk,
+                surface_state.qvapor,
+                surface_state.phil,
+                surface_state.ps,
+                surface_state.sfcdlw,
+                surface_state.sfcdsw,
+                surface_state.sfcnsw,
+                self._u1,
+                self._v1,
+                self._t1,
+                self._prsl1,
+                self._prsik1,
+                self._prslk1,
+                self._qvapor1,
+                self._phil1,
+                physics_state.pgr,
+                self._adjsfcdlw,
+                self._adjsfcdsw,
+                self._adjsfcnsw,
+            )
+            self._sfc(surface_state)
+            # TODO: once surface state is a required argument we don't need this copy
+            self._update_from_sfc(
+                surface_state.wind,
+                surface_state.uustar,
+                surface_state.ffmm,
+                surface_state.ffhh,
+                surface_state.f10m,
+                surface_state.sfcemis,
+                surface_state.srflag,
+                surface_state.hice,
+                surface_state.fice,
+                surface_state.tisfc,
+                surface_state.weasd,
+                surface_state.tprcp,
+                surface_state.rb,
+                surface_state.stress,
+                surface_state.hflx,
+                surface_state.evap,
+                self._sfcwind,
+                self._uustar,
+                self._ffmm,
+                self._ffhh,
+                self._f10m,
+                self._emis,
+                self._srflg,
+                self._hice,
+                self._fice,
+                self._tisfc,
+                self._weasd,
+                self._tprcp,
+                self._rb,
+                self._stress,
+                self._hflx,
+                self._evap,
+            )
         # TODO: Once more things are merged we can update the PBL state
         # and call the PBL scheme
         if self._satm_edmf:
@@ -1016,23 +1380,32 @@ class Physics:
                 self.pbl_state.evap,
                 self.pbl_state.stress,
                 self.pbl_state.spd1,
-                physics_state.ua,
-                physics_state.va,
-                physics_state.pt,
-                physics_state.qvapor,
-                physics_state.qliquid,
-                physics_state.qrain,
-                physics_state.qice,
-                physics_state.qsnow,
-                physics_state.qgraupel,
-                physics_state.qo3mr,
-                physics_state.qsgs_tke,
-                physics_state.qcld,
-                physics_state.delp,
-                physics_state.phii,
-                physics_state.phil,
-                physics_state.prsi,
-                physics_state.prsik,
+                self._u1,
+                self._v1,
+                self._t1,
+                self._qvapor1,
+                self._qliquid1,
+                self._qrain1,
+                self._qice1,
+                self._qsnow1,
+                self._qgraupel1,
+                self._qo3mr1,
+                self._qsgs_tke1,
+                self._qcld1,
+                self._prsl1,
+                self._phil1,
+                self._phii1,
+                self._prsi1,
+                self._prsik1,
+                self._prslk1,
+                self._rb,
+                self._tisfc,
+                self._ffmm,
+                self._ffhh,
+                self._hflx,
+                self._evap,
+                self._sfcwind,
+                self._stress,
                 self._level_flip,
                 self._layer_flip,
             )

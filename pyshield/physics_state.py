@@ -286,7 +286,7 @@ class PhysicsState:
         metadata={
             "name": "log_interface_pressure",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "Pa",
+            "units": "",
             "intent": "inout",
         }
     )
@@ -296,6 +296,14 @@ class PhysicsState:
             "dims": [X_DIM, Y_DIM, Z_DIM],
             "units": "",
             "intent": "inout",
+        }
+    )
+    pgr: Quantity = field(
+        metadata={
+            "name": "ground_pressure",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "in",
         }
     )
     hsw: Quantity = field(
