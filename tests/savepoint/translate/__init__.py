@@ -48,6 +48,18 @@ from .translate_sedimentation import (
     TranslateSediMelt,
     TranslateSedimentation,
 )
+from .translate_sfc_diff import (
+    TranslateSurfaceExchange_iter1,
+    TranslateSurfaceExchange_iter2,
+)
+from .translate_sfc_ocean import (
+    TranslateSurfaceOcean_iter1,
+    TranslateSurfaceOcean_iter2,
+)
+from .translate_sfc_sice import (
+    TranslateSurfaceSeaIce_iter1,
+    TranslateSurfaceSeaIce_iter2,
+)
 from .translate_start_fall import TranslateEndFall, TranslateStartFall
 from .translate_subgridz import TranslateSubgridZProc
 from .translate_subsub import TranslateSubgridZSubs
