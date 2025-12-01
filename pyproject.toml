@@ -15,7 +15,8 @@ classifiers = [
 dependencies = [
   "f90nml>=1.1.0",
   "numpy==1.26.4",
-  "xarray"
+  "xarray",
+  "pyrte-rrtmgp @ git+https://github.com/fmalatino/pyRTE-RRTMGP.git@pip_install"
 ]
 description = "pySHiELD is a collection of NDSL-based physical parameterizations"
 license = "Apache-2.0"
