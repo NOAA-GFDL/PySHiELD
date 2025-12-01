@@ -39,6 +39,7 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFS_microphysics = "GFS_microphysics"
     GFDL_cloud_microphysics = "GFDL_cloud_microphysics"
     SATM_EDMF = "SATM_EDMF"
+    SFC_layer = "SFC_layer"
 
 
 @dataclasses.dataclass
