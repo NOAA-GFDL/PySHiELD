@@ -22,9 +22,6 @@ CONQ = Float(constants.HLV / constants.GRAV)
 P00 = Float(1.0e5)
 """idealized surface atmospheric pressure (Pa)"""
 
-# Constants used in interpolating radiation onto physics timestep:
-F_EPS = 0.0001
-
 # Alternative Units and Precision in Physics:
 CPH2O1 = Float(4.218e3)
 """Specific heat of water in J/kg/K"""
