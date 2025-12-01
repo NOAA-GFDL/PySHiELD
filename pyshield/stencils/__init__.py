@@ -1,9 +1,9 @@
-from .microphysics import Microphysics, MicrophysicsState
+from .gfs_microphysics import GFSMicrophysics, GFSMicrophysicsState
 
 
 """
-Microphysics: GFS Cloud Microphysics class
-MicrophysicsState: Class containing the state for the GFS Cloud Microphysics
+GFSMicrophysics: GFS Cloud Microphysics class
+GFSMicrophysicsState: Class containing the state for the GFS Cloud Microphysics
 """
 
-__all__ = ["Microphysics", "MicrophysicsState"]
+__all__ = ["GFSMicrophysics", "GFSMicrophysicsState"]
