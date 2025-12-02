@@ -20,7 +20,7 @@ class ShallowConvectionConfig:
     ntke: int = -1
     """index of tke tracer"""
     nsamftrac: int = 7
-    """number of tracers convected, excluding humidity"""
+    """number of tracers convected (excludes humidity and cloud amount)"""
     ncld: int = 1
     """Choice of cloud scheme"""
     ntchm: int = _DEFAULT_INT

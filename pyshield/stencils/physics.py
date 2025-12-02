@@ -35,6 +35,7 @@ from pyshield.stencils.gfdl_cld_microphysics import (
 from pyshield.stencils.gfs_microphysics import GFSMicrophysics
 from pyshield.stencils.pbl import PBLConfig, SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
 from pyshield.stencils.shallow_convection import (
+    SC_TRACER_DIM,
     FloatFieldShalConv,
     SAMFShalConvState,
     ScaleAwareMassFluxShallowConvection,
@@ -618,7 +619,6 @@ def fill_shalconv_state(
     qgraupel: FloatField,
     qo3mr: FloatField,
     qsgs_tke: FloatField,
-    qcld: FloatField,
     physics_dot: FloatField,
     physics_hpbl: FloatFieldIJ,
     physics_prslp: FloatField,
@@ -652,7 +652,6 @@ def fill_shalconv_state(
         shalconv_qtr[0, 0, 0][4] = qgraupel
         shalconv_qtr[0, 0, 0][5] = qo3mr
         shalconv_qtr[0, 0, 0][6] = qsgs_tke
-        shalconv_qtr[0, 0, 0][7] = qcld
 
 
 def results_from_shalconv(
@@ -667,7 +666,6 @@ def results_from_shalconv(
     physics_qgraupel: FloatField,
     physics_qo3mr: FloatField,
     physics_qsgs_tke: FloatField,
-    physics_qcld: FloatField,
     shalconv_t1: FloatField,
     shalconv_u1: FloatField,
     shalconv_v1: FloatField,
@@ -686,7 +684,6 @@ def results_from_shalconv(
         physics_qgraupel = shalconv_qtr[0, 0, 0][4]
         physics_qo3mr = shalconv_qtr[0, 0, 0][5]
         physics_qsgs_tke = shalconv_qtr[0, 0, 0][6]
-        physics_qcld = shalconv_qtr[0, 0, 0][7]
 
 
 def prepare_gfs_microphysics(
@@ -987,10 +984,13 @@ class Physics:
                 f"ntracers != 9 has not been implemented, got {self._ntracers}"
             )
         self.TRACER_DIM = TRACER_DIM
+        self.SC_TRACER_DIM = SC_TRACER_DIM
         self.quantity_factory = quantity_factory
+        # TODO SC_TRACER_DIM shouldn't be hardcoded
         self.quantity_factory.add_data_dimensions(
             {
                 self.TRACER_DIM: self._ntracers,
+                self.SC_TRACER_DIM: self._ntracers - 2,
             }
         )
 
@@ -1578,7 +1578,6 @@ class Physics:
                 self._qgraupel1,
                 self._qo3mr1,
                 self._qsgs_tke1,
-                self._qcld1,
                 self._w1,
                 physics_state.hpbl,
                 self._prsl1,
@@ -1588,7 +1587,7 @@ class Physics:
                 self._area,
             )
 
-            self._samf_shalconv(self.shalconv_state)
+            self._samf_shallow_convection(self.shalconv_state)
 
             self._results_from_shalconv(
                 self._t1,
@@ -1602,7 +1601,6 @@ class Physics:
                 self._qgraupel1,
                 self._qo3mr1,
                 self._qsgs_tke1,
-                self._qcld1,
                 self.shalconv_state.t1,
                 self.shalconv_state.u1,
                 self.shalconv_state.v1,

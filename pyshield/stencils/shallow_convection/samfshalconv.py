@@ -2173,11 +2173,12 @@ class ScaleAwareMassFluxShallowConvection:
         self.TRACER_DIM = SC_TRACER_DIM
 
         self.quantity_factory = quantity_factory
-        self.quantity_factory.add_data_dimensions(
-            {
-                self.TRACER_DIM: int(self._ntr + 2),
-            }
-        )
+        if self.TRACER_DIM not in self.quantity_factory.sizer.data_dimensions.keys():
+            self.quantity_factory.add_data_dimensions(
+                {
+                    self.TRACER_DIM: int(self._ntr + 2),
+                }
+            )
 
         # Tracers are kind of borked right now. In Fortran the water vapor is passed in
         # separately, while all others come in via the variable "qtr" which has

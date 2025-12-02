@@ -183,6 +183,7 @@ class SAMFShalConvState:
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "in",
+            "dtype": Int,
         }
     )
 
@@ -191,10 +192,11 @@ class SAMFShalConvState:
         initial_arrays = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
-                if "dtype" in _field.metadata.keys():
-                    dtype = _field.metadata["dtype"]
-                else:
-                    dtype = Float
+                dtype = (
+                    _field.metadata["dtype"]
+                    if "dtype" in _field.metadata.keys()
+                    else Float
+                )
                 initial_arrays[_field.name] = quantity_factory.zeros(
                     _field.metadata["dims"],
                     _field.metadata["units"],
