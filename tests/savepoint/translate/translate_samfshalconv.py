@@ -1,9 +1,9 @@
 from ndsl import QuantityFactory, SubtileGridSizer
 from pyshield.stencils.shallow_convection import (
+    SC_TRACER_DIM,
     SAMFShalConvState,
     ScaleAwareMassFluxShallowConvection,
     ShallowConvectionConfig,
-    SC_TRACER_DIM
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
