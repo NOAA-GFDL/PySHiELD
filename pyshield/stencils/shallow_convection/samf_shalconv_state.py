@@ -46,7 +46,7 @@ class SAMFShalConvState:
     )
     qtr: Quantity = field(
         metadata={
-            "name": "convective_tracers",
+            "name": "convected_tracers",
             "dims": [X_DIM, Y_DIM, Z_DIM, SC_TRACER_DIM],
             "units": "kg/kg",
             "intent": "in",

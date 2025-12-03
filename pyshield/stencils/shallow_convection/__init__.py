@@ -1,6 +1,6 @@
 from ._config import SC_TRACER_DIM, FloatFieldShalConv, ShallowConvectionConfig
+from .samf_shalconv_state import SAMFShalConvState
 from .samfshalconv import ScaleAwareMassFluxShallowConvection
-from .state import SAMFShalConvState
 
 
 """

@@ -33,7 +33,7 @@ from pyshield.stencils.shallow_convection._config import (
     FloatFieldShalConv,
     ShallowConvectionConfig,
 )
-from pyshield.stencils.shallow_convection.state import SAMFShalConvState
+from pyshield.stencils.shallow_convection.samf_shalconv_state import SAMFShalConvState
 
 
 def exit_routine(cnvflg):

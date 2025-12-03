@@ -618,6 +618,7 @@ def fill_shalconv_state(
     qsnow: FloatField,
     qgraupel: FloatField,
     qo3mr: FloatField,
+    qcld: FloatField,
     qsgs_tke: FloatField,
     physics_dot: FloatField,
     physics_hpbl: FloatFieldIJ,
@@ -652,6 +653,8 @@ def fill_shalconv_state(
         shalconv_qtr[0, 0, 0][4] = qgraupel
         shalconv_qtr[0, 0, 0][5] = qo3mr
         shalconv_qtr[0, 0, 0][6] = qsgs_tke
+        shalconv_qtr[0, 0, 0][6] = qsgs_tke
+        shalconv_qtr[0, 0, 0][7] = qcld
 
 
 def results_from_shalconv(
@@ -666,6 +669,7 @@ def results_from_shalconv(
     physics_qgraupel: FloatField,
     physics_qo3mr: FloatField,
     physics_qsgs_tke: FloatField,
+    physics_qcld: FloatField,
     shalconv_t1: FloatField,
     shalconv_u1: FloatField,
     shalconv_v1: FloatField,
@@ -684,6 +688,7 @@ def results_from_shalconv(
         physics_qgraupel = shalconv_qtr[0, 0, 0][4]
         physics_qo3mr = shalconv_qtr[0, 0, 0][5]
         physics_qsgs_tke = shalconv_qtr[0, 0, 0][6]
+        physics_qcld = shalconv_qtr[0, 0, 0][7]
 
 
 def prepare_gfs_microphysics(
@@ -990,7 +995,7 @@ class Physics:
         self.quantity_factory.add_data_dimensions(
             {
                 self.TRACER_DIM: self._ntracers,
-                self.SC_TRACER_DIM: self._ntracers - 2,
+                self.SC_TRACER_DIM: self._ntracers,
             }
         )
 
@@ -1578,6 +1583,7 @@ class Physics:
                 self._qgraupel1,
                 self._qo3mr1,
                 self._qsgs_tke1,
+                self._qcld1,
                 self._w1,
                 physics_state.hpbl,
                 self._prsl1,
@@ -1601,6 +1607,7 @@ class Physics:
                 self._qgraupel1,
                 self._qo3mr1,
                 self._qsgs_tke1,
+                self._qcld1,
                 self.shalconv_state.t1,
                 self.shalconv_state.u1,
                 self.shalconv_state.v1,

@@ -5,6 +5,7 @@ from ndsl.dsl.typing import Float, set_4d_field_size
 
 
 # TODO: This should be handled by tracer functionality when ready
+# and the field size should be nsamftrac + 2 instead of hardcoded
 FloatFieldShalConv = set_4d_field_size(7, Float)
 
 _DEFAULT_INT = 0
@@ -19,8 +20,8 @@ class ShallowConvectionConfig:
     """timestep length (s)"""
     ntke: int = -1
     """index of tke tracer"""
-    nsamftrac: int = 7
-    """number of tracers convected (excludes humidity and cloud amount)"""
+    nsamftrac: int = 5
+    """number of tracers convected (excludes cloud condensates)"""
     ncld: int = 1
     """Choice of cloud scheme"""
     ntchm: int = _DEFAULT_INT
