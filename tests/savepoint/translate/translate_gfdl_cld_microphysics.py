@@ -122,7 +122,6 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
                 "kend": self.config.npz,
                 "shield": True,
             },
-            "condensation": {"serialname": "mp_cond", "shield": True},
             "deposition": {"serialname": "mp_dep", "shield": True},
             "evaporation": {"serialname": "mp_reevap", "shield": True},
             "sublimation": {"serialname": "mp_sub", "shield": True},
