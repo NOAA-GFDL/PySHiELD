@@ -179,10 +179,7 @@ class InitCols:
         )
         conv_a = copy.deepcopy(cnvflg)
         conv_b = np.full(cnvflg.shape, True)
-        print(cnvflg[3:-4, 3:-4][16, 1], conv_b[3:-4, 3:-4][16, 1])
-        print(cnvflg[3:-4, 3:-4][16, 1] ^ conv_b[3:-4, 3:-4][16, 1])
         cols = col_diffs(cnvflg[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("Post-init: ", cols)
 
 
 class Static1:
@@ -435,7 +432,6 @@ class Static1:
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -553,7 +549,6 @@ class Static1:
         conv_b = copy.deepcopy(cnvflg)
 
         columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("after static1: ", columns)
 
 
 class Static2:
@@ -861,7 +856,6 @@ class Static2:
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -981,8 +975,6 @@ class Static2:
         conv_b = copy.deepcopy(cnvflg)
 
         columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("after static1: ", columns)
-        # breakpoint()
 
         self._stencil_static2(
             cnvflg,
@@ -1340,7 +1332,6 @@ class UpdateKB9:
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -1459,7 +1450,6 @@ class UpdateKB9:
         conv_b = copy.deepcopy(cnvflg)
 
         columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("after static1: ", columns)
 
         self._stencil_static2(
             cnvflg,
@@ -1479,7 +1469,6 @@ class UpdateKB9:
         conv_a = copy.deepcopy(cnvflg)
 
         columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("after static2: ", columns)
 
         self._stencil_static3(
             self._sumx,
@@ -1572,7 +1561,6 @@ class UpdateKB9:
         conv_b = copy.deepcopy(cnvflg)
 
         columns = col_diffs(conv_a[3:-4, 3:-4], conv_b[3:-4, 3:-4])
-        print("after update kbcon1: ", columns)
 
         self._stencil_static9(
             cnvflg,
@@ -1923,7 +1911,6 @@ class Static10:
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a, conv_b)
-        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -2042,7 +2029,6 @@ class Static10:
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static1: ", columns)
 
         self._stencil_static2(
             cnvflg,
@@ -2062,7 +2048,6 @@ class Static10:
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static2: ", columns)
 
         self._stencil_static3(
             self._sumx,
@@ -2155,7 +2140,6 @@ class Static10:
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after update kbcon1: ", columns)
 
         self._stencil_static9(
             cnvflg,
@@ -2171,7 +2155,6 @@ class Static10:
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static9: ", columns)
 
         self._stencil_static10(
             cina,
@@ -2287,7 +2270,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a, conv_b)
-        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -2406,7 +2388,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static1: ", columns)
 
         self._stencil_static2(
             cnvflg,
@@ -2426,7 +2407,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static2: ", columns)
 
         self._stencil_static3(
             self._sumx,
@@ -2519,7 +2499,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after update kbcon1: ", columns)
 
         self._stencil_static9(
             cnvflg,
@@ -2535,7 +2514,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static9: ", columns)
 
         self._stencil_static10(
             self._cina,
@@ -2557,7 +2535,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static10: ", columns)
 
         self._stencil_static11(
             flg,
@@ -2595,7 +2572,6 @@ class Static11(ScaleAwareMassFluxShallowConvection):
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static11: ", columns)
 
 
 class Static12(ScaleAwareMassFluxShallowConvection):
@@ -2695,7 +2671,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_b = np.ones_like(conv_a)
 
         cols = col_diffs(conv_a, conv_b)
-        print("Post-init: ", cols)
 
         self._init_par_and_arr(
             islimsk,
@@ -2814,7 +2789,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static1: ", columns)
 
         self._stencil_static2(
             cnvflg,
@@ -2834,7 +2808,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static2: ", columns)
 
         self._stencil_static3(
             sumx,
@@ -2927,7 +2900,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after update kbcon1: ", columns)
 
         self._stencil_static9(
             cnvflg,
@@ -2943,7 +2915,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static9: ", columns)
 
         self._stencil_static10(
             self._cina,
@@ -2965,7 +2936,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_b = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static10: ", columns)
 
         self._stencil_static11(
             flg,
@@ -3003,7 +2973,6 @@ class Static12(ScaleAwareMassFluxShallowConvection):
         conv_a = copy.deepcopy(cnvflg[:])
 
         columns = col_diffs(conv_a, conv_b)
-        print("after static11: ", columns)
 
         self._static12(
             cnvflg,
@@ -4426,7 +4395,6 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
             int(inputs.pop("s13_ncloud")),
         )
         self.compute_func(**inputs)
-        print(np.argwhere(inputs["cnvflg"]))
         return self.slice_output(inputs)
 
 
