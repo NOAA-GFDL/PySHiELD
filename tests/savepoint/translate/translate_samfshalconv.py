@@ -3,6 +3,7 @@ from pyshield.stencils.shallow_convection import (
     SAMFShalConvState,
     ScaleAwareMassFluxShallowConvection,
     ShallowConvectionConfig,
+    SC_TRACER_DIM
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -98,6 +99,11 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
 
         quantity_factory = QuantityFactory.from_backend(
             sizer, self.stencil_factory.backend
+        )
+        quantity_factory.add_data_dimensions(
+            {
+                SC_TRACER_DIM: inputs["sc_nsamftrac"] + 2,
+            }
         )
 
         self.make_storage_data_input_vars(inputs)
