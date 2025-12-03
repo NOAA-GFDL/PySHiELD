@@ -2,6 +2,18 @@
 from .translate_atmos_phy_statein import TranslateAtmosPhysDriverStatein
 from .translate_cloud_frac import TranslateCloudFrac
 from .translate_config_init import TranslateConfigInit
+from .translate_cumulative_shalconv import (
+    TranslateCompTendencies,
+    TranslateFeedbackCtrl,
+    TranslateInitCol,
+    TranslateSC13,
+    TranslateStatic1,
+    TranslateStatic2,
+    TranslateStatic10,
+    TranslateStatic11,
+    TranslateStatic12,
+    TranslateUpdateKb9,
+)
 from .translate_dcyc import TranslateRadInterp
 from .translate_fillgfs import TranslateFillGFS
 from .translate_final_mp import TranslateFinalCalculations, TranslatePostMP
@@ -41,6 +53,7 @@ from .translate_phifv3 import TranslatePhiFV3
 from .translate_physics import ParallelPhysicsTranslate2Py, TranslateFortranData2Py
 from .translate_preliminary_mp import TranslatePreliminaryCalculations
 from .translate_prsfv3 import TranslatePrsFV3
+from .translate_samfshalconv import TranslateShalConv
 from .translate_sedimentation import (
     TranslateCalcVTIce,
     TranslateCalcVTSnow,
