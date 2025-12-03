@@ -93,7 +93,7 @@ class InitCols:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: int(self._ntr + 2),
             }
         )
@@ -222,7 +222,7 @@ class Static1:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: int(self._ntr + 2),
             }
         )
@@ -593,7 +593,7 @@ class Static2:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: int(self._ntr + 2),
             }
         )
@@ -1035,7 +1035,7 @@ class UpdateKB9:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: int(self._ntr + 2),
             }
         )
@@ -1621,7 +1621,7 @@ class Static10:
 
         self.quantity_factory = quantity_factory
         self.quantity_factory.add_data_dimensions(
-            **{
+            {
                 self.TRACER_DIM: int(self._ntr + 2),
             }
         )
@@ -3234,7 +3234,6 @@ class CompTendencies:
             externals={"dt2": self._dt2},
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        pass
 
     def __call__(
         self,
@@ -4583,7 +4582,5 @@ class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
             self.quantity_factory,
             inputs.pop("sct_dt2"),
         )
-        print(np.argwhere(inputs["cnvflg"]))
-        print(len(np.argwhere(inputs["cnvflg"])))
         self.compute_func(**inputs)
         return self.slice_output(inputs)

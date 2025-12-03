@@ -990,7 +990,6 @@ class Physics:
         self.quantity_factory.add_data_dimensions(
             {
                 self.TRACER_DIM: self._ntracers,
-                self.SC_TRACER_DIM: self._ntracers - 2,
             }
         )
 
@@ -1148,6 +1147,11 @@ class Physics:
             if sc_config is None:
                 raise ValueError("Shallow convection enabled but no config specified")
             self._samf_shalconv = True
+            self.quantity_factory.add_data_dimensions(
+                {
+                    self.SC_TRACER_DIM: sc_config.nsamftrac + 2,
+                }
+            )
             self._fill_shalconv_state = stencil_factory.from_origin_domain(
                 func=fill_shalconv_state,
                 origin=grid_indexing.origin_compute(),
