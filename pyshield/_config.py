@@ -20,6 +20,7 @@ DEFAULT_INT = 0
 DEFAULT_FLOAT = 0.0
 DEFAULT_STR = ""
 DEFAULT_BOOL = False
+DEFAULT_FLOAT = Float(0.0)
 DEFAULT_SCHEMES = ["GFS_microphysics"]
 TRACER_DIM = "n_tracers"
 DEFAULT_PHYS_NML_GROUPS = (
@@ -36,6 +37,7 @@ DEFAULT_PHYS_NML_GROUPS = (
 # microphysics, PBL, shallow convection, etc?
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
+    SAMF_SHALCONV = "SAMF_SHALCONV"
     GFS_microphysics = "GFS_microphysics"
     GFDL_cloud_microphysics = "GFDL_cloud_microphysics"
     SATM_EDMF = "SATM_EDMF"
@@ -173,6 +175,12 @@ class PhysicsConfig:
     """value for 'a' in lin1983"""
     clin: float = 4.8
     """"c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)"""
+    ntke: int = DEFAULT_INT
+    """Tracer index of turbulent kinetic energy"""
+    ntiw: int = DEFAULT_INT
+    """Tracer index of ice condensate"""
+    ntcw: int = DEFAULT_INT
+    """Tracer index of cloud water"""
     namelist_override: Optional[str] = None
     target_nml_groups: Optional[Tuple[str, ...]] = DEFAULT_PHYS_NML_GROUPS
     daily_mean: bool = DEFAULT_BOOL
