@@ -8,7 +8,7 @@ from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
 from pyshield._config import PHYSICS_PACKAGES
-from pyshield.stencils.microphysics import MicrophysicsState
+from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
 
 
 @dataclass()
@@ -186,6 +186,22 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    physics_updated_qo3mr: Quantity = field(
+        metadata={
+            "name": "physics_updated_ozone_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
+    physics_updated_qtke: Quantity = field(
+        metadata={
+            "name": "physics_updated_tke_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
     physics_updated_cloud_fraction: Quantity = field(
         metadata={
             "name": "physics_cloud_fraction",
@@ -270,8 +286,40 @@ class PhysicsState:
         metadata={
             "name": "log_interface_pressure",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "Pa",
+            "units": "",
             "intent": "inout",
+        }
+    )
+    prslk: Quantity = field(
+        metadata={
+            "name": "Exner_function",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+    pgr: Quantity = field(
+        metadata={
+            "name": "ground_pressure",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "in",
+        }
+    )
+    hsw: Quantity = field(
+        metadata={
+            "name": "shortwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "k/s",
+            "intent": "in",
+        }
+    )
+    hlw: Quantity = field(
+        metadata={
+            "name": "longwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "k/s",
+            "intent": "in",
         }
     )
     land: Quantity = field(
@@ -280,6 +328,30 @@ class PhysicsState:
             "dims": [X_DIM, Y_DIM],
             "units": "-",
             "intent": "in",
+        }
+    )
+    kpbl: Quantity = field(
+        metadata={
+            "name": "pbl_index",
+            "dims": [X_DIM, Y_DIM],
+            "units": "-",
+            "intent": "inout",
+        }
+    )
+    kinver: Quantity = field(
+        metadata={
+            "name": "inversion_layer_index",
+            "dims": [X_DIM, Y_DIM],
+            "units": "-",
+            "intent": "inout",
+        }
+    )
+    hpbl: Quantity = field(
+        metadata={
+            "name": "pbl_height",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m",
+            "intent": "inout",
         }
     )
     quantity_factory: InitVar[QuantityFactory]
@@ -297,25 +369,27 @@ class PhysicsState:
                 "unknown",
                 dtype=Float,
             )
-            self.microphysics: Optional[MicrophysicsState] = MicrophysicsState(
-                pt=self.pt,
-                qvapor=self.qvapor,
-                qliquid=self.qliquid,
-                qrain=self.qrain,
-                qice=self.qice,
-                qsnow=self.qsnow,
-                qgraupel=self.qgraupel,
-                qcld=self.qcld,
-                ua=self.ua,
-                va=self.va,
-                delp=self.delp,
-                delz=self.delz,
-                omga=self.omga,
-                delprsi=self.delprsi,
-                wmp=self.wmp,
-                dz=self.dz,
-                tendency=tendency,
-                land=self.land,
+            self.gfs_microphysics: Optional[GFSMicrophysicsState] = (
+                GFSMicrophysicsState(
+                    pt=self.pt,
+                    qvapor=self.qvapor,
+                    qliquid=self.qliquid,
+                    qrain=self.qrain,
+                    qice=self.qice,
+                    qsnow=self.qsnow,
+                    qgraupel=self.qgraupel,
+                    qcld=self.qcld,
+                    ua=self.ua,
+                    va=self.va,
+                    delp=self.delp,
+                    delz=self.delz,
+                    omga=self.omga,
+                    delprsi=self.delprsi,
+                    wmp=self.wmp,
+                    dz=self.dz,
+                    tendency=tendency,
+                    land=self.land,
+                )
             )
         else:
             self.microphysics = None
@@ -350,13 +424,19 @@ class PhysicsState:
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
                 dims = _field.metadata["dims"]
-                quantity = Quantity(
-                    storages[_field.name],
-                    dims,
-                    _field.metadata["units"],
-                    origin=sizer.get_origin(dims),
-                    extent=sizer.get_extent(dims),
-                )
+                if _field.name in storages.keys():
+                    quantity = Quantity(
+                        storages[_field.name],
+                        dims,
+                        _field.metadata["units"],
+                        origin=sizer.get_origin(dims),
+                        extent=sizer.get_extent(dims),
+                    )
+                else:
+                    quantity = quantity_factory.zeros(
+                        dims,
+                        _field.metadata["units"],
+                    )
                 inputs[_field.name] = quantity
         return cls(**inputs, quantity_factory=quantity_factory, schemes=schemes)
 

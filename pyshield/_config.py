@@ -8,36 +8,58 @@ import f90nml
 from dacite import Config, from_dict
 
 from ndsl import MetaEnumStr
+from ndsl.dsl.gt4py_utils import tracer_variables
+from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.utils import f90nml_as_dict
 
 
+# TODO: This will become a TracerBundle when ready
+FloatFieldTracer = set_4d_field_size(9, Float)
+
 DEFAULT_INT = 0
+DEFAULT_FLOAT = 0.0
+DEFAULT_STR = ""
 DEFAULT_BOOL = False
+DEFAULT_FLOAT = Float(0.0)
 DEFAULT_SCHEMES = ["GFS_microphysics"]
+TRACER_DIM = "n_tracers"
 DEFAULT_PHYS_NML_GROUPS = (
     "main_nml",
     "coupler_nml",
+    "fv_core_nml",
     "gfdl_cloud_microphysics_nml",
     "integ_phys_nml",
     "gfs_physics_nml",
 )
 
 
+# TODO: Should we have an enum for each class of parameterization
+# microphysics, PBL, shallow convection, etc?
 @unique
 class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
+    SAMF_SHALCONV = "SAMF_SHALCONV"
     GFS_microphysics = "GFS_microphysics"
+    GFDL_cloud_microphysics = "GFDL_cloud_microphysics"
+    SATM_EDMF = "SATM_EDMF"
+    SFC_layer = "SFC_layer"
 
 
 @dataclasses.dataclass
 class PhysicsConfig:
-    dt_atmos: int = DEFAULT_INT
+    dt_atmos: float = DEFAULT_FLOAT
     hydrostatic: bool = DEFAULT_BOOL
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
     npz: int = DEFAULT_INT
     nwat: int = DEFAULT_INT
     schemes: List = None
+    ntracers: int = int(len(tracer_variables))
+    ntiw: int = DEFAULT_INT
+    ntcw: int = DEFAULT_INT
+    ntke: int = DEFAULT_INT
     do_qa: bool = DEFAULT_BOOL
+    do_inline_mp: bool = False
+    """Whether microphysics is inlined in the dycore"""
     c_cracw: float = 0.8
     """Rain accretion efficiency"""
     c_paut: float = 0.5
@@ -153,9 +175,16 @@ class PhysicsConfig:
     """value for 'a' in lin1983"""
     clin: float = 4.8
     """"c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)"""
+    ntke: int = DEFAULT_INT
+    """Tracer index of turbulent kinetic energy"""
+    ntiw: int = DEFAULT_INT
+    """Tracer index of ice condensate"""
+    ntcw: int = DEFAULT_INT
+    """Tracer index of cloud water"""
     namelist_override: Optional[str] = None
     target_nml_groups: Optional[Tuple[str, ...]] = DEFAULT_PHYS_NML_GROUPS
-    daily_mean: bool = DEFAULT_BOOL  # flag to replace cosz with daily mean value
+    daily_mean: bool = DEFAULT_BOOL
+    """flag to replace cosz with daily mean value"""
 
     def __post_init__(self):
         if self.schemes is None:
@@ -166,6 +195,9 @@ class PhysicsConfig:
                 raise NotImplementedError(f"{scheme} physics scheme not implemented")
             package_schemes.append(PHYSICS_PACKAGES[scheme])
         self.schemes = package_schemes
+        self.ntiw = tracer_variables.index("qice")
+        self.ntcw = tracer_variables.index("qliquid")
+        self.ntke = tracer_variables.index("qsgs_tke")
         if self.namelist_override is not None:
             try:
                 f90_nml = f90nml.read(self.namelist_override)
