@@ -8,8 +8,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 
 
 class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
-    def __init__(self, grid, namelist, stencil_factory):
-        super().__init__(grid, namelist, stencil_factory)
+    def __init__(self, grid, config, stencil_factory):
+        super().__init__(grid, config, stencil_factory)
         self.in_vars["data_vars"] = {
             "qvapor": {"dycore": True},
             "qliquid": {"dycore": True},
@@ -82,6 +82,13 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
         }
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
+
+        # This test wasn't running (on CI) for a long time because it was misconfigured.
+        # Now it's properly configured and temporarily skipped (i.e. still not running
+        # as before). Issue https://github.com/NOAA-GFDL/PySHiELD/issues/66 exists to
+        # re-enable and fix this test. To unskip, just delete the following line (and
+        # this comment).
+        self.skip_test = True
 
     def compute(self, inputs):
         self.make_storage_data_input_vars(inputs)
@@ -183,7 +190,7 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.phii,
             physics_state.phil,
         )
-        physics._prepare_microphysics(
+        physics._prepare_gfs_microphysics(
             physics_state.dz,
             physics_state.phii,
             physics_state.wmp,
@@ -191,18 +198,18 @@ class TranslateGFSPhysicsDriver(TranslatePhysicsFortranData2Py):
             physics_state.qvapor,
             physics_state.pt,
             physics_state.delp,
-            physics_state.microphysics.udt,
-            physics_state.microphysics.vdt,
-            physics_state.microphysics.pt_dt,
-            physics_state.microphysics.qv_dt,
-            physics_state.microphysics.ql_dt,
-            physics_state.microphysics.qr_dt,
-            physics_state.microphysics.qi_dt,
-            physics_state.microphysics.qs_dt,
-            physics_state.microphysics.qg_dt,
-            physics_state.microphysics.qa_dt,
+            physics_state.gfs_microphysics.udt,
+            physics_state.gfs_microphysics.vdt,
+            physics_state.gfs_microphysics.pt_dt,
+            physics_state.gfs_microphysics.qv_dt,
+            physics_state.gfs_microphysics.ql_dt,
+            physics_state.gfs_microphysics.qr_dt,
+            physics_state.gfs_microphysics.qi_dt,
+            physics_state.gfs_microphysics.qs_dt,
+            physics_state.gfs_microphysics.qg_dt,
+            physics_state.gfs_microphysics.qa_dt,
         )
-        microph_state = physics_state.microphysics
+        microph_state = physics_state.gfs_microphysics
         physics._microphysics(microph_state, float(self.config.dt_atmos))
         # Fortran uses IPD interface, here we use physics_updated_<var>
         # to denote the updated field

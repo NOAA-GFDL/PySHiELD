@@ -8,7 +8,7 @@ from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
 from pyshield._config import PHYSICS_PACKAGES
-from pyshield.stencils.microphysics import MicrophysicsState
+from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
 
 
 @dataclass()
@@ -186,6 +186,22 @@ class PhysicsState:
             "intent": "inout",
         }
     )
+    physics_updated_qo3mr: Quantity = field(
+        metadata={
+            "name": "physics_updated_ozone_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
+    physics_updated_qtke: Quantity = field(
+        metadata={
+            "name": "physics_updated_tke_mixing_ratio",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "kg/kg",
+            "intent": "inout",
+        }
+    )
     physics_updated_cloud_fraction: Quantity = field(
         metadata={
             "name": "physics_cloud_fraction",
@@ -270,8 +286,40 @@ class PhysicsState:
         metadata={
             "name": "log_interface_pressure",
             "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
-            "units": "Pa",
+            "units": "",
             "intent": "inout",
+        }
+    )
+    prslk: Quantity = field(
+        metadata={
+            "name": "Exner_function",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+    pgr: Quantity = field(
+        metadata={
+            "name": "ground_pressure",
+            "dims": [X_DIM, Y_DIM],
+            "units": "Pa",
+            "intent": "in",
+        }
+    )
+    hsw: Quantity = field(
+        metadata={
+            "name": "shortwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "k/s",
+            "intent": "in",
+        }
+    )
+    hlw: Quantity = field(
+        metadata={
+            "name": "longwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "k/s",
+            "intent": "in",
         }
     )
     land: Quantity = field(
@@ -338,6 +386,30 @@ class PhysicsState:
             "intent": "out",
         }
     )
+    kpbl: Quantity = field(
+        metadata={
+            "name": "pbl_index",
+            "dims": [X_DIM, Y_DIM],
+            "units": "-",
+            "intent": "inout",
+        }
+    )
+    kinver: Quantity = field(
+        metadata={
+            "name": "inversion_layer_index",
+            "dims": [X_DIM, Y_DIM],
+            "units": "-",
+            "intent": "inout",
+        }
+    )
+    hpbl: Quantity = field(
+        metadata={
+            "name": "pbl_height",
+            "dims": [X_DIM, Y_DIM],
+            "units": "m",
+            "intent": "inout",
+        }
+    )
     quantity_factory: InitVar[QuantityFactory]
     schemes: InitVar[List[PHYSICS_PACKAGES]]
 
@@ -353,25 +425,27 @@ class PhysicsState:
                 "unknown",
                 dtype=Float,
             )
-            self.microphysics: Optional[MicrophysicsState] = MicrophysicsState(
-                pt=self.pt,
-                qvapor=self.qvapor,
-                qliquid=self.qliquid,
-                qrain=self.qrain,
-                qice=self.qice,
-                qsnow=self.qsnow,
-                qgraupel=self.qgraupel,
-                qcld=self.qcld,
-                ua=self.ua,
-                va=self.va,
-                delp=self.delp,
-                delz=self.delz,
-                omga=self.omga,
-                delprsi=self.delprsi,
-                wmp=self.wmp,
-                dz=self.dz,
-                tendency=tendency,
-                land=self.land,
+            self.gfs_microphysics: Optional[GFSMicrophysicsState] = (
+                GFSMicrophysicsState(
+                    pt=self.pt,
+                    qvapor=self.qvapor,
+                    qliquid=self.qliquid,
+                    qrain=self.qrain,
+                    qice=self.qice,
+                    qsnow=self.qsnow,
+                    qgraupel=self.qgraupel,
+                    qcld=self.qcld,
+                    ua=self.ua,
+                    va=self.va,
+                    delp=self.delp,
+                    delz=self.delz,
+                    omga=self.omga,
+                    delprsi=self.delprsi,
+                    wmp=self.wmp,
+                    dz=self.dz,
+                    tendency=tendency,
+                    land=self.land,
+                )
             )
         else:
             self.microphysics = None
@@ -427,206 +501,6 @@ class PhysicsState:
         data_vars = {}
         for name, field_info in self.__dataclass_fields__.items():
             if name not in ["quantity_factory", "schemes"]:
-                if issubclass(field_info.type, Quantity):
-                    dims = [
-                        f"{dim_name}_{name}" for dim_name in field_info.metadata["dims"]
-                    ]
-                    data_vars[name] = xr.DataArray(
-                        gt_utils.asarray(getattr(self, name).data),
-                        dims=dims,
-                        attrs={
-                            "long_name": field_info.metadata["name"],
-                            "units": field_info.metadata.get("units", "unknown"),
-                        },
-                    )
-        return xr.Dataset(data_vars=data_vars)
-
-
-@dataclass()
-class SurfaceState:
-    islmsk: Quantity = field(
-        metadata={
-            "name": "ice_sea_land_mask",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "in",
-        }
-    )
-    tskin: Quantity = field(
-        metadata={
-            "name": "surface_temperature",
-            "dims": [X_DIM, Y_DIM],
-            "units": "K",
-            "intent": "inout",
-        }
-    )
-    snowd: Quantity = field(
-        metadata={
-            "name": "surface_snow_depth",
-            "dims": [X_DIM, Y_DIM],
-            "units": "m",
-            "intent": "inout",
-        }
-    )
-    sncovr: Quantity = field(
-        metadata={
-            "name": "snow_cover_area_fraction",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    snoalb: Quantity = field(
-        metadata={
-            "name": "maximum_snow_albedo_in_fraction",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    zorl: Quantity = field(
-        metadata={
-            "name": "surface_roughness",
-            "dims": [X_DIM, Y_DIM],
-            "units": "m",
-            "intent": "inout",
-        }
-    )
-    hprim: Quantity = field(
-        metadata={
-            "name": "",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    alvsf: Quantity = field(
-        metadata={
-            "name": "mean_visible_albedo_with_strong_cosz_dependency",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    alnsf: Quantity = field(
-        metadata={
-            "name": "mean_near_ir_albedo_with_strong_cosz_dependency",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    alvwf: Quantity = field(
-        metadata={
-            "name": "mean_visible_albedo_with_weak_cosz_dependency",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    alnwf: Quantity = field(
-        metadata={
-            "name": "mean_near_ir_albedo_with_weak_cosz_dependency",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    facsf: Quantity = field(
-        metadata={
-            "name": "fractional_coverage_with_strong_cosz_dependency",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    facwf: Quantity = field(
-        metadata={
-            "name": "fractional_coverage_with_weak_cosz_dependency",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    fice: Quantity = field(
-        metadata={
-            "name": "surface_ice_concentration_fraction",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    tisfc: Quantity = field(
-        metadata={
-            "name": "surface_temperature_over_ice_fraction",
-            "dims": [X_DIM, Y_DIM],
-            "units": "degK",
-            "intent": "inout",
-        }
-    )
-    albedo: Quantity = field(
-        metadata={
-            "name": "mean_albedo",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-    sfcemis: Quantity = field(
-        metadata={
-            "name": "mean_surface_emissivity",
-            "dims": [X_DIM, Y_DIM],
-            "units": "",
-            "intent": "inout",
-        }
-    )
-
-    @classmethod
-    def init_zeros(cls, quantity_factory) -> "SurfaceState":
-        initial_arrays = {}
-        for _field in fields(cls):
-            if "dims" in _field.metadata.keys():
-                initial_arrays[_field.name] = quantity_factory.zeros(
-                    _field.metadata["dims"],
-                    _field.metadata["units"],
-                    dtype=Float,
-                )
-        return cls(**initial_arrays)
-
-    @classmethod
-    def init_from_storages(
-        cls,
-        storages: Mapping[str, Any],
-        sizer: GridSizer,
-        quantity_factory: QuantityFactory,
-    ) -> "SurfaceState":
-        inputs: Dict[str, Quantity] = {}
-        for _field in fields(cls):
-            if "dims" in _field.metadata.keys():
-                dims = _field.metadata["dims"]
-                if _field.name in storages.keys():
-                    quantity = Quantity(
-                        storages[_field.name],
-                        dims,
-                        _field.metadata["units"],
-                        origin=sizer.get_origin(dims),
-                        extent=sizer.get_extent(dims),
-                    )
-                else:
-                    quantity = quantity_factory.zeros(
-                        dims,
-                        _field.metadata["units"],
-                    )
-                inputs[_field.name] = quantity
-        return cls(**inputs)
-
-    @property
-    def xr_dataset(self):
-        data_vars = {}
-        for name, field_info in self.__dataclass_fields__.items():
-            if name not in [
-                "extra_fields",
-            ]:
                 if issubclass(field_info.type, Quantity):
                     dims = [
                         f"{dim_name}_{name}" for dim_name in field_info.metadata["dims"]

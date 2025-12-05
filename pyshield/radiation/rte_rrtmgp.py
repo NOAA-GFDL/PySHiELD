@@ -14,7 +14,7 @@ from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
-from pyshield.physics_state import SurfaceState
+from pyshield.stencils.surface import SurfaceState
 
 from ._config import RTE_RRTMGPConfig
 from .rad_astro import coszmn, sol_init, solar_update
@@ -485,7 +485,7 @@ class RTE_RRTMGPDriver:
             sfc_state.snoalb.field,
             sfc_state.zorl.field,
             state.mu0.field,
-            sfc_state.tskin.field,
+            sfc_state.tsfc.field,
             sfc_state.hprim.field,
             sfc_state.alvsf.field,
             sfc_state.alnsf.field,
@@ -510,7 +510,7 @@ class RTE_RRTMGPDriver:
             sfc_state.snowd.field,
             sfc_state.sncovr.field,
             sfc_state.zorl.field,
-            sfc_state.tskin.field,
+            sfc_state.tsfc.field,
             sfc_state.hprim.field,
             self.iemslw,
             self.ialbflg,
