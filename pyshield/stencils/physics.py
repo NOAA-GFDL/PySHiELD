@@ -1094,7 +1094,6 @@ class Physics:
         pbl_config: PBLConfig = None,
         sc_config: ShallowConvectionConfig = None,
         gfdl_cld_mp_config: GFDLCloudMPConfig = None,
-        hydro_delp=False,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:

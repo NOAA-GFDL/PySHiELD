@@ -111,6 +111,7 @@ def test_rte_rrtmgp_in_physics(datapath: Path):
         nwat=6,
         prescribe_sst=False,
         schemes=["GFS_microphysics", "RTE_RRTMGP"],
+        hydro_delp=False,
     )
     radconf = RTE_RRTMGPConfig(
         deltsw=3600.0,
@@ -152,6 +153,5 @@ def test_rte_rrtmgp_in_physics(datapath: Path):
         grid_data,
         conf,
         radconf,
-        hydro_delp=False,
     )
     physics(state, radstate, sstate, date, conf.dt_atmos)
