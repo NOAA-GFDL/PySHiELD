@@ -54,7 +54,7 @@ class PhysicsConfig:
     fhlwr: float = 3600.0
     """frequency for longwave radiation (secs)"""
     nsswr: int = 1
-    """frequency for shortwave radiation (timesteps)"""
+    """frequency for shortwave radiation (timesteps), default is every step"""
     nslwr: int = 1
     """frequency for longwave radiation (timesteps)"""
     hydrostatic: bool = DEFAULT_BOOL
@@ -201,7 +201,7 @@ class PhysicsConfig:
     """whether to use prescribed sea surface temperatures"""
     max_sst: float = 293.95
     """maximum temperature for prescribed SSTs"""
-    min_sst: float = physcons.TICE
+    min_sst: float = float(physcons.TICE)
     """minimum temperature for prescribed SSTs"""
 
     def __post_init__(self):
