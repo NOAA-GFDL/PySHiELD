@@ -27,5 +27,14 @@ CPH2O1 = Float(4.218e3)
 """Specific heat of water in J/kg/K"""
 CPH2O2 = Float(4.2e6)
 
+C_LIQ0 = Float(4.2180e3)
+"""Specific heat of liquid H2O"""
+
+ELOCP = Float(constants.HLV / constants.CP_AIR)
+EL2ORC = Float(constants.HLV * constants.HLV / (constants.RVGAS * constants.CP_AIR))
+DELTA = Float(constants.RVGAS / constants.RDGAS - 1.0)
+FACT1 = Float((constants.CP_VAP - C_LIQ0) / constants.RVGAS)
+FACT2 = Float(constants.HLV / constants.RVGAS - FACT1 * constants.TICE0)
+
 # Constants used in interpolating radiation onto physics timestep:
 F_EPS = Float(0.0001)

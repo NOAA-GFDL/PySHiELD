@@ -959,7 +959,7 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
 
         self.stencil_factory = stencil_factory
         self.grid_indexing = self.stencil_factory.grid_indexing
-        self.config = GFDLCloudMPConfig(
+        self.mpconfig = GFDLCloudMPConfig(
             dt_full=self.config.dt_atmos,
             hydrostatic=self.config.hydrostatic,
             npx=self.config.npx,

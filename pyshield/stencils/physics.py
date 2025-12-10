@@ -34,6 +34,13 @@ from pyshield.stencils.gfdl_cld_microphysics import (
 )
 from pyshield.stencils.gfs_microphysics import GFSMicrophysics
 from pyshield.stencils.pbl import PBLConfig, SATMEDMFVDiffState, ScaleAwareTKEMoistEDMF
+from pyshield.stencils.shallow_convection import (
+    SC_TRACER_DIM,
+    FloatFieldShalConv,
+    SAMFShalConvState,
+    ScaleAwareMassFluxShallowConvection,
+    ShallowConvectionConfig,
+)
 from pyshield.stencils.surface import SurfaceConfig, SurfaceLayer, SurfaceState
 
 
@@ -271,6 +278,7 @@ def atmos_phys_driver_statein(
 def flip_fields(
     u: FloatField,
     v: FloatField,
+    w: FloatField,
     t: FloatField,
     q: FloatField,
     qliquid: FloatField,
@@ -282,6 +290,7 @@ def flip_fields(
     qsgs_tke: FloatField,
     qcld: FloatField,
     prsl: FloatField,
+    delp: FloatField,
     prsi: FloatField,
     prsik: FloatField,
     prslk: FloatField,
@@ -289,6 +298,7 @@ def flip_fields(
     phii: FloatField,
     u1: FloatField,
     v1: FloatField,
+    w1: FloatField,
     t1: FloatField,
     q1: FloatField,
     qliquid1: FloatField,
@@ -300,6 +310,7 @@ def flip_fields(
     qsgs_tke1: FloatField,
     qcld1: FloatField,
     prsl1: FloatField,
+    delp1: FloatField,
     prsi1: FloatField,
     prsik1: FloatField,
     prslk1: FloatField,
@@ -311,6 +322,7 @@ def flip_fields(
     with computation(PARALLEL), interval(...):
         u1 = u[0, 0, layer_flip]
         v1 = v[0, 0, layer_flip]
+        w1 = w[0, 0, layer_flip]
         t1 = t[0, 0, layer_flip]
         q1 = q[0, 0, layer_flip]
         qliquid1 = qliquid[0, 0, layer_flip]
@@ -322,6 +334,7 @@ def flip_fields(
         qsgs_tke1 = qsgs_tke[0, 0, layer_flip]
         qcld1 = qcld[0, 0, layer_flip]
         prsl1 = prsl[0, 0, layer_flip]
+        delp1 = delp[0, 0, layer_flip]
         prsi1 = prsi[0, 0, level_flip]
         prslk1 = prslk[0, 0, layer_flip]
         prsik1 = prsik[0, 0, level_flip]
@@ -523,6 +536,7 @@ def fill_pbl_state(
     delp: FloatField,
     phii: FloatField,
     phil: FloatField,
+    prsl: FloatField,
     prsi: FloatField,
     prsik: FloatField,
     prslk: FloatField,
@@ -558,6 +572,7 @@ def fill_pbl_state(
         pbl_u = physics_u
         pbl_v = physics_v
         pbl_t = physics_t
+        # TODO: these should not be hardcoded
         pbl_q[0, 0, 0][0] = qvapor
         pbl_q[0, 0, 0][1] = qliquid
         pbl_q[0, 0, 0][2] = qrain
@@ -573,9 +588,103 @@ def fill_pbl_state(
         pbl_prsi = prsi
         pbl_prslk = prslk
         # These will be filled in once they become available from prior schemes
-        pbl_prsl = delp
+        pbl_prsl = prsl
         pbl_hsw = 0.0
         pbl_hlw = 0.0
+
+
+def fill_shalconv_state(
+    shalconv_q1: FloatField,
+    shalconv_t1: FloatField,
+    shalconv_u1: FloatField,
+    shalconv_v1: FloatField,
+    shalconv_qtr: FloatFieldShalConv,
+    shalconv_dot: FloatField,
+    shalconv_hpbl: FloatFieldIJ,
+    shalconv_prslp: FloatField,
+    shalconv_phil: FloatField,
+    shalconv_delp: FloatField,
+    shalconv_psp: FloatFieldIJ,
+    shalconv_kcnv: IntFieldIJ,
+    shalconv_garea: FloatFieldIJ,
+    shalconv_islimsk: IntFieldIJ,
+    physics_q1: FloatField,
+    physics_t1: FloatField,
+    physics_u1: FloatField,
+    physics_v1: FloatField,
+    qliquid: FloatField,
+    qrain: FloatField,
+    qice: FloatField,
+    qsnow: FloatField,
+    qgraupel: FloatField,
+    qo3mr: FloatField,
+    qsgs_tke: FloatField,
+    physics_dot: FloatField,
+    physics_hpbl: FloatFieldIJ,
+    physics_prslp: FloatField,
+    physics_phil: FloatField,
+    physics_delp: FloatField,
+    physics_psp: FloatFieldIJ,
+    physics_garea: FloatFieldIJ,
+):
+    with computation(FORWARD), interval(0, 1):
+        shalconv_hpbl = physics_hpbl
+        shalconv_psp = physics_psp
+        shalconv_garea = physics_garea
+        # These will be filled in as they're enabled by previous schemes
+        shalconv_kcnv = 0  # no deep convection
+        shalconv_islimsk = 0  # sea-only for now
+    with computation(PARALLEL), interval(...):
+        shalconv_q1 = physics_q1
+        shalconv_t1 = physics_t1
+        shalconv_u1 = physics_u1
+        shalconv_v1 = physics_v1
+        shalconv_dot = physics_dot
+        shalconv_prslp = physics_prslp
+        shalconv_phil = physics_phil
+        shalconv_delp = physics_delp
+
+        # TODO: These should not be hardcoded
+        shalconv_qtr[0, 0, 0][0] = qliquid
+        shalconv_qtr[0, 0, 0][1] = qrain
+        shalconv_qtr[0, 0, 0][2] = qice
+        shalconv_qtr[0, 0, 0][3] = qsnow
+        shalconv_qtr[0, 0, 0][4] = qgraupel
+        shalconv_qtr[0, 0, 0][5] = qo3mr
+        shalconv_qtr[0, 0, 0][6] = qsgs_tke
+        shalconv_qtr[0, 0, 0][6] = qsgs_tke
+
+
+def results_from_shalconv(
+    physics_t: FloatField,
+    physics_u: FloatField,
+    physics_v: FloatField,
+    physics_qvapor: FloatField,
+    physics_qliquid: FloatField,
+    physics_qrain: FloatField,
+    physics_qice: FloatField,
+    physics_qsnow: FloatField,
+    physics_qgraupel: FloatField,
+    physics_qo3mr: FloatField,
+    physics_qsgs_tke: FloatField,
+    shalconv_t1: FloatField,
+    shalconv_u1: FloatField,
+    shalconv_v1: FloatField,
+    shalconv_q1: FloatField,
+    shalconv_qtr: FloatFieldShalConv,
+):
+    with computation(PARALLEL), interval(...):
+        physics_t = shalconv_t1
+        physics_u = shalconv_u1
+        physics_v = shalconv_v1
+        physics_qvapor = shalconv_q1
+        physics_qliquid = shalconv_qtr[0, 0, 0][0]
+        physics_qrain = shalconv_qtr[0, 0, 0][1]
+        physics_qice = shalconv_qtr[0, 0, 0][2]
+        physics_qsnow = shalconv_qtr[0, 0, 0][3]
+        physics_qgraupel = shalconv_qtr[0, 0, 0][4]
+        physics_qo3mr = shalconv_qtr[0, 0, 0][5]
+        physics_qsgs_tke = shalconv_qtr[0, 0, 0][6]
 
 
 def prepare_gfs_microphysics(
@@ -624,19 +733,7 @@ def forward_euler(q_t0, q_dt, dt):
     return q_t0 + q_dt * dt
 
 
-def update_physics_state_with_tendencies_4d(
-    physics_updated_specific_humidity: FloatField,
-    physics_updated_qliquid: FloatField,
-    physics_updated_qrain: FloatField,
-    physics_updated_qice: FloatField,
-    physics_updated_qsnow: FloatField,
-    physics_updated_qgraupel: FloatField,
-    physics_updated_qo3mr: FloatField,
-    physics_updated_qtke: FloatField,
-    physics_updated_cloud_fraction: FloatField,
-    physics_updated_pt: FloatField,
-    physics_updated_ua: FloatField,
-    physics_updated_va: FloatField,
+def results_from_pbl(
     qvapor: FloatField,
     qliquid: FloatField,
     qrain: FloatField,
@@ -649,41 +746,31 @@ def update_physics_state_with_tendencies_4d(
     pt: FloatField,
     ua: FloatField,
     va: FloatField,
+    hpbl: FloatFieldIJ,
     pbl_rtg: FloatFieldTracer,
     pbl_dtdt: FloatField,
     pbl_du: FloatField,
     pbl_dv: FloatField,
-    layer_flip: IntFieldK,
+    pbl_hpbl: FloatFieldIJ,
     dt: Float,
 ):
+    with computation(FORWARD), interval(0, 1):
+        hpbl = pbl_hpbl
     # TODO: Eventually we'll want the tracers to be in 4D fields for the physics
     # TODO: Use config variables instead of hardcoding indices, and in one pass
     with computation(PARALLEL), interval(...):
-        rtg0 = pbl_rtg[0, 0, 0][0]
-        rtg1 = pbl_rtg[0, 0, 0][1]
-        rtg2 = pbl_rtg[0, 0, 0][2]
-        rtg3 = pbl_rtg[0, 0, 0][3]
-        rtg4 = pbl_rtg[0, 0, 0][4]
-        rtg5 = pbl_rtg[0, 0, 0][5]
-        rtg6 = pbl_rtg[0, 0, 0][6]
-        rtg7 = pbl_rtg[0, 0, 0][7]
-        rtg8 = pbl_rtg[0, 0, 0][8]
-
-    with computation(PARALLEL), interval(...):
-        physics_updated_specific_humidity = forward_euler(
-            qvapor, rtg0[0, 0, layer_flip], dt
-        )
-        physics_updated_qliquid = forward_euler(qliquid, rtg1[0, 0, layer_flip], dt)
-        physics_updated_qrain = forward_euler(qrain, rtg2[0, 0, layer_flip], dt)
-        physics_updated_qice = forward_euler(qice, rtg3[0, 0, layer_flip], dt)
-        physics_updated_qsnow = forward_euler(qsnow, rtg4[0, 0, layer_flip], dt)
-        physics_updated_qgraupel = forward_euler(qgraupel, rtg5[0, 0, layer_flip], dt)
-        physics_updated_qo3mr = forward_euler(qo3mr, rtg6[0, 0, layer_flip], dt)
-        physics_updated_qtke = forward_euler(qsgs_tke, rtg7[0, 0, layer_flip], dt)
-        physics_updated_cloud_fraction = forward_euler(qcld, rtg8[0, 0, layer_flip], dt)
-        physics_updated_pt = forward_euler(pt, pbl_dtdt[0, 0, layer_flip], dt)
-        physics_updated_ua = forward_euler(ua, pbl_du[0, 0, layer_flip], dt)
-        physics_updated_va = forward_euler(va, pbl_dv[0, 0, layer_flip], dt)
+        qvapor = forward_euler(qvapor, pbl_rtg[0, 0, 0][0], dt)
+        qliquid = forward_euler(qliquid, pbl_rtg[0, 0, 0][1], dt)
+        qrain = forward_euler(qrain, pbl_rtg[0, 0, 0][2], dt)
+        qice = forward_euler(qice, pbl_rtg[0, 0, 0][3], dt)
+        qsnow = forward_euler(qsnow, pbl_rtg[0, 0, 0][4], dt)
+        qgraupel = forward_euler(qgraupel, pbl_rtg[0, 0, 0][5], dt)
+        qo3mr = forward_euler(qo3mr, pbl_rtg[0, 0, 0][6], dt)
+        qsgs_tke = forward_euler(qsgs_tke, pbl_rtg[0, 0, 0][7], dt)
+        qcld = forward_euler(qcld, pbl_rtg[0, 0, 0][8], dt)
+        pt = forward_euler(pt, pbl_dtdt[0, 0, 0], dt)
+        ua = forward_euler(ua, pbl_du[0, 0, 0], dt)
+        va = forward_euler(va, pbl_dv[0, 0, 0], dt)
 
 
 def update_physics_state_with_tendencies(
@@ -835,6 +922,10 @@ def post_gfdl_cld_mp(
     snow: FloatFieldIJ,
     graupel: FloatFieldIJ,
     rain1: FloatFieldIJ,
+    physics_updated_qo3mr: FloatField,
+    physics_updated_qtke: FloatField,
+    qo3mr: FloatField,
+    qsgs_tke: FloatField,
 ):
     from __externals__ import dtp
 
@@ -860,6 +951,8 @@ def post_gfdl_cld_mp(
         physics_qsnow = qsnow
         physics_qgraupel = qgraupel
         physics_qcloud = qcloud
+        physics_updated_qo3mr = qo3mr
+        physics_updated_qtke = qsgs_tke
 
 
 class Physics:
@@ -869,10 +962,11 @@ class Physics:
         quantity_factory: QuantityFactory,
         grid_data: GridData,
         namelist: PhysicsConfig,
+        pre_radiation=False,
         sfc_config: SurfaceConfig = None,
         pbl_config: PBLConfig = None,
+        sc_config: ShallowConvectionConfig = None,
         gfdl_cld_mp_config: GFDLCloudMPConfig = None,
-        pre_radiation=False,
     ):
         schemes = [scheme.value for scheme in namelist.schemes]
         for scheme in schemes:
@@ -891,7 +985,9 @@ class Physics:
                 f"ntracers != 9 has not been implemented, got {self._ntracers}"
             )
         self.TRACER_DIM = TRACER_DIM
+        self.SC_TRACER_DIM = SC_TRACER_DIM
         self.quantity_factory = quantity_factory
+        # TODO SC_TRACER_DIM shouldn't be hardcoded
         self.quantity_factory.add_data_dimensions(
             {
                 self.TRACER_DIM: self._ntracers,
@@ -903,6 +999,7 @@ class Physics:
         npz = nz + 1
         self._setup_statein()
         self._ptop = grid_data.ptop
+        self._area = grid_data.area
         self._pktop = (self._ptop / self._p00) ** constants.KAPPA
         self._pk0inv = (1.0 / self._p00) ** constants.KAPPA
         if self._ntracers == 9:  # TODO: implement actual tracer handling eventually
@@ -914,12 +1011,6 @@ class Physics:
             self._ntvap = 0
         self._pre_radiation = pre_radiation
         self._dt_phys = namelist.dt_atmos
-
-        # Logic about scheme interaction goes here
-        self._intermediate_updates = True
-        if "GFS_microphysics" in schemes:
-            if "SATM_EDMF" not in schemes:
-                self._intermediate_updates = False
 
         self._level_flip = self.quantity_factory.zeros(
             dims=[Z_INTERFACE_DIM], units="", dtype=Int
@@ -945,8 +1036,10 @@ class Physics:
         self._del_gz = make_quantity()
         self._u1 = make_quantity()
         self._v1 = make_quantity()
+        self._w1 = make_quantity()
         self._t1 = make_quantity()
         self._prsl1 = make_quantity()
+        self._delp1 = make_quantity()
         self._prsi1 = quantity_factory.zeros(
             dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
         )
@@ -1051,6 +1144,33 @@ class Physics:
                 origin=grid_indexing.origin_compute(),
                 domain=grid_indexing.domain_compute(),
             )
+        if "SAMF_SHALCONV" in schemes:
+            if sc_config is None:
+                raise ValueError("Shallow convection enabled but no config specified")
+            self._samf_shalconv = True
+            self.quantity_factory.add_data_dimensions(
+                {
+                    self.SC_TRACER_DIM: sc_config.nsamftrac + 2,
+                }
+            )
+            self._fill_shalconv_state = stencil_factory.from_origin_domain(
+                func=fill_shalconv_state,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+            self._samf_shallow_convection = ScaleAwareMassFluxShallowConvection(
+                stencil_factory=stencil_factory,
+                quantity_factory=quantity_factory,
+                config=sc_config,
+            )
+            self.shalconv_state = SAMFShalConvState.init_zeros(quantity_factory)
+            self._results_from_shalconv = stencil_factory.from_origin_domain(
+                func=results_from_shalconv,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
+            )
+        else:
+            self._samf_shalconv = False
         if "SFC_layer" in schemes:
             if sfc_config is None:
                 raise ValueError(
@@ -1163,12 +1283,10 @@ class Physics:
                 grid_data.area,
                 pbl_config,
             )
-            self._update_physics_state_with_tendencies_4d = (
-                stencil_factory.from_origin_domain(
-                    func=update_physics_state_with_tendencies_4d,
-                    origin=grid_indexing.origin_compute(),
-                    domain=grid_indexing.domain_compute(),
-                )
+            self._results_from_pbl = stencil_factory.from_origin_domain(
+                func=results_from_pbl,
+                origin=grid_indexing.origin_compute(),
+                domain=grid_indexing.domain_compute(),
             )
         else:
             self._satm_edmf = False
@@ -1248,6 +1366,7 @@ class Physics:
         self._flip_fields(
             physics_state.ua,
             physics_state.va,
+            physics_state.omga,
             physics_state.pt,
             physics_state.qvapor,
             physics_state.qliquid,
@@ -1259,6 +1378,7 @@ class Physics:
             physics_state.qsgs_tke,
             physics_state.qcld,
             physics_state.delp,
+            physics_state.delprsi,
             physics_state.prsi,
             physics_state.prsik,
             physics_state.prslk,
@@ -1266,6 +1386,7 @@ class Physics:
             physics_state.phii,
             self._u1,
             self._v1,
+            self._w1,
             self._t1,
             self._qvapor1,
             self._qliquid1,
@@ -1277,6 +1398,7 @@ class Physics:
             self._qsgs_tke1,
             self._qcld1,
             self._prsl1,
+            self._delp1,
             self._prsi1,
             self._prsik1,
             self._prslk1,
@@ -1350,8 +1472,7 @@ class Physics:
                 self._hflx,
                 self._evap,
             )
-        # TODO: Once more things are merged we can update the PBL state
-        # and call the PBL scheme
+
         if self._satm_edmf:
 
             self._fill_pbl_state(
@@ -1392,9 +1513,10 @@ class Physics:
                 self._qo3mr1,
                 self._qsgs_tke1,
                 self._qcld1,
-                self._prsl1,
+                self._delp1,
                 self._phil1,
                 self._phii1,
+                self._prsl1,
                 self._prsi1,
                 self._prsik1,
                 self._prslk1,
@@ -1412,38 +1534,129 @@ class Physics:
 
             self._pbl(self.pbl_state)
 
-            self._update_physics_state_with_tendencies_4d(
-                physics_state.physics_updated_specific_humidity,
-                physics_state.physics_updated_qliquid,
-                physics_state.physics_updated_qrain,
-                physics_state.physics_updated_qice,
-                physics_state.physics_updated_qsnow,
-                physics_state.physics_updated_qgraupel,
-                physics_state.physics_updated_qo3mr,
-                physics_state.physics_updated_qtke,
-                physics_state.physics_updated_cloud_fraction,
-                physics_state.physics_updated_pt,
-                physics_state.physics_updated_ua,
-                physics_state.physics_updated_va,
-                physics_state.qvapor,
-                physics_state.qliquid,
-                physics_state.qrain,
-                physics_state.qice,
-                physics_state.qsnow,
-                physics_state.qgraupel,
-                physics_state.qo3mr,
-                physics_state.qsgs_tke,
-                physics_state.qcld,
-                physics_state.pt,
-                physics_state.ua,
-                physics_state.va,
+            self._results_from_pbl(
+                self._qvapor1,
+                self._qliquid1,
+                self._qrain1,
+                self._qice1,
+                self._qsnow1,
+                self._qgraupel1,
+                self._qo3mr1,
+                self._qsgs_tke1,
+                self._qcld1,
+                self._t1,
+                self._u1,
+                self._v1,
+                physics_state.hpbl,
                 self.pbl_state.rtg,
                 self.pbl_state.dtdt,
                 self.pbl_state.du,
                 self.pbl_state.dv,
-                self._layer_flip,
+                self.pbl_state.hpbl,
                 timestep,
             )
+
+        if self._samf_shalconv:
+            self._fill_shalconv_state(
+                self.shalconv_state.q1,
+                self.shalconv_state.t1,
+                self.shalconv_state.u1,
+                self.shalconv_state.v1,
+                self.shalconv_state.qtr,
+                self.shalconv_state.dot,
+                self.shalconv_state.hpbl,
+                self.shalconv_state.prslp,
+                self.shalconv_state.phil,
+                self.shalconv_state.delp,
+                self.shalconv_state.psp,
+                self.shalconv_state.kcnv,
+                self.shalconv_state.garea,
+                self.shalconv_state.islimsk,
+                self._qvapor1,
+                self._t1,
+                self._u1,
+                self._v1,
+                self._qliquid1,
+                self._qrain1,
+                self._qice1,
+                self._qsnow1,
+                self._qgraupel1,
+                self._qo3mr1,
+                self._qsgs_tke1,
+                self._w1,
+                physics_state.hpbl,
+                self._prsl1,
+                self._phil1,
+                self._delp1,
+                physics_state.pgr,
+                self._area,
+            )
+
+            self._samf_shallow_convection(self.shalconv_state)
+
+            self._results_from_shalconv(
+                self._t1,
+                self._u1,
+                self._v1,
+                self._qvapor1,
+                self._qliquid1,
+                self._qrain1,
+                self._qice1,
+                self._qsnow1,
+                self._qgraupel1,
+                self._qo3mr1,
+                self._qsgs_tke1,
+                self.shalconv_state.t1,
+                self.shalconv_state.u1,
+                self.shalconv_state.v1,
+                self.shalconv_state.q1,
+                self.shalconv_state.qtr,
+            )
+
+        self._flip_fields(
+            self._u1,
+            self._v1,
+            self._w1,
+            self._t1,
+            self._qvapor1,
+            self._qliquid1,
+            self._qrain1,
+            self._qice1,
+            self._qsnow1,
+            self._qgraupel1,
+            self._qo3mr1,
+            self._qsgs_tke1,
+            self._qcld1,
+            self._prsl1,
+            self._delp1,
+            self._prsi1,
+            self._prsik1,
+            self._prslk1,
+            self._phil1,
+            self._phii1,
+            physics_state.ua,
+            physics_state.va,
+            physics_state.omga,
+            physics_state.pt,
+            physics_state.qvapor,
+            physics_state.qliquid,
+            physics_state.qrain,
+            physics_state.qice,
+            physics_state.qsnow,
+            physics_state.qgraupel,
+            physics_state.qo3mr,
+            physics_state.qsgs_tke,
+            physics_state.qcld,
+            physics_state.delp,
+            physics_state.delprsi,
+            physics_state.prsi,
+            physics_state.prsik,
+            physics_state.prslk,
+            physics_state.phil,
+            physics_state.phii,
+            self._level_flip,
+            self._layer_flip,
+        )
 
         if self._microphysics:
             if self._microphysics == "GFS":
@@ -1471,74 +1684,42 @@ class Physics:
                 )
                 # Fortran uses IPD interface, here we use physics_updated_<var>
                 # to denote the updated field
-                if self._intermediate_updates:
-                    self._update_physics_state_with_tendencies(
-                        physics_state.physics_updated_specific_humidity,
-                        physics_state.physics_updated_qliquid,
-                        physics_state.physics_updated_qrain,
-                        physics_state.physics_updated_qice,
-                        physics_state.physics_updated_qsnow,
-                        physics_state.physics_updated_qgraupel,
-                        physics_state.physics_updated_cloud_fraction,
-                        physics_state.physics_updated_pt,
-                        physics_state.physics_updated_ua,
-                        physics_state.physics_updated_va,
-                        physics_state.gfs_microphysics.qv_dt,
-                        physics_state.gfs_microphysics.ql_dt,
-                        physics_state.gfs_microphysics.qr_dt,
-                        physics_state.gfs_microphysics.qi_dt,
-                        physics_state.gfs_microphysics.qs_dt,
-                        physics_state.gfs_microphysics.qg_dt,
-                        physics_state.gfs_microphysics.qa_dt,
-                        physics_state.gfs_microphysics.pt_dt,
-                        physics_state.gfs_microphysics.udt,
-                        physics_state.gfs_microphysics.vdt,
-                        physics_state.physics_updated_specific_humidity,
-                        physics_state.physics_updated_qliquid,
-                        physics_state.physics_updated_qrain,
-                        physics_state.physics_updated_qice,
-                        physics_state.physics_updated_qsnow,
-                        physics_state.physics_updated_qgraupel,
-                        physics_state.physics_updated_cloud_fraction,
-                        physics_state.physics_updated_pt,
-                        physics_state.physics_updated_ua,
-                        physics_state.physics_updated_va,
-                        timestep,
-                    )
-                else:
-                    self._update_physics_state_with_tendencies(
-                        physics_state.qvapor,
-                        physics_state.qliquid,
-                        physics_state.qrain,
-                        physics_state.qice,
-                        physics_state.qsnow,
-                        physics_state.qgraupel,
-                        physics_state.qcld,
-                        physics_state.pt,
-                        physics_state.ua,
-                        physics_state.va,
-                        physics_state.gfs_microphysics.qv_dt,
-                        physics_state.gfs_microphysics.ql_dt,
-                        physics_state.gfs_microphysics.qr_dt,
-                        physics_state.gfs_microphysics.qi_dt,
-                        physics_state.gfs_microphysics.qs_dt,
-                        physics_state.gfs_microphysics.qg_dt,
-                        physics_state.gfs_microphysics.qa_dt,
-                        physics_state.gfs_microphysics.pt_dt,
-                        physics_state.gfs_microphysics.udt,
-                        physics_state.gfs_microphysics.vdt,
-                        physics_state.physics_updated_specific_humidity,
-                        physics_state.physics_updated_qliquid,
-                        physics_state.physics_updated_qrain,
-                        physics_state.physics_updated_qice,
-                        physics_state.physics_updated_qsnow,
-                        physics_state.physics_updated_qgraupel,
-                        physics_state.physics_updated_cloud_fraction,
-                        physics_state.physics_updated_pt,
-                        physics_state.physics_updated_ua,
-                        physics_state.physics_updated_va,
-                        timestep,
-                    )
+
+                # TODO: This is cumbersome and should be refactored to just have
+                # state.var instead of state.var and state.updated_var
+                self._update_physics_state_with_tendencies(
+                    physics_state.qvapor,
+                    physics_state.qliquid,
+                    physics_state.qrain,
+                    physics_state.qice,
+                    physics_state.qsnow,
+                    physics_state.qgraupel,
+                    physics_state.qcld,
+                    physics_state.pt,
+                    physics_state.ua,
+                    physics_state.va,
+                    physics_state.gfs_microphysics.qv_dt,
+                    physics_state.gfs_microphysics.ql_dt,
+                    physics_state.gfs_microphysics.qr_dt,
+                    physics_state.gfs_microphysics.qi_dt,
+                    physics_state.gfs_microphysics.qs_dt,
+                    physics_state.gfs_microphysics.qg_dt,
+                    physics_state.gfs_microphysics.qa_dt,
+                    physics_state.gfs_microphysics.pt_dt,
+                    physics_state.gfs_microphysics.udt,
+                    physics_state.gfs_microphysics.vdt,
+                    physics_state.physics_updated_specific_humidity,
+                    physics_state.physics_updated_qliquid,
+                    physics_state.physics_updated_qrain,
+                    physics_state.physics_updated_qice,
+                    physics_state.physics_updated_qsnow,
+                    physics_state.physics_updated_qgraupel,
+                    physics_state.physics_updated_cloud_fraction,
+                    physics_state.physics_updated_pt,
+                    physics_state.physics_updated_ua,
+                    physics_state.physics_updated_va,
+                    timestep,
+                )
             elif self._microphysics == "GFDL_CLoud":
                 self._prepare_gfdl_cld_microphysics(
                     self.microphyics_state.delp,
@@ -1584,6 +1765,7 @@ class Physics:
                     self.microphyics_state,
                     last_step=True,
                 )
+                # TODO: Refactor to ditch the physics_updated variables
                 self._post_gfdl_cld_microphysics(
                     self.microphyics_state.delp,
                     self.microphyics_state.delz,
@@ -1600,24 +1782,29 @@ class Physics:
                     self.microphyics_state.qcld,
                     physics_state.delp,
                     physics_state.delz,
-                    physics_state.ua,
-                    physics_state.va,
+                    physics_state.physics_updated_ua,
+                    physics_state.physics_updated_va,
                     physics_state.w,
-                    physics_state.pt,
-                    physics_state.qvapor,
-                    physics_state.qliquid,
-                    physics_state.qrain,
-                    physics_state.qice,
-                    physics_state.qsnow,
-                    physics_state.qgraupel,
-                    physics_state.qcld,
+                    physics_state.physics_updated_pt,
+                    physics_state.physics_updated_specific_humidity,
+                    physics_state.physics_updated_qliquid,
+                    physics_state.physics_updated_qrain,
+                    physics_state.physics_updated_qice,
+                    physics_state.physics_updated_qsnow,
+                    physics_state.physics_updated_qgraupel,
+                    physics_state.physics_updated_cloud_fraction,
                     self.microphyics_state.column_water,
                     self.microphyics_state.column_rain,
                     self.microphyics_state.column_ice,
                     self.microphyics_state.column_snow,
                     self.microphyics_state.column_graupel,
                     self._rain1,
+                    physics_state.physics_updated_qo3mr,
+                    physics_state.physics_updated_qtke,
+                    physics_state.qo3mr,
+                    physics_state.qsgs_tke,
                 )
+
             else:
                 raise NotImplementedError(
                     f"{self._microphysics} scheme not implemented"

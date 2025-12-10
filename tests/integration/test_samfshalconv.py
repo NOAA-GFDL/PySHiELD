@@ -17,26 +17,14 @@ from ndsl.grid import (
     VerticalGridData,
 )
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
-from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
-from pyshield.stencils.pbl import PBLConfig
 from pyshield.stencils.shallow_convection import ShallowConvectionConfig
-from pyshield.stencils.surface import SurfaceConfig, SurfaceState
 
 
 def setup_infrastructure(
-    nx: int,
-    ny: int,
-    nz: int,
-    nzsoil: int,
-    nhalo: int,
-    etafile: Path,
-    backend: str = "numpy",
+    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
 ):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
-    )
-    _, qf_soil = get_factories_single_tile(
-        nx=nx, ny=ny, nz=nzsoil, nhalo=nhalo, backend=backend
     )
     rank = 0
     comm = NullComm(rank, 1)
@@ -58,7 +46,7 @@ def setup_infrastructure(
         contravariant_data=contravariant_data,
         angle_data=angle_data,
     )
-    return stencil_factory, quantity_factory, qf_soil, grid_data
+    return stencil_factory, quantity_factory, grid_data
 
 
 def states_from_fortran_restarts(
@@ -68,7 +56,6 @@ def states_from_fortran_restarts(
     sfc_datafile: Path,
     ak: Quantity,
     quantity_factory: QuantityFactory,
-    qf_sfc: QuantityFactory,
     stencil_factory: StencilFactory,
     schemes: PHYSICS_PACKAGES,
 ):
@@ -78,7 +65,6 @@ def states_from_fortran_restarts(
     tracer_data = xr.open_dataset(tracer_datafile)
     sfc_data = xr.open_dataset(sfc_datafile)
     state = PhysicsState.init_zeros(quantity_factory, schemes)
-    sstate = SurfaceState.init_zeros(qf_sfc)
     buff_3d = np.zeros_like(state.prsi.field)
     npz = buff_3d.shape[2]
     for k in range(npz):
@@ -104,9 +90,6 @@ def states_from_fortran_restarts(
     state.prsik.field[:, :, -1] = (
         np.exp(constants.KAPPA * state.prsik.field[:, :, -1]) * pk0inv
     )
-    state.prslk.field[:] = np.exp(
-        constants.KAPPA * np.log(state.delp.field[:] / physcons.P00)
-    )
     state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
     state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
     state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
@@ -115,35 +98,12 @@ def states_from_fortran_restarts(
     state.qo3mr.view[:] = tracer_data.o3mr.data[0, :, :, :].transpose(2, 1, 0)
     state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
 
-    sstate.tsfc.field[:] = sfc_data.tsea.data[0, :, :].transpose()
-    sstate.slmsk.field[:] = sfc_data.slmsk.data[0, :, :].transpose()
-    sstate.zorl.field[:] = sfc_data.zorl.data[0, :, :].transpose()
-    sstate.vegtype.field[:] = sfc_data.vtype.data[0, :, :].transpose()
-    sstate.uustar.field[:] = sfc_data.uustar.data[0, :, :].transpose()
-    sstate.sfcemis.field[:] = 0.98
-    sstate.vfrac.field[:] = sfc_data.vfrac.data[0, :, :].transpose()
-    sstate.shdmax.field[:] = sfc_data.shdmax.data[0, :, :].transpose()
-    sstate.snowd.field[:] = sfc_data.snwdph.data[0, :, :].transpose()
-    sstate.ffhh.field[:] = sfc_data.ffhh.data[0, :, :].transpose()
-    sstate.ffmm.field[:] = sfc_data.ffmm.data[0, :, :].transpose()
-    sstate.wind.field[:] = np.sqrt(
-        state.ua.field[:, :, -1] ** 2.0 + state.va.field[:, :, -1] ** 2.0
-    )
-    sstate.stc.field[:] = sfc_data.stc.data[0, :, :, :].transpose(2, 1, 0)
-    sstate.srflag.field[:] = sfc_data.srflag.data[0, :, :].transpose()
-    sstate.hice.field[:] = sfc_data.hice.data[0, :, :].transpose()
-    sstate.fice.field[:] = sfc_data.fice.data[0, :, :].transpose()
-    sstate.tisfc.field[:] = sfc_data.tisfc.data[0, :, :].transpose()
-    sstate.tprcp.field[:] = sfc_data.tprcp.data[0, :, :].transpose()
-    sstate.weasd.field[:] = sfc_data.sheleg.data[0, :, :].transpose()
-
-    return state, sstate
+    return state
 
 
-# TODO: parameterize over schemes
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
 @pytest.mark.parametrize("backend", ["numpy"])
-def test_pyshield_runs(restart_path: Path, backend: str):
+def test_satmedmf_runs(restart_path: Path, backend: str):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")
@@ -156,18 +116,17 @@ def test_pyshield_runs(restart_path: Path, backend: str):
     nz = 91
     dt = 225.0
 
-    stencil_factory, quantity_factory, qf_soil, grid_data = setup_infrastructure(
-        nx=nx, ny=ny, nz=nz, nzsoil=4, nhalo=3, etafile=etafile, backend=backend
+    stencil_factory, quantity_factory, grid_data = setup_infrastructure(
+        nx=nx, ny=ny, nz=nz, nhalo=3, etafile=etafile, backend=backend
     )
 
-    state, sstate = states_from_fortran_restarts(
+    state = states_from_fortran_restarts(
         dycore_path,
         physics_path,
         tracer_path,
         sfc_path,
         grid_data.ak,
         quantity_factory,
-        qf_soil,
         stencil_factory,
         schemes,
     )
@@ -178,62 +137,14 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         npy=ny + 1,
         npz=nz + 1,
         nwat=6,
-        schemes=["SATM_EDMF", "GFDL_cloud_microphysics", "SFC_layer", "SAMF_SHALCONV"],
+        schemes=["SAMF_SHALCONV"],
     )
 
-    sfc_config = SurfaceConfig(dt_atmos=dt)
-
-    pbl_config = PBLConfig(
+    sc_config = ShallowConvectionConfig(
         dt_atmos=dt,
-        hydrostatic=False,
-        ntiw=3,
-        ntcw=1,
-        ntke=7,
-    )
-    sc_conf = ShallowConvectionConfig(
-        dt_atmos=dt,
-    )
-    mp_config = GFDLCloudMPConfig(
-        dt_full=dt,
-        hydrostatic=False,
-        npx=nx + 1,
-        npy=ny + 1,
-        npz=nz + 1,
-        layout=(1, 1),
-        nwat=6,
-        do_sedi_uv=True,
-        do_sedi_w=True,
-        do_sedi_heat=False,
-        rad_snow=True,
-        rad_graupel=True,
-        rad_rain=True,
-        const_vi=False,
-        const_vs=False,
-        const_vg=False,
-        const_vr=False,
-        vi_fac=1.0,
-        vs_fac=1.0,
-        vg_fac=1.0,
-        vr_fac=1.0,
-        vi_max=1.0,
-        vs_max=2.0,
-        vg_max=12.0,
-        vr_max=12.0,
-        qi_lim=1.0,
-        prog_ccn=False,
-        do_qa=True,
-        tau_l2v=225.0,
-        tau_v2l=150.0,
-        rthresh=10.0e-6,
+        ntke=6,
     )
     physics_driver = Physics(
-        stencil_factory,
-        quantity_factory,
-        grid_data,
-        config,
-        pbl_config=pbl_config,
-        gfdl_cld_mp_config=mp_config,
-        sfc_config=sfc_config,
-        sc_config=sc_conf,
+        stencil_factory, quantity_factory, grid_data, config, sc_config=sc_config
     )
-    physics_driver(state, config.dt_atmos, surface_state=sstate)
+    physics_driver(state, config.dt_atmos)
