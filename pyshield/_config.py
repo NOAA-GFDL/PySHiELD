@@ -226,8 +226,9 @@ class PhysicsConfig:
             physics_config = self.from_f90nml(f90_nml, self.target_nml_groups)
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
-        self.nsswr = int(self.fhswr / self.dt_atmos)
-        self.nslwr = int(self.fhlwr / self.dt_atmos)
+        if self.dt_atmos != 0:
+            self.nsswr = int(self.fhswr / self.dt_atmos)
+            self.nslwr = int(self.fhlwr / self.dt_atmos)
 
     @classmethod
     def from_f90nml(
