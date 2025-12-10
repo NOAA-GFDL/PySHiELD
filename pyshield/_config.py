@@ -53,9 +53,9 @@ class PhysicsConfig:
     """frequency for shortwave radiation (secs)"""
     fhlwr: float = 3600.0
     """frequency for longwave radiation (secs)"""
-    nsswr: int = DEFAULT_INT
+    nsswr: int = 1
     """frequency for shortwave radiation (timesteps)"""
-    nslwr: int = DEFAULT_INT
+    nslwr: int = 1
     """frequency for longwave radiation (timesteps)"""
     hydrostatic: bool = DEFAULT_BOOL
     hydro_delp: bool = False
