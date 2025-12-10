@@ -312,8 +312,6 @@ def copy_to_radiation(
     rad_qice: FloatField,
     rad_qo3mr: FloatField,
     rad_qcld: FloatField,
-    layer_flip: IntFieldK,
-    level_flip: IntFieldK,
 ):
     with computation(FORWARD):
         with interval(0, 1):

@@ -3,16 +3,128 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import xarray as xr
 
-from examples.notebook.utilities import (
-    fortran_restart_to_radstate,
-    setup_infrastructure,
-    states_from_fortran_restarts,
+from ndsl import NullComm, Quantity, QuantityFactory, TileCommunicator
+from ndsl.boilerplate import get_factories_single_tile
+from ndsl.grid import (
+    AngleGridData,
+    ContravariantGridData,
+    GridData,
+    HorizontalGridData,
+    MetricTerms,
+    VerticalGridData,
 )
 from pyshield._config import PhysicsConfig
-from pyshield.physics_state import SurfaceState
+from pyshield.physics_state import PHYSICS_PACKAGES, PhysicsState
 from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPDriver, RTE_RRTMGPState
 from pyshield.stencils.physics import Physics, calc_sigma
+from pyshield.stencils.surface import SurfaceState
+
+
+def setup_infrastructure(
+    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
+):
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
+    )
+    rank = 0
+    comm = NullComm(rank, 1)
+    communicator = TileCommunicator.from_layout(comm=comm, layout=(1, 1))
+
+    metric_terms = MetricTerms(
+        quantity_factory=quantity_factory,
+        communicator=communicator,
+        grid_type=4,
+        eta_file=etafile,
+    )
+    horizontal_data = HorizontalGridData.new_from_metric_terms(metric_terms)
+    vertical_data = VerticalGridData.new_from_metric_terms(metric_terms)
+    contravariant_data = ContravariantGridData.new_from_metric_terms(metric_terms)
+    angle_data = AngleGridData.new_from_metric_terms(metric_terms)
+    grid_data = GridData(
+        horizontal_data=horizontal_data,
+        vertical_data=vertical_data,
+        contravariant_data=contravariant_data,
+        angle_data=angle_data,
+    )
+    return stencil_factory, quantity_factory, grid_data
+
+
+def fortran_restart_to_radstate(
+    dycore_datafile: Path,
+    phys_datafile: Path,
+    tracer_datafile: Path,
+    ak: Quantity,
+    state: RTE_RRTMGPState,
+):
+    dycore_data = xr.open_dataset(dycore_datafile)
+    phys_data = xr.open_dataset(phys_datafile)
+    tracer_data = xr.open_dataset(tracer_datafile)
+    buff_3d = np.zeros_like(state.prsi.field)
+    for k in range(buff_3d.shape[2]):
+        if k == 0:
+            buff_3d[:, :, k] = ak.data[0]
+        else:
+            buff_3d[:, :, k] = (
+                buff_3d[:, :, k - 1] + dycore_data.delp.data[0, k - 1, :, :]
+            )
+    state.prsi.field[:] = buff_3d[:, :, ::-1]
+    state.prsl.field[:] = (
+        state.prsi.field[:, :, 1:] - state.prsi.field[:, :, :-1]
+    ) / np.log(state.prsi.field[:, :, 1:] / state.prsi.field[:, :, :-1])
+    state.tlyr.field[:] = dycore_data.T.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.tlvl.field[:, :, 1:-1] = state.tlyr.field[:, :, :-1] + (
+        state.tlyr.field[:, :, 1:] - state.tlyr.field[:, :, :-1]
+    ) * (np.log(state.prsi.field[:, :, 1:-1]) - np.log(state.prsl.field[:, :, :-1])) / (
+        np.log(state.prsl.field[:, :, 1:]) - np.log(state.prsl.field[:, :, :-1])
+    )
+    state.tlvl.field[:, :, -1] = state.tlyr.field[:, :, -1]
+    state.tlvl.field[:, :, 0] = state.tlyr.field[:, :, 0]
+    state.tsfc.field[:] = phys_data.ts_clim_iano.data[0, :, :]
+    state.qvapor.field[:] = tracer_data.sphum.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qliquid.view[:] = tracer_data.liq_wat.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qice.view[:] = tracer_data.ice_wat.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qcld.view[:] = tracer_data.cld_amt.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qo3mr.view[:] = tracer_data.o3mr.data[0, ::-1, :, :].transpose(1, 2, 0)
+
+
+def states_from_fortran_restarts(
+    dycore_datafile: Path,
+    phys_datafile: Path,
+    tracer_datafile: Path,
+    ak: Quantity,
+    quantity_factory: QuantityFactory,
+    schemes: PHYSICS_PACKAGES,
+):
+    dycore_data = xr.open_dataset(dycore_datafile)
+    phys_data = xr.open_dataset(phys_datafile)
+    tracer_data = xr.open_dataset(tracer_datafile)
+
+    state = PhysicsState.init_zeros(quantity_factory, schemes)
+    radstate = RTE_RRTMGPState.init_zeros(quantity_factory, np)
+    sstate = SurfaceState.init_zeros(quantity_factory)
+
+    buff_3d = np.zeros_like(state.prsi.field)
+    for k in range(buff_3d.shape[2]):
+        if k == 0:
+            buff_3d[:, :, k] = ak.data[0]
+        else:
+            buff_3d[:, :, k] = (
+                buff_3d[:, :, k - 1] + dycore_data.delp.data[0, k - 1, :, :]
+            )
+    state.prsi.field[:] = buff_3d[:, :, :]
+
+    state.delp.field[:] = dycore_data.delp.data[0, :, :, :].transpose(2, 1, 0)
+    state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
+    state.tsfc.field[:] = phys_data.ts_clim_iano.data[0, :, :].transpose()
+    state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
+    state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
+    state.qice.view[:] = tracer_data.ice_wat.data[0, :, :, :].transpose(2, 1, 0)
+    state.qcld.view[:] = tracer_data.cld_amt.data[0, :, :, :].transpose(2, 1, 0)
+    state.qo3mr.view[:] = tracer_data.o3mr.data[0, :, :, :].transpose(2, 1, 0)
+    state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
+    return state, radstate, sstate
 
 
 @pytest.mark.parametrize("datapath", [Path("test_data/RESTART/")])
@@ -25,10 +137,11 @@ def test_rte_rrtmgp(datapath: Path):
     nx = 48
     ny = 48
     nz = 91
+    nhalo = 3
 
     date = datetime.datetime(2020, 1, 1, 12, tzinfo=datetime.timezone.utc)
-    quantity_factory, stencil_factory, grid_data = setup_infrastructure(
-        nx, ny, nz, etafile
+    stencil_factory, quantity_factory, grid_data = setup_infrastructure(
+        nx, ny, nz, nhalo, etafile
     )
     grid_data.lon_agrid.field[:] = grid_data.lon.field[:-1, :-1]
     grid_data.lat_agrid.field[:] = grid_data.lat.field[:-1, :-1]
@@ -81,7 +194,7 @@ def test_rte_rrtmgp(datapath: Path):
     rad.step_radiation(state, sstate, date)
 
 
-@pytest.mark.parametrize("datapath", [Path("test_data/radtest/")])
+@pytest.mark.parametrize("datapath", [Path("test_data/RESTART/")])
 def test_rte_rrtmgp_in_physics(datapath: Path):
     dycore_data = Path(datapath.joinpath("fv_core.res.tile1.nc"))
     phys_data = Path(datapath.joinpath("phy_data.tile1.nc"))
@@ -91,13 +204,14 @@ def test_rte_rrtmgp_in_physics(datapath: Path):
     nx = 48
     ny = 48
     nz = 91
+    nhalo = 3
     npx = nx + 1
     npy = ny + 1
     npz = nz + 1
 
     date = datetime.datetime(2020, 1, 1, 12, tzinfo=datetime.timezone.utc)
-    quantity_factory, stencil_factory, grid_data = setup_infrastructure(
-        nx, ny, nz, etafile
+    stencil_factory, quantity_factory, grid_data = setup_infrastructure(
+        nx, ny, nz, nhalo, etafile
     )
     grid_data.lon_agrid.field[:] = grid_data.lon.field[:-1, :-1]
     grid_data.lat_agrid.field[:] = grid_data.lat.field[:-1, :-1]
@@ -154,4 +268,10 @@ def test_rte_rrtmgp_in_physics(datapath: Path):
         conf,
         radconf,
     )
-    physics(state, radstate, sstate, date, conf.dt_atmos)
+    physics(
+        state,
+        radiation_state=radstate,
+        surface_state=sstate,
+        date=date,
+        timestep=conf.dt_atmos,
+    )

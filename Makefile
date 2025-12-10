@@ -42,14 +42,14 @@ lint:
 	pre-commit run --all-files
 
 build:
-	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 \
+	DOCKER_BUILDKIT=1 docker build \
 		$(BUILD_FLAGS) \
 		-f $(CWD)/Dockerfile \
 		-t $(IMAGE_NAME) \
 		.
 
 build_explicit:
-	PROGRESS_NO_TRUNC=1 docker build --platform linux/amd64 \
+	PROGRESS_NO_TRUNC=1 docker build \
 		--progress plain \
 		--no-cache \
 		$(BUILD_FLAGS) \

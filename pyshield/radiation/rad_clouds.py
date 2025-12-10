@@ -218,10 +218,7 @@ def progcld4(
                 rei = (1250.0 / 9.208) * tem3**0.055
             else:
                 rei = (1250.0 / 9.387) * tem3**0.031
-            # rei = max(20.0, min(rei, 300.0))
-            # rei = max(10.0, min(rei, 100.0))
             rei = max(10.0, min(rei, 150.0))
-            # rei = max(5.0,  min(rei, 130.0))
 
 
 def progcld5(

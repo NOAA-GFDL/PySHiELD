@@ -3,18 +3,8 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 
-from ndsl import (
-    CompilationConfig,
-    GridIndexing,
-    NullComm,
-    Quantity,
-    QuantityFactory,
-    StencilConfig,
-    StencilFactory,
-    SubtileGridSizer,
-    TileCommunicator,
-)
-from ndsl.dsl.typing import Int
+from ndsl import NullComm, Quantity, QuantityFactory, TileCommunicator
+from ndsl.boilerplate import get_factories_single_tile
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -23,8 +13,9 @@ from ndsl.grid import (
     MetricTerms,
     VerticalGridData,
 )
-from pyshield.physics_state import PHYSICS_PACKAGES, PhysicsState, SurfaceState
+from pyshield.physics_state import PHYSICS_PACKAGES, PhysicsState
 from pyshield.radiation import RTE_RRTMGPState
+from pyshield.stencils.surface import SurfaceState
 
 
 def states_from_fortran_restarts(
@@ -103,35 +94,16 @@ def fortran_restart_to_radstate(
     state.qo3mr.view[:] = tracer_data.o3mr.data[0, ::-1, :, :].transpose(1, 2, 0)
 
 
-def setup_infrastructure(nx: Int, ny: Int, nz: Int, etafile: Path):
-    n_halo = 3
-
+def setup_infrastructure(
+    nx: int, ny: int, nz: int, etafile: Path, backend: str = "numpy"
+):
+    nhalo = 3
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
+    )
     rank = 0
-
     comm = NullComm(rank, 1)
     communicator = TileCommunicator.from_layout(comm=comm, layout=(1, 1))
-
-    sizer = SubtileGridSizer.from_tile_params(
-        nx_tile=nx,
-        ny_tile=ny,
-        nz=nz,
-        n_halo=n_halo,
-        data_dimensions={},
-        layout=(1, 1),
-        tile_partitioner=communicator.partitioner.tile,
-        tile_rank=communicator.tile.rank,
-    )
-    quantity_factory = QuantityFactory.from_backend(sizer, backend="numpy")
-
-    comconf = CompilationConfig()
-    comconf.validate_args = False
-    sconf = StencilConfig(compilation_config=comconf)
-    grid_indexing = GridIndexing.from_sizer_and_communicator(
-        sizer=sizer, comm=communicator
-    )
-    stencil_factory = StencilFactory(
-        config=sconf, grid_indexing=grid_indexing, comm=comm
-    )
 
     metric_terms = MetricTerms(
         quantity_factory=quantity_factory,

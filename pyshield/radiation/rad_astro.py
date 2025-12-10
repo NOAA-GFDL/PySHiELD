@@ -1,6 +1,7 @@
 import datetime
 import re
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
@@ -62,7 +63,9 @@ def date_to_julian(iyear: int, imonth: int, iday: int) -> int:
     return jdn
 
 
-def read_NOAA_solar_file(solar_fname: Path) -> dict:
+def read_NOAA_solar_file(
+    solar_fname: Path,
+) -> dict[str : Union[float, int, dict[str : Union[int, float, dict[str:float]]]]]:
     """
     function to read in a file of solar constants structured as:
         first_year last_year first_cycle last_cycle mean_value info_string
@@ -105,7 +108,9 @@ def read_NOAA_solar_file(solar_fname: Path) -> dict:
     return solar_constant_data
 
 
-def assign_solar_constant_from_data(solar_constant_data: dict, year: int, isolflg: int):
+def assign_solar_constant_from_data(
+    solar_constant_data: dict, year: int, isolflg: int
+) -> float:
     """Gets solar constant for a year based on a dict of observed constants
 
     Args:
@@ -153,7 +158,7 @@ def sol_init(
     isolar: int,
     solar_constant_file: Path,
     year: int,
-):
+) -> tuple[int, dict, float]:
     """
     Initializes solar constant data and sol flag used at runtime
     based on requested sol flag, external solar data, and starting year
@@ -223,7 +228,7 @@ def sol_init(
 def solar(
     jd: int,
     fjd: float,
-):
+) -> tuple[float, float, float, float, float, float]:
     """
     !  ===================================================================  !
     !                                                                       !
@@ -347,7 +352,7 @@ def solar_update(
     iyr_sav: int,
     isolflg: bool,
     solar_constant_data: dict = None,
-):
+) -> tuple[float, float, float, float, float, float, int, int]:
     """
     Updates solar parameters during model steps, including solar constant
     and incident angle data. Original Fortran docstring follows:

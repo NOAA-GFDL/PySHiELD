@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
@@ -31,7 +32,7 @@ CL4VMR_DEF = 1.397e-10  # aer 2003 value
 F113VMR_DEF = 8.2000e-11  # gfdl 1999 value
 
 
-def read_global_annual_co2(co2gbl_file: Path):
+def read_global_annual_co2(co2gbl_file: Path) -> dict[str : Union[Float, Int]]:
     """
     Function to read a text file of CO2 global half-yearly means
     and growth rates into a model.
@@ -59,7 +60,9 @@ def read_global_annual_co2(co2gbl_file: Path):
     return global_annual_co2_data
 
 
-def read_monthly_resolved_co2(co2dat_file: Path):
+def read_monthly_resolved_co2(
+    co2dat_file: Path,
+) -> tuple[int, dict[Union[str, Int] : Union[Float, list[Float]]]]:
     """
     Function to read a text file of 15-degree CO2 monthly means into a model.
     Assumes a format of:
@@ -98,7 +101,9 @@ def read_monthly_resolved_co2(co2dat_file: Path):
     return year, resolved_monthly_co2_data
 
 
-def read_monthly_cycle_co2(co2cyc_file: Path):
+def read_monthly_cycle_co2(
+    co2cyc_file: Path,
+) -> dict[Union[str, Int] : Union[Int, Float, dict[str : Union[Float, list[Float]]]]]:
     """
     Function to read a text file of 15-degree CO2 monthly deviations into a model.
     Assumes a format of:
@@ -147,14 +152,14 @@ def read_monthly_cycle_co2(co2cyc_file: Path):
     return resolved_monthly_co2_cycle
 
 
-def read_co2_files(input_dir: Path, prefix=""):
+def read_co2_files(input_dir: Path, prefix="") -> tuple[dict, dict, dict]:
     """
     Function to read in input CO2 data files
     """
 
-    co2_glb_data = None
-    co2_mvr_data = None
-    co2_cyc_data = None
+    co2_glb_data = {}
+    co2_mvr_data = {}
+    co2_cyc_data = {}
 
     glob_fname = prefix + "co2historicaldata_glob.txt"
     cyc_fname = prefix + "co2monthlycyc1976_2009.txt" if prefix else "co2monthlycyc.txt"
@@ -183,7 +188,7 @@ def broadcast_co2_to_grid(
     co2dat,
     gridlon,
     gridlat,
-):
+) -> np.ndarray:
     """
     Function to take input CO2 data assumed to be at 15-degree resolution and
     broadcast it to a model-resolution cubed-sphere grid by assigning values from
@@ -226,7 +231,23 @@ def gas_init(
     gridlon: np.ndarray,
     gridlat: np.ndarray,
     prefix: str = "",
-):
+) -> tuple[
+    float,
+    float,
+    float,
+    float,
+    float,
+    float,
+    float,
+    float,
+    float,
+    float,
+    np.ndarray,
+    np.ndarray,
+    dict,
+    dict,
+    dict,
+]:
     """
     Function to init gases for radiation. Returns a global mean CO2 concentration,
     and 3 optional dictionaries of CO2 data: one for annual global means, one for
@@ -331,7 +352,7 @@ def ozone_update(
     ihour: Int,
     ioznflg: Int,
     loz1st: Int,
-):
+) -> tuple[Int, Int, Float]:
     """
     Ozone portion of gas_update fortran routine. Computes O3 climatology parameters
     """
@@ -376,7 +397,7 @@ def co2_update(
     co2_annual_means: dict = None,
     co2_monthly_means: dict = None,
     co2_monthly_cycle: dict = None,
-):
+) -> tuple[float, np.ndarray, np.ndarray]:
     """
     CO2 portion of gas_update Fortran subroutine.
 
