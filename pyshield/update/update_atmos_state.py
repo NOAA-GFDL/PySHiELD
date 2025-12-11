@@ -4,7 +4,7 @@ import pyfv3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
-from ndsl.dsl.typing import Float, FloatField
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
 from ndsl.typing import Communicator
 from pyfv3.stencils import fv_subgridz
@@ -156,7 +156,6 @@ class DycoreToPhysics:
             config=stencil_factory.config.dace_config,
             dace_compiletime_args=["dycore_state", "physics_state", "tendency_state"],
         )
-
         self._copy_dycore_to_physics = stencil_factory.from_dims_halo(
             copy_dycore_to_physics,
             compute_dims=[
@@ -183,6 +182,7 @@ class DycoreToPhysics:
         dycore_state,
         physics_state,
         tendency_state=None,
+        ptop: FloatFieldIJ = None,
         timestep: Optional[float] = None,
     ):
         if self._do_dry_convective_adjustment:

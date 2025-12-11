@@ -21,6 +21,10 @@ CONT = Float(constants.CP_AIR / constants.GRAV)
 CONQ = Float(constants.HLV / constants.GRAV)
 P00 = Float(1.0e5)
 """idealized surface atmospheric pressure (Pa)"""
+P_REF = Float(101325.0)
+"""reference surface pressure for sigma calculation"""
+TICE = Float(2.7120e2)
+"""temp freezing sea (K)"""
 
 # Alternative Units and Precision in Physics:
 CPH2O1 = Float(4.218e3)
@@ -35,6 +39,14 @@ EL2ORC = Float(constants.HLV * constants.HLV / (constants.RVGAS * constants.CP_A
 DELTA = Float(constants.RVGAS / constants.RDGAS - 1.0)
 FACT1 = Float((constants.CP_VAP - C_LIQ0) / constants.RVGAS)
 FACT2 = Float(constants.HLV / constants.RVGAS - FACT1 * constants.TICE0)
+
+# Constants used to convert units for radiation
+MMDRY = 2.89644e-2
+"""Molar mass of dry air in kg/mol"""
+MMVAP = 1.80153e-2
+"""Molar mass of water vapor in kg/mol"""
+MMO3 = 4.7997e-2
+"""Molar mass of ozone in kg/mol"""
 
 # Constants used in interpolating radiation onto physics timestep:
 F_EPS = Float(0.0001)

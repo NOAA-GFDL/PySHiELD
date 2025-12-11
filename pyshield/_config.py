@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 import f90nml
 from dacite import Config, from_dict
 
+import pyshield.constants as physcons
 from ndsl import MetaEnumStr
 from ndsl.dsl.gt4py_utils import tracer_variables
 from ndsl.dsl.typing import Float, set_4d_field_size
@@ -42,12 +43,24 @@ class PHYSICS_PACKAGES(Enum, metaclass=MetaEnumStr):
     GFDL_cloud_microphysics = "GFDL_cloud_microphysics"
     SATM_EDMF = "SATM_EDMF"
     SFC_layer = "SFC_layer"
+    RTE_RRTMGP = "RTE_RRTMGP"
 
 
 @dataclasses.dataclass
 class PhysicsConfig:
     dt_atmos: float = DEFAULT_FLOAT
+    """physics timestep (secs)"""
+    fhswr: float = 3600.0
+    """frequency for shortwave radiation (secs)"""
+    fhlwr: float = 3600.0
+    """frequency for longwave radiation (secs)"""
+    nsswr: int = 1
+    """frequency for shortwave radiation (timesteps), default is every step"""
+    nslwr: int = 1
+    """frequency for longwave radiation (timesteps)"""
     hydrostatic: bool = DEFAULT_BOOL
+    hydro_delp: bool = False
+    """Flag to use hydrostatic mean layer pressures"""
     npx: int = DEFAULT_INT
     npy: int = DEFAULT_INT
     npz: int = DEFAULT_INT
@@ -185,6 +198,12 @@ class PhysicsConfig:
     target_nml_groups: Optional[Tuple[str, ...]] = DEFAULT_PHYS_NML_GROUPS
     daily_mean: bool = DEFAULT_BOOL
     """flag to replace cosz with daily mean value"""
+    prescribe_sst: bool = DEFAULT_BOOL
+    """whether to use prescribed sea surface temperatures"""
+    max_sst: float = 293.95
+    """maximum temperature for prescribed SSTs"""
+    min_sst: float = float(physcons.TICE)
+    """minimum temperature for prescribed SSTs"""
 
     def __post_init__(self):
         if self.schemes is None:
@@ -208,6 +227,9 @@ class PhysicsConfig:
             physics_config = self.from_f90nml(f90_nml, self.target_nml_groups)
             for var in physics_config.__dict__.keys():
                 setattr(self, var, physics_config.__dict__[var])
+        if self.dt_atmos != 0:
+            self.nsswr = int(self.fhswr / self.dt_atmos)
+            self.nslwr = int(self.fhlwr / self.dt_atmos)
 
     @classmethod
     def from_f90nml(

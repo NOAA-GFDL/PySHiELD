@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,7 @@ from ndsl.grid import (
     VerticalGridData,
 )
 from pyshield import PHYSICS_PACKAGES, Physics, PhysicsConfig, PhysicsState
+from pyshield.radiation import RTE_RRTMGPConfig, RTE_RRTMGPState
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.pbl import PBLConfig
 from pyshield.stencils.shallow_convection import ShallowConvectionConfig
@@ -79,6 +81,7 @@ def states_from_fortran_restarts(
     sfc_data = xr.open_dataset(sfc_datafile)
     state = PhysicsState.init_zeros(quantity_factory, schemes)
     sstate = SurfaceState.init_zeros(qf_sfc)
+    radstate = RTE_RRTMGPState.init_zeros(quantity_factory, np)
     buff_3d = np.zeros_like(state.prsi.field)
     npz = buff_3d.shape[2]
     for k in range(npz):
@@ -116,7 +119,7 @@ def states_from_fortran_restarts(
     state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
 
     sstate.tsfc.field[:] = sfc_data.tsea.data[0, :, :].transpose()
-    sstate.slmsk.field[:] = sfc_data.slmsk.data[0, :, :].transpose()
+    sstate.islmsk.field[:] = sfc_data.slmsk.data[0, :, :].transpose()
     sstate.zorl.field[:] = sfc_data.zorl.data[0, :, :].transpose()
     sstate.vegtype.field[:] = sfc_data.vtype.data[0, :, :].transpose()
     sstate.uustar.field[:] = sfc_data.uustar.data[0, :, :].transpose()
@@ -137,7 +140,7 @@ def states_from_fortran_restarts(
     sstate.tprcp.field[:] = sfc_data.tprcp.data[0, :, :].transpose()
     sstate.weasd.field[:] = sfc_data.sheleg.data[0, :, :].transpose()
 
-    return state, sstate
+    return state, sstate, radstate
 
 
 # TODO: parameterize over schemes
@@ -160,7 +163,9 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         nx=nx, ny=ny, nz=nz, nzsoil=4, nhalo=3, etafile=etafile, backend=backend
     )
 
-    state, sstate = states_from_fortran_restarts(
+    date = datetime.datetime(2020, 1, 1, 12, tzinfo=datetime.timezone.utc)
+
+    state, sstate, radstate = states_from_fortran_restarts(
         dycore_path,
         physics_path,
         tracer_path,
@@ -178,7 +183,38 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         npy=ny + 1,
         npz=nz + 1,
         nwat=6,
-        schemes=["SATM_EDMF", "GFDL_cloud_microphysics", "SFC_layer", "SAMF_SHALCONV"],
+        schemes=[
+            "SATM_EDMF",
+            "GFDL_cloud_microphysics",
+            "SFC_layer",
+            "SAMF_SHALCONV",
+            "RTE_RRTMGP",
+        ],
+    )
+
+    radconf = RTE_RRTMGPConfig(
+        deltsw=3600.0,
+        delt_rad=3600.0,
+        date=date,
+        fhswr=1.0,
+        fhlwr=1.0,
+        isolar=10,
+        icmphys=4,
+        ico2flg=0,
+        ioznflg=1,
+        ictmflg=-1,
+        ialbflg=-1,
+        iemsflg=0,
+        ldisable_radiation_quasi_sea_ice=False,
+        solar_constant_file=Path("global_solarconstant_noaa_an.txt"),
+        input_dir=Path(restart_path.joinpath("test_data/")),
+        aerosol_file=Path(restart_path.joinpath("test_data/")),
+        sollat=0.0,
+        nstp=6,
+        ivflip=1,
+        lcnorm=False,
+        lcrick=False,
+        gfs_cloud_overlap=False,
     )
 
     sfc_config = SurfaceConfig(dt_atmos=dt)
@@ -235,5 +271,12 @@ def test_pyshield_runs(restart_path: Path, backend: str):
         gfdl_cld_mp_config=mp_config,
         sfc_config=sfc_config,
         sc_config=sc_conf,
+        rad_config=radconf,
     )
-    physics_driver(state, config.dt_atmos, surface_state=sstate)
+    physics_driver(
+        state,
+        timestep=config.dt_atmos,
+        surface_state=sstate,
+        radiation_state=radstate,
+        date=date,
+    )

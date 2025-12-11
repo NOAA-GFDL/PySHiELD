@@ -88,16 +88,16 @@ def update_guess_and_soil_0(
     stsoil: FloatField,
     stc0: FloatFieldIJ,
     stc1: FloatFieldIJ,
-    slmsk: IntFieldIJ,
+    islmsk: IntFieldIJ,
 ):
     with computation(FORWARD):
         with interval(0, 1):
             if (iteration == 0) and (wind < 2.0):
                 flag_guess[0, 0] = True
-            if slmsk > 0:
+            if islmsk > 0:
                 stc0 = stsoil[0, 0, 0]
         with interval(1, 2):
-            if slmsk > 0:
+            if islmsk > 0:
                 stc1 = stsoil[0, 0, 0]
 
 
@@ -310,7 +310,7 @@ class SurfaceLayer:
                 state.wind,
                 self._fm10,
                 self._fh2,
-                state.slmsk,
+                state.islmsk,
                 state.vegtype,
                 self._flag_iter,
             )
@@ -322,7 +322,7 @@ class SurfaceLayer:
                 state.stc,
                 self._stc0,
                 self._stc1,
-                state.slmsk,
+                state.islmsk,
             )
 
             self._sfc_ocean(
@@ -344,7 +344,7 @@ class SurfaceLayer:
                 state.evap,
                 state.hflx,
                 self._ep1d,
-                state.slmsk,
+                state.islmsk,
                 self._flag_iter,
             )
 
@@ -364,7 +364,7 @@ class SurfaceLayer:
                 self._cdq,
                 self._prsl1,
                 self._work3,
-                state.slmsk,
+                state.islmsk,
                 self._flag_iter,
                 state.hice,
                 state.fice,
@@ -393,7 +393,7 @@ class SurfaceLayer:
                 state.stc,
                 self._stc0,
                 self._stc1,
-                state.slmsk,
+                state.islmsk,
             )
 
         self._post_loop(
