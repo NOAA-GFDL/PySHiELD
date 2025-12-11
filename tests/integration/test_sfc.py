@@ -86,7 +86,7 @@ def states_from_fortran_restarts(
     state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
 
     sstate.tsfc.field[:] = sfc_data.tsea.data[0, :, :].transpose()
-    sstate.slmsk.field[:] = sfc_data.slmsk.data[0, :, :].transpose()
+    sstate.islmsk.field[:] = sfc_data.slmsk.data[0, :, :].transpose()
     sstate.zorl.field[:] = sfc_data.zorl.data[0, :, :].transpose()
     sstate.vegtype.field[:] = sfc_data.vtype.data[0, :, :].transpose()
     sstate.uustar.field[:] = sfc_data.uustar.data[0, :, :].transpose()

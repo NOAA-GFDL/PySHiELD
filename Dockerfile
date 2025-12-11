@@ -18,10 +18,13 @@ RUN apt-get update -y && \
     libopenmpi-dev \
     libhdf5-serial-dev \
     libffi-dev \
+    libssl-dev \
     netcdf-bin \
     libnetcdf-dev
 
+
 RUN python3 -m pip install --upgrade setuptools pip wheel
+
 
 # Check python & pip
 RUN python --version
@@ -33,6 +36,7 @@ COPY ./ /pyshield/
 
 # Install pySHiELD and the full dependencies
 RUN cd /pyshield && pip install -e .[dev]
+
 
 RUN pip install \
     matplotlib \

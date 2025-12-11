@@ -330,6 +330,62 @@ class PhysicsState:
             "intent": "in",
         }
     )
+    tsfc: Quantity = field(
+        metadata={
+            "name": "surface_temperature",
+            "dims": [X_DIM, Y_DIM],
+            "units": "K",
+            "intent": "inout",
+        }
+    )
+    flwu: Quantity = field(
+        metadata={
+            "name": "longwave_flux_up",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    flwd: Quantity = field(
+        metadata={
+            "name": "longwave_flux_down",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    fswu: Quantity = field(
+        metadata={
+            "name": "shortwave_flux_up",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    fswd: Quantity = field(
+        metadata={
+            "name": "shortwave_flux_down",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    hrtlw: Quantity = field(
+        metadata={
+            "name": "longwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
+    hrtsw: Quantity = field(
+        metadata={
+            "name": "shortwave_heating_rate",
+            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "units": "",
+            "intent": "out",
+        }
+    )
     kpbl: Quantity = field(
         metadata={
             "name": "pbl_index",

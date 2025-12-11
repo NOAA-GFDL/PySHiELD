@@ -4,7 +4,7 @@ from typing import Any, Dict, Mapping
 import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
-from ndsl import GridSizer, Quantity
+from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import Bool, Float, Int
 
@@ -47,6 +47,66 @@ class SurfaceState:
         }
     )
 
+    sncovr: Quantity = field(
+        metadata={
+            "name": "snow_cover_area_fraction",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    snoalb: Quantity = field(
+        metadata={
+            "name": "maximum_snow_albedo_in_fraction",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    albedo: Quantity = field(
+        metadata={
+            "name": "mean_albedo",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    alvsf: Quantity = field(
+        metadata={
+            "name": "mean_visible_albedo_with_strong_cosz_dependency",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+    alnsf: Quantity = field(
+        metadata={
+            "name": "mean_near_ir_albedo_with_strong_cosz_dependency",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+    alvwf: Quantity = field(
+        metadata={
+            "name": "mean_visible_albedo_with_weak_cosz_dependency",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+    alnwf: Quantity = field(
+        metadata={
+            "name": "mean_near_ir_albedo_with_weak_cosz_dependency",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
     zorl: Quantity = field(
         metadata={
             "name": "composite_surface_roughness",
@@ -62,6 +122,15 @@ class SurfaceState:
             "dims": [X_DIM, Y_DIM],
             "units": "cm",
             "intent": "in",
+        }
+    )
+
+    hprim: Quantity = field(
+        metadata={
+            "name": "",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
         }
     )
 
@@ -83,9 +152,9 @@ class SurfaceState:
         }
     )
 
-    slmsk: Quantity = field(
+    islmsk: Quantity = field(
         metadata={
-            "name": "sea_land_ice_mask",
+            "name": "ice_sea_land_mask",
             "dims": [X_DIM, Y_DIM],
             "units": "",
             "intent": "in",
@@ -164,6 +233,24 @@ class SurfaceState:
             "units": "",
             "intent": "inout",
             "type": Bool,
+        }
+    )
+
+    facsf: Quantity = field(
+        metadata={
+            "name": "fractional_coverage_with_strong_cosz_dependency",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
+        }
+    )
+
+    facwf: Quantity = field(
+        metadata={
+            "name": "fractional_coverage_with_weak_cosz_dependency",
+            "dims": [X_DIM, Y_DIM],
+            "units": "",
+            "intent": "inout",
         }
     )
 
@@ -381,18 +468,25 @@ class SurfaceState:
         cls,
         storages: Mapping[str, Any],
         sizer: GridSizer,
+        quantity_factory: QuantityFactory,
     ) -> "SurfaceState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
                 dims = _field.metadata["dims"]
-                quantity = Quantity(
-                    storages[_field.name],
-                    dims,
-                    _field.metadata["units"],
-                    origin=sizer.get_origin(dims),
-                    extent=sizer.get_extent(dims),
-                )
+                if _field.name in storages.keys():
+                    quantity = Quantity(
+                        storages[_field.name],
+                        dims,
+                        _field.metadata["units"],
+                        origin=sizer.get_origin(dims),
+                        extent=sizer.get_extent(dims),
+                    )
+                else:
+                    quantity = quantity_factory.zeros(
+                        dims,
+                        _field.metadata["units"],
+                    )
                 inputs[_field.name] = quantity
         return cls(**inputs)
 
