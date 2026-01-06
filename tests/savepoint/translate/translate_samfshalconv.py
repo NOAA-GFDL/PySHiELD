@@ -81,8 +81,8 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -97,9 +97,7 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         quantity_factory.add_data_dimensions(
             {
                 SC_TRACER_DIM: inputs["sc_nsamftrac"] + 2,

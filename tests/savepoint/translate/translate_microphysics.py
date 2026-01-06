@@ -81,9 +81,7 @@ class TranslateMicroph(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         physics_state = PhysicsState.init_from_storages(
             inputs,
             sizer=sizer,

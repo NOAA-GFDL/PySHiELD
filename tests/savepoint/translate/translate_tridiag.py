@@ -229,9 +229,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
         compute_func = TridiT(self.stencil_factory, quantity_factory)
@@ -271,9 +269,7 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
             data_dimensions={},
             layout=self.config.layout,
         )
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         compute_func = Tridi2(self.stencil_factory, quantity_factory)
 
         compute_func(**inputs)
@@ -312,9 +308,7 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             data_dimensions={},
             layout=self.config.layout,
         )
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         config = self.config.pbl
         compute_func = TridiN(self.stencil_factory, quantity_factory, 8)
 

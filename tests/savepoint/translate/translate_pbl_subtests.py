@@ -3331,9 +3331,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3441,9 +3439,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3510,9 +3506,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3568,9 +3562,7 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3640,9 +3632,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3715,9 +3705,7 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3775,9 +3763,7 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3925,9 +3911,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -3988,9 +3972,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         config = self.config.pbl
 
         self.make_storage_data_input_vars(inputs)
@@ -4084,9 +4066,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         config = self.config.pbl
 
         self.make_storage_data_input_vars(inputs)
@@ -4168,9 +4148,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         config = self.config.pbl
 
         self.make_storage_data_input_vars(inputs)
@@ -4236,9 +4214,7 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -4321,9 +4297,7 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         config = self.config.pbl
         config.ntke = config.ntracers - 1
@@ -4411,9 +4385,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -4634,9 +4606,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
@@ -4877,9 +4847,7 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 

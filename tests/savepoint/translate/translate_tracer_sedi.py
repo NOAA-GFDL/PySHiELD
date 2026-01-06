@@ -720,8 +720,8 @@ class TranslateTracerSed(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

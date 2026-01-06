@@ -99,9 +99,7 @@ class TranslatePBL(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         self.make_storage_data_input_vars(inputs)
 
