@@ -35,14 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache
         with:
           path: ~/.cache/pre-commit
@@ -63,13 +63,13 @@ jobs:
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache
         with:
           path: pySHiELD/test_data
