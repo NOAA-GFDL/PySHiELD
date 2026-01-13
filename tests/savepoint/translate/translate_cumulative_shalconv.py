@@ -3405,8 +3405,8 @@ class TranslateInitCol(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -3518,8 +3518,8 @@ class TranslateStatic1(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -3623,8 +3623,8 @@ class TranslateStatic2(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -3740,8 +3740,8 @@ class TranslateUpdateKb9(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -3853,8 +3853,8 @@ class TranslateStatic10(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -4020,8 +4020,8 @@ class TranslateStatic11(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -4185,8 +4185,8 @@ class TranslateStatic12(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -4320,8 +4320,8 @@ class TranslateFeedbackCtrl(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -4381,8 +4381,8 @@ class TranslateSC13(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing
@@ -4535,8 +4535,8 @@ class TranslateCompTendencies(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
         self.grid_indexing = stencil_factory.grid_indexing

@@ -1036,8 +1036,8 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            self.sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            self.sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):
@@ -1493,8 +1493,8 @@ class TranslatePostMP(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            self.sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            self.sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

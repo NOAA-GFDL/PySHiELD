@@ -60,8 +60,8 @@ class TranslateAtmosPhysDriverStatein(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
         self.compute_func = self.stencil_factory.from_origin_domain(
             atmos_phys_driver_statein,

@@ -128,7 +128,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
     )
-    quantity_factory = QuantityFactory.from_backend(sizer, backend="numpy")
+    quantity_factory = QuantityFactory(sizer, backend="numpy")
 
     soil_sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -140,7 +140,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
     )
-    qf_soil = QuantityFactory.from_backend(soil_sizer, backend="numpy")
+    qf_soil = QuantityFactory(soil_sizer, backend="numpy")
 
     comconf = CompilationConfig()
     comconf.validate_args = False

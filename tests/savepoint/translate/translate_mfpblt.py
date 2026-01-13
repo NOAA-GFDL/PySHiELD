@@ -64,9 +64,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
             layout=self.config.layout,
         )
 
-        quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
-        )
+        quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         k_mask = quantity_factory.zeros(
             [X_DIM, Y_DIM, Z_DIM],
