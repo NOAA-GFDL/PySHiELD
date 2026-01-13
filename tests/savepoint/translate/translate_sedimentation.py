@@ -717,12 +717,14 @@ class TranslateSedimentation(TranslatePhysicsFortranData2Py):
                     inputs[var],
                     dims=[X_DIM, Y_DIM, Z_DIM],
                     units="unknown",
+                    backend=self.quantity_factory.backend,
                 )
             elif len(inputs[var].shape) == 2:
                 inputs[var] = Quantity(
                     inputs[var],
                     dims=[X_DIM, Y_DIM],
                     units="unknown",
+                    backend=self.quantity_factory.backend,
                 )
             else:
                 raise TypeError(

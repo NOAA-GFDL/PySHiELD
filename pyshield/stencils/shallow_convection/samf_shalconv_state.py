@@ -222,6 +222,7 @@ class SAMFShalConvState:
                         _field.metadata["units"],
                         origin=sizer.get_origin(dims),
                         extent=sizer.get_extent(dims),
+                        backend=quantity_factory.backend,
                     )
                 else:
                     quantity = quantity_factory.zeros(dims, _field.metadata["units"])

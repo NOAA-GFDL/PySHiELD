@@ -173,6 +173,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
                 units="test",
                 origin=(0, 0, 0),
                 extent=storage.shape,
+                backend=self.grid.quantity_factory.backend,
             )
         state = DycoreState(**inputs)
         self._base.compute_func = ApplyPhysicsToDycore(

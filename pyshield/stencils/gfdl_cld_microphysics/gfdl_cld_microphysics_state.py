@@ -519,6 +519,7 @@ class GFDLCloudMicrophysicsState:
                         _field.metadata["units"],
                         origin=sizer.get_origin(_field.metadata["dims"]),
                         extent=sizer.get_extent(_field.metadata["dims"]),
+                        backend=quantity_factory.backend,
                     )
         return cls(**inputs)
 
