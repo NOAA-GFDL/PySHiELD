@@ -1,7 +1,6 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 
@@ -65,7 +64,7 @@ def date_to_julian(iyear: int, imonth: int, iday: int) -> int:
 
 def read_NOAA_solar_file(
     solar_fname: Path,
-) -> dict[str : Union[float, int, dict[str : Union[int, float, dict[str:float]]]]]:
+) -> dict[str, float | int | dict[str, int | float | dict[str, float]]]:
     """
     function to read in a file of solar constants structured as:
         first_year last_year first_cycle last_cycle mean_value info_string
@@ -98,7 +97,7 @@ def read_NOAA_solar_file(
                 solar_constant_data["icy1"] = int(table_dat[2])
                 solar_constant_data["icy2"] = int(table_dat[3])
                 solar_constant_data["smean"] = float(table_dat[4])
-            elif re.fullmatch(r"^(\*)\1{1,}$", table_dat[0]):
+            elif re.fullmatch(r"^(\*)\1{1,}$", table_dat[0]) is not None:
                 break  # end at the asterisks
             else:
                 year = int(table_dat[0])

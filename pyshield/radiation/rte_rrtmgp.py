@@ -547,7 +547,7 @@ class RTE_RRTMGPDriver:
             self.delt_rad,
             lsol_chg,
             self.saved_iyear,
-            self.isolflg,
+            self.isolflg,  # type: ignore[arg-type] # type error in pyrte
             self._solar_constants,
         )
 

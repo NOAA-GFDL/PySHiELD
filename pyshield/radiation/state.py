@@ -358,7 +358,7 @@ class RTE_RRTMGPState:
         for name, field_info in self.__dataclass_fields__.items():
             if name not in ["quantity_factory", "np_like"]:
                 if field_info.metadata["intent"] != "out":
-                    if issubclass(field_info.type, Quantity):
+                    if issubclass(field_info.type, Quantity):  # type: ignore[arg-type]
                         dims = []
                         slice_list = []
                         ndims = len(field_info.metadata["dims"])
@@ -366,22 +366,30 @@ class RTE_RRTMGPState:
                         for dim_name in field_info.metadata["dims"]:
                             # dims.append(f"{dim_name}_{name}")
                             if dim_name == "z_interface":
-                                slice_list.append(self._np.s_[:])
+                                slice_list.append(
+                                    self._np.s_[:]  # type: ignore[attr-defined]
+                                )
                                 nz = self._nz + 1
                                 dims.append("level")
                             elif dim_name == "z":
-                                slice_list.append(self._np.s_[:-1])
+                                slice_list.append(
+                                    self._np.s_[:-1]  # type: ignore[attr-defined]
+                                )
                                 dims.append("layer")
                             elif "INTERFACE" in dim_name:
-                                slice_list.append(self._np.s_[3:-3])
+                                slice_list.append(
+                                    self._np.s_[3:-3]  # type: ignore[attr-defined]
+                                )
                             else:
-                                slice_list.append(self._np.s_[3:-4])
+                                slice_list.append(
+                                    self._np.s_[3:-4]  # type: ignore[attr-defined]
+                                )
                         # We have to reshape to get the max 2D shape rterrtmgp expects:
                         if ndims == 3:  # x-y-z array:
                             newshape = (-1, nz)
                             dims.insert(0, "column")
                         elif ndims == 2:  # x-y array:
-                            newshape = (-1,)  # noqa
+                            newshape = (-1,)  # type: ignore[assignment]
                             dims.insert(0, "column")
                         elif ndims == 1:  # z-array
                             newshape == (nz,)
