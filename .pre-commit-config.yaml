@@ -19,7 +19,6 @@ repos:
       - id: mypy
         name: mypy-physics
         args: ["--config-file", "pyproject.toml"]
-        files: pySHiELD
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:

@@ -56,7 +56,7 @@ def states_from_fortran_restarts(
     ak: Quantity,
     quantity_factory: QuantityFactory,
     stencil_factory: StencilFactory,
-    schemes: PHYSICS_PACKAGES,
+    schemes: list[PHYSICS_PACKAGES],
 ):
     pk0inv = (1.0 / physcons.P00) ** constants.KAPPA
     dycore_data = xr.open_dataset(dycore_datafile)

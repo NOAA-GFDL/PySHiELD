@@ -1,6 +1,5 @@
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
-import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import (
@@ -15,6 +14,7 @@ from ndsl.dsl.typing import (
 from ndsl.stencils.basic_operations import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl import PBLConfig
+from pyshield.stencils.pbl import constants as pbl_constants
 from pyshield.stencils.pbl.mfpblt import PBLMassFlux
 from pyshield.stencils.pbl.mfscu import StratocumulusMassFlux
 from pyshield.stencils.pbl.satmedmfvdiff import (
@@ -807,7 +807,7 @@ class TKEPredict:
     ):
         idx = stencil_factory.grid_indexing
         self._dt_atmos = config.dt_atmos
-        self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
+        self._kk = max(round(self._dt_atmos / pbl_constants.CDTN), 1)
         self._dtn = self._dt_atmos / float(self._kk)
 
         self._predict_tke = stencil_factory.from_origin_domain(
@@ -1876,7 +1876,7 @@ class Half2:
 
         self._dt_atmos = config.dt_atmos
         self._rdt = 1.0 / self._dt_atmos
-        self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
+        self._kk = max(round(self._dt_atmos / pbl_constants.CDTN), 1)
         self._dtn = self._dt_atmos / float(self._kk)
 
         self._ntiw = config.ntiw
@@ -2539,7 +2539,7 @@ class SCUEnd:
 
         self._dt_atmos = config.dt_atmos
         self._rdt = 1.0 / self._dt_atmos
-        self._kk = max(round(self._dt_atmos / physcons.CDTN), 1)
+        self._kk = max(round(self._dt_atmos / pbl_constants.CDTN), 1)
         self._dtn = self._dt_atmos / float(self._kk)
 
         self._ntiw = config.ntiw
