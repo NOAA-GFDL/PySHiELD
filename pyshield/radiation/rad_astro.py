@@ -349,7 +349,7 @@ def solar_update(
     deltim: float,
     lsol_chg: bool,
     iyr_sav: int,
-    isolflg: bool,
+    isolflg: int,
     solar_constant_data: dict = None,
 ) -> tuple[float, float, float, float, float, float, int, int]:
     """
