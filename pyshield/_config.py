@@ -67,9 +67,6 @@ class PhysicsConfig:
     nwat: int = DEFAULT_INT
     schemes: List = None
     ntracers: int = int(len(tracer_variables))
-    ntiw: int = DEFAULT_INT
-    ntcw: int = DEFAULT_INT
-    ntke: int = DEFAULT_INT
     do_qa: bool = DEFAULT_BOOL
     do_inline_mp: bool = False
     """Whether microphysics is inlined in the dycore"""
