@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: External trigger Checkout pySHiELD
         if: ${{inputs.component_trigger}}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
           repository: NOAA-GFDL/PySHiELD
@@ -44,7 +44,7 @@ jobs:
           ref: develop
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -63,7 +63,7 @@ jobs:
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
       - name: Checkout hash that triggered CI
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
@@ -93,7 +93,7 @@ jobs:
       # accessible from other PRs, see workflows/create_cache.yaml.
       - name: Restore test_data (if cached)
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           key: ${{ env.TEST_DATA_PATH }}
           path: pySHiELD/test_data
