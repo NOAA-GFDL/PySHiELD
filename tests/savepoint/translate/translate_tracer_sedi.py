@@ -718,6 +718,7 @@ class TranslateTracerSed(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         self.quantity_factory = QuantityFactory(

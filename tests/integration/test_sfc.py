@@ -112,8 +112,8 @@ def states_from_fortran_restarts(
 
 def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     n_halo = 3
-
     rank = 0
+    backend = "numpy"
 
     comm = NullComm(rank, 1)
     communicator = TileCommunicator.from_layout(comm=comm, layout=(1, 1))
@@ -127,8 +127,9 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         layout=(1, 1),
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
-    quantity_factory = QuantityFactory(sizer, backend="numpy")
+    quantity_factory = QuantityFactory(sizer, backend=backend)
 
     soil_sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -139,6 +140,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         layout=(1, 1),
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
     qf_soil = QuantityFactory(soil_sizer, backend="numpy")
 

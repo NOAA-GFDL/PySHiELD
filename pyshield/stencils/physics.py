@@ -21,7 +21,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
-from ndsl.stencils.basic_operations import copy_defn
+from ndsl.stencils.basic_operations import copy
 from pyshield._config import (
     PHYSICS_PACKAGES,
     TRACER_DIM,
@@ -1242,7 +1242,7 @@ class Physics:
         self._sfcvisdfd = make_quantity_2d()
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            func=copy_defn,
+            func=copy,
             origin=grid_indexing.origin_full(),
             domain=grid_indexing.domain_full(add=(0, 0, 1)),
         )

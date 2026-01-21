@@ -899,7 +899,7 @@ class GFDLCloudMicrophysics:
         self._convert_mm_day = 86400.0 * constants.RGRAV / self.config.dt_split
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy_defn,
+            basic.copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )

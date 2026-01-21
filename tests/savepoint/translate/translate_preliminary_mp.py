@@ -39,7 +39,7 @@ class PrelimCalcs:
         self._bottom_density = make_quantity2d()
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy_defn,
+            basic.copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )
@@ -572,6 +572,7 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         self.quantity_factory = QuantityFactory(
