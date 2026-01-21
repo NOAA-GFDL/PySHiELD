@@ -12,7 +12,7 @@ from ndsl.dsl.typing import (
     Int,
     IntFieldIJ,
 )
-from ndsl.stencils.basic_operations import copy_defn
+from ndsl.stencils.basic_operations import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl import PBLConfig
 from pyshield.stencils.pbl.mfpblt import PBLMassFlux
@@ -1345,7 +1345,7 @@ class TKETendencyCalc:
         )
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            func=copy_defn,
+            func=copy,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
@@ -3329,6 +3329,7 @@ class TranslatePBLInit(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3437,6 +3438,7 @@ class TranslateMRF(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3504,6 +3506,7 @@ class TranslateThermalPBL(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3560,6 +3563,7 @@ class TranslateStratocumulus(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3630,6 +3634,7 @@ class TranslatePBLAML(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3703,6 +3708,7 @@ class TranslateTKETridiagEle(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3761,6 +3767,7 @@ class TranslatePrandtl(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3909,6 +3916,7 @@ class TranslateEdDiffShear(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -3970,6 +3978,7 @@ class TranslateUpDownTKE(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4064,6 +4073,7 @@ class TranslateMomentTridiagComp(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4146,6 +4156,7 @@ class TranslateHeatTracerTridiagEle(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4212,6 +4223,7 @@ class TranslateTKETendencyCalc(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4295,6 +4307,7 @@ class TranslateHeatTracerTendencyCalc(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4383,6 +4396,7 @@ class TranslateMomentTendencyCalc(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4604,6 +4618,7 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -4845,6 +4860,7 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)

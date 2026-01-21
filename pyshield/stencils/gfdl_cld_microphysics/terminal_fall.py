@@ -7,7 +7,7 @@ from ndsl import GridIndexing, QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
-from ndsl.stencils.basic_operations import copy_defn
+from ndsl.stencils.basic_operations import copy
 from pyfv3.stencils.remap_profile import RemapProfile
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
@@ -407,7 +407,7 @@ class TerminalFall:
         # compile stencils
 
         self._copy_stencil = stencil_factory.from_dims_halo(
-            copy_defn,
+            copy,
             compute_dims=dims,
         )
 

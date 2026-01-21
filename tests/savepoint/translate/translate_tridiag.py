@@ -3,7 +3,7 @@ from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import Float
-from ndsl.stencils.basic_operations import copy_defn
+from ndsl.stencils.basic_operations import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl.tridiag import tridi2, tridin, tridit
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -40,7 +40,7 @@ class TridiT:
             domain=idx.domain_compute(),
         )
         self._copy_stencil = stencil_factory.from_origin_domain(
-            func=copy_defn,
+            func=copy,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
@@ -83,7 +83,7 @@ class Tridi2:
         )
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            func=copy_defn,
+            func=copy,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
@@ -156,7 +156,7 @@ class TridiN:
         )
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            func=copy_defn,
+            func=copy,
             origin=idx.origin_compute(),
             domain=idx.domain_compute(),
         )
@@ -227,6 +227,7 @@ class TranslateTridit(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
@@ -268,6 +269,7 @@ class TranslateTridi2(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
         compute_func = Tridi2(self.stencil_factory, quantity_factory)
@@ -307,9 +309,9 @@ class TranslateTridin(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
-        config = self.config.pbl
         compute_func = TridiN(self.stencil_factory, quantity_factory, 8)
 
         compute_func(**inputs)
