@@ -10,7 +10,7 @@ DEFAULT_BOOL = False
 
 @dataclasses.dataclass
 class PBLConfig:
-    dt_atmos: int = DEFAULT_INT
+    dt_atmos: float = DEFAULT_FLOAT
     hydrostatic: bool = DEFAULT_BOOL
     isatmedmf: int = 0
     """flag for specific scale-aware turbulent moist edmf scheme"""
@@ -44,9 +44,9 @@ class PBLConfig:
     do_dk_hb19: bool = DEFAULT_BOOL
     """Flag to use HB19 background diffusion formula in satmedmf"""
     rlmn: float = 30.0
-    """Lower limit on aymptotic mixing length in satmedmf"""
+    """Lower limit on asymptotic mixing length in satmedmf"""
     rlmx: float = 300.0
-    """Upper limit on aymptotic mixing length in satmedmf"""
+    """Upper limit on asymptotic mixing length in satmedmf"""
     ntracers: int = int(len(tracer_variables))
     """Number of tracers"""
     ntiw: int = DEFAULT_INT

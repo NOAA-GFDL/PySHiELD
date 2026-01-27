@@ -95,7 +95,7 @@ def states_from_fortran_restarts(
     tracer_datafile: Path,
     ak: Quantity,
     quantity_factory: QuantityFactory,
-    schemes: PHYSICS_PACKAGES,
+    schemes: list[PHYSICS_PACKAGES],
 ):
     dycore_data = xr.open_dataset(dycore_datafile)
     phys_data = xr.open_dataset(phys_datafile)
