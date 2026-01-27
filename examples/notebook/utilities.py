@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 
-from ndsl import NullComm, Quantity, QuantityFactory, TileCommunicator
+from ndsl import LocalComm, Quantity, QuantityFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.grid import (
     AngleGridData,
@@ -102,7 +102,7 @@ def setup_infrastructure(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
     )
     rank = 0
-    comm = NullComm(rank, 1)
+    comm = LocalComm(rank, total_ranks=1, buffer_dict={})
     communicator = TileCommunicator.from_layout(comm=comm, layout=(1, 1))
 
     metric_terms = MetricTerms(
