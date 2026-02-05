@@ -12,6 +12,10 @@ on:
         type: string
         default: ''
         required: false
+      python_version:
+        type: string
+        default: ''
+        required: false
   pull_request: # ... a PR is opened / updated
   merge_group: # ... the PR is added to the merge queue
   push:
@@ -32,10 +36,11 @@ jobs:
     env:
       TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
+      python_default: '3.11'
 
     steps:
       - name: External trigger Checkout pySHiELD
-        if: ${{inputs.component_trigger}}
+        if: ${{inputs.component_name}}
         uses: actions/checkout@v6
         with:
           submodules: 'recursive'
@@ -43,10 +48,10 @@ jobs:
           path: pySHiELD
           ref: develop
 
-      - name: Setup Python 3.11
+      - name: 'Setup Python ${{ inputs.python_version && inputs.python_version || env.python_default }}'
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: ${{ inputs.python_version && inputs.python_version || env.python_default }}
 
       - name: Install mpi (MPICH flavor)
         run: pip install mpich
@@ -59,7 +64,7 @@ jobs:
         run: pip install numpy==1.26.4
 
       - name: External trigger remove existing component in pySHiELD/develop
-        if: ${{ inputs.component_trigger }}
+        if: ${{ inputs.component_name }}
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
       - name: Checkout hash that triggered CI
@@ -84,7 +89,7 @@ jobs:
           pip install .[pyfv3,test]
 
       - name: Install pySHiELD packages
-        if: ${{ !inputs.component_trigger}}
+        if: ${{ !inputs.component_name}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install .[ndsl,pyfv3,test]
