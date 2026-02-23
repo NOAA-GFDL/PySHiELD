@@ -115,7 +115,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
             -v -s --data_path=${{ env.TEST_DATA_PATH }} \
-            --backend=numpy \
+            --backend=st:numpy:cpu:IJK \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
 
@@ -128,6 +128,6 @@ jobs:
           export NDSL_LOGLEVEL=Debug
           pytest \
             -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
-            --backend=dace:cpu \
+            --backend=orch:dace:cpu:KJI \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
