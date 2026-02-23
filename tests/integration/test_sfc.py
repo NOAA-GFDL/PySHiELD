@@ -143,7 +143,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         tile_rank=communicator.tile.rank,
         backend=backend,
     )
-    qf_soil = QuantityFactory(soil_sizer, backend="numpy")
+    qf_soil = QuantityFactory(soil_sizer, backend=Backend("st:numpy:cpu:IJK"))
 
     comconf = CompilationConfig()
     comconf.validate_args = False
