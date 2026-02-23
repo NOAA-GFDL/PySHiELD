@@ -14,7 +14,7 @@ GFSPhysicsDriver:
     max_error: 1e-10
   - backend: st:gt:gpu:KJI
     cuda_no_fma: true
-  - backend: st:dace:gpu:KJI
+  - backend: orch:dace:gpu:KIJ
     cuda_no_fma: true
     ignore_near_zero_errors:
       IPD_rain: 1e-12
@@ -36,7 +36,7 @@ Microph:
       mph_ql_dt: 1e-8
       mph_qr_dt: 1e-9
       mph_qg_dt: 1e-18
-  - backend: st:dace:gpu:KJI
+  - backend: orch:dace:gpu:KIJ
     max_error: 2.2e-8
     cuda_no_fma: true
     ignore_near_zero_errors:
@@ -45,7 +45,7 @@ Microph:
       mph_qg_dt: 1e-18
       mph_udt: 1e-8
       mph_vdt: 1e-8
-  - backend: st:dace:cpu:KIJ
+  - backend: orch:dace:cpu:KIJ
     max_error: 2.2e-8
     cuda_no_fma: true
     ignore_near_zero_errors:
