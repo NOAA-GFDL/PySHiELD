@@ -18,7 +18,7 @@ from ndsl import (
     TileCommunicator,
 )
 from ndsl.config import Backend
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Float, Int
 from ndsl.grid import (
     AngleGridData,
@@ -200,14 +200,14 @@ def test_sfc_runs(restart_path: Path):
 
     def make_quantity_2d() -> Quantity:
         return quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
 
     def make_quantity_3d() -> Quantity:
         return quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -235,7 +235,7 @@ def test_sfc_runs(restart_path: Path):
     phil = make_quantity_3d()
     phil.field[:] = state.phil.field[:, :, ::-1]
     prsik = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+        [I_DIM, J_DIM, K_INTERFACE_DIM],
         units="unknown",
         dtype=Float,
     )

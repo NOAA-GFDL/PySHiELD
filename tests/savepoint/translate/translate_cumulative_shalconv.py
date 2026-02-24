@@ -4,7 +4,7 @@ import numpy as np
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -101,12 +101,12 @@ class InitCols:
         # Configure stencils
         self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -239,19 +239,19 @@ class Static1:
 
         def make_quantity():
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type=Float):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown", dtype=type)
 
         # Allocate arrays
 
         # Layer mask:
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -301,19 +301,19 @@ class Static1:
         self._po = make_quantity()
 
         self._ctr = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ctro = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ecko = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -321,12 +321,12 @@ class Static1:
         # Configure stencils
         self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
@@ -334,32 +334,32 @@ class Static1:
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -608,19 +608,19 @@ class Static2:
 
         def make_quantity():
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type=Float):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown", dtype=type)
 
         # Allocate arrays
 
         # Layer mask:
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -714,31 +714,31 @@ class Static2:
         self._qevap = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ctro = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ecko = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._dellae = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._delebar = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -746,12 +746,12 @@ class Static2:
         # Configure stencils
         self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
@@ -759,36 +759,36 @@ class Static2:
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static2 = stencil_factory.from_dims_halo(
             func=stencil_static2,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -1047,19 +1047,19 @@ class UpdateKB9:
 
         def make_quantity():
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type=Float):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown", dtype=type)
 
         # Allocate arrays
 
         # Layer mask:
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1154,31 +1154,31 @@ class UpdateKB9:
         self._ptem = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ctro = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ecko = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._dellae = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._delebar = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -1186,12 +1186,12 @@ class UpdateKB9:
         # Configure stencils
         self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
@@ -1199,32 +1199,32 @@ class UpdateKB9:
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static2 = stencil_factory.from_dims_halo(
             func=stencil_static2,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static3 = stencil_factory.from_dims_halo(
             func=stencil_static3,
@@ -1232,36 +1232,36 @@ class UpdateKB9:
                 "ntk": self._ntk,
                 "clam": self._clam,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static5 = stencil_factory.from_dims_halo(
             func=stencil_static5,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic1 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic1,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static7 = stencil_factory.from_dims_halo(
             func=stencil_static7,
             externals={"pgcon": self._pgcon},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic2 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic2,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_update_kbcon1_cnvflg = stencil_factory.from_dims_halo(
             func=stencil_update_kbcon1_cnvflg,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static9 = stencil_factory.from_dims_halo(
             func=stencil_static9,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -1629,19 +1629,19 @@ class Static10:
 
         def make_quantity():
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type=Float):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown", dtype=type)
 
         # Allocate arrays
 
         # Layer mask:
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1727,31 +1727,31 @@ class Static10:
         self._ptem = make_quantity_2D()
 
         self._ctr = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ctro = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._ecko = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._dellae = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._delebar = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -1759,12 +1759,12 @@ class Static10:
         # Configure stencils
         self._pa_to_cb = stencil_factory.from_dims_halo(
             func=pa_to_cb,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_col_arr = stencil_factory.from_dims_halo(
             func=init_col_arr,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_par_and_arr = stencil_factory.from_dims_halo(
             func=init_par_and_arr,
@@ -1772,32 +1772,32 @@ class Static10:
                 "asolfac": self._asolfac,
                 "c0s": self._c0s,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_kbm_kmax = stencil_factory.from_dims_halo(
             func=init_kbm_kmax,
             externals={"km": self._km},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static0 = stencil_factory.from_dims_halo(
             func=stencil_static0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static1 = stencil_factory.from_dims_halo(
             func=stencil_static1,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static2 = stencil_factory.from_dims_halo(
             func=stencil_static2,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static3 = stencil_factory.from_dims_halo(
             func=stencil_static3,
@@ -1805,40 +1805,40 @@ class Static10:
                 "ntk": self._ntk,
                 "clam": self._clam,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic0 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic0,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static5 = stencil_factory.from_dims_halo(
             func=stencil_static5,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic1 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic1,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static7 = stencil_factory.from_dims_halo(
             func=stencil_static7,
             externals={"pgcon": self._pgcon},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_ntrstatic2 = stencil_factory.from_dims_halo(
             func=stencil_ntrstatic2,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_update_kbcon1_cnvflg = stencil_factory.from_dims_halo(
             func=stencil_update_kbcon1_cnvflg,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static9 = stencil_factory.from_dims_halo(
             func=stencil_static9,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._stencil_static10 = stencil_factory.from_dims_halo(
             func=stencil_static10,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -3017,17 +3017,17 @@ class FeedbackCtrl:
         grid_indexing = stencil_factory.grid_indexing
 
         self._ud_mf = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._dt_mf = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -3037,7 +3037,7 @@ class FeedbackCtrl:
         self._feedback_control_update_mass_flux = stencil_factory.from_dims_halo(
             func=feedback_control_update_mass_flux,
             externals={"dt2": dt2},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -3142,7 +3142,7 @@ class SC13:
         grid_indexing = stencil_factory.grid_indexing
         self._ncloud = ncloud
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -3150,7 +3150,7 @@ class SC13:
             self._k_mask.data[:, :, k] = k
         self._stencil_static13 = stencil_factory.from_dims_halo(
             func=stencil_static13,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -3186,13 +3186,13 @@ class CompTendencies:
         grid_indexing = stencil_factory.grid_indexing
         self._dt2 = dt2
         self._zi_ktcon = quantity_factory.zeros(
-            [X_DIM, Y_DIM], units="unknown", dtype=Float
+            [I_DIM, J_DIM], units="unknown", dtype=Float
         )
         self._zi_kbcon = quantity_factory.zeros(
-            [X_DIM, Y_DIM], units="unknown", dtype=Float
+            [I_DIM, J_DIM], units="unknown", dtype=Float
         )
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -3201,7 +3201,7 @@ class CompTendencies:
         self._comp_tendencies = stencil_factory.from_dims_halo(
             func=comp_tendencies,
             externals={"dt2": self._dt2},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(

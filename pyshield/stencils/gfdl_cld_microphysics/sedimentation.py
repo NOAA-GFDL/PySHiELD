@@ -1,7 +1,7 @@
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, QuantityFactory, StencilFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.gt4py import (
     BACKWARD,
     FORWARD,
@@ -136,7 +136,6 @@ def calc_terminal_velocity_ice(
     from __externals__ import aa, bb, cc, constant_v, dd, ee, ifflag, v_fac, v_max
 
     with computation(PARALLEL), interval(...):
-
         if constant_v:
             v_terminal = v_fac
         else:
@@ -483,10 +482,10 @@ class Sedimentation:
 
         # allocate internal storages
         def make_quantity():
-            return quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="unknown")
 
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            [I_DIM, J_DIM, K_INTERFACE_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -494,12 +493,12 @@ class Sedimentation:
         for k in range(self._idx.domain[2] + 1):
             self._k_mask.data[:, :, k] = k
 
-        self._z_surface = quantity_factory.zeros([X_DIM, Y_DIM], units="unknown")
+        self._z_surface = quantity_factory.zeros([I_DIM, J_DIM], units="unknown")
         self._z_edge = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+            [I_DIM, J_DIM, K_INTERFACE_DIM], units="unknown"
         )
         self._z_terminal = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+            [I_DIM, J_DIM, K_INTERFACE_DIM], units="unknown"
         )
         self._icpk = make_quantity()
         self._cvm = make_quantity()
@@ -577,7 +576,7 @@ class Sedimentation:
         if self.config.do_sedi_melt:
             self._sedi_melt_ice = stencil_factory.from_dims_halo(
                 func=sedi_melt,
-                compute_dims=[X_DIM, Y_DIM, Z_DIM],
+                compute_dims=[I_DIM, J_DIM, K_DIM],
                 externals={
                     "c1_vap": config.c1_vap,
                     "c1_liq": config.c1_liq,

@@ -1,5 +1,5 @@
 from ndsl import QuantityFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Int
 from pyshield.stencils.pbl.mfscu import StratocumulusMassFlux
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -71,7 +71,7 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -81,17 +81,17 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
         inputs.pop("t1")
         cnvflg = quantity_factory.from_array(
             data=inputs.pop("cnvflg"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
         mrad = quantity_factory.from_array(
             data=inputs.pop("mrad"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
         zm = quantity_factory.from_array(
             data=inputs.pop("zm"),
-            dims=[X_DIM, Y_DIM, Z_DIM],
+            dims=[I_DIM, J_DIM, K_DIM],
             units="",
         )
         ntrac1 = int(inputs.pop("ntrac1"))

@@ -1,6 +1,6 @@
 import ndsl.constants as constants
 import pyshield.stencils.pbl.constants as pbl_constants
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, exp, interval, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -1552,9 +1552,9 @@ class ScaleAwareTKEMoistEDMF:
             raise NotImplementedError("do_dk_hb19 has not been implemented")
 
         self._ntracers = config.ntracers
-        assert self._ntracers == 9, (
-            "PBL scheme satmedmfvdif requires ntracer " f"({config.ntracers}) == 9"
-        )
+        assert (
+            self._ntracers == 9
+        ), f"PBL scheme satmedmfvdif requires ntracer ({config.ntracers}) == 9"
 
         self._ntrac1 = self._ntracers - 1
 
@@ -1570,13 +1570,13 @@ class ScaleAwareTKEMoistEDMF:
 
         def make_quantity():
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown", dtype=type)
 
         # Allocate internal variables:
         km1 = idx.domain[2] - 1
@@ -1598,7 +1598,7 @@ class ScaleAwareTKEMoistEDMF:
 
         # Layer mask:
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1710,14 +1710,14 @@ class ScaleAwareTKEMoistEDMF:
         self._xmfd = make_quantity()
 
         self._mlenflg = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Bool,
         )
         self._pblflg = make_quantity_2D(Bool)
         self._sfcflg = make_quantity_2D(Bool)
         self._flg = make_quantity_2D(Bool)
-        self._scuflg = quantity_factory.ones([X_DIM, Y_DIM], units="none", dtype=Bool)
+        self._scuflg = quantity_factory.ones([I_DIM, J_DIM], units="none", dtype=Bool)
         self._pcnvflg = make_quantity_2D(Bool)
 
         # Limiting pressures for vertical loops:
@@ -1730,24 +1730,24 @@ class ScaleAwareTKEMoistEDMF:
 
         # Allocate higher order fields
         self._f2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
         self._a2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._qcko = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._qcdo = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )

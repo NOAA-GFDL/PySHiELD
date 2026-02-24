@@ -2,7 +2,7 @@ from typing import Optional
 
 import pyfv3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
+from ndsl.constants import J_INTERFACE_DIM, K_INTERFACE_DIM, X_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
@@ -160,8 +160,8 @@ class DycoreToPhysics:
             copy_dycore_to_physics,
             compute_dims=[
                 X_INTERFACE_DIM,
-                Y_INTERFACE_DIM,
-                Z_INTERFACE_DIM,
+                J_INTERFACE_DIM,
+                K_INTERFACE_DIM,
             ],
             compute_halos=(0, 0),
         )

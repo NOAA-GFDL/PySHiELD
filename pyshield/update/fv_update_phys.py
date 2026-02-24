@@ -7,7 +7,7 @@ from ndsl import (
     WrappedHaloUpdater,
     orchestrate,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
@@ -134,7 +134,7 @@ class ApplyPhysicsToDycore:
         origin = grid_indexing.origin_compute()
         shape = grid_indexing.max_shape
         full_3Dfield_1pts_halo_spec = quantity_factory.get_quantity_halo_spec(
-            dims=[X_DIM, Y_DIM, Z_DIM],
+            dims=[I_DIM, J_DIM, K_DIM],
             n_halo=1,
         )
         self._udt_halo_updater = WrappedHaloUpdater(
@@ -148,8 +148,8 @@ class ApplyPhysicsToDycore:
             ["v_dt"],
         )
         # TODO: check if we actually need surface winds
-        self._u_srf = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="m/s")
-        self._v_srf = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="m/s")
+        self._u_srf = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m/s")
+        self._v_srf = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m/s")
 
     def __call__(
         self,
