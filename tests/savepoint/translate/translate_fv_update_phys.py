@@ -5,7 +5,7 @@ from f90nml import Namelist
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import Quantity, StencilFactory
-from ndsl.constants import I_DIM, J_DIM, J_INTERFACE_DIM, K_DIM, X_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, J_INTERFACE_DIM, K_DIM, I_INTERFACE_DIM
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.utils import safe_assign_array
 from pyshield.update import ApplyPhysicsToDycore
@@ -194,7 +194,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
             origin=self.grid.sizer.get_origin(dims_u),
             extent=self.grid.sizer.get_extent(dims_u),
         )
-        dims_v = [X_INTERFACE_DIM, J_DIM, K_DIM]
+        dims_v = [I_INTERFACE_DIM, J_DIM, K_DIM]
         v_quantity = self.grid.make_quantity(
             state.v,
             dims=dims_v,
