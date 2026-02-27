@@ -2,7 +2,7 @@ from typing import Optional
 
 import pyfv3
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import J_INTERFACE_DIM, K_INTERFACE_DIM, I_INTERFACE_DIM
+from ndsl.constants import I_INTERFACE_DIM, J_INTERFACE_DIM, K_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import DriverGridData, GridData
