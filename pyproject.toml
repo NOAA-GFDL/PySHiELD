@@ -41,7 +41,7 @@ extras = [
   "pyshield[dev]"
 ]
 ndsl = ["ndsl @ git+https://github.com/floriandeconinck/NDSL.git@feature/NDSL_Backend"]
-pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/PyFV3.git@develop"]
+pyfv3 = ["pyfv3 @ git+https://github.com/floriandeconinck/PyFV3.git@update/2026.02.00"]
 test = [
   "pytest",
   "pytest-subtests",
