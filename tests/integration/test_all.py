@@ -81,7 +81,7 @@ def states_from_fortran_restarts(
     sfc_data = xr.open_dataset(sfc_datafile)
     state = PhysicsState.init_zeros(quantity_factory, schemes)
     sstate = SurfaceState.init_zeros(qf_sfc)
-    radstate = RTE_RRTMGPState.init_zeros(quantity_factory, np)
+    radstate = RTE_RRTMGPState.init_zeros(quantity_factory)
     buff_3d = np.zeros_like(state.prsi.field)
     npz = buff_3d.shape[2]
     for k in range(npz):
