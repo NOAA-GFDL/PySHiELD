@@ -2,7 +2,6 @@ from dataclasses import InitVar, dataclass, field, fields
 from typing import Any, Dict, Mapping
 
 import numpy as np
-
 import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
@@ -295,7 +294,6 @@ class RTE_RRTMGPState:
         storages: Mapping[str, Any],
         sizer: GridSizer,
         quantity_factory: QuantityFactory,
-        np_like: NumpyModule,
     ) -> "RTE_RRTMGPState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
