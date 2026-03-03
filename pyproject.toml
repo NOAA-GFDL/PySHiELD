@@ -14,7 +14,7 @@ classifiers = [
 ]
 dependencies = [
   "f90nml>=1.1.0",
-  "numpy==1.26.4",
+  "numpy>=2",
   "xarray",
   "pyrte-rrtmgp @ git+https://github.com/NOAA-GFDL/pyRTE-RRTMGP.git@main"
 ]
