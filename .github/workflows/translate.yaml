@@ -44,9 +44,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: 'recursive'
-          repository: NOAA-GFDL/PySHiELD
+          repository: floriandeconinck/PySHiELD
           path: pySHiELD
-          ref: develop
+          ref: update/numpy_2x
 
       - name: 'Setup Python ${{ inputs.python_version && inputs.python_version || env.python_default }}'
         uses: actions/setup-python@v6
@@ -55,13 +55,6 @@ jobs:
 
       - name: Install mpi (MPICH flavor)
         run: pip install mpich
-
-      - name: Install numpy==1.26.4
-        # Front-load installing numpy to force its usage in the radiation
-        # scheme of pySHiELD.
-        # TODO: This is an ugly hack and it should be cleaned up latest once
-        #       we add support for numpy >= 2.0
-        run: pip install numpy==1.26.4
 
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_name }}
