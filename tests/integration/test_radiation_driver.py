@@ -7,6 +7,7 @@ import xarray as xr
 
 from ndsl import NullComm, Quantity, QuantityFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend, backend_python
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -23,7 +24,12 @@ from pyshield.stencils.surface import SurfaceState
 
 
 def setup_infrastructure(
-    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
+    nx: int,
+    ny: int,
+    nz: int,
+    nhalo: int,
+    etafile: Path,
+    backend: Backend = backend_python,
 ):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend

@@ -1,5 +1,5 @@
 from ndsl import QuantityFactory, StencilFactory, TilePartitioner, orchestrate
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldI, FloatFieldIJ
 from ndsl.grid import DriverGridData
@@ -199,7 +199,7 @@ class AGrid2DGridPhysics:
         self.east_edge = grid_indexing.east_edge
 
         def make_quantity():
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
 
         if self._grid_type <= 3:
             self._ue_1 = make_quantity()

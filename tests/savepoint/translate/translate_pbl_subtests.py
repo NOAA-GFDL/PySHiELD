@@ -1,7 +1,7 @@
 from gt4py.cartesian.gtscript import FORWARD, computation, interval
 
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -83,22 +83,22 @@ class InitTurb:
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._ptop = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="Pa",
             dtype=Float,
         )
         self._pbot = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="Pa",
             dtype=Float,
         )
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
         self._tem1 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -326,7 +326,7 @@ class MRFScheme:
             domain=idx.domain_compute(),
         )
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -335,7 +335,7 @@ class MRFScheme:
             self._k_mask.data[:, :, k] = k
 
         self._thlvx_0 = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -431,7 +431,7 @@ class ThermalPBL:
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -440,7 +440,7 @@ class ThermalPBL:
             self._k_mask.data[:, :, k] = k
 
         self._thlvx_0 = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -525,7 +525,7 @@ class Stratocumulus:
         self._kmpbl = idx.domain[2] // 2 + 1
         self._kmscu = idx.domain[2] // 2 + 1
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -578,23 +578,23 @@ class PBLAML:
         self._kmscu = idx.domain[2] // 2 + 1
 
         self._lev = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Int,
         )
 
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
         self._ptem = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._mlenflg = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Bool,
         )
@@ -663,7 +663,7 @@ class TKETridiag:
         self._dt_atmos = config.dt_atmos
         self._ntke = config.ntracers - 1
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -672,22 +672,22 @@ class TKETridiag:
             self._k_mask.data[:, :, k] = k
 
         self._cu = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._rt = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._f1_p1 = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
         self._ad_p1 = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -759,7 +759,7 @@ class Prandtl:
         idx = stencil_factory.grid_indexing
         self._kmpbl = idx.domain[2] // 2 + 1
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -845,12 +845,12 @@ class EdDiffShear:
     ):
         idx = stencil_factory.grid_indexing
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
         self._dkt_out = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -958,7 +958,7 @@ class UpDownTKE:
         self._ntke = config.ntracers - 1
 
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1025,14 +1025,14 @@ class MomentTridiagComp:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=type,
             )
@@ -1043,12 +1043,12 @@ class MomentTridiagComp:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
         self._k_mask = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1157,14 +1157,14 @@ class HeatTracerTridiag:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=type,
             )
@@ -1175,12 +1175,12 @@ class HeatTracerTridiag:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
         self._k_mask = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1309,7 +1309,7 @@ class TKETendencyCalc:
         self._rdt = 1.0 / self._dt_atmos
         self._ntke = config.ntracers - 1
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1318,22 +1318,22 @@ class TKETendencyCalc:
             self._k_mask.data[:, :, k] = k
 
         self._cu = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._rt = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._f1_p1 = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
         self._ad_p1 = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -1457,14 +1457,14 @@ class HeatTracerTendencyCalc:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=type,
             )
@@ -1475,12 +1475,12 @@ class HeatTracerTendencyCalc:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
         self._k_mask = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1675,14 +1675,14 @@ class MomentTendencyCalc:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=type,
             )
@@ -1693,12 +1693,12 @@ class MomentTendencyCalc:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
         self._k_mask = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1722,17 +1722,17 @@ class MomentTendencyCalc:
         )
 
         self._cu = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._r1 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
         self._r2 = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -1856,9 +1856,9 @@ class Half2:
         kmpbl: int,
     ):
         self._ntracers = config.ntracers
-        assert self._ntracers == 9, (
-            "PBL scheme satmedmfvdif requires ntracer " f"({config.ntracers}) == 9"
-        )
+        assert (
+            self._ntracers == 9
+        ), f"PBL scheme satmedmfvdif requires ntracer ({config.ntracers}) == 9"
 
         self._ntrac1 = self._ntracers - 1
 
@@ -1888,14 +1888,14 @@ class Half2:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=type,
             )
@@ -1906,13 +1906,13 @@ class Half2:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
 
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -1922,7 +1922,7 @@ class Half2:
         self._tem1 = make_quantity()
         self._lev = make_quantity_2D(Int)
         self._mlenflg = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Bool,
         )
@@ -2551,14 +2551,14 @@ class SCUEnd:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
             return self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=type,
             )
@@ -2569,7 +2569,7 @@ class SCUEnd:
         self._f1_p1 = make_quantity_2D(Float)
         self._f2_p1 = make_quantity_2D(Float)
         self._a2 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -2577,13 +2577,13 @@ class SCUEnd:
         self._tem1 = make_quantity()
         self._lev = make_quantity_2D(Int)
         self._mlenflg = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Bool,
         )
 
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -4640,13 +4640,13 @@ class TranslateHalf2(TranslatePhysicsFortranData2Py):
 
         pcnvflg = quantity_factory.from_array(
             data=inputs.pop("pcnvflg"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
 
         scuflg = quantity_factory.from_array(
             data=inputs.pop("scuflg"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
 
@@ -4882,13 +4882,13 @@ class TranslateSCUEnd(TranslatePhysicsFortranData2Py):
 
         pcnvflg = quantity_factory.from_array(
             data=inputs.pop("pcnvflg"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
 
         scuflg = quantity_factory.from_array(
             data=inputs.pop("scuflg"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
 
