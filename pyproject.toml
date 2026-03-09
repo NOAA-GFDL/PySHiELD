@@ -38,12 +38,10 @@ extras = [
   "pyshield[dev]",
   "pyshield[ndsl]",
   "pyshield[pyfv3]",
-  "pyshield[serialbox]",
   "pyshield[test]"
 ]
 ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@2026.02.00"]
 pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/pyFV3.git@develop"]
-serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff"]
 test = [
   "coverage",
   "pytest",
