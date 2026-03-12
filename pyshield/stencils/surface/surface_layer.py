@@ -2,7 +2,7 @@ import ndsl.constants as constants
 
 # from pace.dsl.dace.orchestration import orchestrate
 from ndsl import Quantity, QuantityFactory, StencilFactory
-from ndsl.constants import X_DIM, Y_DIM
+from ndsl.constants import I_DIM, J_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import (
     Bool,
@@ -157,7 +157,7 @@ class SurfaceLayer:
 
         def make_quantity_2d() -> Quantity:
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 units="unknown",
                 dtype=Float,
             )
@@ -193,13 +193,13 @@ class SurfaceLayer:
         self._prsl1 = make_quantity_2d()
 
         self._flag_guess = quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="None",
             dtype=Bool,
         )
 
         self._flag_iter = quantity_factory.ones(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="None",
             dtype=Bool,
         )

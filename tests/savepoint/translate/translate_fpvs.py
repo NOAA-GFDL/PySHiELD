@@ -2,7 +2,7 @@ import numpy as np
 from f90nml import Namelist
 
 from ndsl import StencilFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pyshield.functions.physics_functions import fpvs, fpvsx
@@ -56,7 +56,7 @@ class FPVS:
         xx = np.pad(xx, ((3, 4), (3, 4), (0, 1)))
         self._x = quantity_factory.from_array(
             xx,
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
         )
         grid_indexing = stencil_factory.grid_indexing

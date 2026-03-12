@@ -1,5 +1,5 @@
 from ndsl import QuantityFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Int
 from pyshield.stencils.pbl.mfpblt import PBLMassFlux
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -68,7 +68,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
         quantity_factory = QuantityFactory(sizer, backend=self.stencil_factory.backend)
 
         k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -79,7 +79,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
 
         cnvflg = quantity_factory.from_array(
             data=inputs.pop("cnvflg"),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="",
         )
         dt2 = (inputs["dt2"],)

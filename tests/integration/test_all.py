@@ -9,6 +9,7 @@ import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import NullComm, Quantity, QuantityFactory, StencilFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend, backend_python
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -32,7 +33,7 @@ def setup_infrastructure(
     nzsoil: int,
     nhalo: int,
     etafile: Path,
-    backend: str = "numpy",
+    backend: Backend = backend_python,
 ):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
@@ -145,8 +146,8 @@ def states_from_fortran_restarts(
 
 # TODO: parameterize over schemes
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
-@pytest.mark.parametrize("backend", ["numpy"])
-def test_pyshield_runs(restart_path: Path, backend: str):
+@pytest.mark.parametrize("backend", [Backend("st:numpy:cpu:IJK")])
+def test_pyshield_runs(restart_path: Path, backend: Backend):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")

@@ -1,7 +1,7 @@
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
@@ -145,7 +145,7 @@ class CloudFractionTest:
     ):
         self._idx: GridIndexing = stencil_factory.grid_indexing
 
-        self._te = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        self._te = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
 
         self._cloud_fraction = stencil_factory.from_origin_domain(
             func=cloud_fraction_test,

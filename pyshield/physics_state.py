@@ -5,7 +5,7 @@ import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Float
 from pyshield._config import PHYSICS_PACKAGES
 from pyshield.stencils.gfs_microphysics import GFSMicrophysicsState
@@ -16,14 +16,14 @@ class PhysicsState:
     qvapor: Quantity = field(
         metadata={
             "name": "specific_humidity",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
         }
     )
     qliquid: Quantity = field(
         metadata={
             "name": "cloud_water_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -31,7 +31,7 @@ class PhysicsState:
     qice: Quantity = field(
         metadata={
             "name": "cloud_ice_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -39,7 +39,7 @@ class PhysicsState:
     qrain: Quantity = field(
         metadata={
             "name": "rain_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -47,7 +47,7 @@ class PhysicsState:
     qsnow: Quantity = field(
         metadata={
             "name": "snow_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -55,7 +55,7 @@ class PhysicsState:
     qgraupel: Quantity = field(
         metadata={
             "name": "graupel_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -63,7 +63,7 @@ class PhysicsState:
     qo3mr: Quantity = field(
         metadata={
             "name": "ozone_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -71,7 +71,7 @@ class PhysicsState:
     qsgs_tke: Quantity = field(
         metadata={
             "name": "turbulent_kinetic_energy",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m**2/s**2",
             "intent": "inout",
         }
@@ -79,7 +79,7 @@ class PhysicsState:
     qcld: Quantity = field(
         metadata={
             "name": "cloud_fraction",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -87,7 +87,7 @@ class PhysicsState:
     pt: Quantity = field(
         metadata={
             "name": "air_temperature",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK",
             "intent": "inout",
         }
@@ -95,7 +95,7 @@ class PhysicsState:
     delp: Quantity = field(
         metadata={
             "name": "pressure_thickness_of_atmospheric_layer",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa",
             "intent": "inout",
         }
@@ -103,7 +103,7 @@ class PhysicsState:
     delz: Quantity = field(
         metadata={
             "name": "vertical_thickness_of_atmospheric_layer",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m",
             "intent": "inout",
         }
@@ -111,7 +111,7 @@ class PhysicsState:
     ua: Quantity = field(
         metadata={
             "name": "eastward_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "inout",
         }
@@ -119,14 +119,14 @@ class PhysicsState:
     va: Quantity = field(
         metadata={
             "name": "northward_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
         }
     )
     w: Quantity = field(
         metadata={
             "name": "vertical_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "inout",
         }
@@ -134,7 +134,7 @@ class PhysicsState:
     omga: Quantity = field(
         metadata={
             "name": "vertical_pressure_velocity",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa/s",
             "intent": "inout",
         }
@@ -142,14 +142,14 @@ class PhysicsState:
     physics_updated_specific_humidity: Quantity = field(
         metadata={
             "name": "physics_updated_specific_humidity",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
         }
     )
     physics_updated_qliquid: Quantity = field(
         metadata={
             "name": "physics_updated_liquid_water_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -157,7 +157,7 @@ class PhysicsState:
     physics_updated_qice: Quantity = field(
         metadata={
             "name": "physics_updated_ice_water_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -165,7 +165,7 @@ class PhysicsState:
     physics_updated_qrain: Quantity = field(
         metadata={
             "name": "physics_updated_rain_water_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -173,7 +173,7 @@ class PhysicsState:
     physics_updated_qsnow: Quantity = field(
         metadata={
             "name": "physics_updated_snow_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -181,7 +181,7 @@ class PhysicsState:
     physics_updated_qgraupel: Quantity = field(
         metadata={
             "name": "physics_updated_graupel_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -189,7 +189,7 @@ class PhysicsState:
     physics_updated_qo3mr: Quantity = field(
         metadata={
             "name": "physics_updated_ozone_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -197,7 +197,7 @@ class PhysicsState:
     physics_updated_qtke: Quantity = field(
         metadata={
             "name": "physics_updated_tke_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "inout",
         }
@@ -205,7 +205,7 @@ class PhysicsState:
     physics_updated_cloud_fraction: Quantity = field(
         metadata={
             "name": "physics_cloud_fraction",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -213,7 +213,7 @@ class PhysicsState:
     physics_updated_pt: Quantity = field(
         metadata={
             "name": "physics_air_temperature",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK",
             "intent": "inout",
         }
@@ -221,7 +221,7 @@ class PhysicsState:
     physics_updated_ua: Quantity = field(
         metadata={
             "name": "physics_eastward_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "inout",
         }
@@ -229,7 +229,7 @@ class PhysicsState:
     physics_updated_va: Quantity = field(
         metadata={
             "name": "physics_northward_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "inout",
         }
@@ -237,7 +237,7 @@ class PhysicsState:
     delprsi: Quantity = field(
         metadata={
             "name": "model_level_pressure_thickness_in_physics",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa",
             "intent": "inout",
         }
@@ -245,7 +245,7 @@ class PhysicsState:
     phii: Quantity = field(
         metadata={
             "name": "interface_geopotential_height",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "m",
             "intent": "inout",
         }
@@ -253,7 +253,7 @@ class PhysicsState:
     phil: Quantity = field(
         metadata={
             "name": "layer_geopotential_height",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m",
             "intent": "inout",
         }
@@ -261,7 +261,7 @@ class PhysicsState:
     dz: Quantity = field(
         metadata={
             "name": "geopotential_height_thickness",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m",
             "intent": "inout",
         }
@@ -269,7 +269,7 @@ class PhysicsState:
     wmp: Quantity = field(
         metadata={
             "name": "layer_mean_vertical_velocity_microph",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "inout",
         }
@@ -277,7 +277,7 @@ class PhysicsState:
     prsi: Quantity = field(
         metadata={
             "name": "interface_pressure",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "Pa",
             "intent": "inout",
         }
@@ -285,7 +285,7 @@ class PhysicsState:
     prsik: Quantity = field(
         metadata={
             "name": "log_interface_pressure",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -293,7 +293,7 @@ class PhysicsState:
     prslk: Quantity = field(
         metadata={
             "name": "Exner_function",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -301,7 +301,7 @@ class PhysicsState:
     pgr: Quantity = field(
         metadata={
             "name": "ground_pressure",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -309,7 +309,7 @@ class PhysicsState:
     hsw: Quantity = field(
         metadata={
             "name": "shortwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "k/s",
             "intent": "in",
         }
@@ -317,7 +317,7 @@ class PhysicsState:
     hlw: Quantity = field(
         metadata={
             "name": "longwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "k/s",
             "intent": "in",
         }
@@ -325,7 +325,7 @@ class PhysicsState:
     land: Quantity = field(
         metadata={
             "name": "land_mask",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "-",
             "intent": "in",
         }
@@ -333,7 +333,7 @@ class PhysicsState:
     tsfc: Quantity = field(
         metadata={
             "name": "surface_temperature",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "K",
             "intent": "inout",
         }
@@ -341,7 +341,7 @@ class PhysicsState:
     flwu: Quantity = field(
         metadata={
             "name": "longwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -349,7 +349,7 @@ class PhysicsState:
     flwd: Quantity = field(
         metadata={
             "name": "longwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -357,7 +357,7 @@ class PhysicsState:
     fswu: Quantity = field(
         metadata={
             "name": "shortwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -365,7 +365,7 @@ class PhysicsState:
     fswd: Quantity = field(
         metadata={
             "name": "shortwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "",
             "intent": "out",
         }
@@ -373,7 +373,7 @@ class PhysicsState:
     hrtlw: Quantity = field(
         metadata={
             "name": "longwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "out",
         }
@@ -381,7 +381,7 @@ class PhysicsState:
     hrtsw: Quantity = field(
         metadata={
             "name": "shortwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "out",
         }
@@ -389,7 +389,7 @@ class PhysicsState:
     kpbl: Quantity = field(
         metadata={
             "name": "pbl_index",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "-",
             "intent": "inout",
         }
@@ -397,7 +397,7 @@ class PhysicsState:
     kinver: Quantity = field(
         metadata={
             "name": "inversion_layer_index",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "-",
             "intent": "inout",
         }
@@ -405,7 +405,7 @@ class PhysicsState:
     hpbl: Quantity = field(
         metadata={
             "name": "pbl_height",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m",
             "intent": "inout",
         }
@@ -421,7 +421,7 @@ class PhysicsState:
         # storage for tendency variables not in PhysicsState
         if "GFS_microphysics" in [scheme.value for scheme in schemes]:
             tendency = quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 "unknown",
                 dtype=Float,
             )

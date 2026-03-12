@@ -1,5 +1,5 @@
 from ndsl import GridIndexing, QuantityFactory, StencilFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
@@ -87,10 +87,10 @@ class FullMicrophysics:
         self._ntimes = config.ntimes
 
         def make_quantity():
-            return quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="unknown")
 
         def make_quantity_2D():
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown")
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown")
 
         self._fluxw = make_quantity()
         self._fluxr = make_quantity()
