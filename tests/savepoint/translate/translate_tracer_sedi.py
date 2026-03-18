@@ -1,5 +1,5 @@
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.sedimentation import (
     adjust_fluxes,
@@ -56,7 +56,7 @@ class TracerSedimentation:
 
         # allocate internal storages
         def make_quantity():
-            return quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="unknown")
 
         self._cvm = make_quantity()
 

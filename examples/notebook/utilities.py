@@ -5,6 +5,7 @@ import xarray as xr
 
 from ndsl import NullComm, Quantity, QuantityFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend, backend_python
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -95,7 +96,7 @@ def fortran_restart_to_radstate(
 
 
 def setup_infrastructure(
-    nx: int, ny: int, nz: int, etafile: Path, backend: str = "numpy"
+    nx: int, ny: int, nz: int, etafile: Path, backend: Backend = backend_python
 ):
     nhalo = 3
     stencil_factory, quantity_factory = get_factories_single_tile(

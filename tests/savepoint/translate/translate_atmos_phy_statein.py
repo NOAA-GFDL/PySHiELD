@@ -2,7 +2,7 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl import QuantityFactory, SubtileGridSizer
-from ndsl.constants import KAPPA, X_DIM, Y_DIM
+from ndsl.constants import I_DIM, J_DIM, KAPPA
 from pyshield.stencils.physics import atmos_phys_driver_statein
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -123,7 +123,7 @@ class TranslateAtmosPhysDriverStatein(TranslatePhysicsFortranData2Py):
         inputs["qsgs_tke"] = qsgs_tke
         inputs["dm"] = dm
         inputs["pgr"] = self.quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM], units="unknown"
+            dims=[I_DIM, J_DIM], units="unknown"
         )
         self.compute_func(**inputs)
         out = self.slice_output(inputs)

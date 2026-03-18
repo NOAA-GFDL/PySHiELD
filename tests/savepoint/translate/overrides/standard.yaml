@@ -1,18 +1,16 @@
 Microph:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     max_error: 2e-9
-  - backend: gt:cpu_ifirst
+  - backend: st:gt:cpu:KJI
     max_error: 1e-12
-  - backend: cuda
-    cuda_no_fma: true
-  - backend: gt:gpu
+  - backend: st:gt:gpu:KJI
     max_error: 2.2e-8
     cuda_no_fma: true
     ignore_near_zero_errors:
       mph_ql_dt: 1e-8
       mph_qr_dt: 1e-9
       mph_qg_dt: 1e-18
-  - backend: dace:cpu
+  - backend: orch:dace:cpu:KIJ
     max_error: 2.2e-8
     cuda_no_fma: true
     ignore_near_zero_errors:
@@ -21,7 +19,7 @@ Microph:
       mph_qg_dt: 1e-18
       mph_udt: 1e-8
       mph_vdt: 1e-8
-  - backend: dace:gpu
+  - backend: orch:dace:gpu:KJI
     max_error: 2.2e-8
     cuda_no_fma: true
     ignore_near_zero_errors:
@@ -32,10 +30,10 @@ Microph:
       mph_vdt: 1e-8
 
 SurfaceSeaIce_iter1:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     max_error: 2e-16
 Microphysics3:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     ignore_near_zero_errors:
       mp_qv: 1e-20
       mp_ql: 1e-20
@@ -45,7 +43,7 @@ Microphysics3:
       mp_qg: 1e-20
 
 Sedimentation:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     ignore_near_zero_errors:
       sd_qv: 1e-14
       sd_ql: 1e-14
@@ -66,7 +64,7 @@ Sedimentation:
       sd_dte: 1e-14
 
 TerminalFall:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     ignore_near_zero_errors:
       tf_qv: 1e-14
       tf_ql: 1e-14
@@ -83,12 +81,12 @@ TerminalFall:
       tf_dte: 1e-14
 
 WarmRain:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     ignore_near_zero_errors:
       wr_qr: 2e-7
 
 SubgridZProc:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     near_zero: 1.e-15
     ignore_near_zero_errors:
       - sz_qv
@@ -99,7 +97,7 @@ SubgridZProc:
       - sz_qg
 
 SubgridZSubs:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     near_zero: 1.e-15
     ignore_near_zero_errors:
       - szs_qv
@@ -110,7 +108,7 @@ SubgridZSubs:
       - szs_qg
 
 MPFull:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     near_zero: 1.e-20
     ignore_near_zero_errors:
       - mpf_qv
@@ -141,7 +139,7 @@ MPFull:
       - mpf_sub
 
 MPSub:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     near_zero: 1.e-20
     ignore_near_zero_errors:
       - mps_qv
@@ -152,7 +150,7 @@ MPSub:
       - mps_qg
 
 FinalCalculations:
-  - backend: numpy
+  - backend: st:numpy:cpu:IJK
     near_zero: 1.e-20
     ignore_near_zero_errors:
       - column_energy_loss

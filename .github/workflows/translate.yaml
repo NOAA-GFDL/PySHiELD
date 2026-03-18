@@ -36,7 +36,7 @@ jobs:
     env:
       TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
-      python_default: '3.11'
+      python_default: '3.12'
 
     steps:
       - name: External trigger Checkout pySHiELD
@@ -108,7 +108,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
             -v -s --data_path=${{ env.TEST_DATA_PATH }} \
-            --backend=numpy \
+            --backend=st:numpy:cpu:IJK \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
 
@@ -121,6 +121,6 @@ jobs:
           export NDSL_LOGLEVEL=Debug
           pytest \
             -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
-            --backend=dace:cpu \
+            --backend=orch:dace:cpu:KIJ \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint

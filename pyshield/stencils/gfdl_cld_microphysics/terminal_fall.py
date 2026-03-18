@@ -4,7 +4,7 @@ import ndsl.constants as constants
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, QuantityFactory, StencilFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
 from ndsl.stencils.basic_operations import copy
@@ -379,21 +379,21 @@ class TerminalFall:
         self._idx: GridIndexing = stencil_factory.grid_indexing
 
         self._timestep = timestep
-        dims = [X_DIM, Y_DIM, Z_DIM]
+        dims = [I_DIM, J_DIM, K_DIM]
 
         # allocate internal storages
         self._q_fall = quantity_factory.zeros(dims=dims, units="unknown")
-        self._no_fall = quantity_factory.ones(dims=[X_DIM, Y_DIM], units="unknown")
+        self._no_fall = quantity_factory.ones(dims=[I_DIM, J_DIM], units="unknown")
         self._dm = quantity_factory.zeros(dims=dims, units="Pa")
-        self._tmp_energy1 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
-        self._tmp_energy2 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._tmp_energy1 = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
+        self._tmp_energy2 = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
 
         if (self._sedflag == 3) or (self._sedflag == 4):
             self._q4_1 = quantity_factory.zeros(dims=dims, units="unknown")
             self._q4_2 = quantity_factory.zeros(dims=dims, units="unknown")
             self._q4_3 = quantity_factory.zeros(dims=dims, units="unknown")
             self._q4_4 = quantity_factory.zeros(dims=dims, units="unknown")
-            self._lev = quantity_factory.zeros([X_DIM, Y_DIM], units="", dtype=int)
+            self._lev = quantity_factory.zeros([I_DIM, J_DIM], units="", dtype=int)
 
         if self._sedflag == 4:
             self._m0 = quantity_factory.zeros(dims=dims, units="unknown")
@@ -401,8 +401,8 @@ class TerminalFall:
             # Need extra qs and precips for the sed_fac calculation
             self._q0 = quantity_factory.zeros(dims=dims, units="unknown")
             self._q1 = quantity_factory.zeros(dims=dims, units="unknown")
-            self._precip0 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
-            self._precip1 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+            self._precip0 = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
+            self._precip1 = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
 
         # compile stencils
 
