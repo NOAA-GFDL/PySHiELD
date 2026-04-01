@@ -40,7 +40,7 @@ extras = [
   "pyshield[pyfv3]",
   "pyshield[test]"
 ]
-ndsl = ["ndsl @ git+https://github.com/floriandeconinck/NDSL.git@update/numpy_2x"]
+ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
 pyfv3 = ["pyfv3 @ git+https://github.com/floriandeconinck/PyFV3.git@update/numpy_2x"]
 test = [
   "coverage",
