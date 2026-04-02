@@ -108,7 +108,7 @@ def states_from_fortran_restarts(
     tracer_data = xr.open_dataset(tracer_datafile)
 
     state = PhysicsState.init_zeros(quantity_factory, schemes)
-    radstate = RTE_RRTMGPState.init_zeros(quantity_factory, np)
+    radstate = RTE_RRTMGPState.init_zeros(quantity_factory)
     sstate = SurfaceState.init_zeros(quantity_factory)
 
     buff_3d = np.zeros_like(state.prsi.field)
@@ -179,7 +179,7 @@ def test_rte_rrtmgp(datapath: Path):
     gridlon = grid_data.lon_agrid
     gridlat = grid_data.lat_agrid
 
-    state = RTE_RRTMGPState.init_zeros(quantity_factory, np)
+    state = RTE_RRTMGPState.init_zeros(quantity_factory)
     sstate = SurfaceState.init_zeros(quantity_factory)
     fortran_restart_to_radstate(
         dycore_datafile=dycore_data,

@@ -1,13 +1,13 @@
 from dataclasses import InitVar, dataclass, field, fields
 from typing import Any, Dict, Mapping
 
+import numpy as np
 import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Float
-from ndsl.types import NumpyModule
 
 
 @dataclass()
@@ -261,14 +261,11 @@ class RTE_RRTMGPState:
         }
     )
     quantity_factory: InitVar[QuantityFactory]
-    np_like: InitVar[NumpyModule]
 
     def __post_init__(
         self,
         quantity_factory: QuantityFactory,
-        np_like: NumpyModule,
     ):
-        self._np = np_like
         self._nz = quantity_factory.sizer.nz
         self._nx = quantity_factory.sizer.nx
         self._ny = quantity_factory.sizer.ny
@@ -277,7 +274,6 @@ class RTE_RRTMGPState:
     def init_zeros(
         cls,
         quantity_factory,
-        np_like: NumpyModule,
     ) -> "RTE_RRTMGPState":
         initial_arrays = {}
         for _field in fields(cls):
@@ -290,7 +286,6 @@ class RTE_RRTMGPState:
         return cls(
             **initial_arrays,
             quantity_factory=quantity_factory,
-            np_like=np_like,
         )
 
     @classmethod
@@ -299,7 +294,6 @@ class RTE_RRTMGPState:
         storages: Mapping[str, Any],
         sizer: GridSizer,
         quantity_factory: QuantityFactory,
-        np_like: NumpyModule,
     ) -> "RTE_RRTMGPState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
@@ -323,7 +317,6 @@ class RTE_RRTMGPState:
         return cls(
             **inputs,
             quantity_factory=quantity_factory,
-            np_like=np_like,
         )
 
     @property
@@ -368,22 +361,22 @@ class RTE_RRTMGPState:
                             # dims.append(f"{dim_name}_{name}")
                             if dim_name == "z_interface":
                                 slice_list.append(
-                                    self._np.s_[:]  # type: ignore[attr-defined]
+                                    np.s_[:]  # type: ignore[attr-defined]
                                 )
                                 nz = self._nz + 1
                                 dims.append("level")
                             elif dim_name == "z":
                                 slice_list.append(
-                                    self._np.s_[:-1]  # type: ignore[attr-defined]
+                                    np.s_[:-1]  # type: ignore[attr-defined]
                                 )
                                 dims.append("layer")
                             elif "INTERFACE" in dim_name:
                                 slice_list.append(
-                                    self._np.s_[3:-3]  # type: ignore[attr-defined]
+                                    np.s_[3:-3]  # type: ignore[attr-defined]
                                 )
                             else:
                                 slice_list.append(
-                                    self._np.s_[3:-4]  # type: ignore[attr-defined]
+                                    np.s_[3:-4]  # type: ignore[attr-defined]
                                 )
                         # We have to reshape to get the max 2D shape rterrtmgp expects:
                         if ndims == 3:  # x-y-z array:
