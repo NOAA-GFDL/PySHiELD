@@ -23,7 +23,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE.md"]
 name = "pyshield"
 readme = "README.md"
-requires-python = ">=3.11.7, <3.13"
+requires-python = ">=3.11.7, <3.14"
 version = "0.2.0"
 
 [project.optional-dependencies]
@@ -40,7 +40,7 @@ extras = [
   "pyshield[pyfv3]",
   "pyshield[test]"
 ]
-ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@develop"]
+ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@2026.03.00"]
 pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/pyFV3.git@develop"]
 test = [
   "coverage",
