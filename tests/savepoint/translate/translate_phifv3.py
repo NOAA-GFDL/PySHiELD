@@ -8,8 +8,6 @@ class TranslatePhiFV3(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
 
-        pytest.skip(reason="Tracers-as-dict (dict_4d) feature has been removed.")
-
         self.in_vars["data_vars"] = {
             "gt0": {"serialname": "phi_gt0"},
             "gq0": {"serialname": "phi_gq0"},
@@ -33,6 +31,7 @@ class TranslatePhiFV3(TranslatePhysicsFortranData2Py):
         )
 
     def compute(self, inputs):
+        pytest.skip()
         self.make_storage_data_input_vars(inputs)
         inputs["gq0"] = inputs["gq0"]["qvapor"]
         self.compute_func(**inputs)

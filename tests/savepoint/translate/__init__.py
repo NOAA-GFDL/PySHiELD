@@ -15,7 +15,7 @@ from .translate_cumulative_shalconv import (
     TranslateUpdateKb9,
 )
 from .translate_dcyc import TranslateRadInterp
-# from .translate_fillgfs import TranslateFillGFS
+from .translate_fillgfs import TranslateFillGFS
 from .translate_final_mp import TranslateFinalCalculations, TranslatePostMP
 from .translate_fpvs import TranslateFPVS
 from .translate_fv_update_phys import DycoreState, TranslateFVUpdatePhys
@@ -49,10 +49,10 @@ from .translate_pbl_subtests import (
     TranslateTKETridiagEle,
     TranslateUpDownTKE,
 )
-# from .translate_phifv3 import TranslatePhiFV3
+from .translate_phifv3 import TranslatePhiFV3
 from .translate_physics import ParallelPhysicsTranslate2Py, TranslateFortranData2Py
 from .translate_preliminary_mp import TranslatePreliminaryCalculations
-# from .translate_prsfv3 import TranslatePrsFV3
+from .translate_prsfv3 import TranslatePrsFV3
 from .translate_samfshalconv import TranslateShalConv
 from .translate_sedimentation import (
     TranslateCalcVTIce,
