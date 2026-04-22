@@ -40,8 +40,8 @@ extras = [
   "pyshield[pyfv3]",
   "pyshield[test]"
 ]
-ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@2026.03.00"]
-pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/pyFV3.git@develop"]
+ndsl = ["ndsl @ git+https://github.com/FlorianDeconinck/NDSL.git@feature/data_dimnesion_fields"]
+pyfv3 = ["pyfv3 @ git+https://github.com/FlorianDeconinck/pyFV3.git@feature/tracers_to_ddims_field`"]
 test = [
   "coverage",
   "pytest",
