@@ -8,6 +8,7 @@ import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import NullComm, Quantity, QuantityFactory, StencilFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend, backend_python
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -21,7 +22,12 @@ from pyshield.stencils.pbl import PBLConfig
 
 
 def setup_infrastructure(
-    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
+    nx: int,
+    ny: int,
+    nz: int,
+    nhalo: int,
+    etafile: Path,
+    backend: Backend = backend_python,
 ):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
@@ -57,7 +63,7 @@ def states_from_fortran_restarts(
     ak: Quantity,
     quantity_factory: QuantityFactory,
     stencil_factory: StencilFactory,
-    schemes: PHYSICS_PACKAGES,
+    schemes: list[PHYSICS_PACKAGES],
 ):
     pk0inv = (1.0 / physcons.P00) ** constants.KAPPA
     dycore_data = xr.open_dataset(dycore_datafile)
@@ -105,8 +111,8 @@ def states_from_fortran_restarts(
 
 
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
-@pytest.mark.parametrize("backend", ["numpy"])
-def test_pyshield_runswith_satmedmf(restart_path: Path, backend: str):
+@pytest.mark.parametrize("backend", [Backend("st:numpy:cpu:IJK")])
+def test_pyshield_runswith_satmedmf(restart_path: Path, backend: Backend):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")

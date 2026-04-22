@@ -1,5 +1,5 @@
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import IceCloud
 from pyshield.stencils.gfdl_cld_microphysics.mp_full import (
@@ -31,10 +31,10 @@ class SubMicrophysics:
         self._ntimes = config.ntimes
 
         def make_quantity():
-            return quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="unknown")
 
         def make_quantity_2D():
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown")
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown")
 
         self._fluxw = make_quantity()
         self._fluxr = make_quantity()
@@ -466,10 +466,11 @@ class TranslateMPFull(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):
@@ -695,10 +696,11 @@ class TranslateMPSub(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

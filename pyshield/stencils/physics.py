@@ -5,7 +5,7 @@ import numpy as np
 import ndsl.constants as constants
 import pyshield.constants as physcons
 from ndsl import QuantityFactory, StencilFactory, orchestrate
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, cos, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, sin
@@ -21,7 +21,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
-from ndsl.stencils.basic_operations import copy_defn
+from ndsl.stencils.basic_operations import copy
 from pyshield._config import (
     PHYSICS_PACKAGES,
     TRACER_DIM,
@@ -1146,10 +1146,10 @@ class Physics:
         self._hydro_delp = namelist.hydro_delp
 
         self._level_flip = self.quantity_factory.zeros(
-            dims=[Z_INTERFACE_DIM], units="", dtype=Int
+            dims=[K_INTERFACE_DIM], units="", dtype=Int
         )
         self._layer_flip = self.quantity_factory.zeros(
-            dims=[Z_INTERFACE_DIM], units="", dtype=Int
+            dims=[K_INTERFACE_DIM], units="", dtype=Int
         )
         for k in range(npz):
             self._level_flip.data[k] = npz - 1 - 2 * k
@@ -1158,13 +1158,13 @@ class Physics:
 
         def make_quantity():
             return self.quantity_factory.zeros(
-                dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+                dims=[I_DIM, J_DIM, K_DIM], units="unknown"
             )
 
         def make_quantity_2d():
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+            return quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
 
-        self._rain1 = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+        self._rain1 = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
         self._dm3d = make_quantity()
         self._del_gz = make_quantity()
         self._u1 = make_quantity()
@@ -1174,10 +1174,10 @@ class Physics:
         self._prsl1 = make_quantity()
         self._delp1 = make_quantity()
         self._prsi1 = quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+            dims=[I_DIM, J_DIM, K_INTERFACE_DIM], units="unknown"
         )
         self._prsik1 = quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+            dims=[I_DIM, J_DIM, K_INTERFACE_DIM], units="unknown"
         )
         self._prslk1 = make_quantity()
         self._qvapor1 = make_quantity()
@@ -1191,7 +1191,7 @@ class Physics:
         self._qcld1 = make_quantity()
         self._phil1 = make_quantity()
         self._phii1 = quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="unknown"
+            dims=[I_DIM, J_DIM, K_INTERFACE_DIM], units="unknown"
         )
         # TODO: once surface state is a required argument we don't need these copies
         self._sfcwind = make_quantity_2d()
@@ -1201,7 +1201,7 @@ class Physics:
         self._f10m = make_quantity_2d()
         self._emis = make_quantity_2d()
         self._srflg = self.quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM], units="unknown", dtype=Bool
+            dims=[I_DIM, J_DIM], units="unknown", dtype=Bool
         )
         self._hice = make_quantity_2d()
         self._fice = make_quantity_2d()
@@ -1242,7 +1242,7 @@ class Physics:
         self._sfcvisdfd = make_quantity_2d()
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            func=copy_defn,
+            func=copy,
             origin=grid_indexing.origin_full(),
             domain=grid_indexing.domain_full(add=(0, 0, 1)),
         )
@@ -1381,12 +1381,12 @@ class Physics:
         self._dtdt = make_quantity()
         self._dtdtc = make_quantity()
         self._dqdt = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )
         self._qgrs = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, self.TRACER_DIM],
+            [I_DIM, J_DIM, K_DIM, self.TRACER_DIM],
             units="unknown",
             dtype=Float,
         )

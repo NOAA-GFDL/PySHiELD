@@ -328,10 +328,11 @@ class TranslateMicrophysics3(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            self.sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            self.sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

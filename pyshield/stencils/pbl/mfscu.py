@@ -1,6 +1,6 @@
 import ndsl.constants as constants
-import pyshield.stencils.pbl.constants as pblcons
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+import pyshield.stencils.pbl.constants as pbl_constants
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
 
 # from pace.dsl.dace.orchestration import orchestrate
@@ -59,23 +59,23 @@ def mfscu_s0(
                 hrad = zm[0, 0, 0]
                 krad1 = krad[0, 0] - 1
                 tem = zm[0, 0, 1] - zm[0, 0, 0]
-                tem1 = pblcons.CLDTIME * radmin[0, 0] / tem
+                tem1 = pbl_constants.CLDTIME * radmin[0, 0] / tem
                 tem1 = max(tem1, -3.0)
                 thld = thlx[0, 0, 0] + tem1
                 qtd = qtx[0, 0, 0]
                 thlvd = thlvx[0, 0, 0] + tem1
                 buo = -constants.GRAV * tem1 / thvx[0, 0, 0]
 
-                ra1 = pblcons.A1
-                ra2 = pblcons.A11
+                ra1 = pbl_constants.A1
+                ra2 = pbl_constants.A11
 
                 tem2 = thetae[0, 0, 0] - thetae[0, 0, 1]
                 tem3 = qtx[0, 0, 0] - qtx[0, 0, 1]
                 if (tem2 > 0.0) and (tem3 > 0.0):
                     cteit = constants.CP_AIR * tem2 / (constants.HLV * tem3)
-                    if cteit > pblcons.ACTEI:
-                        ra1 = pblcons.A2
-                        ra2 = pblcons.A22
+                    if cteit > pbl_constants.ACTEI:
+                        ra1 = pbl_constants.A2
+                        ra2 = pbl_constants.A22
 
                 radj = -ra2[0, 0] * radmin[0, 0]
 
@@ -125,18 +125,18 @@ def mfscu_s2(
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             if k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 if mrad[0, 0] == 0:
-                    xlamde = pblcons.CE0 * (
+                    xlamde = pbl_constants.CE0 * (
                         (1.0 / (zm[0, 0, 0] + dz))
                         + 1.0 / max(hrad[0, 0] - zm[0, 0, 0] + dz, dz)
                     )
                 else:
-                    xlamde = pblcons.CE0 * (
+                    xlamde = pbl_constants.CE0 * (
                         (1.0 / (zm[0, 0, 0] - zm_mrad[0, 0] + dz))
                         + 1.0 / max(hrad[0, 0] - zm[0, 0, 0] + dz, dz)
                     )
             else:
-                xlamde = pblcons.CE0 / dz
-            xlamdem = pblcons.CM * xlamde[0, 0, 0]
+                xlamde = pbl_constants.CE0 / dz
+            xlamdem = pbl_constants.CM * xlamde[0, 0, 0]
 
 
 def mfscu_s3(
@@ -170,17 +170,17 @@ def mfscu_s3(
         tld = thld[0, 0, 0] / pix[0, 0, 0]
         es = 0.01 * fpvs(tld)
         qs = max(
-            pblcons.PBL_QMIN,
+            pbl_constants.PBL_QMIN,
             constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
         )
         dq = qtd[0, 0, 0] - qs
-        gamma = pblcons.EL2ORC * qs / (tld**2)
+        gamma = pbl_constants.EL2ORC * qs / (tld**2)
         qld = dq / (1.0 + gamma)
         if cnvflg[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
             if dq > 0.0:
                 qtd = qs + qld
                 tem1 = 1.0 + constants.ZVIR * qs - qld
-                thdn = thld[0, 0, 0] + pix[0, 0, 0] * pblcons.ELOCP * qld
+                thdn = thld[0, 0, 0] + pix[0, 0, 0] * pbl_constants.ELOCP * qld
                 thvd = thdn * tem1
             else:
                 tem1 = 1.0 + constants.ZVIR * qtd[0, 0, 0]
@@ -272,18 +272,18 @@ def mfscu_s6(
             dz = zl[0, 0, 1] - zl[0, 0, 0]
             if k_mask[0, 0, 0] >= mrad[0, 0] and k_mask[0, 0, 0] < krad[0, 0]:
                 if mrad[0, 0] == 0:
-                    xlamde = pblcons.CE0 * (
+                    xlamde = pbl_constants.CE0 * (
                         (1.0 / (zm[0, 0, 0] + dz))
                         + 1.0 / max(hrad[0, 0] - zm[0, 0, 0] + dz, dz)
                     )
                 else:
-                    xlamde = pblcons.CE0 * (
+                    xlamde = pbl_constants.CE0 * (
                         (1.0 / (zm[0, 0, 0] - zm_mrad[0, 0] + dz))
                         + 1.0 / max(hrad[0, 0] - zm[0, 0, 0] + dz, dz)
                     )
             else:
-                xlamde = pblcons.CE0 / dz
-            xlamdem = pblcons.CM * xlamde[0, 0, 0]
+                xlamde = pbl_constants.CE0 / dz
+            xlamdem = pbl_constants.CM * xlamde[0, 0, 0]
 
 
 def mfscu_s7(
@@ -421,18 +421,18 @@ def mfscu_s9(
             tld = thld[0, 0, 0] / pix[0, 0, 0]
             es = 0.01 * fpvs(tld)
             qs = max(
-                pblcons.PBL_QMIN,
+                pbl_constants.PBL_QMIN,
                 constants.EPS * es / (plyr[0, 0, 0] + constants.EPSM1 * es),
             )
             dq = qtd[0, 0, 0] - qs
-            gamma = pblcons.EL2ORC * qs / (tld**2)
+            gamma = pbl_constants.EL2ORC * qs / (tld**2)
             qld = dq / (1.0 + gamma)
 
             if dq > 0.0:
                 qtd = qs + qld
                 qcdo[0, 0, 0][0] = qs
                 qcdo[0, 0, 0][ntcw] = qld
-                tcdo = tld + pblcons.ELOCP * qld
+                tcdo = tld + pbl_constants.ELOCP * qld
             else:
                 qcdo[0, 0, 0][0] = qtd[0, 0, 0]
                 qcdo[0, 0, 0][ntcw] = 0.0
@@ -445,8 +445,8 @@ def mfscu_s9(
         ):
             tem = 0.5 * xlamdem[0, 0, 0] * dz
             factor = 1.0 + tem
-            ptem = tem - pblcons.PGCON
-            ptem1 = tem + pblcons.PGCON
+            ptem = tem - pbl_constants.PGCON
+            ptem1 = tem + pbl_constants.PGCON
             ucdo = (
                 (1.0 - tem) * ucdo[0, 0, 1] + ptem * u1[0, 0, 1] + ptem1 * u1[0, 0, 0]
             ) / factor
@@ -530,13 +530,13 @@ class StratocumulusMassFlux:
         # Allocate internal storages:
         def make_quantity():
             return quantity_factory.zeros(
-                [X_DIM, Y_DIM, Z_DIM],
+                [I_DIM, J_DIM, K_DIM],
                 units="unknown",
                 dtype=Float,
             )
 
         def make_quantity_2D(type):
-            return quantity_factory.zeros([X_DIM, Y_DIM], units="unknown", dtype=type)
+            return quantity_factory.zeros([I_DIM, J_DIM], units="unknown", dtype=type)
 
         self._qtx = make_quantity()
         self._qtd = make_quantity()

@@ -17,7 +17,8 @@ from ndsl import (
     SubtileGridSizer,
     TileCommunicator,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.config import Backend
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Float, Int
 from ndsl.grid import (
     AngleGridData,
@@ -40,7 +41,7 @@ def states_from_fortran_restarts(
     quantity_factory: QuantityFactory,
     qf_sfc: QuantityFactory,
     stencil_factory: StencilFactory,
-    schemes: PHYSICS_PACKAGES,
+    schemes: list[PHYSICS_PACKAGES],
 ):
     pk0inv = (1.0 / physcons.P00) ** constants.KAPPA
     dycore_data = xr.open_dataset(dycore_datafile)
@@ -112,8 +113,8 @@ def states_from_fortran_restarts(
 
 def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     n_halo = 3
-
     rank = 0
+    backend = Backend("st:numpy:cpu:IJK")
 
     comm = NullComm(rank, 1)
     communicator = TileCommunicator.from_layout(comm=comm, layout=(1, 1))
@@ -127,8 +128,9 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         layout=(1, 1),
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
-    quantity_factory = QuantityFactory.from_backend(sizer, backend="numpy")
+    quantity_factory = QuantityFactory(sizer, backend=backend)
 
     soil_sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -139,8 +141,9 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
         layout=(1, 1),
         tile_partitioner=communicator.partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
-    qf_soil = QuantityFactory.from_backend(soil_sizer, backend="numpy")
+    qf_soil = QuantityFactory(soil_sizer, backend=Backend("st:numpy:cpu:IJK"))
 
     comconf = CompilationConfig()
     comconf.validate_args = False
@@ -197,14 +200,14 @@ def test_sfc_runs(restart_path: Path):
 
     def make_quantity_2d() -> Quantity:
         return quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             units="unknown",
             dtype=Float,
         )
 
     def make_quantity_3d() -> Quantity:
         return quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM],
+            [I_DIM, J_DIM, K_DIM],
             units="unknown",
             dtype=Float,
         )
@@ -232,7 +235,7 @@ def test_sfc_runs(restart_path: Path):
     phil = make_quantity_3d()
     phil.field[:] = state.phil.field[:, :, ::-1]
     prsik = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+        [I_DIM, J_DIM, K_INTERFACE_DIM],
         units="unknown",
         dtype=Float,
     )
@@ -255,8 +258,8 @@ def test_sfc_runs(restart_path: Path):
 
 
 @pytest.mark.parametrize("restart_path", [Path("test_data/RESTART/")])
-@pytest.mark.parametrize("backend", ["numpy"])
-def test_pyshield_runswith_sfc(restart_path: Path, backend: str):
+@pytest.mark.parametrize("backend", [Backend("st:numpy:cpu:IJK")])
+def test_pyshield_runswith_sfc(restart_path: Path, backend: Backend):
     dycore_path = restart_path.joinpath("fv_core.res.tile1.nc")
     physics_path = restart_path.joinpath("phy_data.tile1.nc")
     sfc_path = restart_path.joinpath("sfc_data.tile1.nc")

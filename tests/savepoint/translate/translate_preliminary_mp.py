@@ -1,6 +1,6 @@
 import ndsl.stencils.basic_operations as basic
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM
+from ndsl.constants import I_DIM, J_DIM
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calculate_density_factor,
@@ -33,13 +33,13 @@ class PrelimCalcs:
         self._tw_err = config.tw_err
 
         def make_quantity2d(**kwargs):
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+            return quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
 
         self._tot_energy_change = make_quantity2d()
         self._bottom_density = make_quantity2d()
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy_defn,
+            basic.copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )
@@ -572,10 +572,11 @@ class TranslatePreliminaryCalculations(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            self.sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            self.sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

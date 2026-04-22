@@ -5,7 +5,7 @@ import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, QuantityFactory, StencilFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, sqrt
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
@@ -828,16 +828,16 @@ class GFDLCloudMicrophysics:
 
         # allocate memory, compile stencils, etc.
         def make_quantity(**kwargs):
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+            return quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
 
         def make_quantity2d(**kwargs):
-            return quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="unknown")
+            return quantity_factory.zeros(dims=[I_DIM, J_DIM], units="unknown")
 
         self._tot_energy_change = make_quantity2d()
         self._bottom_density = make_quantity2d()
 
         self._adj_vmr = quantity_factory.ones(
-            dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+            dims=[I_DIM, J_DIM, K_DIM], units="unknown"
         )
         self._qvapor0 = make_quantity()
         self._qliquid0 = make_quantity()
@@ -889,7 +889,7 @@ class GFDLCloudMicrophysics:
         self._rh_rain = make_quantity2d()
         self._cond = make_quantity2d()
 
-        self._gsize = quantity_factory.zeros(dims=[X_DIM, Y_DIM], units="m")
+        self._gsize = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m")
 
         self._gsize.data[:] = np.sqrt(grid_data.area.data[:])
 
@@ -899,7 +899,7 @@ class GFDLCloudMicrophysics:
         self._convert_mm_day = 86400.0 * constants.RGRAV / self.config.dt_split
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy_defn,
+            basic.copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )

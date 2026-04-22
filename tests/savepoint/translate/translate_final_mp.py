@@ -1,5 +1,5 @@
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import CloudFraction
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
@@ -34,11 +34,11 @@ class PostMP:
         self.do_sedi_uv = config.do_sedi_uv
         self.do_sedi_w = config.do_sedi_w
 
-        self._tzuv = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
-        self._tzw = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
-        self._qcon = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        self._tzuv = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
+        self._tzw = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
+        self._qcon = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
         self._cappa = quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+            dims=[I_DIM, J_DIM, K_DIM], units="unknown"
         )
 
         if config.do_hail:
@@ -534,9 +534,9 @@ class FinalCalcs:
         self.do_sedi_uv = config.do_sedi_uv
         self.do_sedi_w = config.do_sedi_w
 
-        self._qcon = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="unknown")
+        self._qcon = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="unknown")
         self._cappa = quantity_factory.zeros(
-            dims=[X_DIM, Y_DIM, Z_DIM], units="unknown"
+            dims=[I_DIM, J_DIM, K_DIM], units="unknown"
         )
 
         if config.consv_checker:
@@ -1034,10 +1034,11 @@ class TranslateFinalCalculations(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            self.sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            self.sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):
@@ -1491,10 +1492,11 @@ class TranslatePostMP(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            self.sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            self.sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

@@ -1,7 +1,6 @@
 import os
 import re
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 
@@ -32,7 +31,7 @@ CL4VMR_DEF = 1.397e-10  # aer 2003 value
 F113VMR_DEF = 8.2000e-11  # gfdl 1999 value
 
 
-def read_global_annual_co2(co2gbl_file: Path) -> dict[str : Union[Float, Int]]:
+def read_global_annual_co2(co2gbl_file: Path) -> dict[str, Float | Int]:
     """
     Function to read a text file of CO2 global half-yearly means
     and growth rates into a model.
@@ -62,7 +61,7 @@ def read_global_annual_co2(co2gbl_file: Path) -> dict[str : Union[Float, Int]]:
 
 def read_monthly_resolved_co2(
     co2dat_file: Path,
-) -> tuple[int, dict[Union[str, Int] : Union[Float, list[Float]]]]:
+) -> tuple[int, dict[str | Int, Float | list[Float]]]:
     """
     Function to read a text file of 15-degree CO2 monthly means into a model.
     Assumes a format of:
@@ -103,7 +102,7 @@ def read_monthly_resolved_co2(
 
 def read_monthly_cycle_co2(
     co2cyc_file: Path,
-) -> dict[Union[str, Int] : Union[Int, Float, dict[str : Union[Float, list[Float]]]]]:
+) -> dict[str | Int, Int | Float | dict[str, Float | list[Float]]]:
     """
     Function to read a text file of 15-degree CO2 monthly deviations into a model.
     Assumes a format of:
@@ -175,7 +174,6 @@ def read_co2_files(input_dir: Path, prefix="") -> tuple[dict, dict, dict]:
     if co2_glob_file.is_file():
         co2_glb_data = read_global_annual_co2(co2_glob_file)
     if monthly_co2_files:
-        co2_mvr_data = {}
         for monthly_file in monthly_co2_files:
             year, data = read_monthly_resolved_co2(input_dir.joinpath(monthly_file))
             co2_mvr_data[year] = data
@@ -232,6 +230,7 @@ def gas_init(
     gridlat: np.ndarray,
     prefix: str = "",
 ) -> tuple[
+    float,
     float,
     float,
     float,
@@ -336,6 +335,7 @@ def gas_init(
         cfc11,
         cfc12,
         cfc22,
+        cfc113,
         ccl4,
         co2_glb,
         co2_arr,

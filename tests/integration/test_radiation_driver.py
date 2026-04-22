@@ -7,6 +7,7 @@ import xarray as xr
 
 from ndsl import NullComm, Quantity, QuantityFactory, TileCommunicator
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend, backend_python
 from ndsl.grid import (
     AngleGridData,
     ContravariantGridData,
@@ -23,7 +24,12 @@ from pyshield.stencils.surface import SurfaceState
 
 
 def setup_infrastructure(
-    nx: int, ny: int, nz: int, nhalo: int, etafile: Path, backend: str = "numpy"
+    nx: int,
+    ny: int,
+    nz: int,
+    nhalo: int,
+    etafile: Path,
+    backend: Backend = backend_python,
 ):
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=nx, ny=ny, nz=nz, nhalo=nhalo, backend=backend
@@ -95,14 +101,14 @@ def states_from_fortran_restarts(
     tracer_datafile: Path,
     ak: Quantity,
     quantity_factory: QuantityFactory,
-    schemes: PHYSICS_PACKAGES,
+    schemes: list[PHYSICS_PACKAGES],
 ):
     dycore_data = xr.open_dataset(dycore_datafile)
     phys_data = xr.open_dataset(phys_datafile)
     tracer_data = xr.open_dataset(tracer_datafile)
 
     state = PhysicsState.init_zeros(quantity_factory, schemes)
-    radstate = RTE_RRTMGPState.init_zeros(quantity_factory, np)
+    radstate = RTE_RRTMGPState.init_zeros(quantity_factory)
     sstate = SurfaceState.init_zeros(quantity_factory)
 
     buff_3d = np.zeros_like(state.prsi.field)
@@ -173,7 +179,7 @@ def test_rte_rrtmgp(datapath: Path):
     gridlon = grid_data.lon_agrid
     gridlat = grid_data.lat_agrid
 
-    state = RTE_RRTMGPState.init_zeros(quantity_factory, np)
+    state = RTE_RRTMGPState.init_zeros(quantity_factory)
     sstate = SurfaceState.init_zeros(quantity_factory)
     fortran_restart_to_radstate(
         dycore_datafile=dycore_data,

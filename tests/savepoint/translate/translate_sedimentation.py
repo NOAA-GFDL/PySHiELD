@@ -1,5 +1,5 @@
 from ndsl import Quantity, QuantityFactory, StencilFactory, SubtileGridSizer
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Int
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.sedimentation import (
@@ -262,7 +262,7 @@ class SediMelt:
         self.c1_liq = config.c1_liq
         self.c1_ice = config.c1_ice
         self._k_mask = quantity_factory.zeros(
-            [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            [I_DIM, J_DIM, K_INTERFACE_DIM],
             units="unknown",
             dtype=Int,
         )
@@ -695,10 +695,11 @@ class TranslateSedimentation(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):
@@ -715,14 +716,16 @@ class TranslateSedimentation(TranslatePhysicsFortranData2Py):
             if len(inputs[var].shape) == 3:
                 inputs[var] = Quantity(
                     inputs[var],
-                    dims=[X_DIM, Y_DIM, Z_DIM],
+                    dims=[I_DIM, J_DIM, K_DIM],
                     units="unknown",
+                    backend=self.quantity_factory.backend,
                 )
             elif len(inputs[var].shape) == 2:
                 inputs[var] = Quantity(
                     inputs[var],
-                    dims=[X_DIM, Y_DIM],
+                    dims=[I_DIM, J_DIM],
                     units="unknown",
+                    backend=self.quantity_factory.backend,
                 )
             else:
                 raise TypeError(
@@ -873,10 +876,11 @@ class TranslateSediMelt(TranslatePhysicsFortranData2Py):
             n_halo=3,
             data_dimensions={},
             layout=self.config.layout,
+            backend=self.stencil_factory.backend,
         )
 
-        self.quantity_factory = QuantityFactory.from_backend(
-            sizer, self.stencil_factory.backend
+        self.quantity_factory = QuantityFactory(
+            sizer, backend=self.stencil_factory.backend
         )
 
     def compute(self, inputs):

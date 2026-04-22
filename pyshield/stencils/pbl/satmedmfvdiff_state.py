@@ -5,7 +5,7 @@ import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Float, Int
 from pyshield._config import TRACER_DIM
 
@@ -15,7 +15,7 @@ class SATMEDMFVDiffState:
     u1: Quantity = field(
         metadata={
             "name": "eastward_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "in",
         }
@@ -23,7 +23,7 @@ class SATMEDMFVDiffState:
     v1: Quantity = field(
         metadata={
             "name": "northward_wind",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s",
             "intent": "in",
         }
@@ -31,7 +31,7 @@ class SATMEDMFVDiffState:
     t1: Quantity = field(
         metadata={
             "name": "air_temperature",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK",
             "intent": "in",
         }
@@ -39,7 +39,7 @@ class SATMEDMFVDiffState:
     q1: Quantity = field(
         metadata={
             "name": "tracer_quantities",
-            "dims": [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM, TRACER_DIM],
             "units": "",
             "intent": "in",
         }
@@ -47,7 +47,7 @@ class SATMEDMFVDiffState:
     du: Quantity = field(
         metadata={
             "name": "eastward_wind_tendency",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s**2",
             "intent": "inout",
         }
@@ -55,7 +55,7 @@ class SATMEDMFVDiffState:
     dv: Quantity = field(
         metadata={
             "name": "northward_wind_tendency",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m/s**2",
             "intent": "inout",
         }
@@ -63,7 +63,7 @@ class SATMEDMFVDiffState:
     dtdt: Quantity = field(
         metadata={
             "name": "air_temperature_tendency",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK/s",
             "intent": "inout",
         }
@@ -71,7 +71,7 @@ class SATMEDMFVDiffState:
     rtg: Quantity = field(
         metadata={
             "name": "tracer_tendency",
-            "dims": [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM, TRACER_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -79,7 +79,7 @@ class SATMEDMFVDiffState:
     prsl: Quantity = field(
         metadata={
             "name": "mean_layer_pressure",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -87,7 +87,7 @@ class SATMEDMFVDiffState:
     phii: Quantity = field(
         metadata={
             "name": "interface_geopotential_height",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "m",
             "intent": "in",
         }
@@ -95,7 +95,7 @@ class SATMEDMFVDiffState:
     phil: Quantity = field(
         metadata={
             "name": "layer_geopotential_height",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "m",
             "intent": "in",
         }
@@ -103,7 +103,7 @@ class SATMEDMFVDiffState:
     prsi: Quantity = field(
         metadata={
             "name": "interface_pressure",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -111,7 +111,7 @@ class SATMEDMFVDiffState:
     prslk: Quantity = field(
         metadata={
             "name": "Exner_function",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -119,7 +119,7 @@ class SATMEDMFVDiffState:
     hsw: Quantity = field(
         metadata={
             "name": "shortwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "k/s",
             "intent": "in",
         }
@@ -127,7 +127,7 @@ class SATMEDMFVDiffState:
     hlw: Quantity = field(
         metadata={
             "name": "longwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "k/s",
             "intent": "in",
         }
@@ -135,7 +135,7 @@ class SATMEDMFVDiffState:
     islimsk: Quantity = field(
         metadata={
             "name": "sea_land_ice_mask",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "-",
             "intent": "in",
             "dtype": Int,
@@ -144,7 +144,7 @@ class SATMEDMFVDiffState:
     kpbl: Quantity = field(
         metadata={
             "name": "pbl_index",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "-",
             "intent": "inout",
             "dtype": Int,
@@ -153,7 +153,7 @@ class SATMEDMFVDiffState:
     kinver: Quantity = field(
         metadata={
             "name": "inversion_layer_index",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "-",
             "intent": "in",
             "dtype": Int,
@@ -162,7 +162,7 @@ class SATMEDMFVDiffState:
     hpbl: Quantity = field(
         metadata={
             "name": "pbl_height",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m",
             "intent": "inout",
         }
@@ -170,7 +170,7 @@ class SATMEDMFVDiffState:
     xmu: Quantity = field(
         metadata={
             "name": "zenith_angle_adjust_factor",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "in",
         }
@@ -178,7 +178,7 @@ class SATMEDMFVDiffState:
     psk: Quantity = field(
         metadata={
             "name": "log_surface_pressure",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "in",
         }
@@ -186,7 +186,7 @@ class SATMEDMFVDiffState:
     rbsoil: Quantity = field(
         metadata={
             "name": "bulk_Richardson_number",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "in",
         }
@@ -194,7 +194,7 @@ class SATMEDMFVDiffState:
     zorl: Quantity = field(
         metadata={
             "name": "composite_surface_roughness",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "cm",
             "intent": "in",
         }
@@ -202,7 +202,7 @@ class SATMEDMFVDiffState:
     tsea: Quantity = field(
         metadata={
             "name": "surface_temperature",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "degK",
             "intent": "in",
         }
@@ -210,7 +210,7 @@ class SATMEDMFVDiffState:
     u10m: Quantity = field(
         metadata={
             "name": "10_m_eastward_wind",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m/s",
             "intent": "in",
         }
@@ -218,7 +218,7 @@ class SATMEDMFVDiffState:
     v10m: Quantity = field(
         metadata={
             "name": "10_m_northward_wind",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m/s",
             "intent": "in",
         }
@@ -226,7 +226,7 @@ class SATMEDMFVDiffState:
     fm: Quantity = field(
         metadata={
             "name": "fm_PBL_parameter",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "in",
         }
@@ -234,7 +234,7 @@ class SATMEDMFVDiffState:
     fh: Quantity = field(
         metadata={
             "name": "fh_PBL_parameter",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "in",
         }
@@ -242,7 +242,7 @@ class SATMEDMFVDiffState:
     evap: Quantity = field(
         metadata={
             "name": "evaporation_from_latent_heat_flux",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "in",
         }
@@ -250,7 +250,7 @@ class SATMEDMFVDiffState:
     heat: Quantity = field(
         metadata={
             "name": "surface_heat_flux",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "W/m**2",
             "intent": "in",
         }
@@ -258,7 +258,7 @@ class SATMEDMFVDiffState:
     stress: Quantity = field(
         metadata={
             "name": "surface_wind_stress",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -266,7 +266,7 @@ class SATMEDMFVDiffState:
     spd1: Quantity = field(
         metadata={
             "name": "surface_wind_speed",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m/s",
             "intent": "in",
         }
@@ -274,7 +274,7 @@ class SATMEDMFVDiffState:
     delta: Quantity = field(
         metadata={
             "name": "atmospheric_pressure_thickness",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -282,7 +282,7 @@ class SATMEDMFVDiffState:
     dusfc: Quantity = field(
         metadata={
             "name": "surface_eastward_wind_tendency",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m/s**2",
             "intent": "inout",
         }
@@ -290,7 +290,7 @@ class SATMEDMFVDiffState:
     dvsfc: Quantity = field(
         metadata={
             "name": "surface_northward_wind_tendency",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "m/s**2",
             "intent": "inout",
         }
@@ -298,7 +298,7 @@ class SATMEDMFVDiffState:
     dtsfc: Quantity = field(
         metadata={
             "name": "surface_air_temperature_tendency",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "degK/s",
             "intent": "inout",
         }
@@ -306,7 +306,7 @@ class SATMEDMFVDiffState:
     dqsfc: Quantity = field(
         metadata={
             "name": "surface_humidity_tendency",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "km/km*s",
             "intent": "inout",
         }
@@ -314,7 +314,7 @@ class SATMEDMFVDiffState:
     dkt: Quantity = field(
         metadata={
             "name": "",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "out",
         }
@@ -358,6 +358,7 @@ class SATMEDMFVDiffState:
                         _field.metadata["units"],
                         origin=sizer.get_origin(dims),
                         extent=sizer.get_extent(dims),
+                        backend=quantity_factory.backend,
                     )
                 else:
                     quantity = quantity_factory.zeros(

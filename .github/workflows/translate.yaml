@@ -12,6 +12,10 @@ on:
         type: string
         default: ''
         required: false
+      python_version:
+        type: string
+        default: ''
+        required: false
   pull_request: # ... a PR is opened / updated
   merge_group: # ... the PR is added to the merge queue
   push:
@@ -32,38 +36,31 @@ jobs:
     env:
       TEST_DATA_PATH: "./test_data/8.1.3/c12_6ranks_baroclinic/physics"
       TEST_DATA_URL: "https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
+      python_default: '3.12'
 
     steps:
       - name: External trigger Checkout pySHiELD
-        if: ${{inputs.component_trigger}}
-        uses: actions/checkout@v5
+        if: ${{inputs.component_name}}
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
-          repository: NOAA-GFDL/PySHiELD
+          repository: NOAA-GFDL/pySHiELD
           path: pySHiELD
-          ref: develop
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: 'Setup Python ${{ inputs.python_version && inputs.python_version || env.python_default }}'
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: ${{ inputs.python_version && inputs.python_version || env.python_default }}
 
       - name: Install mpi (MPICH flavor)
         run: pip install mpich
 
-      - name: Install numpy==1.26.4
-        # Front-load installing numpy to force its usage in the radiation
-        # scheme of pySHiELD.
-        # TODO: This is an ugly hack and it should be cleaned up latest once
-        #       we add support for numpy >= 2.0
-        run: pip install numpy==1.26.4
-
       - name: External trigger remove existing component in pySHiELD/develop
-        if: ${{ inputs.component_trigger }}
+        if: ${{ inputs.component_name }}
         run: rm -rf ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
 
       - name: Checkout hash that triggered CI
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
           path: pySHiELD/${{inputs.component_name}}
@@ -84,7 +81,7 @@ jobs:
           pip install .[pyfv3,test]
 
       - name: Install pySHiELD packages
-        if: ${{ !inputs.component_trigger}}
+        if: ${{ !inputs.component_name}}
         run: |
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pip install .[ndsl,pyfv3,test]
@@ -93,7 +90,7 @@ jobs:
       # accessible from other PRs, see workflows/create_cache.yaml.
       - name: Restore test_data (if cached)
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           key: ${{ env.TEST_DATA_PATH }}
           path: pySHiELD/test_data
@@ -110,7 +107,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/pySHiELD
           pytest \
             -v -s --data_path=${{ env.TEST_DATA_PATH }} \
-            --backend=numpy \
+            --backend=st:numpy:cpu:IJK \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint
 
@@ -123,6 +120,6 @@ jobs:
           export NDSL_LOGLEVEL=Debug
           pytest \
             -vvv -x -s --data_path=${{ env.TEST_DATA_PATH }} \
-            --backend=dace:cpu \
+            --backend=orch:dace:cpu:KIJ \
             --threshold_overrides_file=./tests/savepoint/translate/overrides/standard.yaml \
             ./tests/savepoint

@@ -1,13 +1,13 @@
 from dataclasses import InitVar, dataclass, field, fields
 from typing import Any, Dict, Mapping
 
+import numpy as np
 import xarray as xr
 
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.typing import Float
-from ndsl.types import NumpyModule
 
 
 @dataclass()
@@ -15,7 +15,7 @@ class RTE_RRTMGPState:
     prsi: Quantity = field(
         metadata={
             "name": "interface_pressure",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "Pa",
             "intent": "in",
         }
@@ -23,7 +23,7 @@ class RTE_RRTMGPState:
     prsl: Quantity = field(
         metadata={
             "name": "layer_pressure",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "Pa",
             "intent": "inout",
         }
@@ -31,7 +31,7 @@ class RTE_RRTMGPState:
     tlyr: Quantity = field(
         metadata={
             "name": "layer_air_temperature",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK",
             "intent": "in",
         }
@@ -39,7 +39,7 @@ class RTE_RRTMGPState:
     tlvl: Quantity = field(
         metadata={
             "name": "level_air_temperature",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "degK",
             "intent": "inout",
         }
@@ -47,7 +47,7 @@ class RTE_RRTMGPState:
     tsfc: Quantity = field(
         metadata={
             "name": "surface_temperature",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "degK",
             "intent": "in",
         }
@@ -55,7 +55,7 @@ class RTE_RRTMGPState:
     mu0: Quantity = field(
         metadata={
             "name": "cosine_zenith_angle",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -63,7 +63,7 @@ class RTE_RRTMGPState:
     albedo: Quantity = field(
         metadata={
             "name": "surface_albedo",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -71,7 +71,7 @@ class RTE_RRTMGPState:
     sfc_emis: Quantity = field(
         metadata={
             "name": "surface_emissivity",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -79,7 +79,7 @@ class RTE_RRTMGPState:
     qvapor: Quantity = field(
         metadata={
             "name": "specific_humidity",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "mol/mol",
             "intent": "in",
         }
@@ -87,7 +87,7 @@ class RTE_RRTMGPState:
     qliquid: Quantity = field(
         metadata={
             "name": "cloud_water_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "in",
         }
@@ -95,7 +95,7 @@ class RTE_RRTMGPState:
     qice: Quantity = field(
         metadata={
             "name": "cloud_ice_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg/kg",
             "intent": "in",
         }
@@ -103,7 +103,7 @@ class RTE_RRTMGPState:
     qo3mr: Quantity = field(
         metadata={
             "name": "ozone_mixing_ratio",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "mol/mol",
             "intent": "in",
         }
@@ -111,7 +111,7 @@ class RTE_RRTMGPState:
     qcld: Quantity = field(
         metadata={
             "name": "cloud_fraction",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "in",
         }
@@ -119,7 +119,7 @@ class RTE_RRTMGPState:
     co2: Quantity = field(
         metadata={
             "name": "co2_concentration",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "",
             "intent": "inout",
         }
@@ -127,7 +127,7 @@ class RTE_RRTMGPState:
     clwp: Quantity = field(
         metadata={
             "name": "cloud_liquid_water_path",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "g/m**2",
             "intent": "inout",
         }
@@ -135,7 +135,7 @@ class RTE_RRTMGPState:
     cip: Quantity = field(
         metadata={
             "name": "cloud_ice_path",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "g/m**2",
             "intent": "inout",
         }
@@ -143,7 +143,7 @@ class RTE_RRTMGPState:
     clwr: Quantity = field(
         metadata={
             "name": "cloud_liquid_water_radius",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "micron",
             "intent": "inout",
         }
@@ -151,7 +151,7 @@ class RTE_RRTMGPState:
     cir: Quantity = field(
         metadata={
             "name": "cloud_ice_radius",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "micron",
             "intent": "inout",
         }
@@ -159,7 +159,7 @@ class RTE_RRTMGPState:
     flwu: Quantity = field(
         metadata={
             "name": "longwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -167,7 +167,7 @@ class RTE_RRTMGPState:
     flwd: Quantity = field(
         metadata={
             "name": "longwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -175,7 +175,7 @@ class RTE_RRTMGPState:
     fswu: Quantity = field(
         metadata={
             "name": "shortwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -183,7 +183,7 @@ class RTE_RRTMGPState:
     fswd: Quantity = field(
         metadata={
             "name": "shortwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -191,7 +191,7 @@ class RTE_RRTMGPState:
     fswn: Quantity = field(
         metadata={
             "name": "net_sfc_shortwave_flux",
-            "dims": [X_DIM, Y_DIM],
+            "dims": [I_DIM, J_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -199,7 +199,7 @@ class RTE_RRTMGPState:
     flwu_clr: Quantity = field(
         metadata={
             "name": "clearsky_longwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -207,7 +207,7 @@ class RTE_RRTMGPState:
     flwd_clr: Quantity = field(
         metadata={
             "name": "clearsky_longwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -215,7 +215,7 @@ class RTE_RRTMGPState:
     fswu_clr: Quantity = field(
         metadata={
             "name": "clearsky_shortwave_flux_up",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -223,7 +223,7 @@ class RTE_RRTMGPState:
     fswd_clr: Quantity = field(
         metadata={
             "name": "clearsky_shortwave_flux_down",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "W/m**2",
             "intent": "out",
         }
@@ -231,7 +231,7 @@ class RTE_RRTMGPState:
     hrtlw: Quantity = field(
         metadata={
             "name": "longwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK/s",
             "intent": "out",
         }
@@ -239,7 +239,7 @@ class RTE_RRTMGPState:
     hrtsw: Quantity = field(
         metadata={
             "name": "shortwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK/s",
             "intent": "out",
         }
@@ -247,7 +247,7 @@ class RTE_RRTMGPState:
     hrtlw_clr: Quantity = field(
         metadata={
             "name": "clearsky_longwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK/s",
             "intent": "out",
         }
@@ -255,20 +255,17 @@ class RTE_RRTMGPState:
     hrtsw_clr: Quantity = field(
         metadata={
             "name": "clearsky_shortwave_heating_rate",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "degK/s",
             "intent": "out",
         }
     )
     quantity_factory: InitVar[QuantityFactory]
-    np_like: InitVar[NumpyModule]
 
     def __post_init__(
         self,
         quantity_factory: QuantityFactory,
-        np_like: NumpyModule,
     ):
-        self._np = np_like
         self._nz = quantity_factory.sizer.nz
         self._nx = quantity_factory.sizer.nx
         self._ny = quantity_factory.sizer.ny
@@ -277,7 +274,6 @@ class RTE_RRTMGPState:
     def init_zeros(
         cls,
         quantity_factory,
-        np_like: NumpyModule,
     ) -> "RTE_RRTMGPState":
         initial_arrays = {}
         for _field in fields(cls):
@@ -290,7 +286,6 @@ class RTE_RRTMGPState:
         return cls(
             **initial_arrays,
             quantity_factory=quantity_factory,
-            np_like=np_like,
         )
 
     @classmethod
@@ -299,7 +294,6 @@ class RTE_RRTMGPState:
         storages: Mapping[str, Any],
         sizer: GridSizer,
         quantity_factory: QuantityFactory,
-        np_like: NumpyModule,
     ) -> "RTE_RRTMGPState":
         inputs: Dict[str, Quantity] = {}
         for _field in fields(cls):
@@ -312,6 +306,7 @@ class RTE_RRTMGPState:
                         _field.metadata["units"],
                         origin=sizer.get_origin(dims),
                         extent=sizer.get_extent(dims),
+                        backend=quantity_factory.backend,
                     )
                 else:
                     quantity = quantity_factory.zeros(
@@ -322,7 +317,6 @@ class RTE_RRTMGPState:
         return cls(
             **inputs,
             quantity_factory=quantity_factory,
-            np_like=np_like,
         )
 
     @property
@@ -358,7 +352,7 @@ class RTE_RRTMGPState:
         for name, field_info in self.__dataclass_fields__.items():
             if name not in ["quantity_factory", "np_like"]:
                 if field_info.metadata["intent"] != "out":
-                    if issubclass(field_info.type, Quantity):
+                    if issubclass(field_info.type, Quantity):  # type: ignore[arg-type]
                         dims = []
                         slice_list = []
                         ndims = len(field_info.metadata["dims"])
@@ -366,22 +360,30 @@ class RTE_RRTMGPState:
                         for dim_name in field_info.metadata["dims"]:
                             # dims.append(f"{dim_name}_{name}")
                             if dim_name == "z_interface":
-                                slice_list.append(self._np.s_[:])
+                                slice_list.append(
+                                    np.s_[:]  # type: ignore[attr-defined]
+                                )
                                 nz = self._nz + 1
                                 dims.append("level")
                             elif dim_name == "z":
-                                slice_list.append(self._np.s_[:-1])
+                                slice_list.append(
+                                    np.s_[:-1]  # type: ignore[attr-defined]
+                                )
                                 dims.append("layer")
                             elif "INTERFACE" in dim_name:
-                                slice_list.append(self._np.s_[3:-3])
+                                slice_list.append(
+                                    np.s_[3:-3]  # type: ignore[attr-defined]
+                                )
                             else:
-                                slice_list.append(self._np.s_[3:-4])
+                                slice_list.append(
+                                    np.s_[3:-4]  # type: ignore[attr-defined]
+                                )
                         # We have to reshape to get the max 2D shape rterrtmgp expects:
                         if ndims == 3:  # x-y-z array:
                             newshape = (-1, nz)
                             dims.insert(0, "column")
                         elif ndims == 2:  # x-y array:
-                            newshape = (-1,)  # noqa
+                            newshape = (-1,)  # type: ignore[assignment]
                             dims.insert(0, "column")
                         elif ndims == 1:  # z-array
                             newshape == (nz,)
