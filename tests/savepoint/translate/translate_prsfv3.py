@@ -8,7 +8,7 @@ class TranslatePrsFV3(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
 
-        pytest.xfail(reason="Tracers-as-dict (dict_4d) feature has been removed.")
+        pytest.skip(reason="Tracers-as-dict (dict_4d) feature has been removed.")
 
         self.in_vars["data_vars"] = {
             "phii": {"serialname": "prs_phii"},
