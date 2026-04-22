@@ -4,11 +4,11 @@ import numpy as np
 from f90nml import Namelist
 
 import ndsl.dsl.gt4py_utils as utils
-from pyshield.tracer_workarounds import tracer_variables
 from ndsl import Quantity, StencilFactory
 from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.utils import safe_assign_array
+from pyshield.tracer_workarounds import tracer_variables
 from pyshield.update import ApplyPhysicsToDycore
 from tests.savepoint.translate.translate_physics import (
     ParallelPhysicsTranslate2Py,
