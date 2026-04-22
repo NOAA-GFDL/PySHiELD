@@ -9,7 +9,7 @@ from dacite import Config, from_dict
 
 import pyshield.constants as physcons
 from ndsl import MetaEnumStr
-from ndsl.dsl.gt4py_utils import tracer_variables
+from pyshield.tracer_workarounds import tracer_variables
 from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.utils import f90nml_as_dict
 

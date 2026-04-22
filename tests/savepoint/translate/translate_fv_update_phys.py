@@ -4,6 +4,7 @@ import numpy as np
 from f90nml import Namelist
 
 import ndsl.dsl.gt4py_utils as utils
+from pyshield.tracer_workarounds import tracer_variables
 from ndsl import Quantity, StencilFactory
 from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
@@ -140,7 +141,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
 
             names_4d = None
             if len(inputs[serialname].shape) == 4:
-                names_4d = info.get("names_4d", utils.tracer_variables)
+                names_4d = info.get("names_4d", tracer_variables)
 
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
