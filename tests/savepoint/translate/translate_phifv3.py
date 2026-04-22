@@ -1,3 +1,5 @@
+import pytest
+
 from pyshield.stencils.get_phi_fv3 import get_phi_fv3
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
@@ -5,6 +7,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 class TranslatePhiFV3(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
+
+        pytest.xfail(reason="Tracers-as-dict (dict_4d) feature has been removed.")
 
         self.in_vars["data_vars"] = {
             "gt0": {"serialname": "phi_gt0"},

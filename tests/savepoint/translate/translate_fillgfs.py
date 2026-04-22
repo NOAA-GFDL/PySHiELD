@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.utils import safe_assign_array
@@ -9,6 +10,8 @@ from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranD
 class TranslateFillGFS(TranslatePhysicsFortranData2Py):
     def __init__(self, grid, namelist, stencil_factory):
         super().__init__(grid, namelist, stencil_factory)
+
+        pytest.xfail(reason="Tracers-as-dict (dict_4d) feature has been removed.")
 
         self.in_vars["data_vars"] = {
             "pe": {"serialname": "IPD_prsi"},
