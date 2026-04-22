@@ -166,7 +166,7 @@ class TranslatePhysicsFortranData2Py(TranslateFortranData2Py):
                     inputs[serialname], roll_zero, index_order
                 )
         super().make_storage_data_input_vars(
-            inputs, storage_vars=storage_vars, dict_4d=dict_4d
+            inputs, storage_vars=storage_vars
         )
 
     def slice_output(self, inputs, out_data=None):
