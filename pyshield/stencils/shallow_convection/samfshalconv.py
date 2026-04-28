@@ -27,12 +27,9 @@ from ndsl.dsl.typing import (
     IntField,
     IntFieldIJ,
 )
+from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.functions.physics_functions import fpvs
-from pyshield.stencils.shallow_convection._config import (
-    SC_TRACER_DIM,
-    FloatFieldShalConv,
-    ShallowConvectionConfig,
-)
+from pyshield.stencils.shallow_convection._config import ShallowConvectionConfig
 from pyshield.stencils.shallow_convection.samf_shalconv_state import SAMFShalConvState
 
 
@@ -210,11 +207,13 @@ def init_final(
     heso: FloatField,
     hpbl: FloatFieldIJ,
     t1: FloatField,
-    q1: FloatField,
+    qtr: FloatFieldTracer,
     u1: FloatField,
     v1: FloatField,
     k_mask: IntField,
 ):
+    from __externals__ import ntvap
+
     with computation(PARALLEL), interval(...):
         # Calculate hydrostatic height at layer centers assuming a flat
         # surface (no terrain) from the geopotential
@@ -259,7 +258,7 @@ def init_final(
             pwo = 0.0
             dellal = 0.0
             to = t1
-            qo = q1
+            qo = qtr[0, 0, 0][ntvap]
             uo = u1
             vo = v1
             wu2 = 0.0
@@ -287,10 +286,10 @@ def init_tracers(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kmax: IntFieldIJ,
-    ctr: FloatFieldShalConv,
-    ctro: FloatFieldShalConv,
-    ecko: FloatFieldShalConv,
-    qtr: FloatFieldShalConv,
+    ctr: FloatFieldTracer,
+    ctro: FloatFieldTracer,
+    ecko: FloatFieldTracer,
+    qtr: FloatFieldTracer,
     n_tracer: int,
 ):
     with computation(PARALLEL), interval(...):
@@ -405,7 +404,7 @@ def stencil_ntrstatic0(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kmax: IntFieldIJ,
-    ctro: FloatFieldShalConv,
+    ctro: FloatFieldTracer,
     n_tracer: int,
 ):
     with computation(FORWARD), interval(0, -1):
@@ -529,7 +528,7 @@ def stencil_static3(
     kb: IntFieldIJ,
     kbcon: IntFieldIJ,
     zo: FloatField,
-    qtr: FloatFieldShalConv,
+    qtr: FloatFieldTracer,
     clamt: FloatFieldIJ,
 ):
     # turbulent entrainment rate assumed to be proportional
@@ -667,8 +666,8 @@ def stencil_ntrstatic1(
     cnvflg: BoolFieldIJ,
     k_mask: IntField,
     kb: IntFieldIJ,
-    ecko: FloatFieldShalConv,
-    ctro: FloatFieldShalConv,
+    ecko: FloatFieldTracer,
+    ctro: FloatFieldTracer,
     n_tracer: Int,
 ):
     with computation(PARALLEL), interval(...):
@@ -743,8 +742,8 @@ def stencil_ntrstatic2(
     kmax: IntFieldIJ,
     zi: FloatField,
     xlamue: FloatField,
-    ecko: FloatFieldShalConv,
-    ctro: FloatFieldShalConv,
+    ecko: FloatFieldTracer,
+    ctro: FloatFieldTracer,
     n_tracer: Int,
 ):
     with computation(FORWARD), interval(1, -1):
@@ -1651,11 +1650,11 @@ def comp_tendencies_tr(
     kmax: IntFieldIJ,
     kb: IntFieldIJ,
     ktcon: IntFieldIJ,
-    dellae: FloatFieldShalConv,
+    dellae: FloatFieldTracer,
     del0: FloatField,
     eta: FloatField,
-    ctro: FloatFieldShalConv,
-    ecko: FloatFieldShalConv,
+    ctro: FloatFieldTracer,
+    ecko: FloatFieldTracer,
     n_tracer: Int,
 ):
     with computation(PARALLEL), interval(...):
@@ -1714,7 +1713,7 @@ def feedback_control_update_mass_flux(
     dellaq: FloatField,
     t1: FloatField,
     xmb: FloatFieldIJ,
-    q1: FloatField,
+    qtr: FloatFieldTracer,
     u1: FloatField,
     dellau: FloatField,
     v1: FloatField,
@@ -1741,7 +1740,7 @@ def feedback_control_update_mass_flux(
     # flux and the tendencies calculated per unit cloud base
     # mass flux from the static control.
     # Recalculate saturation specific humidity.
-    from __externals__ import dt2
+    from __externals__ import dt2, ntvap
 
     with computation(FORWARD), interval(0, 1):
         # Initialize flg
@@ -1776,7 +1775,7 @@ def feedback_control_update_mass_flux(
             if k_mask > kb and k_mask <= ktcon:
                 dellat = (dellah - constants.HLV * dellaq) / constants.CP_AIR
                 t1 = t1 + dellat * xmb * dt2
-                q1 = q1 + dellaq * xmb * dt2
+                qtr[0, 0, 0][ntvap] = qtr[0, 0, 0][ntvap] + dellaq * xmb * dt2
                 u1 = u1 + dellau * xmb * dt2
                 v1 = v1 + dellav * xmb * dt2
 
@@ -1836,7 +1835,9 @@ def feedback_control_update_mass_flux(
                     else:
                         evef = edt * sccons.EVFACT
                     qcond = (
-                        evef * (q1 - qeso) / (1.0 + physcons.EL2ORC * qeso / (t1 * t1))
+                        evef
+                        * (qtr[0, 0, 0][ntvap] - qeso)
+                        / (1.0 + physcons.EL2ORC * qeso / (t1 * t1))
                     )
 
                     dp = 1000.0 * del0
@@ -1861,7 +1862,7 @@ def feedback_control_update_mass_flux(
                         else:
                             rn = rn - tem1
 
-                        q1 = q1 + qevap
+                        qtr[0, 0, 0][ntvap] = qtr[0, 0, 0][ntvap] + qevap
                         t1 = t1 - physcons.ELOCP * qevap
                         deltv = -physcons.ELOCP * qevap / dt2
                         delq = qevap / dt2
@@ -1912,11 +1913,11 @@ def feedback_control_upd_trr(
     kmax: IntFieldIJ,
     ktcon: IntFieldIJ,
     del0: FloatField,
-    delebar: FloatFieldShalConv,
-    ctr: FloatFieldShalConv,
-    dellae: FloatFieldShalConv,
+    delebar: FloatFieldTracer,
+    ctr: FloatFieldTracer,
+    dellae: FloatFieldTracer,
     xmb: FloatFieldIJ,
-    qtr: FloatFieldShalConv,
+    qtr: FloatFieldTracer,
     n_tracer: Int,
 ):
     from __externals__ import dt2
@@ -1957,7 +1958,7 @@ def store_aero_conc(
     k_mask: IntField,
     kmax: IntFieldIJ,
     rn: FloatFieldIJ,
-    qtr: FloatFieldShalConv,
+    qtr: FloatFieldTracer,
     qaero: FloatField,
     n_tracer: Int,
     k_aerosol: Int,
@@ -1976,7 +1977,7 @@ def separate_detrained_cw(
     dellal: FloatField,
     xmb: FloatFieldIJ,
     t1: FloatField,
-    qtr: FloatFieldShalConv,
+    qtr: FloatFieldTracer,
 ):
     from __externals__ import dt2, ntcw, ntiw
 
@@ -2011,7 +2012,7 @@ def tke_contribution(
     pfld: FloatField,
     t1: FloatField,
     sigmagfm: FloatFieldIJ,
-    qtr: FloatFieldShalConv,
+    qtr: FloatFieldTracer,
 ):
     # Include TKE contribution from shallow convection
     from __externals__ import ntk
@@ -2135,6 +2136,8 @@ class ScaleAwareMassFluxShallowConvection:
         self._ntk = config.ntke
         self._ntiw = config.ntiw
         self._ntcw = config.ntcw
+        self._ntvap = config.ntvap
+        self._ntcld = config.ntcld
         self._ntr = config.nsamftrac
         self._ncloud = config.ncld
         self._dt2 = config.dt_atmos
@@ -2159,13 +2162,13 @@ class ScaleAwareMassFluxShallowConvection:
 
         self._km = grid_indexing.domain[2]
         self._km1 = grid_indexing.domain[2] - 1
-        self.TRACER_DIM = SC_TRACER_DIM
+        self.TRACER_DIM = TRACER_DIM
 
         self.quantity_factory = quantity_factory
         if self.TRACER_DIM not in self.quantity_factory.sizer.data_dimensions.keys():
             self.quantity_factory.add_data_dimensions(
                 {
-                    self.TRACER_DIM: int(self._ntr + 2),
+                    self.TRACER_DIM: int(self._ntr + 4),
                 }
             )
 
@@ -2349,6 +2352,9 @@ class ScaleAwareMassFluxShallowConvection:
         self._init_final = stencil_factory.from_dims_halo(
             func=init_final,
             compute_dims=[I_DIM, J_DIM, K_DIM],
+            externals={
+                "ntvap": self._ntvap,
+            },
         )
         self._init_tracers = stencil_factory.from_dims_halo(
             func=init_tracers,
@@ -2444,7 +2450,10 @@ class ScaleAwareMassFluxShallowConvection:
         )
         self._feedback_control_update_mass_flux = stencil_factory.from_dims_halo(
             func=feedback_control_update_mass_flux,
-            externals={"dt2": self._dt2},
+            externals={
+                "dt2": self._dt2,
+                "ntvap": self._ntvap,
+            },
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._feedback_control_upd_trr = stencil_factory.from_dims_halo(
@@ -2564,7 +2573,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._heso,
             state.hpbl,
             state.t1,
-            state.q1,
+            state.qtr,
             state.u1,
             state.v1,
             self._k_mask,
@@ -2572,7 +2581,12 @@ class ScaleAwareMassFluxShallowConvection:
 
         # Init tracers
         for n_tracer in range(self._ntr + 2):
-            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+            if (
+                (n_tracer != self._ntiw)
+                and (n_tracer != self._ntcw)
+                and (n_tracer != self._ntcld)
+                and (n_tracer != self._ntvap)
+            ):
                 self._init_tracers(
                     self._cnvflg,
                     self._k_mask,
@@ -2603,7 +2617,12 @@ class ScaleAwareMassFluxShallowConvection:
             self._pfld,
         )
         for n_tracer in range(self._ntr + 2):
-            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+            if (
+                (n_tracer != self._ntiw)
+                and (n_tracer != self._ntcw)
+                and (n_tracer != self._ntcld)
+                and (n_tracer != self._ntvap)
+            ):
                 self._stencil_ntrstatic0(
                     self._cnvflg,
                     self._k_mask,
@@ -2680,7 +2699,12 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         for n_tracer in range(self._ntr + 2):
-            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+            if (
+                (n_tracer != self._ntiw)
+                and (n_tracer != self._ntcw)
+                and (n_tracer != self._ntcld)
+                and (n_tracer != self._ntvap)
+            ):
                 self._stencil_ntrstatic1(
                     self._cnvflg,
                     self._k_mask,
@@ -2709,7 +2733,12 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         for n_tracer in range(self._ntr + 2):
-            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+            if (
+                (n_tracer != self._ntiw)
+                and (n_tracer != self._ntcw)
+                and (n_tracer != self._ntcld)
+                and (n_tracer != self._ntvap)
+            ):
                 self._stencil_ntrstatic2(
                     self._cnvflg,
                     self._k_mask,
@@ -2913,7 +2942,12 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         for n_tracer in range(self._ntr + 2):
-            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+            if (
+                (n_tracer != self._ntiw)
+                and (n_tracer != self._ntcw)
+                and (n_tracer != self._ntcld)
+                and (n_tracer != self._ntvap)
+            ):
                 self._comp_tendencies_tr(
                     self._cnvflg,
                     self._k_mask,
@@ -2955,7 +2989,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._dellaq,
             state.t1,
             self._xmb,
-            state.q1,
+            state.qtr,
             state.u1,
             self._dellau,
             state.v1,
@@ -2979,7 +3013,12 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         for n_tracer in range(self._ntr + 2):
-            if (n_tracer != self._ntiw) and (n_tracer != self._ntcw):
+            if (
+                (n_tracer != self._ntiw)
+                and (n_tracer != self._ntcw)
+                and (n_tracer != self._ntcld)
+                and (n_tracer != self._ntvap)
+            ):
                 self._feedback_control_upd_trr(
                     self._cnvflg,
                     self._k_mask,
