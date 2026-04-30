@@ -1,7 +1,7 @@
 import dataclasses
 
+from ndsl.dsl.gt4py_utils import tracer_variables
 from ndsl.dsl.typing import Float, set_4d_field_size
-from pyshield.tracer_workarounds import tracer_variables
 
 
 # TODO: This should be handled by tracer functionality when ready

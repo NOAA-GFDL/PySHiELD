@@ -8,7 +8,6 @@ from ndsl import Quantity, StencilFactory
 from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.utils import safe_assign_array
-from pyshield.tracer_workarounds import tracer_variables
 from pyshield.update import ApplyPhysicsToDycore
 from tests.savepoint.translate.translate_physics import (
     ParallelPhysicsTranslate2Py,
@@ -141,7 +140,7 @@ class TranslateFVUpdatePhys(ParallelPhysicsTranslate2Py):
 
             names_4d = None
             if len(inputs[serialname].shape) == 4:
-                names_4d = info.get("names_4d", tracer_variables)
+                names_4d = info.get("names_4d", utils.tracer_variables)
 
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
