@@ -1995,7 +1995,7 @@ def separate_detrained_cw(
             tem1 = min(1.0, tem1)
             tem1 = max(0.0, tem1)
 
-            if qtr[0, 0, 0][1] > -999.0:
+            if qtr[0, 0, 0][ntcw] > -999.0:
                 qtr[0, 0, 0][ntiw] = qtr[0, 0, 0][ntiw] + tem * tem1  # ice
                 qtr[0, 0, 0][ntcw] = qtr[0, 0, 0][ntcw] + tem * (1.0 - tem1)  # water
             else:
