@@ -2580,7 +2580,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         # Init tracers
-        for n_tracer in range(self._ntr + 2):
+        for n_tracer in range(self._ntr + 4):
             if (
                 (n_tracer != self._ntiw)
                 and (n_tracer != self._ntcw)
@@ -2616,7 +2616,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._heso,
             self._pfld,
         )
-        for n_tracer in range(self._ntr + 2):
+        for n_tracer in range(self._ntr + 4):
             if (
                 (n_tracer != self._ntiw)
                 and (n_tracer != self._ntcw)
@@ -2698,7 +2698,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._flg,
         )
 
-        for n_tracer in range(self._ntr + 2):
+        for n_tracer in range(self._ntr + 4):
             if (
                 (n_tracer != self._ntiw)
                 and (n_tracer != self._ntcw)
@@ -2732,7 +2732,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._vo,
         )
 
-        for n_tracer in range(self._ntr + 2):
+        for n_tracer in range(self._ntr + 4):
             if (
                 (n_tracer != self._ntiw)
                 and (n_tracer != self._ntcw)
@@ -2941,7 +2941,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._umean,
         )
 
-        for n_tracer in range(self._ntr + 2):
+        for n_tracer in range(self._ntr + 4):
             if (
                 (n_tracer != self._ntiw)
                 and (n_tracer != self._ntcw)
@@ -3012,7 +3012,7 @@ class ScaleAwareMassFluxShallowConvection:
             self._eta,
         )
 
-        for n_tracer in range(self._ntr + 2):
+        for n_tracer in range(self._ntr + 4):
             if (
                 (n_tracer != self._ntiw)
                 and (n_tracer != self._ntcw)
