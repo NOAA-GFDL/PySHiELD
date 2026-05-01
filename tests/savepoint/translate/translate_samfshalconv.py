@@ -1,11 +1,19 @@
+import numpy as np
+
 from ndsl import QuantityFactory, SubtileGridSizer
+from ndsl.dsl.typing import Float, set_4d_field_size
+from pyshield._config import TRACER_DIM
 from pyshield.stencils.shallow_convection import (
-    SC_TRACER_DIM,
     SAMFShalConvState,
     ScaleAwareMassFluxShallowConvection,
     ShallowConvectionConfig,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
+
+
+FloatFieldShalConv = set_4d_field_size(7, Float)
+
+SC_TRACER_DIM = "n_tracers_shal"
 
 
 class TranslateShalConv(TranslatePhysicsFortranData2Py):
@@ -105,17 +113,24 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
                 SC_TRACER_DIM: inputs["sc_nsamftrac"] + 2,
             }
         )
+        quantity_factory.add_data_dimensions(
+            {
+                TRACER_DIM: inputs["sc_nsamftrac"] + 4,
+            }
+        )
 
         self.make_storage_data_input_vars(inputs)
         config = ShallowConvectionConfig(
             dt_atmos=inputs.pop("sc_dtp"),
-            ntke=int(inputs.pop("sc_ntk") - 1),
+            ntke=int(inputs.pop("sc_ntk")),
             nsamftrac=int(inputs.pop("sc_nsamftrac")),
             ncld=int(inputs.pop("sc_ncld")),
             ntchm=int(inputs.pop("sc_ntchm")),
-            ntiw=0,
-            ntcw=1,
-            itc=int(inputs.pop("sc_itc") - 1),
+            ntiw=1,
+            ntcw=2,
+            ntcld=8,
+            ntvap=0,
+            itc=int(inputs.pop("sc_itc")),
             clam_shal=inputs.pop("sc_clam_shal"),
             c0s_shal=inputs.pop("sc_c0s_shal"),
             c1_shal=inputs.pop("sc_c1_shal"),
@@ -124,6 +139,13 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
             fscav=inputs.pop("sc_ser_fscav"),
         )
 
+        q1 = inputs.pop("q1")
+        qtr = inputs.pop("qtr")
+        shape = q1.shape + tuple([qtr.shape[3] + 2])
+        qq = np.zeros((shape))
+        qq[:, :, :, 0] = q1
+        qq[:, :, :, 1:-1] = qtr
+        inputs["qtr"] = qq
         state = SAMFShalConvState.init_from_storages(
             inputs,
             sizer=sizer,
@@ -140,11 +162,11 @@ class TranslateShalConv(TranslatePhysicsFortranData2Py):
         inputs["prslp"] = state.prslp
         inputs["psp"] = state.psp
         inputs["phil"] = state.phil
-        inputs["q1"] = state.q1
+        inputs["q1"] = state.qtr.data[:, :, :, 0]
         inputs["t1"] = state.t1
         inputs["u1"] = state.u1
         inputs["v1"] = state.v1
-        inputs["qtr"] = state.qtr
+        inputs["qtr"] = state.qtr.data[:, :, :, 1:-1]
         inputs["rn"] = state.rn
         inputs["kbot"] = state.kbot
         inputs["ktop"] = state.ktop

@@ -1,17 +1,11 @@
 import dataclasses
 
-from ndsl.dsl.typing import Float, set_4d_field_size
 from pyshield.tracer_workarounds import tracer_variables
 
-
-# TODO: This should be handled by tracer functionality when ready
-# and the field size should be nsamftrac + 2 instead of hardcoded
-FloatFieldShalConv = set_4d_field_size(7, Float)
 
 _DEFAULT_INT = 0
 DEFAULT_BOOL = False
 DEFAULT_FLOAT = 0.0
-SC_TRACER_DIM = "n_tracers_shal"
 
 
 @dataclasses.dataclass
@@ -26,10 +20,14 @@ class ShallowConvectionConfig:
     """Choice of cloud scheme"""
     ntchm: int = _DEFAULT_INT
     """number of chemical tracers"""
+    ntvap: int = _DEFAULT_INT
+    """index of vapor tracer"""
     ntcw: int = -1
     """index of cloud water tracer"""
     ntiw: int = -1
     """index pf cloud ice tracer"""
+    ntcld: int = _DEFAULT_INT
+    """Index of cloud tracer"""
     itc: int = _DEFAULT_INT
     """index of first chemical tracer"""
     clam_shal: float = 0.3
@@ -60,11 +58,12 @@ class ShallowConvectionConfig:
 
     def __post_init__(self):
         if self.ntiw == -1:
-            self.ntiw = tracer_variables.index("qice") - 1
+            self.ntiw = tracer_variables.index("qice")
         if self.ntcw == -1:
-            self.ntcw = tracer_variables.index("qliquid") - 1
+            self.ntcw = tracer_variables.index("qliquid")
         if self.ntke == -1:
-            self.ntke = tracer_variables.index("qsgs_tke") - 1
-        # TODO: the -1 is because currently samfshalconv expects qvapor to be a
-        # separate array from the rest of the tracers. This is pretty awkward and
-        # should be improved...
+            self.ntke = tracer_variables.index("qsgs_tke")
+        if self.ntcld == -1:
+            self.ntke = tracer_variables.index("qcld")
+        if self.ntvap == -1:
+            self.ntke = tracer_variables.index("qvapor")

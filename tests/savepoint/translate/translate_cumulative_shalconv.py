@@ -14,11 +14,9 @@ from ndsl.dsl.typing import (
     Int,
     IntField,
     IntFieldIJ,
+    set_4d_field_size,
 )
-from pyshield.stencils.shallow_convection._config import (
-    SC_TRACER_DIM,
-    ShallowConvectionConfig,
-)
+from pyshield.stencils.shallow_convection._config import ShallowConvectionConfig
 from pyshield.stencils.shallow_convection.samfshalconv import (
     ScaleAwareMassFluxShallowConvection,
     col_diffs,
@@ -46,6 +44,11 @@ from pyshield.stencils.shallow_convection.samfshalconv import (
     stencil_update_kbcon1_cnvflg,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
+
+
+FloatFieldShalConv = set_4d_field_size(7, Float)
+
+SC_TRACER_DIM = "n_tracers_shal"
 
 
 def set_pfld_kbcon(

@@ -7,19 +7,11 @@ import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl import GridSizer, Quantity, QuantityFactory
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float, Int
-from pyshield.stencils.shallow_convection._config import SC_TRACER_DIM
+from pyshield._config import TRACER_DIM
 
 
 @dataclass()
 class SAMFShalConvState:
-    q1: Quantity = field(
-        metadata={
-            "name": "specific_humidity",
-            "dims": [I_DIM, J_DIM, K_DIM],
-            "units": "kg/kg",
-            "intent": "inout",
-        }
-    )
     t1: Quantity = field(
         metadata={
             "name": "air_temperature",
@@ -46,13 +38,12 @@ class SAMFShalConvState:
     )
     qtr: Quantity = field(
         metadata={
-            "name": "convected_tracers",
-            "dims": [I_DIM, J_DIM, K_DIM, SC_TRACER_DIM],
+            "name": "tracers",
+            "dims": [I_DIM, J_DIM, K_DIM, TRACER_DIM],
             "units": "kg/kg",
             "intent": "in",
         }
     )
-    # TODO: qtr currently is just every tracer except vapor. It should be simplified.
     dot: Quantity = field(
         metadata={
             "name": "layer_mean_vertical_velocity",
