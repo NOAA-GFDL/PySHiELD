@@ -1,6 +1,6 @@
 import dataclasses
 
-from ndsl.dsl.gt4py_utils import tracer_variables
+from pyshield.tracer_workarounds import tracer_variables
 
 
 DEFAULT_INT = 0

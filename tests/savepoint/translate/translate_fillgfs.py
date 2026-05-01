@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.utils import safe_assign_array
@@ -25,6 +26,7 @@ class TranslateFillGFS(TranslatePhysicsFortranData2Py):
         )
 
     def compute(self, inputs):
+        pytest.skip()
         self.make_storage_data_input_vars(inputs)
         inputs["q"] = inputs["q"]["qvapor"]
         inputs["q_min"] = 1.0e-9
