@@ -1627,101 +1627,99 @@ class Physics:
         )
 
         # Call radiation if timestep is right
-        if do_radiation and self._rterrtmgp:
-            if not surface_state:
-                raise ValueError("You must pass a surface state to run radiation")
-            if not radiation_state:
-                raise ValueError("You must pass a radiation state to run radiation")
-            if not date:
-                raise ValueError("You must pass a date to run radiation")
-            self._copy_to_radiation(
-                self._prsi1,
-                self._prsl1,
-                self._t1,
-                physics_state.tsfc,
-                self._qvapor1,
-                self._qliquid1,
-                self._qice1,
-                self._qo3mr1,
-                self._qcld1,
-                radiation_state.prsi,
-                radiation_state.prsl,
-                radiation_state.tlyr,
-                radiation_state.tsfc,
-                radiation_state.qvapor,
-                radiation_state.qliquid,
-                radiation_state.qice,
-                radiation_state.qo3mr,
-                radiation_state.qcld,
-            )
-            ndsl_log.info("Entering radiation")
-            self._radiation.step_radiation(radiation_state, surface_state, date)
-            self._copy_from_radiation(
-                radiation_state.hrtsw,
-                radiation_state.hrtlw,
-                radiation_state.fswu,
-                radiation_state.fswd,
-                radiation_state.flwu,
-                radiation_state.flwd,
-                physics_state.hrtsw,
-                physics_state.hrtlw,
-                self._hrtsw1,
-                self._hrtlw1,
-                physics_state.fswu,
-                physics_state.fswd,
-                physics_state.flwu,
-                physics_state.flwd,
-                self._layer_flip,
-                self._level_flip,
-            )
+        if do_radiation:
+            if self._rterrtmgp:
+                if not surface_state:
+                    raise ValueError("You must pass a surface state to run radiation")
+                if not radiation_state:
+                    raise ValueError("You must pass a radiation state to run radiation")
+                if not date:
+                    raise ValueError("You must pass a date to run radiation")
+                self._copy_to_radiation(
+                    self._prsi1,
+                    self._prsl1,
+                    self._t1,
+                    physics_state.tsfc,
+                    self._qvapor1,
+                    self._qliquid1,
+                    self._qice1,
+                    self._qo3mr1,
+                    self._qcld1,
+                    radiation_state.prsi,
+                    radiation_state.prsl,
+                    radiation_state.tlyr,
+                    radiation_state.tsfc,
+                    radiation_state.qvapor,
+                    radiation_state.qliquid,
+                    radiation_state.qice,
+                    radiation_state.qo3mr,
+                    radiation_state.qcld,
+                )
+                ndsl_log.info("Entering radiation")
+                self._radiation.step_radiation(radiation_state, surface_state, date)
+                self._copy_from_radiation(
+                    radiation_state.hrtsw,
+                    radiation_state.hrtlw,
+                    radiation_state.fswu,
+                    radiation_state.fswd,
+                    radiation_state.flwu,
+                    radiation_state.flwd,
+                    physics_state.hrtsw,
+                    physics_state.hrtlw,
+                    self._hrtsw1,
+                    self._hrtlw1,
+                    physics_state.fswu,
+                    physics_state.fswd,
+                    physics_state.flwu,
+                    physics_state.flwd,
+                    self._layer_flip,
+                    self._level_flip,
+                )
 
-        if self._rterrtmgp:
-            if not radiation_state:
-                raise ValueError("You must pass a radiation state to run radiation")
-            self._interpolate_radiation(
-                self._gridlat,
-                self._gridlon,
-                radiation_state.mu0,
-                surface_state.tsfc,
-                radiation_state.tlyr,  # Should be lowest physics state temp.
-                radiation_state.tlyr,
-                surface_state.sfcemis,
-                radiation_state.flwd,
-                radiation_state.fswn,
-                radiation_state.fswd,
-                self._sfcnirbmu,
-                self._sfcnirdfu,
-                self._sfcvisbmu,
-                self._sfcvisdfu,
-                self._sfcnirbmd,
-                self._sfcnirdfd,
-                self._sfcvisbmd,
-                self._sfcvisdfd,
-                radiation_state.hrtsw,
-                radiation_state.hrtsw_clr,
-                radiation_state.hrtlw,
-                radiation_state.hrtlw_clr,
-                self._dtdt,
-                self._dtdtc,
-                self._adjsfcdlw,
-                self._adjsfculw,
-                self._adjsfcnsw,
-                self._adjsfcdsw,
-                self._adjnirbmu,
-                self._adjnirdfu,
-                self._adjvisbmu,
-                self._adjvisdfu,
-                self._adjnirbmd,
-                self._adjnirdfd,
-                self._adjvisbmd,
-                self._adjvisdfd,
-                self._xcosz,
-                self._xmu,
-                self._radiation.solhr,
-                self._radiation.slag,
-                self._radiation.sdec,
-                self._radiation.cdec,
-            )
+                self._interpolate_radiation(
+                    self._gridlat,
+                    self._gridlon,
+                    radiation_state.mu0,
+                    surface_state.tsfc,
+                    radiation_state.tlyr,  # Should be lowest physics state temp.
+                    radiation_state.tlyr,
+                    surface_state.sfcemis,
+                    radiation_state.flwd,
+                    radiation_state.fswn,
+                    radiation_state.fswd,
+                    self._sfcnirbmu,
+                    self._sfcnirdfu,
+                    self._sfcvisbmu,
+                    self._sfcvisdfu,
+                    self._sfcnirbmd,
+                    self._sfcnirdfd,
+                    self._sfcvisbmd,
+                    self._sfcvisdfd,
+                    radiation_state.hrtsw,
+                    radiation_state.hrtsw_clr,
+                    radiation_state.hrtlw,
+                    radiation_state.hrtlw_clr,
+                    self._dtdt,
+                    self._dtdtc,
+                    self._adjsfcdlw,
+                    self._adjsfculw,
+                    self._adjsfcnsw,
+                    self._adjsfcdsw,
+                    self._adjnirbmu,
+                    self._adjnirdfu,
+                    self._adjvisbmu,
+                    self._adjvisdfu,
+                    self._adjnirbmd,
+                    self._adjnirdfd,
+                    self._adjvisbmd,
+                    self._adjvisdfd,
+                    self._xcosz,
+                    self._xmu,
+                    self._radiation.solhr,
+                    self._radiation.slag,
+                    self._radiation.sdec,
+                    self._radiation.cdec,
+                )
         # Do physics schemes here.
         # First the surface parameterizations:
         if self._sfc_layer:
