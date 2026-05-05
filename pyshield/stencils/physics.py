@@ -1627,8 +1627,8 @@ class Physics:
         )
 
         # Call radiation if timestep is right
-        if do_radiation:
-            if self._rterrtmgp:
+        if self._rterrtmgp:
+            if do_radiation:
                 if not surface_state:
                     raise ValueError("You must pass a surface state to run radiation")
                 if not radiation_state:
