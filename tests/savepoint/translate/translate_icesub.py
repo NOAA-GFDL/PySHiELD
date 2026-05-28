@@ -1,4 +1,3 @@
-import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import StencilFactory
@@ -6,6 +5,7 @@ from ndsl.dsl.gt4py import interval  # noqa
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation  # noqa
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.stencils.arithmetical_functions import dim
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.ice_cloud import (  # noqa
     accrete_graupel_with_cloud_water_and_rain,
@@ -175,7 +175,7 @@ def melt_snow_test(
         )
         sink = max(0.0, sink0)
         sink = min(qsnow, min((sink + pracs) * timestep, tc / icpk))
-        tmp = min(sink, basic.dim(qs_mlt, qliquid))
+        tmp = min(sink, dim(qs_mlt, qliquid))
 
         (
             qvapor,
