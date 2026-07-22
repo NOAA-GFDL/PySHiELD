@@ -596,8 +596,8 @@ def test_gas_init(
         Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4"
     )
 
-    gridlon = sdat.geolon.data * constants.PI / 180.0
-    gridlat = sdat.geolat.data * constants.PI / 180.0
+    gridlon = sdat.geolon[:] * constants.PI / 180.0
+    gridlat = sdat.geolat[:] * constants.PI / 180.0
     arrays = gas_init(
         Path(datapath),
         ico2flg,
@@ -772,8 +772,8 @@ def test_co2_update(
         Path(datapath).joinpath("sfc_data.tile1.nc"), engine="netcdf4"
     )
 
-    gridlon = sdat.geolon.data * constants.PI / 180.0
-    gridlat = sdat.geolat.data * constants.PI / 180.0
+    gridlon = sdat.geolon[:] * constants.PI / 180.0
+    gridlat = sdat.geolat[:] * constants.PI / 180.0
     (
         _,
         _,
