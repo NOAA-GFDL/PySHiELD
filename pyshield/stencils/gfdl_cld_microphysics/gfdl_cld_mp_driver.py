@@ -891,7 +891,7 @@ class GFDLCloudMicrophysics:
 
         self._gsize = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m")
 
-        self._gsize.data[:] = np.sqrt(grid_data.area.data[:])
+        self._gsize[:] = np.sqrt(grid_data.area[:])
 
         self._update_timestep_if_needed(full_timestep)  # will change from dt_atmos
         # for inline microphysics

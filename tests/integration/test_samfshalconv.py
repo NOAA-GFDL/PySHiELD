@@ -75,13 +75,11 @@ def states_from_fortran_restarts(
     npz = buff_3d.shape[2]
     for k in range(npz):
         if k == 0:
-            buff_3d[:, :, k] = ak.data[0]
+            buff_3d[:, :, k] = ak[0]
         else:
-            buff_3d[:, :, k] = (
-                buff_3d[:, :, k - 1] + dycore_data.delp.data[0, k - 1, :, :]
-            )
-    state.delz.field[:, :, :] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
-    state.phii.field[:, :, -1] = dycore_data.phis.data[0, :, :].transpose()
+            buff_3d[:, :, k] = buff_3d[:, :, k - 1] + dycore_data.delp[0, k - 1, :, :]
+    state.delz.field[:, :, :] = dycore_data.DZ[0, :, :, :].transpose(2, 1, 0)
+    state.phii.field[:, :, -1] = dycore_data.phis[0, :, :].transpose()
     for k in range(npz - 2, -1, -1):
         state.phii.field[:, :, k] = state.phii.field[:, :, k + 1] + (
             state.delz.field[:, :, k] * constants.GRAV
@@ -90,19 +88,19 @@ def states_from_fortran_restarts(
         state.phii.field[:, :, :-1] + state.phii.field[:, :, 1:]
     )
     state.prsi.field[:] = buff_3d[:, :, :]
-    state.delp.field[:] = dycore_data.delp.data[0, :, :, :].transpose(2, 1, 0)
+    state.delp.field[:] = dycore_data.delp[0, :, :, :].transpose(2, 1, 0)
     state.prsik.field[:] = np.log(state.prsi.field[:])
-    state.prsik.field[:, :, 0] = (ak.data[0] / physcons.P00) ** constants.KAPPA
+    state.prsik.field[:, :, 0] = (ak[0] / physcons.P00) ** constants.KAPPA
     state.prsik.field[:, :, -1] = (
         np.exp(constants.KAPPA * state.prsik.field[:, :, -1]) * pk0inv
     )
-    state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
-    state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
-    state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
-    state.qice.view[:] = tracer_data.ice_wat.data[0, :, :, :].transpose(2, 1, 0)
-    state.qcld.view[:] = tracer_data.cld_amt.data[0, :, :, :].transpose(2, 1, 0)
-    state.qo3mr.view[:] = tracer_data.o3mr.data[0, :, :, :].transpose(2, 1, 0)
-    state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
+    state.pt.field[:] = dycore_data.T[0, :, :, :].transpose(2, 1, 0)
+    state.qvapor.field[:] = tracer_data.sphum[0, :, :, :].transpose(2, 1, 0)
+    state.qliquid.view[:] = tracer_data.liq_wat[0, :, :, :].transpose(2, 1, 0)
+    state.qice.view[:] = tracer_data.ice_wat[0, :, :, :].transpose(2, 1, 0)
+    state.qcld.view[:] = tracer_data.cld_amt[0, :, :, :].transpose(2, 1, 0)
+    state.qo3mr.view[:] = tracer_data.o3mr[0, :, :, :].transpose(2, 1, 0)
+    state.delz.field[:] = dycore_data.DZ[0, :, :, :].transpose(2, 1, 0)
 
     return state
 

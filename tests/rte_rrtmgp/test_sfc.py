@@ -201,22 +201,22 @@ def test_sfc_init(
 def test_set_albedo(sfc_data, ialbflg, drqsi, expected):
     if ialbflg != -1:
         sfcdat = xarray.open_dataset(Path(sfc_data), engine="netcdf4")
-        islmsk = sfcdat.slmsk.data[:]
+        islmsk = sfcdat.slmsk[:]
         sfcalb = np.zeros((islmsk.shape[0], islmsk.shape[1], 4))
-        alvsf = sfcdat.alvsf.data[:]
-        alnsf = sfcdat.alnsf.data[:]
-        alvwf = sfcdat.alvwf.data[:]
-        alnwf = sfcdat.alnwf.data[:]
-        snowf = sfcdat.snwdph.data[:]
-        snoalb = sfcdat.snoalb.data[:]
-        fice = sfcdat.fice.data[:]
-        tisfc = sfcdat.tisfc.data[:]
-        tsknf = sfcdat.t2m.data[:]
-        zorlf = sfcdat.zorl.data[:]
-        facsf = sfcdat.facsf.data[:]
-        facwf = sfcdat.facwf.data[:]
-        sncovr = sfcdat.sncovr.data[:]
-        hprif = sfcdat.hprif.data[:]
+        alvsf = sfcdat.alvsf[:]
+        alnsf = sfcdat.alnsf[:]
+        alvwf = sfcdat.alvwf[:]
+        alnwf = sfcdat.alnwf[:]
+        snowf = sfcdat.snwdph[:]
+        snoalb = sfcdat.snoalb[:]
+        fice = sfcdat.fice[:]
+        tisfc = sfcdat.tisfc[:]
+        tsknf = sfcdat.t2m[:]
+        zorlf = sfcdat.zorl[:]
+        facsf = sfcdat.facsf[:]
+        facwf = sfcdat.facwf[:]
+        sncovr = sfcdat.sncovr[:]
+        hprif = sfcdat.hprif[:]
         lsmalbedo = np.ones_like(zorlf) * 0.98
         coszf = np.ones_like(zorlf) * 0.6
     else:
@@ -300,14 +300,14 @@ def test_set_sfcemis(sfc_data, sfc_emis, iemsflg, ialbflg, drqsi, expected):
         hprif = gridlon
     else:
         sfcdat = xarray.open_dataset(Path(sfc_data), engine="netcdf4")
-        gridlon = sfcdat.geolon.data * constants.PI / 180.0
-        gridlat = sfcdat.geolat.data * constants.PI / 180.0
-        islmsk = sfcdat.slmsk.data[:]
-        snowf = sfcdat.snwdph.data[:]
-        zorlf = sfcdat.zorl.data[:]
-        sncovr = sfcdat.sncovr.data[:]
-        hprif = sfcdat.hprif.data[:]
-        tskin = sfcdat.t2m.data[:]
+        gridlon = sfcdat.geolon[:] * constants.PI / 180.0
+        gridlat = sfcdat.geolat[:] * constants.PI / 180.0
+        islmsk = sfcdat.slmsk[:]
+        snowf = sfcdat.snwdph[:]
+        zorlf = sfcdat.zorl[:]
+        sncovr = sfcdat.sncovr[:]
+        hprif = sfcdat.hprif[:]
+        tskin = sfcdat.t2m[:]
     sfcemis_lsm = np.ones_like(gridlon)
     sfcemis = np.zeros((gridlon.shape[0], gridlon.shape[1]))
     set_sfcemis(

@@ -1150,9 +1150,9 @@ class Physics:
             dims=[K_INTERFACE_DIM], units="", dtype=Int
         )
         for k in range(npz):
-            self._level_flip.data[k] = npz - 1 - 2 * k
+            self._level_flip[k] = npz - 1 - 2 * k
             if k < nz:
-                self._layer_flip.data[k] = nz - 1 - 2 * k
+                self._layer_flip[k] = nz - 1 - 2 * k
 
         def make_quantity():
             return self.quantity_factory.zeros(
@@ -1327,7 +1327,7 @@ class Physics:
                     "You must specify a radiation configuration to use RTE-RRTMGP"
                 )
             self._rterrtmgp = True
-            sigma = calc_sigma(grid_data.ak.data, grid_data.bk.data, 0)
+            sigma = calc_sigma(grid_data.ak[:], grid_data.bk[:], 0)
             self._copy_to_radiation = stencil_factory.from_origin_domain(
                 func=copy_to_radiation,
                 origin=grid_indexing.origin_full(),

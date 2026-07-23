@@ -76,7 +76,7 @@ class TranslateMFSCU(TranslatePhysicsFortranData2Py):
             dtype=Int,
         )
         for k in range(1, self.stencil_factory.grid_indexing.domain[2] + 1):
-            k_mask.data[:, :, k] = k
+            k_mask[:, :, k] = k
         self.make_storage_data_input_vars(inputs)
         inputs.pop("t1")
         cnvflg = quantity_factory.from_array(

@@ -1604,7 +1604,7 @@ class ScaleAwareTKEMoistEDMF:
         )
 
         for k in range(idx.domain[2]):
-            self._k_mask.data[:, :, k] = k
+            self._k_mask[:, :, k] = k
 
         # Internal compute variables
         self._lcld = make_quantity_2D(Int)

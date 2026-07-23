@@ -73,7 +73,7 @@ class TranslateMFPBLT(TranslatePhysicsFortranData2Py):
             dtype=Int,
         )
         for k in range(self.stencil_factory.grid_indexing.domain[2]):
-            k_mask.data[:, :, k] = k
+            k_mask[:, :, k] = k
         self.make_storage_data_input_vars(inputs)
         inputs.pop("t1")
 
