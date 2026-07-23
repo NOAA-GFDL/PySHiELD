@@ -1,0 +1,59 @@
+name: "pySHiELD tests"
+
+# Run these these whenever ...
+on:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+  push:
+    branches:
+      - main # ... when merging into the main branch
+
+# cancel running jobs if theres a newer push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install mpi (MPICH flavor)
+        run: pip install mpich
+
+      - name: Install Python packages
+        run: pip install .[ndsl,pyfv3,test]
+
+      - name: Run integration tests
+        run: pytest tests/integration
+
+  radiation-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install mpi (MPICH flavor)
+        run: pip install mpich
+
+      - name: Install Python packages
+        run: pip install .[ndsl,pyfv3,test]
+
+      - name: Run radiation tests
+        run: pytest tests/rte_rrtmgp

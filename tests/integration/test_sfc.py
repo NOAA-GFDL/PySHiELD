@@ -9,7 +9,7 @@ import pyshield.constants as physcons
 from ndsl import (
     CompilationConfig,
     GridIndexing,
-    NullComm,
+    LocalComm,
     Quantity,
     QuantityFactory,
     StencilConfig,
@@ -114,7 +114,7 @@ def setup_infrastructure(nx: Int, ny: Int, nz: Int, nzsoil: Int, etafile: Path):
     rank = 0
     backend = Backend("st:numpy:cpu:IJK")
 
-    comm = NullComm(rank, 1)
+    comm = LocalComm(rank, total_ranks=1, buffer_dict={})
     communicator = TileCommunicator.from_layout(comm=comm, layout=(1, 1))
 
     sizer = SubtileGridSizer.from_tile_params(
