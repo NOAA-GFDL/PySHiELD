@@ -491,7 +491,7 @@ class Sedimentation:
         )
 
         for k in range(self._idx.domain[2] + 1):
-            self._k_mask.data[:, :, k] = k
+            self._k_mask[:, :, k] = k
 
         self._z_surface = quantity_factory.zeros([I_DIM, J_DIM], units="unknown")
         self._z_edge = quantity_factory.zeros(

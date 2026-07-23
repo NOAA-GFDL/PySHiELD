@@ -2205,7 +2205,7 @@ class ScaleAwareMassFluxShallowConvection:
         )
 
         for k in range(grid_indexing.domain[2]):
-            self._k_mask.data[:, :, k] = k
+            self._k_mask[:, :, k] = k
 
         self._cnvflg = make_quantity_2D(Bool)
         self._heo_kb = make_quantity_2D()

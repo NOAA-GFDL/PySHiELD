@@ -652,10 +652,10 @@ class RTE_RRTMGPDriver:
         sw_optics["surface_albedo"] = radx["albedo"]
         sw_optics["mu0"] = radx["mu0"]
         clr_fluxes_sw = sw_optics.rte.solve(add_to_input=False)
-        state.fswd_clr.view[:] = clr_fluxes_sw.sw_flux_down.data.reshape(
+        state.fswd_clr.view[:] = clr_fluxes_sw.sw_flux_down[:].reshape(
             state.fswd_clr.view[:].shape
         )
-        state.fswu_clr.view[:] = clr_fluxes_sw.sw_flux_up.data.reshape(
+        state.fswu_clr.view[:] = clr_fluxes_sw.sw_flux_up[:].reshape(
             state.fswu_clr.view[:].shape
         )
 
@@ -667,10 +667,8 @@ class RTE_RRTMGPDriver:
         )
         sw_cloud_optical_props.rte.add_to(sw_optics)
         fluxes_sw = sw_optics.rte.solve(add_to_input=False)
-        state.fswd.view[:] = fluxes_sw.sw_flux_down.data.reshape(
-            state.fswd.view[:].shape
-        )
-        state.fswu.view[:] = fluxes_sw.sw_flux_up.data.reshape(state.fswu.view[:].shape)
+        state.fswd.view[:] = fluxes_sw.sw_flux_down[:].reshape(state.fswd.view[:].shape)
+        state.fswu.view[:] = fluxes_sw.sw_flux_up[:].reshape(state.fswu.view[:].shape)
 
         # And do LW fluxes
         lw_optics = self._gas_optics_lw.compute(
@@ -682,10 +680,10 @@ class RTE_RRTMGPDriver:
         )
         lw_optics["surface_emissivity"] = radx["sfc_emis"]
         clr_fluxes_lw = lw_optics.rte.solve(add_to_input=False)
-        state.flwd_clr.view[:] = clr_fluxes_lw.lw_flux_down.data.reshape(
+        state.flwd_clr.view[:] = clr_fluxes_lw.lw_flux_down[:].reshape(
             state.flwd_clr.view[:].shape
         )
-        state.flwu_clr.view[:] = clr_fluxes_lw.lw_flux_up.data.reshape(
+        state.flwu_clr.view[:] = clr_fluxes_lw.lw_flux_up[:].reshape(
             state.flwu_clr.view[:].shape
         )
         lw_cloud_optical_props = self._cloud_optics_lw.compute(
@@ -697,10 +695,8 @@ class RTE_RRTMGPDriver:
         lw_cloud_optical_props.rte.add_to(lw_optics)
         fluxes_lw = lw_optics.rte.solve(add_to_input=False)
 
-        state.flwd.view[:] = fluxes_lw.lw_flux_down.data.reshape(
-            state.flwd.view[:].shape
-        )
-        state.flwu.view[:] = fluxes_lw.lw_flux_up.data.reshape(state.flwu.view[:].shape)
+        state.flwd.view[:] = fluxes_lw.lw_flux_down[:].reshape(state.flwd.view[:].shape)
+        state.flwu.view[:] = fluxes_lw.lw_flux_up[:].reshape(state.flwu.view[:].shape)
 
         self._calc_net_flux_and_heating(
             state.fswu,

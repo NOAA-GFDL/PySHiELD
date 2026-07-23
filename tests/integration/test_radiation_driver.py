@@ -70,16 +70,14 @@ def fortran_restart_to_radstate(
     buff_3d = np.zeros_like(state.prsi.field)
     for k in range(buff_3d.shape[2]):
         if k == 0:
-            buff_3d[:, :, k] = ak.data[0]
+            buff_3d[:, :, k] = ak[0]
         else:
-            buff_3d[:, :, k] = (
-                buff_3d[:, :, k - 1] + dycore_data.delp.data[0, k - 1, :, :]
-            )
+            buff_3d[:, :, k] = buff_3d[:, :, k - 1] + dycore_data.delp[0, k - 1, :, :]
     state.prsi.field[:] = buff_3d[:, :, ::-1]
     state.prsl.field[:] = (
         state.prsi.field[:, :, 1:] - state.prsi.field[:, :, :-1]
     ) / np.log(state.prsi.field[:, :, 1:] / state.prsi.field[:, :, :-1])
-    state.tlyr.field[:] = dycore_data.T.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.tlyr.field[:] = dycore_data.T[0, ::-1, :, :].transpose(1, 2, 0)
     state.tlvl.field[:, :, 1:-1] = state.tlyr.field[:, :, :-1] + (
         state.tlyr.field[:, :, 1:] - state.tlyr.field[:, :, :-1]
     ) * (np.log(state.prsi.field[:, :, 1:-1]) - np.log(state.prsl.field[:, :, :-1])) / (
@@ -87,12 +85,12 @@ def fortran_restart_to_radstate(
     )
     state.tlvl.field[:, :, -1] = state.tlyr.field[:, :, -1]
     state.tlvl.field[:, :, 0] = state.tlyr.field[:, :, 0]
-    state.tsfc.field[:] = phys_data.ts_clim_iano.data[0, :, :]
-    state.qvapor.field[:] = tracer_data.sphum.data[0, ::-1, :, :].transpose(1, 2, 0)
-    state.qliquid.view[:] = tracer_data.liq_wat.data[0, ::-1, :, :].transpose(1, 2, 0)
-    state.qice.view[:] = tracer_data.ice_wat.data[0, ::-1, :, :].transpose(1, 2, 0)
-    state.qcld.view[:] = tracer_data.cld_amt.data[0, ::-1, :, :].transpose(1, 2, 0)
-    state.qo3mr.view[:] = tracer_data.o3mr.data[0, ::-1, :, :].transpose(1, 2, 0)
+    state.tsfc.field[:] = phys_data.ts_clim_iano[0, :, :]
+    state.qvapor.field[:] = tracer_data.sphum[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qliquid.view[:] = tracer_data.liq_wat[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qice.view[:] = tracer_data.ice_wat[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qcld.view[:] = tracer_data.cld_amt[0, ::-1, :, :].transpose(1, 2, 0)
+    state.qo3mr.view[:] = tracer_data.o3mr[0, ::-1, :, :].transpose(1, 2, 0)
 
 
 def states_from_fortran_restarts(
@@ -114,22 +112,20 @@ def states_from_fortran_restarts(
     buff_3d = np.zeros_like(state.prsi.field)
     for k in range(buff_3d.shape[2]):
         if k == 0:
-            buff_3d[:, :, k] = ak.data[0]
+            buff_3d[:, :, k] = ak[0]
         else:
-            buff_3d[:, :, k] = (
-                buff_3d[:, :, k - 1] + dycore_data.delp.data[0, k - 1, :, :]
-            )
+            buff_3d[:, :, k] = buff_3d[:, :, k - 1] + dycore_data.delp[0, k - 1, :, :]
     state.prsi.field[:] = buff_3d[:, :, :]
 
-    state.delp.field[:] = dycore_data.delp.data[0, :, :, :].transpose(2, 1, 0)
-    state.pt.field[:] = dycore_data.T.data[0, :, :, :].transpose(2, 1, 0)
-    state.tsfc.field[:] = phys_data.ts_clim_iano.data[0, :, :].transpose()
-    state.qvapor.field[:] = tracer_data.sphum.data[0, :, :, :].transpose(2, 1, 0)
-    state.qliquid.view[:] = tracer_data.liq_wat.data[0, :, :, :].transpose(2, 1, 0)
-    state.qice.view[:] = tracer_data.ice_wat.data[0, :, :, :].transpose(2, 1, 0)
-    state.qcld.view[:] = tracer_data.cld_amt.data[0, :, :, :].transpose(2, 1, 0)
-    state.qo3mr.view[:] = tracer_data.o3mr.data[0, :, :, :].transpose(2, 1, 0)
-    state.delz.field[:] = dycore_data.DZ.data[0, :, :, :].transpose(2, 1, 0)
+    state.delp.field[:] = dycore_data.delp[0, :, :, :].transpose(2, 1, 0)
+    state.pt.field[:] = dycore_data.T[0, :, :, :].transpose(2, 1, 0)
+    state.tsfc.field[:] = phys_data.ts_clim_iano[0, :, :].transpose()
+    state.qvapor.field[:] = tracer_data.sphum[0, :, :, :].transpose(2, 1, 0)
+    state.qliquid.view[:] = tracer_data.liq_wat[0, :, :, :].transpose(2, 1, 0)
+    state.qice.view[:] = tracer_data.ice_wat[0, :, :, :].transpose(2, 1, 0)
+    state.qcld.view[:] = tracer_data.cld_amt[0, :, :, :].transpose(2, 1, 0)
+    state.qo3mr.view[:] = tracer_data.o3mr[0, :, :, :].transpose(2, 1, 0)
+    state.delz.field[:] = dycore_data.DZ[0, :, :, :].transpose(2, 1, 0)
     return state, radstate, sstate
 
 
@@ -175,7 +171,7 @@ def test_rte_rrtmgp(datapath: Path):
         lcrick=False,
         gfs_cloud_overlap=False,
     )
-    sigma = calc_sigma(grid_data.ak.data, grid_data.bk.data, 0)
+    sigma = calc_sigma(grid_data.ak[:], grid_data.bk[:], 0)
     gridlon = grid_data.lon_agrid
     gridlat = grid_data.lat_agrid
 
