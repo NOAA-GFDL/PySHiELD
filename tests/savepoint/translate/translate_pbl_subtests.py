@@ -11,7 +11,7 @@ from ndsl.dsl.typing import (
     Int,
     IntFieldIJ,
 )
-from ndsl.stencils.basic_operations import copy
+from ndsl.stencils import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl import PBLConfig
 from pyshield.stencils.pbl import constants as pbl_constants
@@ -48,7 +48,6 @@ def set_thlvx_0(
     thlvx: FloatField,
     thlvx_0: FloatFieldIJ,
 ):
-
     with computation(FORWARD):
         with interval(0, 1):
             thlvx_0 = thlvx[0, 0, 0]
@@ -1231,7 +1230,6 @@ class HeatTracerTridiag:
         evap,
         heat,
     ):
-
         self._heat_moist_tridiag_mat_ele_comp(
             ad,
             self._ad_p1,
@@ -3808,7 +3806,6 @@ class TranslateTKEPredict(TranslatePhysicsFortranData2Py):
         self.grid_indexing = self.stencil_factory.grid_indexing
 
     def compute(self, inputs):
-
         self.make_storage_data_input_vars(inputs)
 
         config = self.config.pbl

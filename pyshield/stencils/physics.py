@@ -21,7 +21,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.grid import GridData
 from ndsl.logging import ndsl_log
-from ndsl.stencils.basic_operations import copy
+from ndsl.stencils import copy
 from pyshield._config import (
     PHYSICS_PACKAGES,
     TRACER_DIM,

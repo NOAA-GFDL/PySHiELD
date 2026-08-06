@@ -1,5 +1,5 @@
 import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
+import ndsl.stencils as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 from ndsl.dsl.gt4py import exp, floor
 from ndsl.dsl.gt4py import function as gtfunction
@@ -335,7 +335,6 @@ def iqs(temperature, density):
 
 @gtfunction
 def moist_heat_capacity(qvapor, qliquid, qrain, qice, qsnow, qgraupel):
-
     from __externals__ import c1_ice, c1_liq, c1_vap
 
     q_liq = qliquid + qrain
@@ -381,9 +380,7 @@ def melting_function(
         (1 + mu) / (mu + 3) * log(6 * qden)
     ) * vent_coeff(qden, density_factor, c3, c4, blin, mu) + mpcons.C_LIQ / (
         icpk * cvm
-    ) * tc * (
-        pxacw + pxacr
-    )
+    ) * tc * (pxacw + pxacr)
 
 
 @gtfunction

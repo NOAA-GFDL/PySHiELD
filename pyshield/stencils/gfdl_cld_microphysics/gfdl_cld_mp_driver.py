@@ -1,7 +1,7 @@
 import numpy as np
 
 import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
+import ndsl.stencils as stencils
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, QuantityFactory, StencilFactory
@@ -258,9 +258,7 @@ def cloud_nuclei_subgrid_and_relative_humidity(
                 1.0, abs(geopotential_surface_height / (10.0 * constants.GRAV))
             ) * (10.0**2.24 * (qnl * density * 1.0e9) ** 0.257) + (
                 1.0 - min(1.0, abs(geopotential_surface_height) / (10 * constants.GRAV))
-            ) * (
-                10.0**2.06 * (qnl * density * 1.0e9) ** 0.48
-            )
+            ) * (10.0**2.06 * (qnl * density * 1.0e9) ** 0.48)
             ni = qni
             cloud_condensation_nuclei = (max(10.0, nl) * 1.0e6) / density
             cloud_ice_nuclei = (max(10.0, ni) * 1.0e6) / density
@@ -899,7 +897,7 @@ class GFDLCloudMicrophysics:
         self._convert_mm_day = 86400.0 * constants.RGRAV / self.config.dt_split
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy,
+            stencils.copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )
@@ -1172,7 +1170,6 @@ class GFDLCloudMicrophysics:
         last_step: Bool = True,
         timer: Timer = NullTimer(),
     ):
-
         self._reset_initial_values_and_make_copies(
             state.adj_vmr,
             state.qvapor,

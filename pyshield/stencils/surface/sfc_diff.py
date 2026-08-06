@@ -7,7 +7,7 @@ from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, sqrt
 from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ, Int, IntFieldIJ
-from ndsl.stencils.basic_operations import sign
+from ndsl.stencils import sign
 from pyshield.functions.physics_functions import fpvsx
 
 
@@ -435,7 +435,6 @@ def sfc_diff(
     )
 
     with computation(FORWARD), interval(0, 1):
-
         if flag_iter:
             # Get lowest atmospheric level variables:
             wind = max(sqrt(u1 * u1 + v1 * v1) + max(0.0, min(ddvel, 30.0)), 1.0)
@@ -497,7 +496,6 @@ def sfc_diff(
                 )
 
             elif islimsk == 0:  # over water
-
                 # if over water (redesigned by Kun Gao)
                 # iteration 1
                 #     step 1 get z0/zt from previous step

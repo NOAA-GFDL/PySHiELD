@@ -3,7 +3,7 @@ from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float
-from ndsl.stencils.basic_operations import copy
+from ndsl.stencils import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl.tridiag import tridi2, tridin, tridit
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
@@ -118,7 +118,6 @@ class Tridi2:
         f1,
         f2,
     ):
-
         self._copy_stencil(au, self._cu)
         self._copy_stencil(f1, self._r1)
         self._copy_4d(f2, self._r2)

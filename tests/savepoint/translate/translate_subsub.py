@@ -1,4 +1,4 @@
-import ndsl.stencils.basic_operations as basic  # noqa
+import ndsl.stencils as basic  # noqa
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun  # noqa
 from ndsl import GridIndexing, StencilFactory

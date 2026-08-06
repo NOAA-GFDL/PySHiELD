@@ -1,5 +1,5 @@
 import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
+import ndsl.stencils as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, StencilFactory

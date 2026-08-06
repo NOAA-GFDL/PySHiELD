@@ -1,4 +1,4 @@
-import ndsl.stencils.basic_operations as basic
+import ndsl.stencils as basic
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import I_DIM, J_DIM
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig

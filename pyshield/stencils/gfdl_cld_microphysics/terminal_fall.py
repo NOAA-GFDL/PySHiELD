@@ -7,7 +7,7 @@ from ndsl import GridIndexing, QuantityFactory, StencilFactory
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ, IntFieldIJ
-from ndsl.stencils.basic_operations import copy
+from ndsl.stencils import copy
 from pyfv3.stencils.remap_profile import RemapProfile
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
@@ -251,7 +251,6 @@ def update_energy_wind_heat_post_fall(
     column_energy_change: FloatFieldIJ,
     no_fall: FloatFieldIJ,
 ):
-
     from __externals__ import cw, do_sedi_heat, do_sedi_uv, do_sedi_w
 
     # TODO: tmp_energy2 should be a 2d temporary

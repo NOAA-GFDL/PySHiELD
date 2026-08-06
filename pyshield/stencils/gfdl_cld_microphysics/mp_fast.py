@@ -1,4 +1,4 @@
-import ndsl.stencils.basic_operations as basic
+import ndsl.stencils as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, StencilFactory
@@ -632,7 +632,6 @@ class FastMicrophysics:
         timestep: float,
         convert_mm_day: float,
     ):
-
         self._idx: GridIndexing = stencil_factory.grid_indexing
         fac_r2g = 1.0 - exp(-timestep / config.tau_r2g)
         fac_smlt = 1.0 - exp(-timestep / config.tau_smlt)
