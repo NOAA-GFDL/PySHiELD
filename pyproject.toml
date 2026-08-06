@@ -41,7 +41,7 @@ extras = [
   "pyshield[test]"
 ]
 ndsl = ["ndsl @ git+https://github.com/twicki/NDSL.git@BREAKING_replace_basic_stencils"]
-pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/pyFV3.git@develop"]
+pyfv3 = ["pyfv3 @ git+https://github.com/twicki/pyFV3.git@rename_basic_operations"]
 test = [
   "coverage",
   "pytest",
