@@ -52,8 +52,8 @@ jobs:
         with:
           python-version: ${{ inputs.python_version && inputs.python_version || env.python_default }}
 
-      - name: Install mpi (MPICH flavor)
-        run: pip install mpich
+      - name: Install mpi
+        run: pip install openmpi
 
       - name: External trigger remove existing component in pySHiELD/develop
         if: ${{ inputs.component_name }}
@@ -68,16 +68,18 @@ jobs:
       - name: external trigger Install packages for FV3 component
         if: ${{contains(inputs.component_name, 'FV3')}}
         run: |
+          cd ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
+          pip install .
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          cd ${{inputs.component_name}} && pip install . && cd ..
           pip install .[ndsl,test]
 
 
       - name: external trigger Install packages for NDSL component
         if: ${{contains(inputs.component_name, 'NDSL')}}
         run: |
+          cd ${GITHUB_WORKSPACE}/pySHiELD/${{inputs.component_name}}
+          pip install .
           cd ${GITHUB_WORKSPACE}/pySHiELD
-          cd ${{inputs.component_name}} && pip install . && cd ..
           pip install .[pyfv3,test]
 
       - name: Install pySHiELD packages
