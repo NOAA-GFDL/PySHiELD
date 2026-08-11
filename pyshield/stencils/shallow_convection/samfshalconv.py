@@ -1,5 +1,11 @@
 import numpy as np
-from gt4py.cartesian.gtscript import (
+
+import ndsl.constants as constants
+import pyshield.constants as physcons
+import pyshield.stencils.shallow_convection.constants as sccons
+from ndsl import QuantityFactory, StencilFactory
+from ndsl.constants import I_DIM, J_DIM, K_DIM
+from ndsl.dsl.gt4py import (
     BACKWARD,
     FORWARD,
     PARALLEL,
@@ -9,14 +15,6 @@ from gt4py.cartesian.gtscript import (
     log,
     sqrt,
 )
-
-import ndsl.constants as constants
-import pyshield.constants as physcons
-import pyshield.stencils.shallow_convection.constants as sccons
-
-# from pace.dsl.dace.orchestration import orchestrate
-from ndsl import QuantityFactory, StencilFactory
-from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,

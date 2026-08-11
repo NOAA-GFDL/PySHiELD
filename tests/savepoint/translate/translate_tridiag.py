@@ -1,7 +1,6 @@
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
-
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import I_DIM, J_DIM, K_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import Float
 from ndsl.stencils.basic_operations import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
