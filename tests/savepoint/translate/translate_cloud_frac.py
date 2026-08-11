@@ -5,8 +5,7 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
-from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import (  # noqa
-    CloudFraction,
+from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import (
     cloud_scheme_1,
     cloud_scheme_2,
     cloud_scheme_3,

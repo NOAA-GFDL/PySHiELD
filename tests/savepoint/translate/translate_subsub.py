@@ -1,21 +1,15 @@
-import ndsl.stencils.basic_operations as basic  # noqa
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
-import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun  # noqa
+import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, StencilFactory
-from ndsl.dsl.gt4py import FORWARD, computation, exp  # noqa
+from ndsl.dsl.gt4py import FORWARD, computation
 from ndsl.dsl.gt4py import function as gtfunction
-from ndsl.dsl.gt4py import interval, log  # noqa
+from ndsl.dsl.gt4py import interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.stencils import basic_operations as basic
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
-from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (  # noqa
+from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
     cloud_condensation_evaporation,
-    complete_freeze,
-    deposit_and_sublimate_graupel,
-    deposit_and_sublimate_ice,
-    deposit_and_sublimate_snow,
-    freeze_bigg,
     perform_instant_processes,
-    wegener_bergeron_findeisen,
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
