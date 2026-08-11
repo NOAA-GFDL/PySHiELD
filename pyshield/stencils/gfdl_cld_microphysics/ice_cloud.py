@@ -1197,7 +1197,7 @@ def ice_cloud(
             vterminal_s,
         )
 
-        (qice, qsnow, di, temperature) = autoconvert_ice_to_snow(
+        qice, qsnow, di, temperature = autoconvert_ice_to_snow(
             qice, qsnow, temperature, density, di
         )
 

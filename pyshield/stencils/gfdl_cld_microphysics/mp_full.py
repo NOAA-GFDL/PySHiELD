@@ -190,7 +190,7 @@ class FullMicrophysics:
         Full Microphysics Loop
         executes ntimes:
         """
-        for i in range(self._ntimes):
+        for _i in range(self._ntimes):
             self._sedimentation(
                 qvapor,
                 qliquid,

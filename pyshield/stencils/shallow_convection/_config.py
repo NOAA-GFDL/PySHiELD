@@ -2,7 +2,6 @@ import dataclasses
 
 from pyshield.tracer_workarounds import tracer_variables
 
-
 _DEFAULT_INT = 0
 DEFAULT_BOOL = False
 DEFAULT_FLOAT = 0.0

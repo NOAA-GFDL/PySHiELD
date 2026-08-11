@@ -17,7 +17,6 @@ from ndsl.initialization.allocator import QuantityFactory
 from pyshield._config import FloatFieldTracer
 from pyshield.functions.physics_functions import fpvs
 
-
 A1 = 0.13
 
 

@@ -386,7 +386,7 @@ class RTE_RRTMGPState:
                             newshape = (-1,)  # type: ignore[assignment]
                             dims.insert(0, "column")
                         elif ndims == 1:  # z-array
-                            newshape == (nz,)
+                            newshape = (nz,)  # type: ignore[assignment]
                         else:
                             raise NotImplementedError(
                                 (

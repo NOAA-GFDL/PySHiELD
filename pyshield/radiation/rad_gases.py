@@ -9,7 +9,6 @@ from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
 
-
 NDAYS_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 30]
 MINYEAR = 1957  # earliest year 2-d co2 data available
 NF_VGAS = 10  # number of gas species

@@ -3,7 +3,6 @@ from ndsl.dsl.gt4py import exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import log, sqrt
 
-
 # Marshall-Palmer constants ###
 VCONS = 6.6280504
 VCONG = 87.2382675

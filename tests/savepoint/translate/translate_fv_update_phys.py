@@ -15,7 +15,6 @@ from tests.savepoint.translate.translate_physics import (
     transform_dwind_serialized_data,
 )
 
-
 try:
     import cupy as cp
 except ImportError:

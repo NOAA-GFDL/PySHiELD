@@ -5,7 +5,6 @@ from typing import List, Tuple
 import ndsl.constants as constants
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 
-
 DEFAULT_INT = 0
 DEFAULT_FLOAT = 0.0
 DEFAULT_STR = ""

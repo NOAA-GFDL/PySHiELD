@@ -2,7 +2,6 @@ import ndsl.constants as constants
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField, IntFieldIJ
 
-
 RE_LIQ = 10.0
 """Default liquid radius in microns"""
 RE_ICE = 50.0

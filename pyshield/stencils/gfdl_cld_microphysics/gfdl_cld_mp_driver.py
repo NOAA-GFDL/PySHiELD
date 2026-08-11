@@ -1170,8 +1170,10 @@ class GFDLCloudMicrophysics:
         self,
         state: GFDLCloudMicrophysicsState,
         last_step: Bool = True,
-        timer: Timer = NullTimer(),
+        timer: Timer | None = None,
     ):
+        if timer is None:
+            timer = NullTimer()
 
         self._reset_initial_values_and_make_copies(
             state.adj_vmr,

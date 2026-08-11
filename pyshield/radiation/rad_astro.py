@@ -9,7 +9,6 @@ from ndsl.dsl.gt4py import FORWARD, acos, computation, cos, interval, sin
 from ndsl.dsl.typing import BoolFieldIJ, Float, FloatFieldIJ, Int
 from ndsl.logging import ndsl_log
 
-
 CCR = Float(1.3e-6)  # iteration limit
 CYEAR = Float(365.25)  # days of year
 SVT6 = Float(78.035)  # days between perihelion passage and march equinox of 1900

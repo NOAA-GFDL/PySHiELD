@@ -45,7 +45,6 @@ from pyshield.stencils.shallow_convection.samfshalconv import (
 )
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py
 
-
 FloatFieldShalConv = set_4d_field_size(7, Float)
 
 SC_TRACER_DIM = "n_tracers_shal"
