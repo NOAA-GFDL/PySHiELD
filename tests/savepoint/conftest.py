@@ -7,5 +7,4 @@ from ndsl.stencils.testing.conftest import *  # noqa: F403,F401
 
 from . import translate
 
-
 ndsl.stencils.testing.conftest.translate = translate  # type: ignore

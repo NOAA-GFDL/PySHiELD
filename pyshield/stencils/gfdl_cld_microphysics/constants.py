@@ -3,7 +3,6 @@ import math
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float
 
-
 # Constant parameters used in the GFDL Cloud Microphysics
 TICE0 = Float(constants.TICE - 0.01)
 

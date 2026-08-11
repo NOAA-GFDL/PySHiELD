@@ -10,7 +10,6 @@ from ndsl.typing import Communicator
 from pyfv3.stencils import fv_subgridz
 from pyshield.update.fv_update_phys import ApplyPhysicsToDycore
 
-
 # TODO: when this file is not importable from physics or pyFV3, import
 #       PhysicsState and DycoreState and use them to type hint below
 

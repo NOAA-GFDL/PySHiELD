@@ -23,7 +23,6 @@ from .rad_gases import co2_update, gas_init, get_gases_bottomup, get_gases_topdo
 from .rad_sfc import set_albedo, set_sfcemis, sfc_init
 from .state import RTE_RRTMGPState
 
-
 GRAV = 9.80665
 CP_DRY = 1004.64
 QMIN = 1.0e-10

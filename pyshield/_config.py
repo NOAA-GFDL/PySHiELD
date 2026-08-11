@@ -13,7 +13,6 @@ from ndsl.dsl.typing import Float, set_4d_field_size
 from ndsl.utils import f90nml_as_dict
 from pyshield.tracer_workarounds import tracer_variables
 
-
 # TODO: This will become a TracerBundle when ready
 FloatFieldTracer = set_4d_field_size(9, Float)
 

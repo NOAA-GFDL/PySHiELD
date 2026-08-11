@@ -1,7 +1,6 @@
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float
 
-
 # Driver constants
 HOCP = Float(constants.HLV / constants.CP_AIR)
 QMIN = Float(1.0e-10)

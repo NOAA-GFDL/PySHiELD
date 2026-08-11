@@ -1,7 +1,6 @@
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float
 
-
 # sfc_sice constants
 FLOAT_EPS = Float(1.0e-8)
 HIMAX = Float(8.0)

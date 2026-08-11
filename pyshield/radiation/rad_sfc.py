@@ -7,7 +7,6 @@ import pyshield.constants as physcons
 from ndsl.dsl.typing import Float, Int
 from ndsl.logging import ndsl_log
 
-
 LAND_ALBEDO = 0.25
 OCEAN_ALBEDO = 0.06
 ICE_ALBEDO = 0.65

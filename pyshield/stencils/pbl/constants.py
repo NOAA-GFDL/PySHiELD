@@ -1,7 +1,6 @@
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float
 
-
 # Constants used for turbulence schemes
 A1 = Float(0.12)
 A2 = Float(0.5)

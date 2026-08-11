@@ -2,7 +2,6 @@ from .fv_update_phys import ApplyPhysicsToDycore
 from .update_atmos_state import DycoreToPhysics, UpdateAtmosphereState
 from .update_dwind_phys import AGrid2DGridPhysics
 
-
 """
 ApplyPhysicsToDycore: Class to update the pyFV3 dynamical core state from the physics
                       state
