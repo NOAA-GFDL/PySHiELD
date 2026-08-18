@@ -2,8 +2,6 @@ import ndsl.constants as constants
 import pyshield.stencils.pbl.constants as pbl_constants
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval, sqrt
-
-# from pace.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import (
     Bool,
@@ -18,7 +16,6 @@ from ndsl.dsl.typing import (
 from ndsl.initialization.allocator import QuantityFactory
 from pyshield._config import FloatFieldTracer
 from pyshield.functions.physics_functions import fpvs
-
 
 A1 = 0.13
 

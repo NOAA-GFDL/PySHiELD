@@ -1,7 +1,6 @@
-from gt4py.cartesian.gtscript import FORWARD, computation, interval
-
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import I_DIM, J_DIM, K_DIM
+from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,

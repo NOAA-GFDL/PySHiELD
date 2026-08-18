@@ -10,7 +10,8 @@ classifiers = [
   "Natural Language :: English",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12"
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13"
 ]
 dependencies = [
   "f90nml>=1.1.0",
@@ -40,8 +41,8 @@ extras = [
   "pyshield[pyfv3]",
   "pyshield[test]"
 ]
-ndsl = ["ndsl @ git+https://github.com/twicki/NDSL.git@BREAKING_replace_basic_stencils"]
-pyfv3 = ["pyfv3 @ git+https://github.com/twicki/pyFV3.git@rename_basic_operations"]
+ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@2026.07.00"]
+pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/pyFV3.git@develop"]
 test = [
   "coverage",
   "pytest",
@@ -54,8 +55,7 @@ Repository = "https://github.com/NOAA-GFDL/PySHiELD"
 [tool.aliases]
 
 [tool.black]
-line-length = 88
-target_version = ['py311']
+target-version = ["py311", "py312", "py313"]
 
 [tool.coverage.run]
 branch = true
@@ -76,15 +76,10 @@ max-line-length = 88
 
 [tool.isort]
 default_section = "THIRDPARTY"
-force_grid_wrap = 0
-include_trailing_comma = true
 known_first_party = "pyfv3,ndsl,pyshield"
 known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py"
-line_length = 88
-lines_after_imports = 2
-multi_line_output = 3
+profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
-use_parentheses = true
 
 [tool.mypy]
 explicit_package_bases = true

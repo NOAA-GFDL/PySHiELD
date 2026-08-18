@@ -1,6 +1,4 @@
 import ndsl.constants as constants
-
-# from pace.dsl.dace.orchestration import orchestrate
 from ndsl import Quantity, QuantityFactory, StencilFactory
 from ndsl.constants import I_DIM, J_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval

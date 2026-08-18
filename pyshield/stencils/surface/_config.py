@@ -1,7 +1,6 @@
 import dataclasses
 from typing import Sequence
 
-
 DEFAULT_FLOAT = 0.0
 DEFAULT_INT = 0
 DEFAULT_BOOL = False

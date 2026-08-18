@@ -2,7 +2,6 @@ from ._config import RTE_RRTMGPConfig
 from .rte_rrtmgp import RTE_RRTMGPDriver
 from .state import RTE_RRTMGPState
 
-
 """
 RTE_RRTMGPConfig: Configuration class for the radiation driver
 RTE_RRTMGPDriver: Driver for the RTE_RRTMGP code

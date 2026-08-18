@@ -1,6 +1,5 @@
 from ndsl.dsl.typing import Float
 
-
 # Constants used in the shallow convection scheme
 CM = Float(1.0)
 CLAMD = Float(0.1)

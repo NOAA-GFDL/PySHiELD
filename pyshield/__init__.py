@@ -3,7 +3,6 @@ from .physics_state import PhysicsState
 from .stencils.physics import Physics
 from .stencils.surface import SurfaceState
 
-
 __all__ = [
     "PHYSICS_PACKAGES",
     "PhysicsConfig",
