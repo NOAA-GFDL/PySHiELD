@@ -2,7 +2,7 @@ from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import Float
-from ndsl.stencils.basic_operations import copy
+from ndsl.stencils import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl.tridiag import tridi2, tridin, tridit
 from tests.savepoint.translate.translate_physics import TranslatePhysicsFortranData2Py

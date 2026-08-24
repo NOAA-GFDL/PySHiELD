@@ -1,7 +1,6 @@
 import numpy as np
 
 import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, QuantityFactory, StencilFactory
@@ -10,6 +9,7 @@ from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval, s
 from ndsl.dsl.typing import Bool, Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.performance.timer import NullTimer, Timer
+from ndsl.stencils import copy
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.cloud_fraction import CloudFraction
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_microphysics_state import (
@@ -899,7 +899,7 @@ class GFDLCloudMicrophysics:
         self._convert_mm_day = 86400.0 * constants.RGRAV / self.config.dt_split
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy,
+            copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )

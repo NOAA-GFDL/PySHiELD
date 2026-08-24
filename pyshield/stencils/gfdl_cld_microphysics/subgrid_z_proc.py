@@ -1,5 +1,4 @@
 import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, StencilFactory
@@ -7,6 +6,7 @@ from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import Bool, FloatField, FloatFieldIJ
+from ndsl.stencils.arithmetic_functions import dim
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
 
@@ -44,7 +44,7 @@ def perform_instant_processes(
 
     # Instant deposit all water vapor to cloud ice when temperature is super low
     if temperature < t_min:
-        sink = basic.dim(qvapor, mpcons.QCMIN)
+        sink = dim(qvapor, mpcons.QCMIN)
         dep += sink * delp
 
         (
@@ -368,7 +368,7 @@ def wegener_bergeron_findeisen(
 
         sink = min(fac_wbf * qliquid, tc / icpk)
         qim = qi0_crt / density
-        tmp = min(sink, basic.dim(qim, qice))
+        tmp = min(sink, dim(qim, qice))
 
         (
             qvapor,
@@ -606,7 +606,7 @@ def deposit_and_sublimate_ice(
             sink = min(tmp, min(max(qi_crt - qice, pidep), tc / tcpk))
             dep += sink * delp
         else:
-            pidep = pidep * min(1, basic.dim(temperature, t_sub) * is_fac)
+            pidep = pidep * min(1, dim(temperature, t_sub) * is_fac)
             sink = max(pidep, max(tmp, -qice))
             sub -= sink * delp
 
@@ -726,7 +726,7 @@ def deposit_and_sublimate_snow(
         dq = dq / (1 + tcpk * dqdt)
 
         if pssub > 0:
-            sink = min(pssub * min(1.0, basic.dim(temperature, t_sub) * ss_fac), qsnow)
+            sink = min(pssub * min(1.0, dim(temperature, t_sub) * ss_fac), qsnow)
             sub += sink * delp
         else:
             sink = 0.0
@@ -851,9 +851,7 @@ def deposit_and_sublimate_graupel(
         dq = dq / (1 + tcpk * dqdt)
 
         if pgsub > 0:
-            sink = min(
-                pgsub * min(1.0, basic.dim(temperature, t_sub) * gs_fac), qgraupel
-            )
+            sink = min(pgsub * min(1.0, dim(temperature, t_sub) * gs_fac), qgraupel)
             sub += sink * delp
         else:
             sink = 0.0

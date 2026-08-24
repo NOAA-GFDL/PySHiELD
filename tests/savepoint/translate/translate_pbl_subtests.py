@@ -10,7 +10,7 @@ from ndsl.dsl.typing import (
     Int,
     IntFieldIJ,
 )
-from ndsl.stencils.basic_operations import copy
+from ndsl.stencils import copy
 from pyshield._config import TRACER_DIM, FloatFieldTracer
 from pyshield.stencils.pbl import PBLConfig
 from pyshield.stencils.pbl import constants as pbl_constants

@@ -1,9 +1,9 @@
 import ndsl.constants as constants
-import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 from ndsl.dsl.gt4py import exp, floor
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import log, max, min, sqrt
+from ndsl.stencils.arithmetic_functions import dim
 
 
 @gtfunction
@@ -129,7 +129,7 @@ def calc_heat_cap_and_latent_heat_coeff(
     icpk = (li00 + d1_ice * temperature) / cvm
     tcpk = (li20 + (d1_vap + d1_ice) * temperature) / cvm
     tcp3 = lcpk + icpk * min(
-        1.0, basic.dim(mpcons.TICE0, temperature) / (mpcons.TICE0 - t_wfr)
+        1.0, dim(mpcons.TICE0, temperature) / (mpcons.TICE0 - t_wfr)
     )
 
     return q_liq, q_solid, cvm, te, lcpk, icpk, tcpk, tcp3
@@ -182,7 +182,7 @@ def update_hydrometeors_and_temperatures(
     lcpk = (lv00 + d1_vap * tk) / cvm
     icpk = (li00 + d1_ice * tk) / cvm
     tcpk = (li20 + (d1_vap + d1_ice) * tk) / cvm
-    tcp3 = lcpk + icpk * min(1.0, basic.dim(mpcons.TICE0, tk) / (mpcons.TICE0 - t_wfr))
+    tcp3 = lcpk + icpk * min(1.0, dim(mpcons.TICE0, tk) / (mpcons.TICE0 - t_wfr))
 
     return (
         qvapor,

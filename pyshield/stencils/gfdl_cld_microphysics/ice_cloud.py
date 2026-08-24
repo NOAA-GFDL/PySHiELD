@@ -1,4 +1,3 @@
-import ndsl.stencils.basic_operations as basic
 import pyshield.stencils.gfdl_cld_microphysics.constants as mpcons
 import pyshield.stencils.gfdl_cld_microphysics.physical_functions as physfun
 from ndsl import GridIndexing, StencilFactory
@@ -6,6 +5,7 @@ from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.stencils.arithmetic_functions import dim
 from pyshield.stencils.gfdl_cld_microphysics._config import GFDLCloudMPConfig
 
 
@@ -39,7 +39,7 @@ def melt_cloud_ice(
     if (tc > 0.0) and (qice > mpcons.QCMIN):
         sink = fac_imlt * tc / icpk
         sink = min(qice, sink)
-        tmp = min(sink, basic.dim(ql_mlt, qliquid))
+        tmp = min(sink, dim(ql_mlt, qliquid))
 
         (
             qvapor,
@@ -114,7 +114,7 @@ def freeze_cloud_water(
         sink = qliquid * tc / mpcons.DT_FR
         sink = min(qliquid, min(sink, tc / icpk))
         qim = qi0_crt / density
-        tmp = min(sink, basic.dim(qim, qice))
+        tmp = min(sink, dim(qim, qice))
 
         (
             qvapor,
@@ -303,7 +303,7 @@ def melt_snow(
             ),
         )
         sink = min(qsnow, min((sink + pracs) * timestep, tc / icpk))
-        tmp = min(sink, basic.dim(qs_mlt, qliquid))
+        tmp = min(sink, dim(qs_mlt, qliquid))
 
         (
             qvapor,
@@ -943,7 +943,7 @@ def accrete_graupel_with_cloud_water_and_rain(
             )
 
         sink = pgacr + pgacw
-        factor = min(sink, basic.dim(mpcons.TICE0, temperature) / icpk) / max(
+        factor = min(sink, dim(mpcons.TICE0, temperature) / icpk) / max(
             sink, mpcons.QCMIN
         )
         pgacr = factor * pgacr
