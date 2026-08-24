@@ -9,7 +9,6 @@ classifiers = [
   "Intended Audience :: Developers",
   "Natural Language :: English",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13"
 ]
@@ -24,7 +23,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE.md"]
 name = "pyshield"
 readme = "README.md"
-requires-python = ">=3.11.7, <3.14"
+requires-python = ">=3.12, <3.14"
 version = "0.2.0"
 
 [project.optional-dependencies]
@@ -41,7 +40,7 @@ extras = [
   "pyshield[pyfv3]",
   "pyshield[test]"
 ]
-ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@2026.07.00"]
+ndsl = ["ndsl @ git+https://github.com/NOAA-GFDL/NDSL.git@2026.08.00"]
 pyfv3 = ["pyfv3 @ git+https://github.com/NOAA-GFDL/pyFV3.git@develop"]
 test = [
   "coverage",
@@ -55,7 +54,7 @@ Repository = "https://github.com/NOAA-GFDL/PySHiELD"
 [tool.aliases]
 
 [tool.black]
-target-version = ["py311", "py312", "py313"]
+target-version = ["py312", "py313"]
 
 [tool.coverage.run]
 branch = true
