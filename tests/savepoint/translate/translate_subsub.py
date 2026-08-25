@@ -5,7 +5,7 @@ from ndsl.dsl.gt4py import FORWARD, computation
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
-from ndsl.stencils import basic_operations as basic
+from ndsl.stencils.arithmetic_functions import dim
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.subgrid_z_proc import (
     cloud_condensation_evaporation,
@@ -46,7 +46,7 @@ def perform_instant_processes_test(
 
     # Instant deposit all water vapor to cloud ice when temperature is super low
     if temperature < t_min:
-        sink = basic.dim(qvapor, mpcons.QCMIN)
+        sink = dim(qvapor, mpcons.QCMIN)
         dep += sink * delp
 
         (

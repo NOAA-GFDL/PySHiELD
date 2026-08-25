@@ -1,6 +1,6 @@
-import ndsl.stencils.basic_operations as basic
 from ndsl import QuantityFactory, StencilFactory, SubtileGridSizer
 from ndsl.constants import I_DIM, J_DIM
+from ndsl.stencils import copy
 from pyshield.stencils.gfdl_cld_microphysics import GFDLCloudMPConfig
 from pyshield.stencils.gfdl_cld_microphysics.gfdl_cld_mp_driver import (
     calculate_density_factor,
@@ -39,7 +39,7 @@ class PrelimCalcs:
         self._bottom_density = make_quantity2d()
 
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy,
+            copy,
             origin=self._idx.origin_compute(),
             domain=self._idx.domain_compute(),
         )

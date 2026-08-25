@@ -5,7 +5,7 @@ from ndsl.dsl.gt4py import FORWARD, computation, exp
 from ndsl.dsl.gt4py import function as gtfunction
 from ndsl.dsl.gt4py import interval, log, sqrt
 from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ, Int, IntFieldIJ
-from ndsl.stencils.basic_operations import sign
+from ndsl.stencils.arithmetic_functions import sign
 from pyshield.functions.physics_functions import fpvsx
 
 
